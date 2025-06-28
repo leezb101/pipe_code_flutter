@@ -61,7 +61,7 @@ class MockDataGenerator {
       email: '$username@example.com',
       firstName: firstName,
       lastName: lastName,
-      avatar: 'https://picsum.photos/200/200?random=${_random.nextInt(100)}',
+      avatar: null,
     );
   }
 
@@ -70,7 +70,7 @@ class MockDataGenerator {
       id: id ?? _randomId(),
       title: _randomString(_titles),
       description: _randomString(_descriptions),
-      imageUrl: 'https://picsum.photos/300/200?random=${_random.nextInt(100)}',
+      imageUrl: null,
       createdAt: DateTime.now().subtract(
         Duration(
           days: _random.nextInt(30),
@@ -101,7 +101,7 @@ class MockDataGenerator {
       email: email ?? '$username@example.com',
       firstName: _randomString(_firstNames),
       lastName: _randomString(_lastNames),
-      avatar: 'https://picsum.photos/200/200?random=${_random.nextInt(100)}',
+      avatar: null,
     );
 
     return {

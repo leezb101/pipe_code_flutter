@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config/app_config.dart';
+import '../utils/toast_utils.dart';
 
 class DeveloperSettingsPage extends StatefulWidget {
   const DeveloperSettingsPage({super.key});
@@ -63,16 +64,30 @@ class _DeveloperSettingsPageState extends State<DeveloperSettingsPage> {
               ),
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _restartApp,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white,
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _restartApp,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Restart App'),
+                  ),
                 ),
-                child: const Text('Restart App to Apply Changes'),
-              ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _resetSettings,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                    ),
+                    child: const Text('Reset Settings'),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             const Card(
@@ -94,7 +109,7 @@ class _DeveloperSettingsPageState extends State<DeveloperSettingsPage> {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'This page is only available in development builds. '
+                      'Settings are now automatically saved. Changes will persist after app restart. '
                       'Use Mock data source when no backend is available.',
                     ),
                   ],
@@ -128,11 +143,10 @@ class _DeveloperSettingsPageState extends State<DeveloperSettingsPage> {
               child: Text(_environmentName(env)),
             );
           }).toList(),
-          onChanged: (Environment? value) {
+          onChanged: (Environment? value) async {
             if (value != null) {
-              setState(() {
-                AppConfig.setEnvironment(value);
-              });
+              await AppConfig.setEnvironment(value);
+              setState(() {});
             }
           },
         ),
@@ -170,11 +184,10 @@ class _DeveloperSettingsPageState extends State<DeveloperSettingsPage> {
               ),
             );
           }).toList(),
-          onChanged: (DataSource? value) {
+          onChanged: (DataSource? value) async {
             if (value != null) {
-              setState(() {
-                AppConfig.setDataSource(value);
-              });
+              await AppConfig.setDataSource(value);
+              setState(() {});
             }
           },
         ),
@@ -242,15 +255,48 @@ class _DeveloperSettingsPageState extends State<DeveloperSettingsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Restart Required'),
+        title: const Text('Settings Saved'),
         content: const Text(
-          'The app needs to be restarted to apply the new configuration. '
-          'Please close the app and reopen it.',
+          'Your settings have been saved successfully! '
+          'You can now close and reopen the app to see the changes take effect.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _resetSettings() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset Settings'),
+        content: const Text(
+          'This will reset all developer settings to default values. '
+          'Are you sure you want to continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              
+              navigator.pop();
+              await AppConfig.reset();
+              
+              if (mounted) {
+                setState(() {});
+                context.showSuccessToast('设置已重置为默认值');
+              }
+            },
+            child: const Text('Reset'),
           ),
         ],
       ),

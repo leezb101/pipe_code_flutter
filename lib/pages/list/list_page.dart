@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubits/list_cubit.dart';
 import '../../models/list_item/list_item.dart';
+import '../../utils/toast_utils.dart';
 
 class ListPage extends StatefulWidget {
   const ListPage({super.key});
@@ -32,9 +33,7 @@ class _ListPageState extends State<ListPage> {
       body: BlocConsumer<ListCubit, ListState>(
         listener: (context, state) {
           if (state.error != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.error!)),
-            );
+            context.showErrorToast(state.error!);
           }
         },
         builder: (context, state) {
@@ -117,9 +116,7 @@ class _ListItemWidget extends StatelessWidget {
             : null,
         onTap: () {
           // Handle item tap
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Tapped on ${item.title}')),
-          );
+          context.showInfoToast('点击了 ${item.title}');
         },
       ),
     );

@@ -6,6 +6,7 @@ import '../repositories/list_repository.dart';
 import '../services/api/interfaces/api_service_interface.dart';
 import '../services/api_service_factory.dart';
 import '../services/storage_service.dart';
+import '../services/qr_scan_service.dart';
 import 'app_config.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -16,10 +17,15 @@ Future<void> setupServiceLocator({
 }) async {
   // Configure app environment
   if (environment != null) {
-    AppConfig.setEnvironment(environment);
+    await AppConfig.setEnvironment(environment);
   }
   if (dataSource != null) {
-    AppConfig.setDataSource(dataSource);
+    await AppConfig.setDataSource(dataSource);
+  }
+
+  // Reset service locator if already initialized
+  if (getIt.isRegistered<SharedPreferences>()) {
+    await getIt.reset();
   }
 
   // External dependencies
@@ -34,6 +40,11 @@ Future<void> setupServiceLocator({
   // API Service - automatically chooses Mock or Real based on config
   getIt.registerLazySingleton<ApiServiceInterface>(
     () => ApiServiceFactory.create(),
+  );
+
+  // QR Scan Service
+  getIt.registerLazySingleton<QrScanService>(
+    () => QrScanServiceImpl(),
   );
 
   // Repositories
