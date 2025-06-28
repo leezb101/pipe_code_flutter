@@ -1,0 +1,27 @@
+import 'package:dio/dio.dart';
+import '../interfaces/api_service_interface.dart';
+import '../interfaces/auth_api_service.dart';
+import '../interfaces/user_api_service.dart';
+import '../interfaces/list_api_service.dart';
+import 'auth_api_service_impl.dart';
+import 'user_api_service_impl.dart';
+import 'list_api_service_impl.dart';
+
+class ApiServiceImpl implements ApiServiceInterface {
+  final Dio _dio;
+  
+  AuthApiService? _authService;
+  UserApiService? _userService;
+  ListApiService? _listService;
+
+  ApiServiceImpl(this._dio);
+
+  @override
+  AuthApiService get auth => _authService ??= AuthApiServiceImpl(_dio);
+
+  @override
+  UserApiService get user => _userService ??= UserApiServiceImpl(_dio);
+
+  @override
+  ListApiService get list => _listService ??= ListApiServiceImpl(_dio);
+}
