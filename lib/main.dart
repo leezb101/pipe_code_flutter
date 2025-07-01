@@ -11,8 +11,12 @@ import 'config/routes.dart';
 import 'config/service_locator.dart';
 import 'config/app_config.dart';
 import 'bloc/auth/auth_bloc.dart';
+import 'bloc/auth/auth_state.dart';
+import 'bloc/user/user_bloc.dart';
+import 'bloc/user/user_event.dart';
 import 'cubits/list_cubit.dart';
 import 'repositories/auth_repository.dart';
+import 'repositories/user_repository.dart';
 import 'repositories/list_repository.dart';
 
 void main() async {
@@ -44,18 +48,31 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               AuthBloc(authRepository: getIt<AuthRepository>()),
         ),
+        BlocProvider<UserBloc>(
+          create: (context) =>
+              UserBloc(userRepository: getIt<UserRepository>()),
+        ),
         BlocProvider<ListCubit>(
           create: (context) =>
               ListCubit(listRepository: getIt<ListRepository>()),
         ),
       ],
-      child: MaterialApp.router(
-        title: 'Flutter Bloc Template',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          useMaterial3: true,
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthAuthenticated) {
+            context.read<UserBloc>().add(UserSetData(user: state.user));
+          } else if (state is AuthUnauthenticated) {
+            context.read<UserBloc>().add(const UserClearData());
+          }
+        },
+        child: MaterialApp.router(
+          title: 'Flutter Bloc Template',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+            useMaterial3: true,
+          ),
+          routerConfig: appRouter,
         ),
-        routerConfig: appRouter,
       ),
     );
   }

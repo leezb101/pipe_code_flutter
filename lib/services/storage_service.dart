@@ -1,11 +1,20 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-06-28 13:17:21
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-01 17:38:51
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class StorageService {
   final SharedPreferences _prefs;
-  
+
   static const String _tokenKey = 'auth_token';
   static const String _userIdKey = 'user_id';
   static const String _usernameKey = 'username';
+  static const String _roleKey = 'role';
 
   StorageService(this._prefs);
 
@@ -31,6 +40,14 @@ class StorageService {
 
   String? getUsername() {
     return _prefs.getString(_usernameKey);
+  }
+
+  Future<void> saveRole(String role) async {
+    await _prefs.setString(_roleKey, role);
+  }
+
+  String? getRole() {
+    return _prefs.getString(_roleKey);
   }
 
   Future<void> clearAll() async {
@@ -70,5 +87,13 @@ class StorageService {
 
   bool containsKey(String key) {
     return _prefs.containsKey(key);
+  }
+
+  String encodeJsonString(Map<String, dynamic> data) {
+    return jsonEncode(data);
+  }
+
+  Map<String, dynamic> decodeJsonString(String jsonString) {
+    return jsonDecode(jsonString) as Map<String, dynamic>;
   }
 }

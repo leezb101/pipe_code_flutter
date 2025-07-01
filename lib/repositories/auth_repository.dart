@@ -25,8 +25,6 @@ class AuthRepository {
     final userData = response['user'] as Map<String, dynamic>;
     
     await _storageService.saveAuthToken(token);
-    await _storageService.saveUserId(userData['id']);
-    await _storageService.saveUsername(userData['username']);
     
     _apiService.auth.setAuthToken(token);
     
@@ -48,8 +46,6 @@ class AuthRepository {
     final userData = response['user'] as Map<String, dynamic>;
     
     await _storageService.saveAuthToken(token);
-    await _storageService.saveUserId(userData['id']);
-    await _storageService.saveUsername(userData['username']);
     
     _apiService.auth.setAuthToken(token);
     

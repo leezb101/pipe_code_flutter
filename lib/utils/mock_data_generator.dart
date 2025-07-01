@@ -6,13 +6,38 @@ class MockDataGenerator {
   static final Random _random = Random();
 
   static final List<String> _firstNames = [
-    'John', 'Jane', 'Mike', 'Sarah', 'David', 'Emma', 'Chris', 'Lisa',
-    'Tom', 'Anna', 'James', 'Maria', 'Robert', 'Linda', 'Michael', 'Patricia'
+    'John',
+    'Jane',
+    'Mike',
+    'Sarah',
+    'David',
+    'Emma',
+    'Chris',
+    'Lisa',
+    'Tom',
+    'Anna',
+    'James',
+    'Maria',
+    'Robert',
+    'Linda',
+    'Michael',
+    'Patricia',
   ];
 
   static final List<String> _lastNames = [
-    'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller',
-    'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez'
+    'Smith',
+    'Johnson',
+    'Williams',
+    'Brown',
+    'Jones',
+    'Garcia',
+    'Miller',
+    'Davis',
+    'Rodriguez',
+    'Martinez',
+    'Hernandez',
+    'Lopez',
+    'Gonzalez',
   ];
 
   static final List<String> _titles = [
@@ -25,7 +50,7 @@ class MockDataGenerator {
     'Performance Optimization Tips',
     'Testing Flutter Applications',
     'Publishing to App Stores',
-    'Cross-Platform Development'
+    'Cross-Platform Development',
   ];
 
   static final List<String> _descriptions = [
@@ -38,7 +63,7 @@ class MockDataGenerator {
     'Optimize your application performance for better user experience.',
     'Write comprehensive tests to ensure code quality and reliability.',
     'Deploy your applications to app stores successfully.',
-    'Build once, run everywhere with cross-platform solutions.'
+    'Build once, run everywhere with cross-platform solutions.',
   ];
 
   static String _randomString(List<String> options) {
@@ -46,19 +71,20 @@ class MockDataGenerator {
   }
 
   static String _randomId() {
-    return DateTime.now().millisecondsSinceEpoch.toString() + 
-           _random.nextInt(1000).toString();
+    return DateTime.now().millisecondsSinceEpoch.toString() +
+        _random.nextInt(1000).toString();
   }
 
   static User generateUser({String? id}) {
     final firstName = _randomString(_firstNames);
     final lastName = _randomString(_lastNames);
     final username = '${firstName.toLowerCase()}_${lastName.toLowerCase()}';
-    
+
     return User(
       id: id ?? _randomId(),
       username: username,
       email: '$username@example.com',
+      role: 'user',
       firstName: firstName,
       lastName: lastName,
       avatar: null,
@@ -79,10 +105,7 @@ class MockDataGenerator {
         ),
       ),
       updatedAt: DateTime.now().subtract(
-        Duration(
-          hours: _random.nextInt(24),
-          minutes: _random.nextInt(60),
-        ),
+        Duration(hours: _random.nextInt(24), minutes: _random.nextInt(60)),
       ),
     );
   }
@@ -99,6 +122,7 @@ class MockDataGenerator {
       id: _randomId(),
       username: username,
       email: email ?? '$username@example.com',
+      role: 'user',
       firstName: _randomString(_firstNames),
       lastName: _randomString(_lastNames),
       avatar: null,
@@ -111,12 +135,12 @@ class MockDataGenerator {
     };
   }
 
-  static Future<void> simulateNetworkDelay({
-    Duration? delay,
-  }) async {
-    final actualDelay = delay ?? Duration(
-      milliseconds: 500 + _random.nextInt(1500), // 0.5 - 2 seconds
-    );
+  static Future<void> simulateNetworkDelay({Duration? delay}) async {
+    final actualDelay =
+        delay ??
+        Duration(
+          milliseconds: 500 + _random.nextInt(1500), // 0.5 - 2 seconds
+        );
     await Future.delayed(actualDelay);
   }
 
