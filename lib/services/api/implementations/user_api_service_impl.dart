@@ -26,4 +26,53 @@ class UserApiServiceImpl extends BaseApiService implements UserApiService {
       throw handleError(e);
     }
   }
+
+  @override
+  Future<List<dynamic>> getUserProjectRoles({
+    required String userId,
+  }) async {
+    try {
+      final response = await dio.get('/user/$userId/project-roles');
+      return response.data;
+    } on DioException catch (e) {
+      throw handleError(e);
+    }
+  }
+
+  @override
+  Future<List<dynamic>> getUserAccessibleProjects({
+    required String userId,
+  }) async {
+    try {
+      final response = await dio.get('/user/$userId/accessible-projects');
+      return response.data;
+    } on DioException catch (e) {
+      throw handleError(e);
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> updateUserProjectRole({
+    required String projectId,
+    required Map<String, dynamic> roleData,
+  }) async {
+    try {
+      final response = await dio.put('/user/project-role/$projectId', data: roleData);
+      return response.data;
+    } on DioException catch (e) {
+      throw handleError(e);
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getUserProjectContext({
+    required String userId,
+  }) async {
+    try {
+      final response = await dio.get('/user/$userId/project-context');
+      return response.data;
+    } on DioException catch (e) {
+      throw handleError(e);
+    }
+  }
 }

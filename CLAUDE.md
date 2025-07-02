@@ -107,6 +107,13 @@ The app includes specialized QR scanning functionality for water infrastructure 
 - **Equatable** for value equality
 - Generated files with `.g.dart` extension (run build_runner after changes)
 
+#### Key Models
+- `lib/models/user/user.dart` - Basic user information (role removed)
+- `lib/models/user/user_role.dart` - Role enumeration with permissions
+- `lib/models/project/project.dart` - Water management project details
+- `lib/models/user/user_project_role.dart` - User-project-role associations
+- `lib/models/menu/menu_config.dart` - Role-based menu configurations
+
 ### State Management
 - `lib/bloc/` - Complex state management with BLoC
 - `lib/cubits/` - Simple state management with Cubit
@@ -119,6 +126,35 @@ Always run code generation after modifying models:
 dart run build_runner build
 ```
 
+### User and Project Role Management
+The app now supports a sophisticated user-project-role system:
+
+#### Key Changes Made
+1. **Removed direct role binding from User model** - roles are now project-specific
+2. **Added UserRole enum** with 8 role types (suppliers, construction, supervisor, builder, check, builderSub, laborer, playgoer)
+3. **Created Project model** for water management projects
+4. **Implemented UserProjectRole** to manage user roles within specific projects
+5. **Added MenuConfig system** that displays different menus based on user's current project role
+6. **Refactored UserBloc** to support project switching and role management
+7. **Updated HomePage** to dynamically show role-appropriate functionality
+
+#### Project-Role Architecture
+- Users can belong to multiple projects with different roles in each
+- The app maintains a current project context with the user's role in that project
+- Home page menus change based on the current project and role
+- Users can switch between projects using the dropdown in the app bar
+
+#### Role-Based Menu System
+Each role has specific menu items and permissions:
+- **Suppliers**: Product management, order management, delivery tracking
+- **Construction**: Project overview, contract management, progress monitoring, quality control
+- **Supervisor**: Inspection tasks, quality reports, acceptance management
+- **Builder**: Construction tasks, material management, safety records, QR operations
+- **Check**: Quality inspection, test reports
+- **BuilderSub**: Sub-task allocation, team management
+- **Laborer**: Work tasks, delegate operations (harvest/acceptance)
+- **Playgoer**: Basic info, feedback
+
 ### Environment Setup
 The app defaults to **Development + Mock** mode. To change:
 1. Use developer settings in the app, or
@@ -128,6 +164,23 @@ The app defaults to **Development + Mock** mode. To change:
    await setupDevelopmentEnvironment(); // Dev + Real API
    await setupProductionEnvironment();  // Prod + Real API
    ```
+
+### Performance Optimizations
+
+#### Repository Caching System
+To prevent redundant data loading, the `UserRepository` implements an in-memory caching mechanism:
+
+- **User data caching**: Avoids repeated `loadUserFromStorage` calls
+- **Project context caching**: Reduces redundant project role lookups
+- **Cache timeout**: 5-minute automatic cache expiration
+- **Smart invalidation**: Cache cleared on user logout or data updates
+
+#### Page Load Optimization
+UI pages now check BLoC state before triggering data loads:
+
+- **ProfilePage**: Only loads if state is `UserInitial` or `UserEmpty`
+- **HomePage**: Only loads if state is not `UserProjectContextLoaded`
+- **Prevents redundant calls** after successful login
 
 ### Testing Strategy
 - **Widget tests** in `/test/` directory
@@ -184,3 +237,50 @@ This app is specifically designed for water utility infrastructure management:
 2. Add route to `lib/config/routes.dart`
 3. Create corresponding BLoC/Cubit for state management
 4. Register dependencies in `service_locator.dart` if needed
+
+## State Management Patterns
+
+### BLoC Architecture Insights
+
+#### Concerns and State Separation
+- **UserBloc**: Only focuses on user basic information (login/registration/profile)
+- **ProjectBloc**: Only manages project roles and menus (project switching/role management)
+
+#### State Independence
+- User login success ≠ Project must load successfully
+- Project switching failure ≠ User needs to re-login
+- Errors in one domain do not affect the other
+
+#### Maintainability Benefits
+- Clear responsibility boundaries: Each BLoC manages its own domain
+- Improved testability: User and project logic can be tested independently
+- Enhanced extensibility: Can add project-related features without affecting user management
+
+#### State Flow Diagram
+- User State: UserInitial → UserLoading → UserLoaded
+                                    ↘ UserError/UserEmpty
+
+- Project State: ProjectInitial → ProjectLoading → ProjectContextLoaded
+                                          ↘ ProjectError/ProjectEmpty
+
+#### Problem Resolution Workflow
+
+##### Before Refactoring
+- Login successful → UserBloc loads user data ✅
+- UserBloc loads project data ❌ Fails
+- emit UserEmpty ❌ User state cleared
+- ProfilePage shows blank ❌
+
+##### After Refactoring
+- Login successful → UserBloc loads user data ✅ UserLoaded state
+- ProjectBloc loads project data ❌ Fails
+- emit ProjectError ✅ Only affects project state
+- ProfilePage displays user information normally ✅
+- HomePage shows project error information ✅
+
+Key Improvement: Completely independent state flows, solving the original state coupling problem. This refactoring ensures robust user and project state management with clear separation of concerns.
+
+## Code Best Practices
+
+### Context Management
+- **Important**: Don't use 'buildContext's across async gaps, guarded by an unrelated 'mounted' check.

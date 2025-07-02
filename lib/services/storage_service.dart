@@ -14,7 +14,6 @@ class StorageService {
   static const String _tokenKey = 'auth_token';
   static const String _userIdKey = 'user_id';
   static const String _usernameKey = 'username';
-  static const String _roleKey = 'role';
 
   StorageService(this._prefs);
 
@@ -40,14 +39,6 @@ class StorageService {
 
   String? getUsername() {
     return _prefs.getString(_usernameKey);
-  }
-
-  Future<void> saveRole(String role) async {
-    await _prefs.setString(_roleKey, role);
-  }
-
-  String? getRole() {
-    return _prefs.getString(_roleKey);
   }
 
   Future<void> clearAll() async {

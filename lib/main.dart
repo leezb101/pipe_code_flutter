@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 13:17:21
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-06-28 14:52:51
+ * @LastEditTime: 2025-07-01 20:44:25
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -14,9 +14,12 @@ import 'bloc/auth/auth_bloc.dart';
 import 'bloc/auth/auth_state.dart';
 import 'bloc/user/user_bloc.dart';
 import 'bloc/user/user_event.dart';
+import 'bloc/project/project_bloc.dart';
+import 'bloc/project/project_event.dart';
 import 'cubits/list_cubit.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/user_repository.dart';
+import 'repositories/project_repository.dart';
 import 'repositories/list_repository.dart';
 
 void main() async {
@@ -52,6 +55,12 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               UserBloc(userRepository: getIt<UserRepository>()),
         ),
+        BlocProvider<ProjectBloc>(
+          create: (context) => ProjectBloc(
+            projectRepository: getIt<ProjectRepository>(),
+            userRepository: getIt<UserRepository>(),
+          ),
+        ),
         BlocProvider<ListCubit>(
           create: (context) =>
               ListCubit(listRepository: getIt<ListRepository>()),
@@ -61,8 +70,13 @@ class MyApp extends StatelessWidget {
         listener: (context, state) {
           if (state is AuthAuthenticated) {
             context.read<UserBloc>().add(UserSetData(user: state.user));
+            // // 登录成功后，触发项目上下文加载
+            // context.read<ProjectBloc>().add(
+            //   ProjectLoadUserContext(userId: state.user.id),
+            // );
           } else if (state is AuthUnauthenticated) {
             context.read<UserBloc>().add(const UserClearData());
+            context.read<ProjectBloc>().add(const ProjectClearData());
           }
         },
         child: MaterialApp.router(

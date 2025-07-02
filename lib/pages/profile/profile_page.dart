@@ -21,7 +21,11 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    context.read<UserBloc>().add(const UserLoadRequested());
+    // 只有当当前状态不是已加载状态时，才触发加载
+    final currentState = context.read<UserBloc>().state;
+    if (currentState is UserInitial || currentState is UserEmpty) {
+      context.read<UserBloc>().add(const UserLoadRequested());
+    }
   }
 
   @override

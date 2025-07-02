@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/user_repository.dart';
+import '../repositories/project_repository.dart';
 import '../repositories/list_repository.dart';
 import '../services/api/interfaces/api_service_interface.dart';
 import '../services/api_service_factory.dart';
@@ -57,6 +58,13 @@ Future<void> setupServiceLocator({
   
   getIt.registerLazySingleton<UserRepository>(
     () => UserRepository(
+      apiService: getIt<ApiServiceInterface>(),
+      storageService: getIt<StorageService>(),
+    ),
+  );
+  
+  getIt.registerLazySingleton<ProjectRepository>(
+    () => ProjectRepository(
       apiService: getIt<ApiServiceInterface>(),
       storageService: getIt<StorageService>(),
     ),

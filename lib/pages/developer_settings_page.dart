@@ -221,10 +221,7 @@ class _DeveloperSettingsPageState extends State<DeveloperSettingsPage> {
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(color: Colors.grey),
-            ),
+            child: Text(value, style: const TextStyle(color: Colors.grey)),
           ),
         ],
       ),
@@ -273,33 +270,41 @@ class _DeveloperSettingsPageState extends State<DeveloperSettingsPage> {
   void _resetSettings() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reset Settings'),
-        content: const Text(
-          'This will reset all developer settings to default values. '
-          'Are you sure you want to continue?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Reset Settings'),
+          content: const Text(
+            'This will reset all developer settings to default values. '
+            'Are you sure you want to continue?',
           ),
-          TextButton(
-            onPressed: () async {
-              final navigator = Navigator.of(context);
-              
-              navigator.pop();
-              await AppConfig.reset();
-              
-              if (mounted) {
-                setState(() {});
-                context.showSuccessToast('设置已重置为默认值');
-              }
-            },
-            child: const Text('Reset'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+
+                try {
+                  await AppConfig.reset();
+                  if (mounted) {
+                    setState(() {});
+                    if (context.mounted) {
+                      context.showSuccessToast('设置已重置为默认值');
+                    }
+                  }
+                } catch (e) {
+                  if (mounted && context.mounted) {
+                    context.showErrorToast('重置设置失败: $e');
+                  }
+                }
+              },
+              child: const Text('Reset'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
