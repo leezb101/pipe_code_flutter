@@ -7,20 +7,22 @@
  */
 
 enum QrScanType {
-  acceptance('验收'),
-  verification('核销'),
-  inspection('巡检');
+  inbound('入库'),
+  outbound('出库'),
+  transfer('调拨'),
+  inventory('盘点'),
+  pipeCopy('截管复制');
 
   const QrScanType(this.displayName);
 
   final String displayName;
 }
 
-enum AcceptanceType {
-  single('单个验收'),
-  batch('批量验收');
+enum QrScanMode {
+  single('单个扫码'),
+  batch('连续扫码');
 
-  const AcceptanceType(this.displayName);
+  const QrScanMode(this.displayName);
 
   final String displayName;
 }

@@ -12,29 +12,34 @@ import 'qr_scan_type.dart';
 class QrScanConfig extends Equatable {
   const QrScanConfig({
     required this.scanType,
-    this.acceptanceType,
+    this.scanMode = QrScanMode.single,
     this.title,
   });
 
   final QrScanType scanType;
-  final AcceptanceType? acceptanceType;
+  final QrScanMode scanMode;
   final String? title;
 
   String get displayTitle {
+    if (title != null) return title!;
+    
+    final modePrefix = scanMode == QrScanMode.batch ? '连续' : '单个';
     switch (scanType) {
-      case QrScanType.acceptance:
-        return acceptanceType?.displayName ?? '验收扫码';
-      case QrScanType.verification:
-        return '核销扫码';
-      case QrScanType.inspection:
-        return '巡检扫码';
+      case QrScanType.inbound:
+        return '$modePrefix入库扫码';
+      case QrScanType.outbound:
+        return '$modePrefix出库扫码';
+      case QrScanType.transfer:
+        return '$modePrefix调拨扫码';
+      case QrScanType.inventory:
+        return '$modePrefix盘点扫码';
+      case QrScanType.pipeCopy:
+        return '$modePrefix截管复制扫码';
     }
   }
 
-  bool get supportsBatch => 
-      scanType == QrScanType.acceptance && 
-      acceptanceType == AcceptanceType.batch;
+  bool get supportsBatch => scanMode == QrScanMode.batch;
 
   @override
-  List<Object?> get props => [scanType, acceptanceType, title];
+  List<Object?> get props => [scanType, scanMode, title];
 }

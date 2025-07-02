@@ -12,9 +12,11 @@ import 'qr_scan_strategies/qr_scan_strategy.dart';
 
 abstract class QrScanService {
   Future<bool> validateCode(String code);
-  Future<void> processAcceptance(List<QrScanResult> results, AcceptanceType type);
-  Future<void> processVerification(QrScanResult result);
-  Future<void> processInspection(QrScanResult result);
+  Future<void> processInbound(List<QrScanResult> results);
+  Future<void> processOutbound(List<QrScanResult> results);
+  Future<void> processTransfer(List<QrScanResult> results);
+  Future<void> processInventory(List<QrScanResult> results);
+  Future<void> processPipeCopy(List<QrScanResult> results);
 }
 
 class QrScanServiceImpl implements QrScanService {
@@ -33,20 +35,32 @@ class QrScanServiceImpl implements QrScanService {
   }
 
   @override
-  Future<void> processAcceptance(List<QrScanResult> results, AcceptanceType type) async {
-    final strategy = AcceptanceStrategy(acceptanceType: type);
+  Future<void> processInbound(List<QrScanResult> results) async {
+    final strategy = InboundStrategy();
     await strategy.process(results);
   }
 
   @override
-  Future<void> processVerification(QrScanResult result) async {
-    final strategy = VerificationStrategy();
-    await strategy.process([result]);
+  Future<void> processOutbound(List<QrScanResult> results) async {
+    final strategy = OutboundStrategy();
+    await strategy.process(results);
   }
 
   @override
-  Future<void> processInspection(QrScanResult result) async {
-    final strategy = InspectionStrategy();
-    await strategy.process([result]);
+  Future<void> processTransfer(List<QrScanResult> results) async {
+    final strategy = TransferStrategy();
+    await strategy.process(results);
+  }
+
+  @override
+  Future<void> processInventory(List<QrScanResult> results) async {
+    final strategy = InventoryStrategy();
+    await strategy.process(results);
+  }
+
+  @override
+  Future<void> processPipeCopy(List<QrScanResult> results) async {
+    final strategy = PipeCopyStrategy();
+    await strategy.process(results);
   }
 }

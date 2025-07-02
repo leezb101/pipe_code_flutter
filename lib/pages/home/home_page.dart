@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-01 20:51:57
+ * @LastEditTime: 2025-07-02 20:54:00
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -539,8 +539,11 @@ class _HomePageState extends State<HomePage> {
   Color _getMenuColor(MenuItem menuItem) {
     // 根据菜单ID返回不同颜色
     switch (menuItem.id) {
-      case 'qr_scan_install':
-      case 'qr_scan_accept':
+      case 'qr_scan_inbound':
+      case 'qr_scan_outbound':
+      case 'qr_scan_transfer':
+      case 'qr_scan_inventory':
+      case 'qr_scan_pipe_copy':
       case 'qr_operations':
         return Colors.green;
       case 'quality_inspection':
@@ -626,19 +629,34 @@ class _HomePageState extends State<HomePage> {
     ProjectContextLoaded state,
   ) {
     switch (action) {
-      case 'qr_scan_install':
+      case 'qr_scan_inbound':
         _navigateToScan(
           context,
-          const QrScanConfig(scanType: QrScanType.verification),
+          const QrScanConfig(scanType: QrScanType.inbound),
         );
         break;
-      case 'qr_scan_accept':
+      case 'qr_scan_outbound':
         _navigateToScan(
           context,
-          const QrScanConfig(
-            scanType: QrScanType.acceptance,
-            acceptanceType: AcceptanceType.single,
-          ),
+          const QrScanConfig(scanType: QrScanType.outbound),
+        );
+        break;
+      case 'qr_scan_transfer':
+        _navigateToScan(
+          context,
+          const QrScanConfig(scanType: QrScanType.transfer),
+        );
+        break;
+      case 'qr_scan_inventory':
+        _navigateToScan(
+          context,
+          const QrScanConfig(scanType: QrScanType.inventory),
+        );
+        break;
+      case 'qr_scan_pipe_copy':
+        _navigateToScan(
+          context,
+          const QrScanConfig(scanType: QrScanType.pipeCopy),
         );
         break;
       case 'delegate_harvest':

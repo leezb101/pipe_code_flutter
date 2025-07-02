@@ -151,17 +151,20 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
       emit(state.copyWith(status: QrScanStatus.processing));
 
       switch (state.config!.scanType) {
-        case QrScanType.acceptance:
-          await _qrScanService.processAcceptance(
-            state.scannedCodes,
-            state.config!.acceptanceType ?? AcceptanceType.single,
-          );
+        case QrScanType.inbound:
+          await _qrScanService.processInbound(state.scannedCodes);
           break;
-        case QrScanType.verification:
-          await _qrScanService.processVerification(state.scannedCodes.first);
+        case QrScanType.outbound:
+          await _qrScanService.processOutbound(state.scannedCodes);
           break;
-        case QrScanType.inspection:
-          await _qrScanService.processInspection(state.scannedCodes.first);
+        case QrScanType.transfer:
+          await _qrScanService.processTransfer(state.scannedCodes);
+          break;
+        case QrScanType.inventory:
+          await _qrScanService.processInventory(state.scannedCodes);
+          break;
+        case QrScanType.pipeCopy:
+          await _qrScanService.processPipeCopy(state.scannedCodes);
           break;
       }
 
