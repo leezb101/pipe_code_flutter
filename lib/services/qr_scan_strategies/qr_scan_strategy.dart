@@ -2,12 +2,13 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-06-28 14:30:00
+ * @LastEditTime: 2025-07-02 12:33:22
  * @copyright: Copyright © 2025 高新供水.
  */
 
 import '../../models/qr_scan/qr_scan_result.dart';
 import '../../models/qr_scan/qr_scan_type.dart';
+import '../../utils/logger.dart';
 
 abstract class QrScanStrategy {
   Future<void> process(List<QrScanResult> results);
@@ -32,12 +33,12 @@ class AcceptanceStrategy implements QrScanStrategy {
 
   Future<void> _processSingleAcceptance(QrScanResult result) async {
     await Future.delayed(const Duration(seconds: 1));
-    
-    print('=== 单个验收处理 ===');
-    print('设备编号: ${result.code}');
-    print('扫描时间: ${result.scannedAt}');
-    print('验收状态: 验收完成');
-    
+
+    Logger.qrScan('=== 单个验收处理 ===', deviceCode: result.code);
+    Logger.qrScan('设备编号: ${result.code}', deviceCode: result.code);
+    Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
+    Logger.qrScan('验收状态: 验收完成', deviceCode: result.code);
+
     // TODO: 实现单个验收的具体业务逻辑
     // 1. 验证设备编号是否存在
     // 2. 检查设备状态是否可以验收
@@ -48,17 +49,20 @@ class AcceptanceStrategy implements QrScanStrategy {
 
   Future<void> _processBatchAcceptance(List<QrScanResult> results) async {
     await Future.delayed(const Duration(seconds: 2));
-    
-    print('=== 批量验收处理 ===');
-    print('批次大小: ${results.length}');
-    
+
+    Logger.qrScan('=== 批量验收处理 ===');
+    Logger.qrScan('批次大小: ${results.length}');
+
     for (int i = 0; i < results.length; i++) {
       final result = results[i];
-      print('第${i + 1}个设备 - 编号: ${result.code}');
+      Logger.qrScan(
+        '第${i + 1}个设备 - 编号: ${result.code}',
+        deviceCode: result.code,
+      );
     }
-    
-    print('批量验收状态: 全部完成');
-    
+
+    Logger.qrScan('批量验收状态: 全部完成');
+
     // TODO: 实现批量验收的具体业务逻辑
     // 1. 批量验证所有设备编号
     // 2. 批量检查设备状态
@@ -73,12 +77,12 @@ class VerificationStrategy implements QrScanStrategy {
   Future<void> process(List<QrScanResult> results) async {
     final result = results.first;
     await Future.delayed(const Duration(seconds: 1));
-    
-    print('=== 核销处理 ===');
-    print('设备编号: ${result.code}');
-    print('扫描时间: ${result.scannedAt}');
-    print('核销状态: 核销完成');
-    
+
+    Logger.qrScan('=== 核销处理 ===', deviceCode: result.code);
+    Logger.qrScan('设备编号: ${result.code}', deviceCode: result.code);
+    Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
+    Logger.qrScan('核销状态: 核销完成', deviceCode: result.code);
+
     // TODO: 实现核销的具体业务逻辑
     // 1. 验证设备编号是否存在
     // 2. 检查设备是否可以核销
@@ -94,15 +98,15 @@ class InspectionStrategy implements QrScanStrategy {
   Future<void> process(List<QrScanResult> results) async {
     final result = results.first;
     await Future.delayed(const Duration(seconds: 1));
-    
-    print('=== 巡检查询处理 ===');
-    print('设备编号: ${result.code}');
-    print('扫描时间: ${result.scannedAt}');
-    
+
+    Logger.qrScan('=== 巡检查询处理 ===', deviceCode: result.code);
+    Logger.qrScan('设备编号: ${result.code}', deviceCode: result.code);
+    Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
+
     // 模拟设备信息查询结果
     final deviceInfo = _mockDeviceInfo(result.code);
-    print('设备信息: $deviceInfo');
-    
+    Logger.qrScan('设备信息: $deviceInfo', deviceCode: result.code);
+
     // TODO: 实现巡检查询的具体业务逻辑
     // 1. 根据设备编号查询设备详细信息
     // 2. 获取设备历史巡检记录
