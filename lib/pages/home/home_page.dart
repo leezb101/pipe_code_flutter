@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-02 20:54:00
+ * @LastEditTime: 2025-07-02 20:59:30
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -115,19 +115,14 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: MultiBlocListener(
-        listeners: [
-          BlocListener<UserBloc, UserState>(
-            listener: (context, state) {
-              if (state is UserLoaded) {
-                // 项目上下文加载完成后，触发用户上下文加载
-                context.read<ProjectBloc>().add(
-                  ProjectLoadUserContext(userId: state.user.id),
-                );
-              }
-            },
-          ),
-        ],
+      body: BlocListener<UserBloc, UserState>(
+        listener: (context, state) {
+          if (state is UserLoaded) {
+            context.read<ProjectBloc>().add(
+              ProjectLoadUserContext(userId: state.user.id),
+            );
+          }
+        },
         child: BlocBuilder<ProjectBloc, ProjectState>(
           builder: (context, projectState) {
             if (projectState is ProjectLoading ||
