@@ -8,7 +8,6 @@ import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_event.dart';
 import '../../bloc/user/user_state.dart';
 import '../../config/app_config.dart';
-import '../developer_settings_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -133,11 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         trailing: const Icon(Icons.arrow_forward_ios),
                         onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const DeveloperSettingsPage(),
-                            ),
-                          );
+                          context.pushNamed('developer-settings');
                         },
                       ),
                     ),

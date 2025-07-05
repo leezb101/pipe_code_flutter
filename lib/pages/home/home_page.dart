@@ -8,21 +8,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
 import '../../bloc/project/project_bloc.dart';
 import '../../bloc/project/project_state.dart';
 import '../../bloc/project/project_event.dart';
-import '../../bloc/qr_scan/qr_scan_bloc.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
 import '../../models/qr_scan/qr_scan_type.dart';
 import '../../models/menu/menu_config.dart';
 import '../../models/user/user_role.dart';
-import '../../pages/qr_scan/qr_scan_page.dart';
-import '../../services/qr_scan_service.dart';
-import '../../config/service_locator.dart';
 import '../../utils/toast_utils.dart';
 import '../toast_demo_page.dart';
+import '../../constants/menu_actions.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -534,24 +532,46 @@ class _HomePageState extends State<HomePage> {
   Color _getMenuColor(MenuItem menuItem) {
     // 根据菜单ID返回不同颜色
     switch (menuItem.id) {
+      // QR扫码相关
       case 'qr_scan_inbound':
       case 'qr_scan_outbound':
       case 'qr_scan_transfer':
       case 'qr_scan_inventory':
       case 'qr_scan_pipe_copy':
       case 'qr_operations':
+      case 'qr_identify':
         return Colors.green;
+      // 质检相关
       case 'quality_inspection':
       case 'quality_control':
         return Colors.red;
+      // 施工相关
       case 'construction_tasks':
       case 'material_management':
+      case 'builder':
+      case 'spare_code':
+      case 'cut_pipe':
+      case 'scrap':
+      case 'temporary_auth':
         return Colors.purple;
+      // 监理和巡检相关
       case 'inspection_tasks':
       case 'progress_monitoring':
+      case 'supervisor':
         return Colors.blue;
-      default:
+      // 库存管理相关
+      case 'inventory':
+      case 'inbound':
+      case 'outbound':
+      case 'return':
+      case 'transfer':
         return Colors.orange;
+      // 项目管理相关
+      case 'project_create':
+      case 'construction':
+        return Colors.indigo;
+      default:
+        return Colors.teal;
     }
   }
 
@@ -589,6 +609,17 @@ class _HomePageState extends State<HomePage> {
       'support_agent': Icons.support_agent,
       'info': Icons.info,
       'feedback': Icons.feedback,
+      // 新增的菜单图标
+      'add_business': Icons.add_business,
+      'swap_horiz': Icons.swap_horiz,
+      'keyboard_return': Icons.keyboard_return,
+      'code': Icons.code,
+      'input': Icons.input,
+      'output': Icons.output,
+      'content_cut': Icons.content_cut,
+      'delete_forever': Icons.delete_forever,
+      'admin_panel_settings': Icons.admin_panel_settings,
+      'qr_code_scanner': Icons.qr_code_scanner,
     };
     return iconMap[iconName] ?? Icons.apps;
   }
@@ -623,43 +654,55 @@ class _HomePageState extends State<HomePage> {
     String action,
     ProjectContextLoaded state,
   ) {
+    // 验证action是否有效
+    if (!MenuActions.isValidAction(action)) {
+      context.showErrorToast('无效的操作: $action');
+      return;
+    }
+
     switch (action) {
-      case 'qr_scan_inbound':
+      case MenuActions.qrScanInbound:
         _navigateToScan(
           context,
           const QrScanConfig(scanType: QrScanType.inbound),
         );
         break;
-      case 'qr_scan_outbound':
+      case MenuActions.qrScanOutbound:
         _navigateToScan(
           context,
           const QrScanConfig(scanType: QrScanType.outbound),
         );
         break;
-      case 'qr_scan_transfer':
+      case MenuActions.qrScanTransfer:
         _navigateToScan(
           context,
           const QrScanConfig(scanType: QrScanType.transfer),
         );
         break;
-      case 'qr_scan_inventory':
+      case MenuActions.qrScanInventory:
         _navigateToScan(
           context,
           const QrScanConfig(scanType: QrScanType.inventory),
         );
         break;
-      case 'qr_scan_pipe_copy':
+      case MenuActions.qrScanPipeCopy:
         _navigateToScan(
           context,
           const QrScanConfig(scanType: QrScanType.pipeCopy),
         );
         break;
-      case 'delegate_harvest':
-      case 'delegate_accept':
-        context.showInfoToast('$action: 功能开发中');
+      case MenuActions.qrIdentify:
+        _navigateToScan(
+          context,
+          const QrScanConfig(scanType: QrScanType.identification),
+        );
+        break;
+      case MenuActions.delegateHarvest:
+      case MenuActions.delegateAccept:
+        context.showInfoToast('${MenuActions.getDisplayName(action)}: 功能开发中');
         break;
       default:
-        context.showInfoToast('$action: 功能开发中');
+        context.showInfoToast('${MenuActions.getDisplayName(action)}: 功能开发中');
     }
   }
 
@@ -707,23 +750,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// 导航到扫码页面（保持原有的扫码功能）
-  void _navigateToScan(BuildContext context, QrScanConfig config) {
-    Navigator.of(context)
-        .push(
-          MaterialPageRoute(
-            builder: (context) => BlocProvider(
-              create: (context) =>
-                  QrScanBloc(qrScanService: getIt<QrScanService>()),
-              child: QrScanPage(config: config),
-            ),
-          ),
-        )
-        .then((result) {
-          if (result != null && context.mounted) {
-            _showScanResult(context, result, config);
-          }
-        });
+  /// 导航到扫码页面（使用GoRouter）
+  void _navigateToScan(BuildContext context, QrScanConfig config) async {
+    final result = await context.pushNamed('qr-scan', extra: config);
+    if (result != null && context.mounted) {
+      _showScanResult(context, result, config);
+    }
   }
 
   void _showScanResult(

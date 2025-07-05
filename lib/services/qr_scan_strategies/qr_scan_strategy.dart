@@ -2,12 +2,11 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-02 12:24:35
+ * @LastEditTime: 2025-07-05 11:46:50
  * @copyright: Copyright © 2025 高新供水.
  */
 
 import '../../models/qr_scan/qr_scan_result.dart';
-import '../../models/qr_scan/qr_scan_type.dart';
 import '../../utils/logger.dart';
 
 abstract class QrScanStrategy {
@@ -46,7 +45,10 @@ class InboundStrategy implements QrScanStrategy {
 
     for (int i = 0; i < results.length; i++) {
       final result = results[i];
-      Logger.qrScan('第${i + 1}个货物 - 编号: ${result.code}', deviceCode: result.code);
+      Logger.qrScan(
+        '第${i + 1}个货物 - 编号: ${result.code}',
+        deviceCode: result.code,
+      );
     }
 
     Logger.qrScan('批量入库状态: 全部完成');
@@ -92,7 +94,10 @@ class OutboundStrategy implements QrScanStrategy {
 
     for (int i = 0; i < results.length; i++) {
       final result = results[i];
-      Logger.qrScan('第${i + 1}个货物 - 编号: ${result.code}', deviceCode: result.code);
+      Logger.qrScan(
+        '第${i + 1}个货物 - 编号: ${result.code}',
+        deviceCode: result.code,
+      );
     }
 
     Logger.qrScan('批量出库状态: 全部完成');
@@ -138,7 +143,10 @@ class TransferStrategy implements QrScanStrategy {
 
     for (int i = 0; i < results.length; i++) {
       final result = results[i];
-      Logger.qrScan('第${i + 1}个货物 - 编号: ${result.code}', deviceCode: result.code);
+      Logger.qrScan(
+        '第${i + 1}个货物 - 编号: ${result.code}',
+        deviceCode: result.code,
+      );
     }
 
     Logger.qrScan('批量调拨状态: 全部完成');
@@ -168,7 +176,7 @@ class InventoryStrategy implements QrScanStrategy {
     Logger.qrScan('=== 单个盘点处理 ===', deviceCode: result.code);
     Logger.qrScan('货物编号: ${result.code}', deviceCode: result.code);
     Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
-    
+
     // 模拟库存信息查询结果
     final inventoryInfo = _mockInventoryInfo(result.code);
     Logger.qrScan('库存信息: $inventoryInfo', deviceCode: result.code);
@@ -188,7 +196,10 @@ class InventoryStrategy implements QrScanStrategy {
 
     for (int i = 0; i < results.length; i++) {
       final result = results[i];
-      Logger.qrScan('第${i + 1}个货物 - 编号: ${result.code}', deviceCode: result.code);
+      Logger.qrScan(
+        '第${i + 1}个货物 - 编号: ${result.code}',
+        deviceCode: result.code,
+      );
     }
 
     Logger.qrScan('批量盘点状态: 全部完成');
@@ -231,7 +242,7 @@ class PipeCopyStrategy implements QrScanStrategy {
     Logger.qrScan('=== 单个截管复制处理 ===', deviceCode: result.code);
     Logger.qrScan('管道编号: ${result.code}', deviceCode: result.code);
     Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
-    
+
     // 模拟管道信息查询结果
     final pipeInfo = _mockPipeInfo(result.code);
     Logger.qrScan('管道信息: $pipeInfo', deviceCode: result.code);
@@ -251,7 +262,10 @@ class PipeCopyStrategy implements QrScanStrategy {
 
     for (int i = 0; i < results.length; i++) {
       final result = results[i];
-      Logger.qrScan('第${i + 1}个管道 - 编号: ${result.code}', deviceCode: result.code);
+      Logger.qrScan(
+        '第${i + 1}个管道 - 编号: ${result.code}',
+        deviceCode: result.code,
+      );
     }
 
     Logger.qrScan('批量截管复制状态: 全部完成');
@@ -274,6 +288,141 @@ class PipeCopyStrategy implements QrScanStrategy {
       '位置信息': '某某路段地下2米',
       '设计压力': '1.0MPa',
       '备注': '需要截管延伸施工',
+    };
+  }
+}
+
+class ReturnMaterialStrategy implements QrScanStrategy {
+  @override
+  Future<void> process(List<QrScanResult> results) async {
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (results.length == 1) {
+      await _processSingleReturnMaterial(results.first);
+    } else {
+      await _processBatchReturnMaterial(results);
+    }
+  }
+
+  Future<void> _processSingleReturnMaterial(QrScanResult result) async {
+    Logger.qrScan('=== 单个退料处理 ===', deviceCode: result.code);
+    Logger.qrScan('材料编号: ${result.code}', deviceCode: result.code);
+    Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
+
+    // 模拟退料信息查询结果
+    final returnInfo = _mockReturnMaterialInfo(result.code);
+    Logger.qrScan('退料信息: $returnInfo', deviceCode: result.code);
+    Logger.qrScan('退料状态: 退料完成', deviceCode: result.code);
+
+    // TODO: 实现单个退料的具体业务逻辑
+    // 1. 验证材料编号和当前状态
+    // 2. 检查退料权限和条件
+    // 3. 更新库存数量和状态
+    // 4. 生成退料单据
+    // 5. 记录退料操作日志
+  }
+
+  Future<void> _processBatchReturnMaterial(List<QrScanResult> results) async {
+    Logger.qrScan('=== 批量退料处理 ===');
+    Logger.qrScan('批次大小: ${results.length}');
+
+    for (int i = 0; i < results.length; i++) {
+      final result = results[i];
+      Logger.qrScan(
+        '第${i + 1}个材料 - 编号: ${result.code}',
+        deviceCode: result.code,
+      );
+    }
+
+    Logger.qrScan('批量退料状态: 全部完成');
+
+    // TODO: 实现批量退料的具体业务逻辑
+    // 1. 批量验证所有材料编号
+    // 2. 批量检查退料权限
+    // 3. 批量更新库存状态
+    // 4. 生成批量退料报告
+    // 5. 发送退料完成通知
+  }
+
+  Map<String, dynamic> _mockReturnMaterialInfo(String materialCode) {
+    return {
+      '材料编号': materialCode,
+      '材料名称': '水管接头',
+      '规格型号': 'DN100 弯头',
+      '退料数量': 5,
+      '退料原因': '规格不匹配',
+      '原领料人': '李师傅',
+      '退料时间': DateTime.now().toString().substring(0, 19),
+      '退料状态': '已退回库存',
+      '备注': '材料完好，可重新使用',
+    };
+  }
+}
+
+class IdentificationStrategy implements QrScanStrategy {
+  @override
+  Future<void> process(List<QrScanResult> results) async {
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (results.length == 1) {
+      await _processSingleIdentification(results.first);
+    } else {
+      await _processBatchIdentification(results);
+    }
+  }
+
+  Future<void> _processSingleIdentification(QrScanResult result) async {
+    Logger.qrScan('=== 单个扫码识别处理 ===', deviceCode: result.code);
+    Logger.qrScan('识别编号: ${result.code}', deviceCode: result.code);
+    Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
+
+    // 模拟识别信息查询结果
+    final identificationInfo = _mockIdentificationInfo(result.code);
+    Logger.qrScan('识别信息: $identificationInfo', deviceCode: result.code);
+    Logger.qrScan('识别状态: 识别完成', deviceCode: result.code);
+
+    // TODO: 实现单个扫码识别的具体业务逻辑
+    // 1. 查询二维码对应的设备/管道/材料信息
+    // 2. 显示详细的属性信息
+    // 3. 记录查询历史
+    // 4. 提供相关操作选项
+    // 5. 支持信息反馈和报告
+  }
+
+  Future<void> _processBatchIdentification(List<QrScanResult> results) async {
+    Logger.qrScan('=== 批量扫码识别处理 ===');
+    Logger.qrScan('批次大小: ${results.length}');
+
+    for (int i = 0; i < results.length; i++) {
+      final result = results[i];
+      Logger.qrScan(
+        '第${i + 1}个项目 - 编号: ${result.code}',
+        deviceCode: result.code,
+      );
+    }
+
+    Logger.qrScan('批量识别状态: 全部完成');
+
+    // TODO: 实现批量扫码识别的具体业务逻辑
+    // 1. 批量查询所有编号信息
+    // 2. 生成识别汇总报告
+    // 3. 统计各类型设备数量
+    // 4. 记录批量查询历史
+    // 5. 提供批量操作功能
+  }
+
+  Map<String, dynamic> _mockIdentificationInfo(String itemCode) {
+    return {
+      '设备编号': itemCode,
+      '设备名称': '供水管道阀门',
+      '设备类型': '控制阀',
+      '规格型号': 'DN200 PN16',
+      '安装位置': '主干道交叉口',
+      '安装日期': '2023-05-15',
+      '维护状态': '正常',
+      '责任人': '张工程师',
+      '联系方式': '13800138000',
+      '备注': '定期检查设备',
     };
   }
 }

@@ -2,13 +2,15 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:15:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-06-28 14:25:04
+ * @LastEditTime: 2025-07-05 15:29:42
  * @copyright: Copyright © 2025 高新供水.
  */
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
 import '../../bloc/qr_scan/qr_scan_bloc.dart';
 import '../../bloc/qr_scan/qr_scan_event.dart';
 import '../../bloc/qr_scan/qr_scan_state.dart';
@@ -27,6 +29,7 @@ class QrScanPage extends StatefulWidget {
 
 class _QrScanPageState extends State<QrScanPage> {
   MobileScannerController? _controller;
+  bool _hasReturned = false;
 
   @override
   void initState() {
@@ -35,6 +38,8 @@ class _QrScanPageState extends State<QrScanPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<QrScanBloc>().add(InitializeScan(widget.config));
+      // 确保扫码器启动
+      _controller?.start();
     });
   }
 
@@ -42,6 +47,26 @@ class _QrScanPageState extends State<QrScanPage> {
   void dispose() {
     _controller?.dispose();
     super.dispose();
+  }
+
+  void _controlScanner(QrScanState state) {
+    if (_controller == null) {
+      print('扫码器控制器为空');
+      return;
+    }
+    
+    print('控制扫码器状态: ${state.status}');
+    
+    // 当状态为processing时暂停扫码，其他状态保持扫码器运行
+    if (state.status == QrScanStatus.processing) {
+      print('暂停扫码器');
+      _controller?.stop();
+    } else if (state.status == QrScanStatus.scanning || 
+               state.status == QrScanStatus.initial) {
+      print('启动扫码器');
+      _controller?.start();
+    }
+    // error和completed状态不主动控制扫码器，让用户决定
   }
 
   @override
@@ -74,6 +99,9 @@ class _QrScanPageState extends State<QrScanPage> {
           } else if (state.status == QrScanStatus.completed) {
             _handleScanCompleted(context, state);
           }
+          
+          // 根据状态控制扫码器
+          _controlScanner(state);
         },
         builder: (context, state) {
           return Column(
@@ -85,14 +113,23 @@ class _QrScanPageState extends State<QrScanPage> {
                     MobileScanner(
                       controller: _controller,
                       onDetect: (capture) {
-                        final List<Barcode> barcodes = capture.barcodes;
-                        for (final barcode in barcodes) {
-                          if (barcode.rawValue != null) {
-                            context.read<QrScanBloc>().add(
-                              CodeScanned(barcode.rawValue!),
-                            );
-                            break;
+                        print('扫码检测到数据: ${capture.barcodes.length} codes, 当前状态: ${state.status}');
+                        // 允许在扫描和初始状态时处理扫码
+                        if (state.status == QrScanStatus.scanning || 
+                            state.status == QrScanStatus.initial ||
+                            state.status == QrScanStatus.error) {
+                          final List<Barcode> barcodes = capture.barcodes;
+                          for (final barcode in barcodes) {
+                            if (barcode.rawValue != null) {
+                              print('处理扫码: ${barcode.rawValue}');
+                              context.read<QrScanBloc>().add(
+                                CodeScanned(barcode.rawValue!),
+                              );
+                              break;
+                            }
                           }
+                        } else {
+                          print('状态不允许扫码: ${state.status}');
                         }
                       },
                     ),
@@ -206,14 +243,32 @@ class _QrScanPageState extends State<QrScanPage> {
   }
 
   void _handleScanCompleted(BuildContext context, QrScanState state) {
+    // 防止重复返回
+    if (_hasReturned) {
+      return;
+    }
+    
     if (!widget.config.supportsBatch) {
       Future.delayed(const Duration(seconds: 1), () {
-        if (mounted && context.mounted) {
-          Navigator.of(context).pop(state.scannedCodes);
+        if (mounted && context.mounted && !_hasReturned) {
+          _popWithResult(context, state.scannedCodes);
         }
       });
     } else {
-      Navigator.of(context).pop(state.scannedCodes);
+      _popWithResult(context, state.scannedCodes);
+    }
+  }
+
+  void _popWithResult(BuildContext context, List<QrScanResult> result) {
+    if (_hasReturned) {
+      return;
+    }
+    
+    _hasReturned = true;
+    
+    // 统一使用GoRouter返回
+    if (context.canPop()) {
+      context.pop(result);
     }
   }
 }

@@ -26,6 +26,7 @@ class QrScanState extends Equatable {
     this.currentCode,
     this.errorMessage,
     this.isValidCode = false,
+    this.isProcessing = false,
   });
 
   final QrScanStatus status;
@@ -34,6 +35,7 @@ class QrScanState extends Equatable {
   final String? currentCode;
   final String? errorMessage;
   final bool isValidCode;
+  final bool isProcessing;
 
   QrScanState copyWith({
     QrScanStatus? status,
@@ -42,6 +44,7 @@ class QrScanState extends Equatable {
     String? currentCode,
     String? errorMessage,
     bool? isValidCode,
+    bool? isProcessing,
   }) {
     return QrScanState(
       status: status ?? this.status,
@@ -50,6 +53,7 @@ class QrScanState extends Equatable {
       currentCode: currentCode ?? this.currentCode,
       errorMessage: errorMessage ?? this.errorMessage,
       isValidCode: isValidCode ?? this.isValidCode,
+      isProcessing: isProcessing ?? this.isProcessing,
     );
   }
 
@@ -75,5 +79,6 @@ class QrScanState extends Equatable {
         currentCode,
         errorMessage,
         isValidCode,
+        isProcessing,
       ];
 }

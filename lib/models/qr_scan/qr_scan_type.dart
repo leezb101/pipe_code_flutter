@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-06-28 14:00:00
+ * @LastEditTime: 2025-07-05 10:19:52
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -11,7 +11,11 @@ enum QrScanType {
   outbound('出库'),
   transfer('调拨'),
   inventory('盘点'),
-  pipeCopy('截管复制');
+  pipeCopy('截管复制'),
+  identification('扫码识别'),
+  returnMaterial('退库');
+
+  /// 扫码类型枚举
 
   const QrScanType(this.displayName);
 

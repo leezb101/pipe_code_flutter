@@ -9,6 +9,7 @@ import 'package:equatable/equatable.dart';
 import '../../models/user/user_project_role.dart';
 import '../../models/project/project.dart';
 import '../../models/menu/menu_config.dart';
+import '../../models/user/user_role.dart';
 
 abstract class ProjectState extends Equatable {
   const ProjectState();
@@ -29,13 +30,12 @@ class ProjectLoading extends ProjectState {
 
 /// 项目上下文已加载
 class ProjectContextLoaded extends ProjectState {
-  const ProjectContextLoaded({required this.context, required this.menuConfig});
+  const ProjectContextLoaded({required this.context});
 
   final UserProjectContext context;
-  final RoleMenuConfig menuConfig;
 
   @override
-  List<Object?> get props => [context, menuConfig];
+  List<Object?> get props => [context];
 
   /// 获取当前项目
   Project get currentProject => context.currentProject;
@@ -49,11 +49,11 @@ class ProjectContextLoaded extends ProjectState {
   /// 获取可用项目列表
   List<Project> get availableProjects => context.availableProjects;
 
-  /// 获取当前角色的菜单项
-  List<MenuItem> get menuItems => menuConfig.enabledMenuItems;
+  /// 获取当前角色的菜单项（直接从UserRole extension获取）
+  List<MenuItem> get menuItems => currentRole.role.enabledMenuItems;
 
-  /// 检查是否有指定菜单权限
-  bool hasMenuPermission(String menuId) => menuConfig.hasMenuPermission(menuId);
+  /// 检查是否有指定菜单项
+  bool hasMenuItem(String menuId) => currentRole.role.hasMenuItem(menuId);
 
   /// 检查是否可以切换到指定项目
   bool canSwitchToProject(String projectId) =>
@@ -62,11 +62,9 @@ class ProjectContextLoaded extends ProjectState {
   /// 复制状态with新的上下文
   ProjectContextLoaded copyWith({
     UserProjectContext? context,
-    RoleMenuConfig? menuConfig,
   }) {
     return ProjectContextLoaded(
       context: context ?? this.context,
-      menuConfig: menuConfig ?? this.menuConfig,
     );
   }
 }

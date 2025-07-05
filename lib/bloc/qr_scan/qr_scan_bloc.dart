@@ -14,10 +14,9 @@ import 'qr_scan_event.dart';
 import 'qr_scan_state.dart';
 
 class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
-  QrScanBloc({
-    required QrScanService qrScanService,
-  })  : _qrScanService = qrScanService,
-        super(const QrScanState()) {
+  QrScanBloc({required QrScanService qrScanService})
+    : _qrScanService = qrScanService,
+      super(const QrScanState()) {
     on<InitializeScan>(_onInitializeScan);
     on<CodeScanned>(_onCodeScanned);
     on<ValidateCode>(_onValidateCode);
@@ -29,27 +28,38 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
 
   final QrScanService _qrScanService;
 
-  void _onInitializeScan(
-    InitializeScan event,
-    Emitter<QrScanState> emit,
-  ) {
-    emit(state.copyWith(
-      status: QrScanStatus.scanning,
-      config: event.config,
-      scannedCodes: [],
-      currentCode: null,
-      errorMessage: null,
-    ));
+  void _onInitializeScan(InitializeScan event, Emitter<QrScanState> emit) {
+    emit(
+      state.copyWith(
+        status: QrScanStatus.scanning,
+        config: event.config,
+        scannedCodes: [],
+        currentCode: null,
+        errorMessage: null,
+      ),
+    );
   }
 
-  void _onCodeScanned(
-    CodeScanned event,
-    Emitter<QrScanState> emit,
-  ) {
-    emit(state.copyWith(
-      currentCode: event.code,
-      status: QrScanStatus.processing,
-    ));
+  void _onCodeScanned(CodeScanned event, Emitter<QrScanState> emit) {
+    // 防止在处理状态时扫描新码
+    if (state.status == QrScanStatus.processing) {
+      return;
+    }
+    
+    // 防止扫描相同的二维码（在当前处理中）
+    if (state.currentCode == event.code) {
+      return;
+    }
+    
+    // 对于批量扫描，允许重复扫描不同的码；对于单个扫描，检查是否已扫描过
+    if (state.config?.supportsBatch != true && 
+        state.scannedCodes.any((result) => result.code == event.code)) {
+      return;
+    }
+
+    emit(
+      state.copyWith(currentCode: event.code, status: QrScanStatus.processing),
+    );
 
     add(ValidateCode(event.code));
   }
@@ -60,7 +70,7 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
   ) async {
     try {
       final isValid = await _qrScanService.validateCode(event.code);
-      
+
       if (isValid) {
         final result = QrScanResult(
           code: event.code,
@@ -69,33 +79,39 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
         );
 
         final updatedCodes = List<QrScanResult>.from(state.scannedCodes);
-        
+
         if (!updatedCodes.any((r) => r.code == event.code)) {
           updatedCodes.add(result);
         }
 
         if (state.config?.supportsBatch == true) {
-          emit(state.copyWith(
-            status: QrScanStatus.scanning,
-            scannedCodes: updatedCodes,
-            isValidCode: true,
-          ));
+          emit(
+            state.copyWith(
+              status: QrScanStatus.scanning,
+              scannedCodes: updatedCodes,
+              isValidCode: true,
+            ),
+          );
         } else {
-          emit(state.copyWith(
-            status: QrScanStatus.completed,
-            scannedCodes: updatedCodes,
-            isValidCode: true,
-          ));
-          
+          emit(
+            state.copyWith(
+              status: QrScanStatus.completed,
+              scannedCodes: updatedCodes,
+              isValidCode: true,
+            ),
+          );
+
           add(const ProcessScannedCodes());
         }
       } else {
-        emit(state.copyWith(
-          status: QrScanStatus.error,
-          errorMessage: '无效的二维码格式',
-          isValidCode: false,
-        ));
-        
+        emit(
+          state.copyWith(
+            status: QrScanStatus.error,
+            errorMessage: '无效的二维码格式',
+            isValidCode: false,
+          ),
+        );
+
         Future.delayed(const Duration(seconds: 2), () {
           if (!isClosed) {
             add(const ResetScan());
@@ -103,11 +119,13 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
         });
       }
     } catch (e) {
-      emit(state.copyWith(
-        status: QrScanStatus.error,
-        errorMessage: '验证二维码时发生错误: $e',
-        isValidCode: false,
-      ));
+      emit(
+        state.copyWith(
+          status: QrScanStatus.error,
+          errorMessage: '验证二维码时发生错误: $e',
+          isValidCode: false,
+        ),
+      );
     }
   }
 
@@ -116,10 +134,12 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
     Emitter<QrScanState> emit,
   ) async {
     if (state.scannedCodes.isEmpty) {
-      emit(state.copyWith(
-        status: QrScanStatus.error,
-        errorMessage: '请至少扫描一个有效的二维码',
-      ));
+      emit(
+        state.copyWith(
+          status: QrScanStatus.error,
+          errorMessage: '请至少扫描一个有效的二维码',
+        ),
+      );
       return;
     }
 
@@ -127,28 +147,27 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
     add(const ProcessScannedCodes());
   }
 
-  void _onResetScan(
-    ResetScan event,
-    Emitter<QrScanState> emit,
-  ) {
-    emit(state.copyWith(
-      status: QrScanStatus.scanning,
-      currentCode: null,
-      errorMessage: null,
-      isValidCode: false,
-    ));
+  void _onResetScan(ResetScan event, Emitter<QrScanState> emit) {
+    emit(
+      state.copyWith(
+        status: QrScanStatus.scanning,
+        currentCode: null,
+        errorMessage: null,
+        isValidCode: false,
+      ),
+    );
   }
 
   Future<void> _onProcessScannedCodes(
     ProcessScannedCodes event,
     Emitter<QrScanState> emit,
   ) async {
-    if (state.config == null || state.scannedCodes.isEmpty) {
+    if (state.config == null || state.scannedCodes.isEmpty || state.isProcessing) {
       return;
     }
 
     try {
-      emit(state.copyWith(status: QrScanStatus.processing));
+      emit(state.copyWith(status: QrScanStatus.processing, isProcessing: true));
 
       switch (state.config!.scanType) {
         case QrScanType.inbound:
@@ -166,14 +185,23 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
         case QrScanType.pipeCopy:
           await _qrScanService.processPipeCopy(state.scannedCodes);
           break;
+        case QrScanType.identification:
+          await _qrScanService.processIdentification(state.scannedCodes);
+          break;
+        case QrScanType.returnMaterial:
+          await _qrScanService.processReturnMaterial(state.scannedCodes);
+          break;
       }
 
-      emit(state.copyWith(status: QrScanStatus.completed));
+      emit(state.copyWith(status: QrScanStatus.completed, isProcessing: false));
     } catch (e) {
-      emit(state.copyWith(
-        status: QrScanStatus.error,
-        errorMessage: '处理扫码结果时发生错误: $e',
-      ));
+      emit(
+        state.copyWith(
+          status: QrScanStatus.error,
+          errorMessage: '处理扫码结果时发生错误: $e',
+          isProcessing: false,
+        ),
+      );
     }
   }
 

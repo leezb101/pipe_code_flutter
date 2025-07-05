@@ -12,6 +12,7 @@ import '../pages/auth/login_page.dart';
 import '../pages/auth/register_page.dart';
 import '../pages/main_page.dart';
 import '../pages/qr_scan/qr_scan_page.dart';
+import '../pages/developer_settings_page.dart';
 import '../bloc/qr_scan/qr_scan_bloc.dart';
 import '../models/qr_scan/qr_scan_config.dart';
 import '../services/qr_scan_service.dart';
@@ -34,26 +35,29 @@ final GoRouter appRouter = GoRouter(
       path: '/main',
       name: 'main',
       builder: (context, state) => const MainPage(),
+      routes: [
+        GoRoute(
+          path: '/qr-scan',
+          name: 'qr-scan',
+          builder: (context, state) {
+            final config = state.extra as QrScanConfig?;
+            if (config == null) {
+              return const Scaffold(body: Center(child: Text('扫码配置错误')));
+            }
+            return BlocProvider(
+              create: (context) =>
+                  QrScanBloc(qrScanService: getIt<QrScanService>()),
+              child: QrScanPage(config: config),
+            );
+          },
+        ),
+      ],
     ),
+
     GoRoute(
-      path: '/qr-scan',
-      name: 'qr-scan',
-      builder: (context, state) {
-        final config = state.extra as QrScanConfig?;
-        if (config == null) {
-          return const Scaffold(
-            body: Center(
-              child: Text('扫码配置错误'),
-            ),
-          );
-        }
-        return BlocProvider(
-          create: (context) => QrScanBloc(
-            qrScanService: getIt<QrScanService>(),
-          ),
-          child: QrScanPage(config: config),
-        );
-      },
+      path: '/developer-settings',
+      name: 'developer-settings',
+      builder: (context, state) => const DeveloperSettingsPage(),
     ),
   ],
 );
