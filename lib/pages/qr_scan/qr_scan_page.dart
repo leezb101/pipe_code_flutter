@@ -7,6 +7,7 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -14,7 +15,9 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
 import '../../bloc/qr_scan/qr_scan_bloc.dart';
 import '../../bloc/qr_scan/qr_scan_event.dart';
 import '../../bloc/qr_scan/qr_scan_state.dart';
+import '../../config/app_config.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
+import '../../services/qr_scan_strategies/qr_scan_strategy.dart';
 import '../../widgets/qr_scan/scanned_codes_list.dart';
 import '../../utils/toast_utils.dart';
 
@@ -30,6 +33,14 @@ class QrScanPage extends StatefulWidget {
 class _QrScanPageState extends State<QrScanPage> {
   MobileScannerController? _controller;
   bool _hasReturned = false;
+  
+  // 防抖相关
+  String? _lastScannedCode;
+  DateTime? _lastScanTime;
+  static const Duration _debounceInterval = Duration(milliseconds: 1000);
+  
+  // 批量模式扫码器控制
+  bool _isTemporarilyPaused = false;
 
   @override
   void initState() {
@@ -55,18 +66,147 @@ class _QrScanPageState extends State<QrScanPage> {
       return;
     }
     
-    print('控制扫码器状态: ${state.status}');
+    print('控制扫码器状态: ${state.status}, 暂停状态: $_isTemporarilyPaused');
     
-    // 当状态为processing时暂停扫码，其他状态保持扫码器运行
-    if (state.status == QrScanStatus.processing) {
-      print('暂停扫码器');
-      _controller?.stop();
-    } else if (state.status == QrScanStatus.scanning || 
-               state.status == QrScanStatus.initial) {
-      print('启动扫码器');
-      _controller?.start();
+    switch (state.status) {
+      case QrScanStatus.scanning:
+        if (!_isTemporarilyPaused) {
+          print('启动扫码器');
+          _controller?.start();
+        }
+        break;
+      case QrScanStatus.processing:
+      case QrScanStatus.processComplete:
+        print('暂停扫码器');
+        _controller?.stop();
+        break;
+      case QrScanStatus.initial:
+        print('初始化启动扫码器');
+        _controller?.start();
+        break;
+      case QrScanStatus.error:
+      case QrScanStatus.completed:
+        // 这些状态不主动控制扫码器
+        break;
     }
-    // error和completed状态不主动控制扫码器，让用户决定
+  }
+
+  void _onBarcodeDetected(BarcodeCapture capture, QrScanState state) {
+    print('扫码检测到数据: ${capture.barcodes.length} codes, 当前状态: ${state.status}');
+    
+    // 检查是否允许扫码
+    if (!_canScanInCurrentState(state)) {
+      print('当前状态不允许扫码: ${state.status}');
+      return;
+    }
+    
+    final List<Barcode> barcodes = capture.barcodes;
+    for (final barcode in barcodes) {
+      if (barcode.rawValue != null) {
+        final code = barcode.rawValue!;
+        
+        // 防抖检查
+        if (_isRecentlyScanned(code)) {
+          print('防抖：忽略重复扫码 $code');
+          return;
+        }
+        
+        print('处理扫码: $code');
+        
+        // 立即停止扫码器，防止重复触发
+        _controller?.stop();
+        
+        // 震动反馈
+        _provideScanFeedback();
+        
+        // 更新扫码历史
+        _updateScanHistory(code);
+        
+        // 发送扫码事件
+        context.read<QrScanBloc>().add(CodeScanned(code));
+        
+        // 如果是批量模式，安排重启扫码器
+        if (widget.config.supportsBatch) {
+          _scheduleRestartScanner();
+        }
+        
+        break;
+      }
+    }
+  }
+
+  bool _canScanInCurrentState(QrScanState state) {
+    return state.status == QrScanStatus.scanning || 
+           state.status == QrScanStatus.initial ||
+           state.status == QrScanStatus.error;
+  }
+
+  bool _isRecentlyScanned(String code) {
+    final now = DateTime.now();
+    
+    if (_lastScannedCode == code && 
+        _lastScanTime != null && 
+        now.difference(_lastScanTime!) < _debounceInterval) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  void _updateScanHistory(String code) {
+    _lastScannedCode = code;
+    _lastScanTime = DateTime.now();
+  }
+
+  void _provideScanFeedback() {
+    // 震动反馈
+    HapticFeedback.mediumImpact();
+  }
+
+  void _scheduleRestartScanner() {
+    if (!widget.config.supportsBatch) return;
+    
+    _isTemporarilyPaused = true;
+    
+    // 2.5秒后重新启动扫码器
+    Future.delayed(const Duration(milliseconds: 2500), () {
+      if (mounted && !_hasReturned) {
+        _isTemporarilyPaused = false;
+        print('批量模式重新启动扫码器');
+        _controller?.start();
+      }
+    });
+  }
+
+  void _simulateScan() {
+    // 生成适合当前扫码类型的测试代码
+    String testCode;
+    switch (widget.config.scanType.name) {
+      case 'inbound':
+        // 入库：生成批次码触发入库确认页面
+        testCode = 'BATCH_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+        break;
+      case 'outbound':
+        testCode = 'OUT_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+        break;
+      case 'transfer':
+        testCode = 'TRF_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+        break;
+      case 'inventory':
+        testCode = 'INV_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+        break;
+      case 'pipeCopy':
+        testCode = 'PIPE_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+        break;
+      case 'returnMaterial':
+        testCode = 'RET_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+        break;
+      default:
+        testCode = 'TEST_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+    }
+    
+    print('模拟扫码: $testCode');
+    context.read<QrScanBloc>().add(CodeScanned(testCode));
   }
 
   @override
@@ -75,6 +215,18 @@ class _QrScanPageState extends State<QrScanPage> {
       appBar: AppBar(
         title: Text(widget.config.displayTitle),
         actions: [
+          if (AppConfig.isDevelopment)
+            BlocBuilder<QrScanBloc, QrScanState>(
+              builder: (context, state) {
+                return IconButton(
+                  onPressed: () {
+                    _simulateScan();
+                  },
+                  icon: const Icon(Icons.bug_report),
+                  tooltip: '模拟扫码',
+                );
+              },
+            ),
           if (widget.config.supportsBatch)
             BlocBuilder<QrScanBloc, QrScanState>(
               builder: (context, state) {
@@ -96,8 +248,8 @@ class _QrScanPageState extends State<QrScanPage> {
           if (state.status == QrScanStatus.error &&
               state.errorMessage != null) {
             context.showErrorToast(state.errorMessage!);
-          } else if (state.status == QrScanStatus.completed) {
-            _handleScanCompleted(context, state);
+          } else if (state.status == QrScanStatus.processComplete) {
+            _handleProcessComplete(context, state);
           }
           
           // 根据状态控制扫码器
@@ -113,24 +265,7 @@ class _QrScanPageState extends State<QrScanPage> {
                     MobileScanner(
                       controller: _controller,
                       onDetect: (capture) {
-                        print('扫码检测到数据: ${capture.barcodes.length} codes, 当前状态: ${state.status}');
-                        // 允许在扫描和初始状态时处理扫码
-                        if (state.status == QrScanStatus.scanning || 
-                            state.status == QrScanStatus.initial ||
-                            state.status == QrScanStatus.error) {
-                          final List<Barcode> barcodes = capture.barcodes;
-                          for (final barcode in barcodes) {
-                            if (barcode.rawValue != null) {
-                              print('处理扫码: ${barcode.rawValue}');
-                              context.read<QrScanBloc>().add(
-                                CodeScanned(barcode.rawValue!),
-                              );
-                              break;
-                            }
-                          }
-                        } else {
-                          print('状态不允许扫码: ${state.status}');
-                        }
+                        _onBarcodeDetected(capture, state);
                       },
                     ),
                     _buildScanOverlay(state),
@@ -242,21 +377,37 @@ class _QrScanPageState extends State<QrScanPage> {
     }
   }
 
-  void _handleScanCompleted(BuildContext context, QrScanState state) {
+  void _handleProcessComplete(BuildContext context, QrScanState state) {
     // 防止重复返回
     if (_hasReturned) {
       return;
     }
     
-    if (!widget.config.supportsBatch) {
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted && context.mounted && !_hasReturned) {
-          _popWithResult(context, state.scannedCodes);
-        }
-      });
-    } else {
-      _popWithResult(context, state.scannedCodes);
+    print('处理完成，检查导航数据: ${state.processResult?.navigationData?.route}');
+    
+    // 检查是否有导航数据需要处理
+    if (state.processResult?.navigationData != null) {
+      _handleNavigation(context, state.processResult!.navigationData!);
+      return;
     }
+    
+    // 如果没有导航数据，则返回扫码结果
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted && context.mounted && !_hasReturned) {
+        _popWithResult(context, state.scannedCodes);
+      }
+    });
+  }
+
+  void _handleNavigation(BuildContext context, QrScanNavigationData navigationData) {
+    if (_hasReturned) {
+      return;
+    }
+    
+    _hasReturned = true;
+    
+    // 使用GoRouter进行导航
+    context.push(navigationData.route, extra: navigationData.data);
   }
 
   void _popWithResult(BuildContext context, List<QrScanResult> result) {

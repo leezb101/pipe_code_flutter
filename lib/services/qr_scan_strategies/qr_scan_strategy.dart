@@ -7,42 +7,88 @@
  */
 
 import '../../models/qr_scan/qr_scan_result.dart';
+import '../../models/inventory/pipe_material.dart';
 import '../../utils/logger.dart';
 
 abstract class QrScanStrategy {
-  Future<void> process(List<QrScanResult> results);
+  Future<QrScanProcessResult?> process(List<QrScanResult> results);
+}
+
+class QrScanProcessResult {
+  const QrScanProcessResult({
+    required this.success,
+    this.navigationData,
+    this.errorMessage,
+  });
+
+  final bool success;
+  final QrScanNavigationData? navigationData;
+  final String? errorMessage;
+}
+
+class QrScanNavigationData {
+  const QrScanNavigationData({
+    required this.route,
+    this.data,
+  });
+
+  final String route;
+  final Map<String, dynamic>? data;
 }
 
 class InboundStrategy implements QrScanStrategy {
   @override
-  Future<void> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
     await Future.delayed(const Duration(seconds: 1));
 
-    if (results.length == 1) {
-      await _processSingleInbound(results.first);
-    } else {
-      await _processBatchInbound(results);
+    try {
+      if (results.length == 1) {
+        return await _processSingleInbound(results.first);
+      } else {
+        return await _processBatchInbound(results);
+      }
+    } catch (e) {
+      return QrScanProcessResult(
+        success: false,
+        errorMessage: '处理入库扫码时发生错误: $e',
+      );
     }
   }
 
-  Future<void> _processSingleInbound(QrScanResult result) async {
-    Logger.qrScan('=== 单个入库处理 ===', deviceCode: result.code);
-    Logger.qrScan('货物编号: ${result.code}', deviceCode: result.code);
-    Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
-    Logger.qrScan('入库状态: 入库完成', deviceCode: result.code);
 
-    // TODO: 实现单个入库的具体业务逻辑
-    // 1. 验证货物编号和规格
-    // 2. 检查库存位置和容量
-    // 3. 更新库存数量和状态
-    // 4. 生成入库单据
-    // 5. 记录入库操作日志
+  Future<QrScanProcessResult> _processSingleInbound(QrScanResult result) async {
+    Logger.qrScan('=== 单个入库处理 ===', deviceCode: result.code);
+    Logger.qrScan('扫码内容: ${result.code}', deviceCode: result.code);
+    Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
+
+    // 单个模式下，直接按照扫码内容获取对应的物料信息
+    // 这里可能是交付批次码，也可能是单个物料码，由API后端判断
+    final materials = await _getPipeMaterialsByCode(result.code);
+    
+    if (materials.isNotEmpty) {
+      return QrScanProcessResult(
+        success: true,
+        navigationData: QrScanNavigationData(
+          route: '/main/inventory-confirmation',
+          data: {
+            'materials': materials,
+            'scanMode': 'single',
+          },
+        ),
+      );
+    } else {
+      return const QrScanProcessResult(
+        success: false,
+        errorMessage: '未找到对应的管件信息',
+      );
+    }
   }
 
-  Future<void> _processBatchInbound(List<QrScanResult> results) async {
+  Future<QrScanProcessResult> _processBatchInbound(List<QrScanResult> results) async {
     Logger.qrScan('=== 批量入库处理 ===');
     Logger.qrScan('批次大小: ${results.length}');
 
+    final codes = results.map((r) => r.code).toList();
     for (int i = 0; i < results.length; i++) {
       final result = results[i];
       Logger.qrScan(
@@ -51,20 +97,75 @@ class InboundStrategy implements QrScanStrategy {
       );
     }
 
-    Logger.qrScan('批量入库状态: 全部完成');
-
-    // TODO: 实现批量入库的具体业务逻辑
-    // 1. 批量验证所有货物编号
-    // 2. 批量检查库存位置和容量
-    // 3. 批量更新库存数量
-    // 4. 生成批量入库报告
-    // 5. 发送入库完成通知
+    // 批量模式下，所有码都是单个物料码
+    final materials = await _getPipeMaterialsByIds(codes);
+    
+    if (materials.isNotEmpty) {
+      return QrScanProcessResult(
+        success: true,
+        navigationData: QrScanNavigationData(
+          route: '/main/inventory-confirmation',
+          data: {
+            'materials': materials,
+            'scanMode': 'batch',
+          },
+        ),
+      );
+    } else {
+      return const QrScanProcessResult(
+        success: false,
+        errorMessage: '未找到对应的管件信息',
+      );
+    }
   }
+
+  // 通用方法：根据任意码获取物料信息（可能是批次码或单个物料码）
+  Future<List<PipeMaterial>> _getPipeMaterialsByCode(String code) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    // 这里应该调用后端API，后端根据码的内容返回对应的物料信息
+    // 后端会自动判断这是批次码还是单个物料码，并返回相应的物料列表
+    
+    // 模拟：这里简单返回单个物料，实际项目中应该由后端API处理
+    return [
+      PipeMaterial(
+        id: code,
+        materialCode: 'FDSIU-129A',
+        materialName: '材料A',
+        specification: 'DN100',
+        quantity: 1,
+        unit: '个',
+        batchCode: 'BATCH_001',
+        deliveryDate: DateTime.now().subtract(const Duration(days: 7)),
+        supplier: '供应商A',
+        remarks: '质量良好',
+      ),
+    ];
+  }
+
+  // 模拟根据ID获取管件信息
+  Future<List<PipeMaterial>> _getPipeMaterialsByIds(List<String> ids) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    return ids.map((id) => PipeMaterial(
+      id: id,
+      materialCode: 'FDSIU-129A',
+      materialName: '材料A',
+      specification: 'DN100',
+      quantity: 1,
+      unit: '个',
+      batchCode: 'BATCH_001',
+      deliveryDate: DateTime.now().subtract(const Duration(days: 7)),
+      supplier: '供应商A',
+      remarks: '质量良好',
+    )).toList();
+  }
+
 }
 
 class OutboundStrategy implements QrScanStrategy {
   @override
-  Future<void> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
     await Future.delayed(const Duration(seconds: 1));
 
     if (results.length == 1) {
@@ -72,6 +173,8 @@ class OutboundStrategy implements QrScanStrategy {
     } else {
       await _processBatchOutbound(results);
     }
+    
+    return const QrScanProcessResult(success: true);
   }
 
   Future<void> _processSingleOutbound(QrScanResult result) async {
@@ -113,7 +216,7 @@ class OutboundStrategy implements QrScanStrategy {
 
 class TransferStrategy implements QrScanStrategy {
   @override
-  Future<void> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
     await Future.delayed(const Duration(seconds: 1));
 
     if (results.length == 1) {
@@ -121,6 +224,8 @@ class TransferStrategy implements QrScanStrategy {
     } else {
       await _processBatchTransfer(results);
     }
+    
+    return const QrScanProcessResult(success: true);
   }
 
   Future<void> _processSingleTransfer(QrScanResult result) async {
@@ -162,7 +267,7 @@ class TransferStrategy implements QrScanStrategy {
 
 class InventoryStrategy implements QrScanStrategy {
   @override
-  Future<void> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
     await Future.delayed(const Duration(seconds: 1));
 
     if (results.length == 1) {
@@ -170,6 +275,8 @@ class InventoryStrategy implements QrScanStrategy {
     } else {
       await _processBatchInventory(results);
     }
+    
+    return const QrScanProcessResult(success: true);
   }
 
   Future<void> _processSingleInventory(QrScanResult result) async {
@@ -228,7 +335,7 @@ class InventoryStrategy implements QrScanStrategy {
 
 class PipeCopyStrategy implements QrScanStrategy {
   @override
-  Future<void> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
     await Future.delayed(const Duration(seconds: 1));
 
     if (results.length == 1) {
@@ -236,6 +343,8 @@ class PipeCopyStrategy implements QrScanStrategy {
     } else {
       await _processBatchPipeCopy(results);
     }
+    
+    return const QrScanProcessResult(success: true);
   }
 
   Future<void> _processSinglePipeCopy(QrScanResult result) async {
@@ -294,7 +403,7 @@ class PipeCopyStrategy implements QrScanStrategy {
 
 class ReturnMaterialStrategy implements QrScanStrategy {
   @override
-  Future<void> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
     await Future.delayed(const Duration(seconds: 1));
 
     if (results.length == 1) {
@@ -302,6 +411,8 @@ class ReturnMaterialStrategy implements QrScanStrategy {
     } else {
       await _processBatchReturnMaterial(results);
     }
+    
+    return const QrScanProcessResult(success: true);
   }
 
   Future<void> _processSingleReturnMaterial(QrScanResult result) async {
@@ -361,7 +472,7 @@ class ReturnMaterialStrategy implements QrScanStrategy {
 
 class IdentificationStrategy implements QrScanStrategy {
   @override
-  Future<void> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
     await Future.delayed(const Duration(seconds: 1));
 
     if (results.length == 1) {
@@ -369,6 +480,8 @@ class IdentificationStrategy implements QrScanStrategy {
     } else {
       await _processBatchIdentification(results);
     }
+    
+    return const QrScanProcessResult(success: true);
   }
 
   Future<void> _processSingleIdentification(QrScanResult result) async {

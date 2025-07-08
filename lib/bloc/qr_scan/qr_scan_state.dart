@@ -9,11 +9,13 @@
 import 'package:equatable/equatable.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
 import '../../models/qr_scan/qr_scan_result.dart';
+import '../../services/qr_scan_strategies/qr_scan_strategy.dart';
 
 enum QrScanStatus {
   initial,
   scanning,
   processing,
+  processComplete,
   completed,
   error,
 }
@@ -27,6 +29,7 @@ class QrScanState extends Equatable {
     this.errorMessage,
     this.isValidCode = false,
     this.isProcessing = false,
+    this.processResult,
   });
 
   final QrScanStatus status;
@@ -36,6 +39,7 @@ class QrScanState extends Equatable {
   final String? errorMessage;
   final bool isValidCode;
   final bool isProcessing;
+  final QrScanProcessResult? processResult;
 
   QrScanState copyWith({
     QrScanStatus? status,
@@ -45,6 +49,7 @@ class QrScanState extends Equatable {
     String? errorMessage,
     bool? isValidCode,
     bool? isProcessing,
+    QrScanProcessResult? processResult,
   }) {
     return QrScanState(
       status: status ?? this.status,
@@ -54,6 +59,7 @@ class QrScanState extends Equatable {
       errorMessage: errorMessage ?? this.errorMessage,
       isValidCode: isValidCode ?? this.isValidCode,
       isProcessing: isProcessing ?? this.isProcessing,
+      processResult: processResult ?? this.processResult,
     );
   }
 
@@ -80,5 +86,6 @@ class QrScanState extends Equatable {
         errorMessage,
         isValidCode,
         isProcessing,
+        processResult,
       ];
 }

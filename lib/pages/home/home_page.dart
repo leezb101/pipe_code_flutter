@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-02 20:59:30
+ * @LastEditTime: 2025-07-07 19:56:32
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -18,6 +18,7 @@ import '../../models/qr_scan/qr_scan_config.dart';
 import '../../models/qr_scan/qr_scan_type.dart';
 import '../../models/menu/menu_config.dart';
 import '../../models/user/user_role.dart';
+import '../../models/project/project.dart';
 import '../../utils/toast_utils.dart';
 import '../toast_demo_page.dart';
 import '../../constants/menu_actions.dart';
@@ -30,6 +31,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  bool _isProjectHeaderExpanded = true; // 项目头部是否展开
+
   @override
   void initState() {
     super.initState();
@@ -43,75 +46,6 @@ class _HomePageState extends State<HomePage> {
         title: const Text('智慧水务'),
         backgroundColor: Colors.blue[600],
         foregroundColor: Colors.white,
-        actions: [
-          // 项目切换按钮
-          BlocBuilder<ProjectBloc, ProjectState>(
-            builder: (context, state) {
-              if (state is ProjectContextLoaded) {
-                return PopupMenuButton<String>(
-                  icon: const Icon(Icons.switch_account),
-                  onSelected: (projectId) {
-                    if (projectId != state.currentProject.id) {
-                      context.read<ProjectBloc>().add(
-                        ProjectSwitchProject(projectId: projectId),
-                      );
-                    }
-                  },
-                  itemBuilder: (context) {
-                    return state.availableProjects.map((project) {
-                      final isCurrentProject =
-                          project.id == state.currentProject.id;
-                      return PopupMenuItem<String>(
-                        value: project.id,
-                        child: Row(
-                          children: [
-                            Icon(
-                              isCurrentProject
-                                  ? Icons.check_circle
-                                  : Icons.business,
-                              color: isCurrentProject
-                                  ? Colors.green
-                                  : Colors.grey,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    project.name,
-                                    style: TextStyle(
-                                      fontWeight: isCurrentProject
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  if (isCurrentProject)
-                                    Text(
-                                      state.currentRole.role.displayName,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList();
-                  },
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ],
       ),
       body: BlocListener<UserBloc, UserState>(
         listener: (context, state) {
@@ -180,70 +114,461 @@ class _HomePageState extends State<HomePage> {
 
   /// 构建项目头部信息
   Widget _buildProjectHeader(BuildContext context, ProjectContextLoaded state) {
-    return Container(
-      padding: const EdgeInsets.all(16),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Colors.blue[50]!, Colors.blue[100]!],
+          colors: [Colors.blue[300]!, Colors.blue[500]!],
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.business, color: Colors.blue[600], size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  state.currentProject.name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _getRoleColor(state.currentRole.role),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  state.currentRole.role.displayName,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Icon(Icons.location_on, color: Colors.grey[600], size: 14),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  state.currentProject.location ?? '位置未设置',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withValues(alpha: 0.2),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
         ],
+      ),
+      child: Column(
+        children: [
+          // 主要内容区域
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // 项目名称和切换按钮
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.business_center,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '当前项目',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            state.currentProject.name,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // 切换按钮
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: TextButton.icon(
+                        onPressed: () => _showProjectSelector(context, state),
+                        icon: const Icon(
+                          Icons.swap_horiz,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        label: const Text(
+                          '切换',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          minimumSize: const Size(0, 32),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // 展开内容
+                AnimatedCrossFade(
+                  firstChild: const SizedBox.shrink(),
+                  secondChild: Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      // 统计数据行
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildStatItem(
+                              Icons.inventory,
+                              '耗材总数',
+                              _getMaterialCount(
+                                state.currentProject,
+                              ).toString(),
+                              Colors.orange,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildStatItem(
+                              Icons.check_circle,
+                              '验收通过',
+                              _getAcceptedMaterialCount(
+                                state.currentProject,
+                              ).toString(),
+                              Colors.green,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildStatItem(
+                              Icons.cancel,
+                              '验收退回',
+                              _getRejectedMaterialCount(
+                                state.currentProject,
+                              ).toString(),
+                              Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // 详细信息
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildDetailRow(
+                              Icons.engineering,
+                              '工程状态',
+                              state.currentProject.status.displayName,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildDetailRow(
+                              Icons.person,
+                              '负责人',
+                              state.currentProject.contactPerson ?? '未设置',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // 工程周期
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.schedule,
+                            color: Colors.white.withValues(alpha: 0.8),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _formatProjectDuration(state.currentProject),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  crossFadeState: _isProjectHeaderExpanded
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+                  duration: const Duration(milliseconds: 300),
+                ),
+              ],
+            ),
+          ),
+          // 展开/折叠按钮 - 位于底部中间
+          SizedBox(
+            width: double.infinity,
+            child: Center(
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    _isProjectHeaderExpanded = !_isProjectHeaderExpanded;
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _isProjectHeaderExpanded ? '收起' : '展开详情',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      AnimatedRotation(
+                        turns: _isProjectHeaderExpanded ? 0.5 : 0,
+                        duration: const Duration(milliseconds: 300),
+                        child: Icon(
+                          Icons.expand_more,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          size: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建统计项
+  Widget _buildStatItem(
+    IconData icon,
+    String label,
+    String value,
+    Color color,
+  ) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.white.withValues(alpha: 0.8),
+            fontWeight: FontWeight.w500,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  /// 构建详细信息行
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.white.withValues(alpha: 0.8), size: 16),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withValues(alpha: 0.7),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 获取状态颜色
+  Color _getStatusColor(dynamic status) {
+    // 根据状态返回对应颜色，这里需要根据实际的状态枚举来调整
+    return Colors.white.withValues(alpha: 0.9);
+  }
+
+  /// 获取状态简称
+  String _getStatusShort(dynamic status) {
+    // 根据实际状态枚举返回简称
+    String displayName = status.displayName ?? '未知';
+    if (displayName.length > 4) {
+      return displayName.substring(0, 4);
+    }
+    return displayName;
+  }
+
+  /// 格式化工程周期（简化版）
+  String _formatProjectDurationShort(Project project) {
+    if (project.startDate == null || project.endDate == null) {
+      return '未设置';
+    }
+
+    final startDate = project.startDate!;
+    final endDate = project.endDate!;
+
+    return '${startDate.month}/${startDate.day}-${endDate.month}/${endDate.day}';
+  }
+
+  /// 获取耗材总数（模拟数据，实际应从项目数据中获取）
+  int _getMaterialCount(Project project) {
+    // 这里应该从实际的项目数据或API获取耗材总数
+    // 暂时返回模拟数据
+    return 62;
+  }
+
+  /// 获取验收通过耗材数（模拟数据）
+  int _getAcceptedMaterialCount(Project project) {
+    // 这里应该从实际的项目数据或API获取验收通过的耗材数
+    // 暂时返回模拟数据
+    return 59;
+  }
+
+  /// 获取验收退回耗材数（模拟数据）
+  int _getRejectedMaterialCount(Project project) {
+    // 这里应该从实际的项目数据或API获取验收退回的耗材数
+    // 暂时返回模拟数据
+    return 3;
+  }
+
+  /// 格式化工程周期
+  String _formatProjectDuration(Project project) {
+    if (project.startDate == null || project.endDate == null) {
+      return '未设置';
+    }
+
+    final startDate = project.startDate!;
+    final endDate = project.endDate!;
+
+    return '${startDate.year}年${startDate.month}月${startDate.day}日 - ${endDate.year}年${endDate.month}月${endDate.day}日';
+  }
+
+  /// 显示项目选择器
+  void _showProjectSelector(BuildContext context, ProjectContextLoaded state) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '选择工程',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            ...state.availableProjects.map((project) {
+              final isCurrentProject = project.id == state.currentProject.id;
+              return ListTile(
+                leading: Icon(
+                  isCurrentProject ? Icons.check_circle : Icons.business,
+                  color: isCurrentProject ? Colors.green : Colors.grey,
+                ),
+                title: Text(
+                  project.name,
+                  style: TextStyle(
+                    fontWeight: isCurrentProject
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                ),
+                subtitle: Text(project.description),
+                trailing: isCurrentProject
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          '当前',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      )
+                    : null,
+                onTap: isCurrentProject
+                    ? null
+                    : () {
+                        Navigator.pop(context);
+                        context.read<ProjectBloc>().add(
+                          ProjectSwitchProject(projectId: project.id),
+                        );
+                      },
+              );
+            }).toList(),
+          ],
+        ),
       ),
     );
   }
@@ -662,28 +987,16 @@ class _HomePageState extends State<HomePage> {
 
     switch (action) {
       case MenuActions.qrScanInbound:
-        _navigateToScan(
-          context,
-          const QrScanConfig(scanType: QrScanType.inbound),
-        );
+        _showScanModeSelection(context, QrScanType.inbound);
         break;
       case MenuActions.qrScanOutbound:
-        _navigateToScan(
-          context,
-          const QrScanConfig(scanType: QrScanType.outbound),
-        );
+        _showScanModeSelection(context, QrScanType.outbound);
         break;
       case MenuActions.qrScanTransfer:
-        _navigateToScan(
-          context,
-          const QrScanConfig(scanType: QrScanType.transfer),
-        );
+        _showScanModeSelection(context, QrScanType.transfer);
         break;
       case MenuActions.qrScanInventory:
-        _navigateToScan(
-          context,
-          const QrScanConfig(scanType: QrScanType.inventory),
-        );
+        _showScanModeSelection(context, QrScanType.inventory);
         break;
       case MenuActions.qrScanPipeCopy:
         _navigateToScan(
@@ -748,6 +1061,110 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  /// 显示扫码模式选择对话框
+  void _showScanModeSelection(BuildContext context, QrScanType scanType) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('选择${scanType.displayName}模式'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.qr_code, color: Colors.blue),
+              title: _getScanModeTitle(scanType, QrScanMode.single),
+              subtitle: _getScanModeSubtitle(scanType, QrScanMode.single),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToScan(
+                  context,
+                  QrScanConfig(
+                    scanType: scanType,
+                    scanMode: QrScanMode.single,
+                  ),
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.qr_code_scanner, color: Colors.green),
+              title: _getScanModeTitle(scanType, QrScanMode.batch),
+              subtitle: _getScanModeSubtitle(scanType, QrScanMode.batch),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToScan(
+                  context,
+                  QrScanConfig(
+                    scanType: scanType,
+                    scanMode: QrScanMode.batch,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 获取扫码模式标题
+  Widget _getScanModeTitle(QrScanType scanType, QrScanMode scanMode) {
+    String title;
+    switch (scanType) {
+      case QrScanType.inbound:
+        title = scanMode == QrScanMode.single ? '单码入库' : '批量入库';
+        break;
+      case QrScanType.outbound:
+        title = scanMode == QrScanMode.single ? '单个物料出库' : '批量物料出库';
+        break;
+      case QrScanType.transfer:
+        title = scanMode == QrScanMode.single ? '单个物料调拨' : '批量物料调拨';
+        break;
+      case QrScanType.inventory:
+        title = scanMode == QrScanMode.single ? '单个物料盘点' : '批量物料盘点';
+        break;
+      default:
+        title = scanMode.displayName;
+    }
+    return Text(title, style: const TextStyle(fontWeight: FontWeight.w500));
+  }
+
+  /// 获取扫码模式副标题
+  Widget _getScanModeSubtitle(QrScanType scanType, QrScanMode scanMode) {
+    String subtitle;
+    switch (scanType) {
+      case QrScanType.inbound:
+        subtitle = scanMode == QrScanMode.single
+            ? '扫描单个二维码进行入库操作'
+            : '连续扫描多个物料码，手动结束后统一处理';
+        break;
+      case QrScanType.outbound:
+        subtitle = scanMode == QrScanMode.single
+            ? '扫描单个物料进行出库操作'
+            : '连续扫描多个物料进行批量出库';
+        break;
+      case QrScanType.transfer:
+        subtitle = scanMode == QrScanMode.single
+            ? '扫描单个物料进行调拨操作'
+            : '连续扫描多个物料进行批量调拨';
+        break;
+      case QrScanType.inventory:
+        subtitle = scanMode == QrScanMode.single
+            ? '扫描单个物料进行盘点检查'
+            : '连续扫描多个物料进行批量盘点';
+        break;
+      default:
+        subtitle = '选择扫码模式';
+    }
+    return Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey[600]));
   }
 
   /// 导航到扫码页面（使用GoRouter）

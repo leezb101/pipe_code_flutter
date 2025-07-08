@@ -11,13 +11,13 @@ import 'qr_scan_strategies/qr_scan_strategy.dart';
 
 abstract class QrScanService {
   Future<bool> validateCode(String code);
-  Future<void> processInbound(List<QrScanResult> results);
-  Future<void> processOutbound(List<QrScanResult> results);
-  Future<void> processTransfer(List<QrScanResult> results);
-  Future<void> processInventory(List<QrScanResult> results);
-  Future<void> processPipeCopy(List<QrScanResult> results);
-  Future<void> processIdentification(List<QrScanResult> results);
-  Future<void> processReturnMaterial(List<QrScanResult> results);
+  Future<QrScanProcessResult?> processInbound(List<QrScanResult> results);
+  Future<QrScanProcessResult?> processOutbound(List<QrScanResult> results);
+  Future<QrScanProcessResult?> processTransfer(List<QrScanResult> results);
+  Future<QrScanProcessResult?> processInventory(List<QrScanResult> results);
+  Future<QrScanProcessResult?> processPipeCopy(List<QrScanResult> results);
+  Future<QrScanProcessResult?> processIdentification(List<QrScanResult> results);
+  Future<QrScanProcessResult?> processReturnMaterial(List<QrScanResult> results);
 }
 
 class QrScanServiceImpl implements QrScanService {
@@ -37,43 +37,43 @@ class QrScanServiceImpl implements QrScanService {
   }
 
   @override
-  Future<void> processInbound(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> processInbound(List<QrScanResult> results) async {
     final strategy = InboundStrategy();
-    await strategy.process(results);
+    return strategy.process(results);
   }
 
   @override
-  Future<void> processOutbound(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> processOutbound(List<QrScanResult> results) async {
     final strategy = OutboundStrategy();
-    await strategy.process(results);
+    return strategy.process(results);
   }
 
   @override
-  Future<void> processTransfer(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> processTransfer(List<QrScanResult> results) async {
     final strategy = TransferStrategy();
-    await strategy.process(results);
+    return strategy.process(results);
   }
 
   @override
-  Future<void> processInventory(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> processInventory(List<QrScanResult> results) async {
     final strategy = InventoryStrategy();
-    await strategy.process(results);
+    return strategy.process(results);
   }
 
   @override
-  Future<void> processPipeCopy(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> processPipeCopy(List<QrScanResult> results) async {
     final strategy = PipeCopyStrategy();
-    await strategy.process(results);
+    return strategy.process(results);
   }
 
   @override
-  Future<void> processIdentification(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> processIdentification(List<QrScanResult> results) async {
     final strategy = IdentificationStrategy();
-    await strategy.process(results);
+    return strategy.process(results);
   }
 
   @override
-  Future<void> processReturnMaterial(List<QrScanResult> results) {
+  Future<QrScanProcessResult?> processReturnMaterial(List<QrScanResult> results) {
     final strategy = ReturnMaterialStrategy();
     return strategy.process(results);
   }

@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/qr_scan/qr_scan_result.dart';
 import '../../models/qr_scan/qr_scan_type.dart';
 import '../../services/qr_scan_service.dart';
+import '../../services/qr_scan_strategies/qr_scan_strategy.dart';
 import 'qr_scan_event.dart';
 import 'qr_scan_state.dart';
 
@@ -85,17 +86,20 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
         }
 
         if (state.config?.supportsBatch == true) {
+          // 批量模式：添加到列表，保持扫码状态，等待更多扫码或手动结束
           emit(
             state.copyWith(
               status: QrScanStatus.scanning,
               scannedCodes: updatedCodes,
               isValidCode: true,
+              currentCode: null, // 清除当前码，准备下次扫码
             ),
           );
         } else {
+          // 单个模式：开始处理，然后跳转
           emit(
             state.copyWith(
-              status: QrScanStatus.completed,
+              status: QrScanStatus.processing,
               scannedCodes: updatedCodes,
               isValidCode: true,
             ),
@@ -143,7 +147,8 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
       return;
     }
 
-    emit(state.copyWith(status: QrScanStatus.completed));
+    // 批量扫码结束，开始处理所有扫码结果
+    emit(state.copyWith(status: QrScanStatus.processing));
     add(const ProcessScannedCodes());
   }
 
@@ -169,31 +174,49 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
     try {
       emit(state.copyWith(status: QrScanStatus.processing, isProcessing: true));
 
+      QrScanProcessResult? result;
       switch (state.config!.scanType) {
         case QrScanType.inbound:
-          await _qrScanService.processInbound(state.scannedCodes);
+          result = await _qrScanService.processInbound(state.scannedCodes);
           break;
         case QrScanType.outbound:
-          await _qrScanService.processOutbound(state.scannedCodes);
+          result = await _qrScanService.processOutbound(state.scannedCodes);
           break;
         case QrScanType.transfer:
-          await _qrScanService.processTransfer(state.scannedCodes);
+          result = await _qrScanService.processTransfer(state.scannedCodes);
           break;
         case QrScanType.inventory:
-          await _qrScanService.processInventory(state.scannedCodes);
+          result = await _qrScanService.processInventory(state.scannedCodes);
           break;
         case QrScanType.pipeCopy:
-          await _qrScanService.processPipeCopy(state.scannedCodes);
+          result = await _qrScanService.processPipeCopy(state.scannedCodes);
           break;
         case QrScanType.identification:
-          await _qrScanService.processIdentification(state.scannedCodes);
+          result = await _qrScanService.processIdentification(state.scannedCodes);
           break;
         case QrScanType.returnMaterial:
-          await _qrScanService.processReturnMaterial(state.scannedCodes);
+          result = await _qrScanService.processReturnMaterial(state.scannedCodes);
           break;
       }
 
-      emit(state.copyWith(status: QrScanStatus.completed, isProcessing: false));
+      if (result != null && !result.success) {
+        emit(
+          state.copyWith(
+            status: QrScanStatus.error,
+            errorMessage: result.errorMessage ?? '处理扫码结果时发生错误',
+            isProcessing: false,
+          ),
+        );
+      } else {
+        // 处理完成，设置为 processComplete 状态
+        emit(
+          state.copyWith(
+            status: QrScanStatus.processComplete,
+            isProcessing: false,
+            processResult: result,
+          ),
+        );
+      }
     } catch (e) {
       emit(
         state.copyWith(
