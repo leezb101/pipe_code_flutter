@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'image_preview_widget.dart';
 
 class ImageUploadWidget extends StatefulWidget {
   const ImageUploadWidget({
@@ -87,6 +88,26 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
       _images.removeAt(index);
     });
     widget.onImagesChanged(_images);
+  }
+
+  void _previewImages(int initialIndex) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ImagePreviewWidget(
+          images: _images,
+          initialIndex: initialIndex,
+          onDelete: (index) {
+            _removeImage(index);
+          },
+          onImagesChanged: (updatedImages) {
+            setState(() {
+              _images = updatedImages;
+            });
+            widget.onImagesChanged(_images);
+          },
+        ),
+      ),
+    );
   }
 
   void _showImageOptions() {
@@ -176,16 +197,31 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   Widget _buildImageItem(File image, int index) {
     return Stack(
       children: [
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.file(image, fit: BoxFit.cover),
+        GestureDetector(
+          onTap: () => _previewImages(index),
+          child: Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.file(
+                image, 
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[200],
+                    child: const Icon(
+                      Icons.broken_image,
+                      color: Colors.grey,
+                    ),
+                  );
+                },
+              ),
+            ),
           ),
         ),
         Positioned(
@@ -199,6 +235,13 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
               decoration: BoxDecoration(
                 color: Colors.red,
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: const Icon(Icons.close, size: 16, color: Colors.white),
             ),

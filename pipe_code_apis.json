@@ -1,0 +1,4634 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "一管一码",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "登录控制器"
+    },
+    {
+      "name": "项目控制器"
+    },
+    {
+      "name": "报废controller"
+    },
+    {
+      "name": "验收controller"
+    },
+    {
+      "name": "退库controller"
+    },
+    {
+      "name": "入库controller"
+    },
+    {
+      "name": "安装controller"
+    },
+    {
+      "name": "出库controller"
+    },
+    {
+      "name": "调拨controller"
+    },
+    {
+      "name": "小程序相关接口"
+    },
+    {
+      "name": "EnumController"
+    },
+    {
+      "name": "QrCodeController"
+    },
+    {
+      "name": "auth"
+    },
+    {
+      "name": "wx"
+    },
+    {
+      "name": "enum"
+    }
+  ],
+  "paths": {
+    "/auth/login/unite/2login": {
+      "get": {
+        "summary": "登录",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "登录控制器",
+          "auth"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/login/unite/ok": {
+      "get": {
+        "summary": "token校验",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "登录控制器",
+          "auth"
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultLoginVoOutUserVO"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "tk": "",
+                    "perms": [
+                      ""
+                    ],
+                    "userVO": {
+                      "deptName": "",
+                      "address": "",
+                      "orgName": "",
+                      "sex": "",
+                      "orgType": 0,
+                      "accountId": "",
+                      "phone": "",
+                      "code": "",
+                      "postName": "",
+                      "roleName": "",
+                      "fullname": "",
+                      "username": ""
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/login/unite/password": {
+      "post": {
+        "summary": "账号密码登录",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "登录控制器",
+          "auth"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginAccountVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultLoginVoOutUserVO"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "tk": "",
+                    "perms": [
+                      ""
+                    ],
+                    "userVO": {
+                      "deptName": "",
+                      "address": "",
+                      "orgName": "",
+                      "sex": "",
+                      "orgType": 0,
+                      "accountId": "",
+                      "phone": "",
+                      "code": "",
+                      "postName": "",
+                      "roleName": "",
+                      "fullname": "",
+                      "username": ""
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/sms/{phone}": {
+      "get": {
+        "summary": "获取短信验证码",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "登录控制器"
+        ],
+        "parameters": [
+          {
+            "name": "phone",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/login/sms/{phone}/{code}": {
+      "post": {
+        "summary": "短信验证码登录",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "登录控制器",
+          "auth"
+        ],
+        "parameters": [
+          {
+            "name": "phone",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultLoginVoOutUserVO"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "tk": "",
+                    "perms": [
+                      ""
+                    ],
+                    "userVO": {
+                      "deptName": "",
+                      "address": "",
+                      "orgName": "",
+                      "sex": "",
+                      "orgType": 0,
+                      "accountId": "",
+                      "phone": "",
+                      "code": "",
+                      "postName": "",
+                      "roleName": "",
+                      "fullname": "",
+                      "username": ""
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/login/getCodeImg": {
+      "get": {
+        "summary": "获取图片验证码",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "登录控制器",
+          "auth"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultString"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": ""
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/tk": {
+      "get": {
+        "summary": "通过登录TK获取登录用户信息",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "登录控制器",
+          "auth"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultLoginVoOutUserVO"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "tk": "",
+                    "perms": [
+                      ""
+                    ],
+                    "userVO": {
+                      "deptName": "",
+                      "address": "",
+                      "orgName": "",
+                      "sex": "",
+                      "orgType": 0,
+                      "accountId": "",
+                      "phone": "",
+                      "code": "",
+                      "postName": "",
+                      "roleName": "",
+                      "fullname": "",
+                      "username": ""
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/logout": {
+      "get": {
+        "summary": "授权人",
+        "deprecated": false,
+        "description": "退出登录",
+        "tags": [
+          "登录控制器",
+          "auth"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/add": {
+      "post": {
+        "summary": "新增",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "项目控制器"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectSaveVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/update": {
+      "post": {
+        "summary": "修改",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "项目控制器"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectSaveVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/commit": {
+      "post": {
+        "summary": "提交",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "项目控制器"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectSaveVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/init/list": {
+      "get": {
+        "summary": "立项 列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "项目控制器"
+        ],
+        "parameters": [
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 1,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 10,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectCode",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "projectStart": "",
+                        "projectEnd": "",
+                        "createdName": "",
+                        "createdId": 0,
+                        "status": 0
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": "",
+                    "pages": 0
+                  },
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/detail": {
+      "get": {
+        "summary": "项目详情查询",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "项目控制器"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": {
+                    "id": 0,
+                    "projectName": "",
+                    "projectCode": "",
+                    "projectStart": "",
+                    "projectEnd": "",
+                    "projectReportUrl": "",
+                    "publishBidUrl": "",
+                    "aimBidUrl": "",
+                    "otherDocUrl": "",
+                    "status": 0,
+                    "supplyType": 0,
+                    "type": 0,
+                    "createdName": "",
+                    "createdId": "",
+                    "auditOpinion": "",
+                    "auditTime": "",
+                    "auditName": "",
+                    "auditId": "",
+                    "materialList": [
+                      {
+                        "name": "",
+                        "type": 0,
+                        "typeName": "",
+                        "needNum": 0
+                      }
+                    ],
+                    "constructionUserList": [
+                      {
+                        "userId": 0,
+                        "name": "",
+                        "code": "",
+                        "orgName": "",
+                        "phone": ""
+                      }
+                    ],
+                    "supervisorUserList": [
+                      {
+                        "userId": 0,
+                        "name": "",
+                        "code": "",
+                        "orgName": "",
+                        "phone": ""
+                      }
+                    ],
+                    "builderUserList": [
+                      {
+                        "userId": 0,
+                        "name": "",
+                        "code": "",
+                        "orgName": "",
+                        "phone": ""
+                      }
+                    ]
+                  },
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/delete": {
+      "post": {
+        "summary": "delete",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "项目控制器"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/audit/list": {
+      "get": {
+        "summary": "监管部 待审核列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "项目控制器"
+        ],
+        "parameters": [
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 1,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 10,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectCode",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "projectStart": "",
+                        "projectEnd": "",
+                        "createdName": "",
+                        "createdId": 0,
+                        "status": 0
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": "",
+                    "pages": 0
+                  },
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/audit": {
+      "post": {
+        "summary": "审核操作",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "项目控制器"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectAuditVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/waste/do": {
+      "post": {
+        "summary": "处理报废",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "报废controller"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoWasteVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/waste/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "报废controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/waste/detail": {
+      "get": {
+        "summary": "详情",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "报废controller"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDoWasteVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "materiaList": [
+                      {
+                        "materialId": 0,
+                        "materialName": "",
+                        "num": 0,
+                        "installPileNo": "",
+                        "installImageUrl1": "",
+                        "installImageUrl2": ""
+                      }
+                    ],
+                    "imageList": [
+                      {
+                        "type": 0,
+                        "name": "",
+                        "url": "",
+                        "attachFormat": 0
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/accept/do": {
+      "post": {
+        "summary": "施工方验收单提交",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "验收controller"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoAcceptVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/accept/do/three": {
+      "post": {
+        "summary": "监理方或建设方验收确认",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "验收controller"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoAcceptThreePartyVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/accept/detail": {
+      "get": {
+        "summary": "详情",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "验收controller"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDoAcceptVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "materiaList": [
+                      {
+                        "materialId": 0,
+                        "materialName": "",
+                        "num": 0,
+                        "installPileNo": "",
+                        "installImageUrl1": "",
+                        "installImageUrl2": ""
+                      }
+                    ],
+                    "imageList": [
+                      {
+                        "type": 0,
+                        "name": "",
+                        "url": "",
+                        "attachFormat": 0
+                      }
+                    ],
+                    "signInAddress": "",
+                    "signInBox": "",
+                    "sendAcceptUrl": "",
+                    "acceptReportUrl": "",
+                    "pass": false
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/accept/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "验收controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/return/do": {
+      "post": {
+        "summary": "退库",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "退库controller"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoReturnVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/return/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "退库controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/return/detail": {
+      "get": {
+        "summary": "详情",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "退库controller"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDoReturnVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "materiaList": [
+                      {
+                        "materialId": 0,
+                        "materialName": "",
+                        "num": 0,
+                        "installPileNo": "",
+                        "installImageUrl1": "",
+                        "installImageUrl2": ""
+                      }
+                    ],
+                    "imageList": [
+                      {
+                        "type": 0,
+                        "name": "",
+                        "url": "",
+                        "attachFormat": 0
+                      }
+                    ],
+                    "returnType": 0,
+                    "returnRemark": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/signin/do": {
+      "post": {
+        "summary": "入库",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "入库controller"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoSignInVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/signin/detail": {
+      "get": {
+        "summary": "详情",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "入库controller"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDoSignInVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "materiaList": [
+                      {
+                        "materialId": 0,
+                        "materialName": "",
+                        "num": 0,
+                        "installPileNo": "",
+                        "installImageUrl1": "",
+                        "installImageUrl2": ""
+                      }
+                    ],
+                    "imageList": [
+                      {
+                        "type": 0,
+                        "name": "",
+                        "url": "",
+                        "attachFormat": 0
+                      }
+                    ],
+                    "signInAddress": "",
+                    "signInBox": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/signin/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "入库controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/install/do": {
+      "post": {
+        "summary": "出库",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "安装controller"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoInstallVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/install/detail": {
+      "get": {
+        "summary": "详情",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "安装controller"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDoInstallVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "materiaList": [
+                      {
+                        "materialId": 0,
+                        "materialName": "",
+                        "num": 0,
+                        "installPileNo": "",
+                        "installImageUrl1": "",
+                        "installImageUrl2": ""
+                      }
+                    ],
+                    "imageList": [
+                      {
+                        "type": 0,
+                        "name": "",
+                        "url": "",
+                        "attachFormat": 0
+                      }
+                    ],
+                    "recipientUserId": 0,
+                    "recipientUserName": "",
+                    "installQualityUrl": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/install/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "安装controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/signout/do": {
+      "post": {
+        "summary": "出库",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "出库controller"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoSignOutVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/signout/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "出库controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/signout/detail": {
+      "get": {
+        "summary": "详情",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "出库controller"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDoSignOutVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "materiaList": [
+                      {
+                        "materialId": 0,
+                        "materialName": "",
+                        "num": 0,
+                        "installPileNo": "",
+                        "installImageUrl1": "",
+                        "installImageUrl2": ""
+                      }
+                    ],
+                    "imageList": [
+                      {
+                        "type": 0,
+                        "name": "",
+                        "url": "",
+                        "attachFormat": 0
+                      }
+                    ],
+                    "recipientUserId": 0,
+                    "recipientUserName": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/dispatch/do": {
+      "post": {
+        "summary": "发起调拨",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "调拨controller"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoDispatchVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/dispatch/do/receive": {
+      "post": {
+        "summary": "接收调拨",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "调拨controller"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommonIdVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/dispatch/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "调拨controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/dispatch/detail": {
+      "get": {
+        "summary": "详情",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "调拨controller"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDoDispatchVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "materiaList": [
+                      {
+                        "materialId": 0,
+                        "materialName": "",
+                        "num": 0,
+                        "installPileNo": "",
+                        "installImageUrl1": "",
+                        "installImageUrl2": ""
+                      }
+                    ],
+                    "imageList": [
+                      {
+                        "type": 0,
+                        "name": "",
+                        "url": "",
+                        "attachFormat": 0
+                      }
+                    ],
+                    "type": false,
+                    "signOutFromAddress": "",
+                    "signOutToAddress": "",
+                    "fromProjectId": 0,
+                    "toProjectId": 0
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/query/token": {
+      "get": {
+        "summary": "获取小程序token",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "小程序相关接口"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/login/{code}/1": {
+      "get": {
+        "summary": "小程序第一步登录",
+        "deprecated": false,
+        "description": "小程序用户静默登录(是否需要授权获取用户手机号完成内部登录需要再次提示用户给与手机号获取权限)",
+        "tags": [
+          "小程序相关接口"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "data true 、false都为登录成功，登录失败抛出异常，为false时需要完善用户信息"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": {
+                    "id": "",
+                    "tk": "",
+                    "unionid": "",
+                    "account": "",
+                    "phone": "",
+                    "name": "",
+                    "nick": "",
+                    "birthday": "",
+                    "avatar": "",
+                    "address": "",
+                    "sex": "",
+                    "lastLoginTime": "",
+                    "complete": false,
+                    "orgCode": "",
+                    "orgName": "",
+                    "own": false,
+                    "boss": false,
+                    "admin": false,
+                    "projectInfos": [
+                      {
+                        "projectRoleType": "",
+                        "projectCode": "",
+                        "projectName": "",
+                        "orgCode": "",
+                        "orgName": ""
+                      }
+                    ],
+                    "currentProject": {
+                      "projectRoleType": "",
+                      "projectCode": "",
+                      "projectName": "",
+                      "orgCode": "",
+                      "orgName": ""
+                    }
+                  },
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/login/{code}/2": {
+      "get": {
+        "summary": "小程序第二步登录",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "小程序相关接口"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": {
+                    "id": "",
+                    "tk": "",
+                    "unionid": "",
+                    "account": "",
+                    "phone": "",
+                    "name": "",
+                    "nick": "",
+                    "birthday": "",
+                    "avatar": "",
+                    "address": "",
+                    "sex": "",
+                    "lastLoginTime": "",
+                    "complete": false,
+                    "orgCode": "",
+                    "orgName": "",
+                    "own": false,
+                    "boss": false,
+                    "admin": false,
+                    "projectInfos": [
+                      {
+                        "projectRoleType": "",
+                        "projectCode": "",
+                        "projectName": "",
+                        "orgCode": "",
+                        "orgName": ""
+                      }
+                    ],
+                    "currentProject": {
+                      "projectRoleType": "",
+                      "projectCode": "",
+                      "projectName": "",
+                      "orgCode": "",
+                      "orgName": ""
+                    }
+                  },
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/select/{projectId}": {
+      "get": {
+        "summary": "小程序用户静默登录(是否需要授权获取用户手机号完成内部登录需要再次提示用户给与手机号获取权限)",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "小程序相关接口"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "data true 标识正常登录成功 false 标识用户授权已过期(针对临时劳务) ,抛异常则为恶意访问"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/login/unite/password": {
+      "post": {
+        "summary": "账号密码登录",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "小程序相关接口",
+          "auth"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginAccountVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultWxLoginVO"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "id": "",
+                    "tk": "",
+                    "unionid": "",
+                    "account": "",
+                    "phone": "",
+                    "name": "",
+                    "nick": "",
+                    "birthday": "",
+                    "avatar": "",
+                    "address": "",
+                    "sex": "",
+                    "lastLoginTime": "",
+                    "complete": false,
+                    "orgCode": "",
+                    "orgName": "",
+                    "own": false,
+                    "boss": false,
+                    "admin": false,
+                    "projectInfos": [
+                      {
+                        "projectRoleType": "",
+                        "projectCode": "",
+                        "projectName": "",
+                        "orgCode": "",
+                        "orgName": ""
+                      }
+                    ],
+                    "currentProject": {
+                      "projectRoleType": "",
+                      "projectCode": "",
+                      "projectName": "",
+                      "orgCode": "",
+                      "orgName": ""
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/sms/{phone}": {
+      "get": {
+        "summary": "获取短信验证码",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "小程序相关接口"
+        ],
+        "parameters": [
+          {
+            "name": "phone",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/login/sms/{phone}/{code}": {
+      "post": {
+        "summary": "短信验证码登录",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "小程序相关接口",
+          "auth"
+        ],
+        "parameters": [
+          {
+            "name": "phone",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultWxLoginVO"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "id": "",
+                    "tk": "",
+                    "unionid": "",
+                    "account": "",
+                    "phone": "",
+                    "name": "",
+                    "nick": "",
+                    "birthday": "",
+                    "avatar": "",
+                    "address": "",
+                    "sex": "",
+                    "lastLoginTime": "",
+                    "complete": false,
+                    "orgCode": "",
+                    "orgName": "",
+                    "own": false,
+                    "boss": false,
+                    "admin": false,
+                    "projectInfos": [
+                      {
+                        "projectRoleType": "",
+                        "projectCode": "",
+                        "projectName": "",
+                        "orgCode": "",
+                        "orgName": ""
+                      }
+                    ],
+                    "currentProject": {
+                      "projectRoleType": "",
+                      "projectCode": "",
+                      "projectName": "",
+                      "orgCode": "",
+                      "orgName": ""
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/check": {
+      "get": {
+        "summary": "验证用户是否登录",
+        "deprecated": false,
+        "description": "返回用户的扩展信息及是否完善信息",
+        "tags": [
+          "小程序相关接口"
+        ],
+        "parameters": [
+          {
+            "name": "tk",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": {
+                    "id": "",
+                    "tk": "",
+                    "unionid": "",
+                    "account": "",
+                    "phone": "",
+                    "name": "",
+                    "nick": "",
+                    "birthday": "",
+                    "avatar": "",
+                    "address": "",
+                    "sex": "",
+                    "lastLoginTime": "",
+                    "complete": false,
+                    "orgCode": "",
+                    "orgName": "",
+                    "own": false,
+                    "boss": false,
+                    "admin": false,
+                    "projectInfos": [
+                      {
+                        "projectRoleType": "",
+                        "projectCode": "",
+                        "projectName": "",
+                        "orgCode": "",
+                        "orgName": ""
+                      }
+                    ],
+                    "currentProject": {
+                      "projectRoleType": "",
+                      "projectCode": "",
+                      "projectName": "",
+                      "orgCode": "",
+                      "orgName": ""
+                    }
+                  },
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/logout": {
+      "get": {
+        "summary": "logout",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "小程序相关接口"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/logoff": {
+      "get": {
+        "summary": "注销用户",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "小程序相关接口"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/rf": {
+      "post": {
+        "summary": "刷新用户tk接口,仅对完成完整流程登录的用户有效",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "小程序相关接口",
+          "wx"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RF",
+                "description": "包含属性uid,uid 经过公钥加密的unionid信息,原文 为json格式 ,包含两个属性,1 timestamp(当前时间毫秒数) 2 unionid"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultWxLoginVO",
+                  "description": "WxLoginVO(包含tk)"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "id": "",
+                    "tk": "",
+                    "unionid": "",
+                    "account": "",
+                    "phone": "",
+                    "name": "",
+                    "nick": "",
+                    "birthday": "",
+                    "avatar": "",
+                    "address": "",
+                    "sex": "",
+                    "lastLoginTime": "",
+                    "complete": false,
+                    "orgCode": "",
+                    "orgName": "",
+                    "own": false,
+                    "boss": false,
+                    "admin": false,
+                    "projectInfos": [
+                      {
+                        "projectRoleType": "",
+                        "projectCode": "",
+                        "projectName": "",
+                        "orgCode": "",
+                        "orgName": ""
+                      }
+                    ],
+                    "currentProject": {
+                      "projectRoleType": "",
+                      "projectCode": "",
+                      "projectName": "",
+                      "orgCode": "",
+                      "orgName": ""
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/orgs": {
+      "get": {
+        "summary": "公司列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "EnumController"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListSimpleOrgVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "code": "",
+                      "name": ""
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/accept/status": {
+      "get": {
+        "summary": "验收状态",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "EnumController",
+          "enum"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "code": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/business/type": {
+      "get": {
+        "summary": "业务类型",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "EnumController",
+          "enum"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "code": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/project/status": {
+      "get": {
+        "summary": "项目状态",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "EnumController",
+          "enum"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "code": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/projectsupply/type": {
+      "get": {
+        "summary": "项目甲乙供材类型",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "EnumController",
+          "enum"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "code": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/project/type": {
+      "get": {
+        "summary": "项目类型",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "EnumController",
+          "enum"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "code": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/return/type": {
+      "get": {
+        "summary": "退库",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "EnumController",
+          "enum"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "code": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/qr/down": {
+      "get": {
+        "summary": "download",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "QrCodeController"
+        ],
+        "parameters": [
+          {
+            "name": "num",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 10,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Result": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/"
+            },
+            "description": "具体的内容."
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OutUserVO": {
+        "type": "object",
+        "properties": {
+          "deptName": {
+            "type": "string",
+            "description": "部门名称"
+          },
+          "address": {
+            "type": "string",
+            "description": "地址"
+          },
+          "orgName": {
+            "type": "string",
+            "description": "归属组织名称"
+          },
+          "sex": {
+            "type": "string",
+            "description": "性别"
+          },
+          "orgType": {
+            "type": "integer",
+            "description": "账号归属组织类型（）"
+          },
+          "accountId": {
+            "type": "string",
+            "description": "账号id，用于通信"
+          },
+          "phone": {
+            "type": "string",
+            "description": "手机号"
+          },
+          "code": {
+            "type": "string",
+            "description": "归属组织code"
+          },
+          "postName": {
+            "type": "string",
+            "description": "职位名称"
+          },
+          "roleName": {
+            "type": "string",
+            "description": "角色名"
+          },
+          "fullname": {
+            "type": "string",
+            "description": "名称"
+          },
+          "username": {
+            "type": "string",
+            "description": "账号"
+          }
+        }
+      },
+      "LoginVoOutUserVO": {
+        "type": "object",
+        "properties": {
+          "tk": {
+            "type": "string",
+            "description": "鉴权用的token值"
+          },
+          "perms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "当前用户所拥有的权限码\n权限码"
+          },
+          "userVO": {
+            "$ref": "#/components/schemas/OutUserVO",
+            "description": ""
+          }
+        }
+      },
+      "ResultLoginVoOutUserVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/LoginVoOutUserVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "LoginAccountVO": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "type": "string",
+            "description": ""
+          },
+          "password": {
+            "type": "string",
+            "description": ""
+          },
+          "code": {
+            "type": "string",
+            "description": ""
+          }
+        },
+        "required": [
+          "account",
+          "password",
+          "code"
+        ]
+      },
+      "ResultString": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "type": "string",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "ResultBoolean": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "type": "boolean",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "ProjectBindMaterialVO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "物料名称"
+          },
+          "type": {
+            "type": "integer",
+            "description": "物料类型"
+          },
+          "typeName": {
+            "type": "string",
+            "description": "物料类型名称"
+          },
+          "needNum": {
+            "type": "integer",
+            "description": "需求数量"
+          }
+        }
+      },
+      "ProjectConstructionVO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "description": "用户id"
+          },
+          "name": {
+            "type": "string",
+            "description": "用户姓名"
+          },
+          "code": {
+            "type": "string",
+            "description": "用户所在组织机构代码"
+          },
+          "orgName": {
+            "type": "string",
+            "description": "用户所在公司名称"
+          },
+          "phone": {
+            "type": "string",
+            "description": ""
+          }
+        }
+      },
+      "ProjectSupervisorVO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "description": "用户id"
+          },
+          "name": {
+            "type": "string",
+            "description": "用户姓名"
+          },
+          "code": {
+            "type": "string",
+            "description": "用户所在组织机构代码"
+          },
+          "orgName": {
+            "type": "string",
+            "description": "用户所在公司名称"
+          },
+          "phone": {
+            "type": "string",
+            "description": "用户手机号"
+          }
+        }
+      },
+      "ProjectBuilderVO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "description": "用户id"
+          },
+          "name": {
+            "type": "string",
+            "description": "用户姓名"
+          },
+          "code": {
+            "type": "string",
+            "description": "用户所在组织机构代码"
+          },
+          "orgName": {
+            "type": "string",
+            "description": "用户所在公司名称"
+          },
+          "phone": {
+            "type": "string",
+            "description": "用户手机号"
+          }
+        }
+      },
+      "ProjectSaveVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": ""
+          },
+          "projectName": {
+            "type": "string",
+            "description": "项目名称"
+          },
+          "projectCode": {
+            "type": "string",
+            "description": "项目编号"
+          },
+          "projectStart": {
+            "type": "string",
+            "description": "项目开始时间"
+          },
+          "projectEnd": {
+            "type": "string",
+            "description": "项目结束时间"
+          },
+          "supplyType": {
+            "type": "integer",
+            "description": "0甲供材1乙供材 2混合供材"
+          },
+          "projectReportUrl": {
+            "type": "string",
+            "description": "立项报告上传url"
+          },
+          "publishBidUrl": {
+            "type": "string",
+            "description": "招标文件上传url"
+          },
+          "aimBidUrl": {
+            "type": "string",
+            "description": "中标文件上传url"
+          },
+          "otherDocUrl": {
+            "type": "string",
+            "description": "其他文件上传url"
+          },
+          "materialList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectBindMaterialVO",
+              "description": "项目绑定耗材"
+            },
+            "description": "项目需求物料列表"
+          },
+          "constructionUserList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectConstructionVO",
+              "description": "项目建设方用户VO"
+            },
+            "description": "建设方负责人列表"
+          },
+          "supervisorUserList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectSupervisorVO",
+              "description": "项目监理方用户VO"
+            },
+            "description": "监理方负责人列表"
+          },
+          "builderUserList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectBuilderVO",
+              "description": "项目施工方用户VO"
+            },
+            "description": "施工方负责人列表"
+          }
+        }
+      },
+      "ProjectPageVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": ""
+          },
+          "projectName": {
+            "type": "string",
+            "description": "项目名称"
+          },
+          "projectCode": {
+            "type": "string",
+            "description": "项目编号"
+          },
+          "projectStart": {
+            "type": "string",
+            "description": "项目开始时间"
+          },
+          "projectEnd": {
+            "type": "string",
+            "description": "项目结束时间"
+          },
+          "createdName": {
+            "type": "string",
+            "description": "创建人"
+          },
+          "createdId": {
+            "type": "integer",
+            "description": "创建人id"
+          },
+          "status": {
+            "type": "integer",
+            "description": "项目状态, 0:初始化 1:启动,开发中 2:已完成 3:已废弃"
+          }
+        }
+      },
+      "OrderItem": {
+        "type": "object",
+        "properties": {
+          "column": {
+            "type": "string",
+            "description": ""
+          },
+          "asc": {
+            "type": "boolean",
+            "description": ""
+          }
+        }
+      },
+      "": {
+        "type": "object",
+        "properties": {
+          "msg": {
+            "type": "string"
+          },
+          "code": {
+            "type": "integer"
+          }
+        }
+      },
+      "ProjectAuditVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "主键id"
+          },
+          "type": {
+            "type": "integer",
+            "description": "项目类型"
+          },
+          "auditOpinion": {
+            "type": "string",
+            "description": "审批意见"
+          },
+          "pass": {
+            "type": "boolean",
+            "description": "审核是否通过"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "auditOpinion",
+          "pass"
+        ]
+      },
+      "MaterialVO": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "integer",
+            "description": "物料id"
+          },
+          "materialName": {
+            "type": "string",
+            "description": "物料名称"
+          },
+          "num": {
+            "type": "integer",
+            "description": "耗材数量",
+            "default": 1
+          },
+          "installPileNo": {
+            "type": "string",
+            "description": "安装桩号"
+          },
+          "installImageUrl1": {
+            "type": "string",
+            "description": "安装照片1"
+          },
+          "installImageUrl2": {
+            "type": "string",
+            "description": "安装照片2"
+          }
+        }
+      },
+      "AttachmentVO": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "integer",
+            "description": "附件类型"
+          },
+          "name": {
+            "type": "string",
+            "description": "附件名称"
+          },
+          "url": {
+            "type": "string",
+            "description": "附件url,相对地址"
+          },
+          "attachFormat": {
+            "type": "integer",
+            "description": "附件格式"
+          }
+        }
+      },
+      "DoWasteVO": {
+        "type": "object",
+        "properties": {
+          "materiaList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaterialVO",
+              "description": "耗材 VO"
+            },
+            "description": "物料列表"
+          },
+          "imageList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentVO",
+              "description": "附件 VO"
+            },
+            "description": "照片附件列表"
+          }
+        }
+      },
+      "CommonBusinessListVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "业务id"
+          },
+          "bizType": {
+            "type": "integer",
+            "description": "业务类型"
+          },
+          "projectName": {
+            "type": "string",
+            "description": "项目名称"
+          },
+          "projectCode": {
+            "type": "string",
+            "description": "项目编号"
+          },
+          "materialNum": {
+            "type": "integer",
+            "description": "耗材数量"
+          },
+          "userName": {
+            "type": "string",
+            "description": "负责人姓名"
+          },
+          "doTime": {
+            "type": "string",
+            "description": "操作时间"
+          }
+        }
+      },
+      "PageCommonBusinessListVO": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonBusinessListVO",
+              "description": "com.zzwater.pipeline.mobile.entity.vo.CommonBusinessListVO"
+            },
+            "description": ""
+          },
+          "total": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "size": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "current": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem",
+              "description": "com.baomidou.mybatisplus.core.metadata.OrderItem"
+            },
+            "description": ""
+          },
+          "optimizeCountSql": {
+            "type": "boolean",
+            "description": ""
+          },
+          "searchCount": {
+            "type": "boolean",
+            "description": ""
+          },
+          "optimizeJoinOfCountSql": {
+            "type": "boolean",
+            "description": ""
+          },
+          "maxLimit": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "countId": {
+            "type": "string",
+            "description": ""
+          }
+        }
+      },
+      "ResultPageCommonBusinessListVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageCommonBusinessListVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "ResultDoWasteVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DoWasteVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "DoAcceptVO": {
+        "type": "object",
+        "properties": {
+          "materiaList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaterialVO",
+              "description": "耗材 VO"
+            },
+            "description": "物料列表"
+          },
+          "imageList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentVO",
+              "description": "附件 VO"
+            },
+            "description": "照片附件列表"
+          },
+          "signInAddress": {
+            "type": "string",
+            "description": "入库仓库地点"
+          },
+          "signInBox": {
+            "type": "string",
+            "description": "入库仓位"
+          },
+          "sendAcceptUrl": {
+            "type": "string",
+            "description": "报验单url"
+          },
+          "acceptReportUrl": {
+            "type": "string",
+            "description": "验收报告url"
+          },
+          "pass": {
+            "type": "boolean",
+            "description": "验收是否通过标识"
+          }
+        }
+      },
+      "DoAcceptThreePartyVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "验收id"
+          },
+          "pass": {
+            "type": "boolean",
+            "description": "验收是否通过"
+          }
+        }
+      },
+      "ResultDoAcceptVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DoAcceptVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "DoReturnVO": {
+        "type": "object",
+        "properties": {
+          "materiaList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaterialVO",
+              "description": "耗材 VO"
+            },
+            "description": "物料列表"
+          },
+          "imageList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentVO",
+              "description": "附件 VO"
+            },
+            "description": "照片附件列表"
+          },
+          "returnType": {
+            "type": "integer",
+            "description": "退库类型，0：不合格退库，1：多余件退库"
+          },
+          "returnRemark": {
+            "type": "string",
+            "description": "退库描述"
+          }
+        }
+      },
+      "ResultDoReturnVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DoReturnVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "DoSignInVO": {
+        "type": "object",
+        "properties": {
+          "materiaList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaterialVO",
+              "description": "耗材 VO"
+            },
+            "description": "物料列表"
+          },
+          "imageList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentVO",
+              "description": "附件 VO"
+            },
+            "description": "照片附件列表"
+          },
+          "signInAddress": {
+            "type": "string",
+            "description": "入库仓库地点"
+          },
+          "signInBox": {
+            "type": "string",
+            "description": "入库仓位"
+          }
+        }
+      },
+      "ResultDoSignInVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DoSignInVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "DoInstallVO": {
+        "type": "object",
+        "properties": {
+          "materiaList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaterialVO",
+              "description": "耗材 VO"
+            },
+            "description": "物料列表"
+          },
+          "imageList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentVO",
+              "description": "附件 VO"
+            },
+            "description": "照片附件列表"
+          },
+          "recipientUserId": {
+            "type": "integer",
+            "description": "领用人id"
+          },
+          "recipientUserName": {
+            "type": "string",
+            "description": "领用人name"
+          },
+          "installQualityUrl": {
+            "type": "string",
+            "description": "安装质量验收报告url"
+          }
+        }
+      },
+      "ResultDoInstallVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DoInstallVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "DoSignOutVO": {
+        "type": "object",
+        "properties": {
+          "materiaList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaterialVO",
+              "description": "耗材 VO"
+            },
+            "description": "物料列表"
+          },
+          "imageList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentVO",
+              "description": "附件 VO"
+            },
+            "description": "照片附件列表"
+          },
+          "recipientUserId": {
+            "type": "integer",
+            "description": "领用人id"
+          },
+          "recipientUserName": {
+            "type": "string",
+            "description": "领用人name"
+          }
+        }
+      },
+      "ResultDoSignOutVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DoSignOutVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "DoDispatchVO": {
+        "type": "object",
+        "properties": {
+          "materiaList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaterialVO",
+              "description": "耗材 VO"
+            },
+            "description": "物料列表"
+          },
+          "imageList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentVO",
+              "description": "附件 VO"
+            },
+            "description": "照片附件列表"
+          },
+          "type": {
+            "type": "boolean",
+            "description": "0挪库 (出库方发起,入库方同意),1借调(入库方发起,出库方同意)"
+          },
+          "signOutFromAddress": {
+            "type": "string",
+            "description": "调拨发货地点"
+          },
+          "signOutToAddress": {
+            "type": "string",
+            "description": "调拨收货地点"
+          },
+          "fromProjectId": {
+            "type": "integer",
+            "description": "出库方项目id"
+          },
+          "toProjectId": {
+            "type": "integer",
+            "description": "入库方项目id"
+          }
+        }
+      },
+      "CommonIdVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": ""
+          }
+        }
+      },
+      "ResultDoDispatchVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DoDispatchVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "ProjectInfo": {
+        "type": "object",
+        "properties": {
+          "projectRoleType": {
+            "type": "string",
+            "description": "",
+            "enum": [
+              "suppliers",
+              "construction",
+              "supervisor",
+              "builder",
+              "check",
+              "builder_sub",
+              "laborer",
+              "playgoer"
+            ]
+          },
+          "projectCode": {
+            "type": "string",
+            "description": ""
+          },
+          "projectName": {
+            "type": "string",
+            "description": ""
+          },
+          "orgCode": {
+            "type": "string",
+            "description": ""
+          },
+          "orgName": {
+            "type": "string",
+            "description": ""
+          }
+        }
+      },
+      "WxLoginVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "private int id;"
+          },
+          "tk": {
+            "type": "string",
+            "description": ""
+          },
+          "unionid": {
+            "type": "string",
+            "description": ""
+          },
+          "account": {
+            "type": "string",
+            "description": ""
+          },
+          "phone": {
+            "type": "string",
+            "description": ""
+          },
+          "name": {
+            "type": "string",
+            "description": ""
+          },
+          "nick": {
+            "type": "string",
+            "description": ""
+          },
+          "birthday": {
+            "type": "string",
+            "description": ""
+          },
+          "avatar": {
+            "type": "string",
+            "description": ""
+          },
+          "address": {
+            "type": "string",
+            "description": ""
+          },
+          "sex": {
+            "type": "string",
+            "description": "男 or 女"
+          },
+          "lastLoginTime": {
+            "type": "string",
+            "description": ""
+          },
+          "complete": {
+            "type": "boolean",
+            "description": "是否完善用户信息"
+          },
+          "orgCode": {
+            "type": "string",
+            "description": "归属组织"
+          },
+          "orgName": {
+            "type": "string",
+            "description": "归属组织"
+          },
+          "own": {
+            "type": "boolean",
+            "description": "是否自有人员\n非自有人员则为游客"
+          },
+          "boss": {
+            "type": "boolean",
+            "description": "是否管理层"
+          },
+          "admin": {
+            "type": "boolean",
+            "description": "是否管理员"
+          },
+          "projectInfos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectInfo",
+              "description": "项目列表信息"
+            },
+            "description": "参与的项目信息"
+          },
+          "currentProject": {
+            "$ref": "#/components/schemas/ProjectInfo",
+            "description": "当前选中项目"
+          }
+        }
+      },
+      "ResultWxLoginVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/WxLoginVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "RF": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": ""
+          }
+        }
+      },
+      "SimpleOrgVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "公司编码"
+          },
+          "name": {
+            "type": "string",
+            "description": "公司名称"
+          }
+        }
+      },
+      "ResultListSimpleOrgVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SimpleOrgVO",
+              "description": "简化公司VO"
+            },
+            "description": "具体的内容."
+          }
+        }
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}
