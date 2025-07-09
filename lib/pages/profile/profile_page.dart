@@ -68,17 +68,27 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: ListTile(
                         leading: const Icon(Icons.email),
                         title: const Text('Email'),
-                        subtitle: Text(userState.wxLoginVO.phone.isEmpty ? 'No email' : userState.wxLoginVO.phone),
+                        subtitle: Text(
+                          userState.wxLoginVO.phone.isEmpty
+                              ? 'No email'
+                              : userState.wxLoginVO.phone,
+                        ),
                       ),
                     ),
-                    if (userState.wxLoginVO.name != null || userState.wxLoginVO.nick != null)
+                    if (userState.wxLoginVO.name != null ||
+                        userState.wxLoginVO.nick != null)
                       Card(
                         child: ListTile(
                           leading: const Icon(Icons.badge),
                           title: const Text('Name'),
-                          subtitle: ('${userState.wxLoginVO.name ?? ''} ${userState.wxLoginVO.nick ?? ''}').trim().isEmpty 
-                            ? const Text('No name set')
-                            : Text('${userState.wxLoginVO.name ?? ''} ${userState.wxLoginVO.nick ?? ''}'),
+                          subtitle:
+                              ('${userState.wxLoginVO.name ?? ''} ${userState.wxLoginVO.nick ?? ''}')
+                                  .trim()
+                                  .isEmpty
+                              ? const Text('No name set')
+                              : Text(
+                                  '${userState.wxLoginVO.name ?? ''} ${userState.wxLoginVO.nick ?? ''}',
+                                ),
                         ),
                       ),
                   ] else if (userState is UserLoading) ...[
@@ -125,7 +135,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     Card(
                       color: Colors.orange.shade50,
                       child: ListTile(
-                        leading: const Icon(Icons.developer_mode, color: Colors.orange),
+                        leading: const Icon(
+                          Icons.developer_mode,
+                          color: Colors.orange,
+                        ),
                         title: const Text('Developer Settings'),
                         subtitle: Text(
                           'Data Source: ${AppConfig.isMockEnabled ? "Mock" : "API"}',
@@ -140,10 +153,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   const Spacer(),
                   const Text(
                     'Flutter Bloc Template',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ],
               ),
