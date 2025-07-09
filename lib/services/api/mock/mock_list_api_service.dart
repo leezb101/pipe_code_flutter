@@ -12,7 +12,7 @@ class MockListApiService implements ListApiService {
       throw 'Failed to load items';
     }
 
-    final items = MockDataGenerator.generateListItems(15);
+    final items = MockDataGenerator.generateListItems(count: 15);
     return items.map((item) => item.toJson()).toList();
   }
 
@@ -28,7 +28,8 @@ class MockListApiService implements ListApiService {
       throw 'Failed to create item';
     }
 
-    final item = MockDataGenerator.generateListItem();
+    final items = MockDataGenerator.generateListItems(count: 1);
+    final item = items.first;
     return item.copyWith(
       title: title,
       description: description,
@@ -49,7 +50,8 @@ class MockListApiService implements ListApiService {
       throw 'Failed to update item';
     }
 
-    final item = MockDataGenerator.generateListItem(id: id);
+    final items = MockDataGenerator.generateListItems(count: 1);
+    final item = items.first;
     return item.copyWith(
       title: title ?? item.title,
       description: description ?? item.description,

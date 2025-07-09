@@ -60,12 +60,12 @@ Map<String, dynamic> _$RoleMenuConfigToJson(RoleMenuConfig instance) =>
     };
 
 const _$UserRoleEnumMap = {
-  UserRole.suppliers: 0,
-  UserRole.construction: 1,
-  UserRole.supervisor: 2,
-  UserRole.builder: 3,
-  UserRole.check: 4,
-  UserRole.builderSub: 5,
-  UserRole.laborer: 6,
-  UserRole.playgoer: 7,
+  UserRole.suppliers: 'suppliers',
+  UserRole.construction: 'construction',
+  UserRole.supervisor: 'supervisor',
+  UserRole.builder: 'builder',
+  UserRole.check: 'check',
+  UserRole.builderSub: 'builder_sub',
+  UserRole.laborer: 'laborer',
+  UserRole.playgoer: 'playgoer',
 };

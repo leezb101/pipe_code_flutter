@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
+import '../../models/auth/login_account_vo.dart';
 import '../../utils/toast_utils.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -37,7 +38,7 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthAuthenticated) {
+          if (state is AuthFullyAuthenticated) {
             context.showSuccessToast('注册成功');
             context.go('/main');
           } else if (state is AuthFailure) {
@@ -146,10 +147,12 @@ class _RegisterPageState extends State<RegisterPage> {
   void _register() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
-            AuthRegisterRequested(
-              username: _usernameController.text,
-              email: _emailController.text,
-              password: _passwordController.text,
+            AuthLoginWithPasswordRequested(
+              loginRequest: LoginAccountVO(
+                account: _usernameController.text,
+                password: _passwordController.text,
+                code: '', // 密码登录不需要验证码
+              ),
             ),
           );
     }

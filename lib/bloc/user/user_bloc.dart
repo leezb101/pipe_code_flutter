@@ -1,3 +1,10 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-09 23:50:00
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-09 23:50:00
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../repositories/user_repository.dart';
 import 'user_event.dart';
@@ -21,9 +28,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   ) async {
     emit(const UserLoading());
     try {
-      final user = await _userRepository.loadUserFromStorage();
-      if (user != null) {
-        emit(UserLoaded(user: user));
+      final wxLoginVO = await _userRepository.loadUserFromStorage();
+      if (wxLoginVO != null) {
+        emit(UserLoaded(wxLoginVO: wxLoginVO));
       } else {
         emit(const UserEmpty());
       }
@@ -37,8 +44,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     Emitter<UserState> emit,
   ) async {
     try {
-      await _userRepository.saveUserToStorage(event.user);
-      emit(UserLoaded(user: event.user));
+      await _userRepository.saveUserData(event.wxLoginVO);
+      emit(UserLoaded(wxLoginVO: event.wxLoginVO));
     } catch (e) {
       emit(UserError(error: e.toString()));
     }
@@ -51,12 +58,17 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     emit(const UserLoading());
     try {
       final updatedUser = await _userRepository.updateUserProfile(
-        firstName: event.firstName,
-        lastName: event.lastName,
-        email: event.email,
+        name: event.name,
+        nick: event.nick,
         avatar: event.avatar,
+        address: event.address,
+        phone: event.phone,
       );
-      emit(UserLoaded(user: updatedUser));
+      if (updatedUser != null) {
+        emit(UserLoaded(wxLoginVO: updatedUser));
+      } else {
+        emit(const UserError(error: '更新用户信息失败'));
+      }
     } catch (e) {
       emit(UserError(error: e.toString()));
     }

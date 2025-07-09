@@ -2,13 +2,14 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-07 19:56:32
+ * @LastEditTime: 2025-07-09 16:40:22
  * @copyright: Copyright © 2025 高新供水.
  */
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/utils/logger.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
 import '../../bloc/project/project_bloc.dart';
@@ -18,7 +19,7 @@ import '../../models/qr_scan/qr_scan_config.dart';
 import '../../models/qr_scan/qr_scan_type.dart';
 import '../../models/menu/menu_config.dart';
 import '../../models/user/user_role.dart';
-import '../../models/project/project.dart';
+import '../../models/project/project_info.dart';
 import '../../utils/toast_utils.dart';
 import '../toast_demo_page.dart';
 import '../../constants/menu_actions.dart';
@@ -32,6 +33,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool _isProjectHeaderExpanded = true; // 项目头部是否展开
+  bool _showProjectSwitchingOverlay = false; // 是否显示项目切换overlay
 
   @override
   void initState() {
@@ -47,55 +49,117 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.blue[600],
         foregroundColor: Colors.white,
       ),
-      body: BlocListener<UserBloc, UserState>(
+      body: BlocListener<ProjectBloc, ProjectState>(
         listener: (context, state) {
-          if (state is UserLoaded) {
-            context.read<ProjectBloc>().add(
-              ProjectLoadUserContext(userId: state.user.id),
-            );
+          // 监听项目状态变化，显示/隐藏overlay
+          Logger.debug(
+            'HomePage: ProjectBloc state changed to ${state.runtimeType}',
+          );
+          if (state is ProjectLoading) {
+            Logger.debug('HomePage: Showing project switching overlay');
+            setState(() {
+              _showProjectSwitchingOverlay = true;
+            });
+          } else {
+            Logger.debug('HomePage: Hiding project switching overlay');
+            setState(() {
+              _showProjectSwitchingOverlay = false;
+            });
           }
         },
-        child: BlocBuilder<ProjectBloc, ProjectState>(
-          builder: (context, projectState) {
-            if (projectState is ProjectLoading ||
-                projectState is ProjectSwitching) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (projectState is ProjectContextLoaded) {
-              return _buildRoleBasedHome(context, projectState);
-            }
-
-            if (projectState is ProjectError) {
-              return _buildErrorView(context, projectState.error);
-            }
-
-            if (projectState is ProjectEmpty) {
-              return _buildEmptyProjectView(context, projectState.message);
-            }
-
-            // 检查用户状态
-            return BlocBuilder<UserBloc, UserState>(
-              builder: (context, userState) {
-                if (userState is UserLoading) {
+        child: Stack(
+          children: [
+            // 主要内容
+            BlocBuilder<ProjectBloc, ProjectState>(
+              builder: (context, projectState) {
+                // 如果项目状态为初始状态，显示加载界面
+                if (projectState is ProjectInitial) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (userState is UserLoaded) {
-                  return _buildLoadingProjectView(context);
+                // 如果项目角色信息已加载，显示角色相关的主页
+                if (projectState is ProjectRoleInfoLoaded) {
+                  return _buildRoleBasedHome(context, projectState);
                 }
 
-                return _buildEmptyView(context);
+                // 如果项目列表已加载但未选择项目，显示项目选择界面
+                if (projectState is ProjectListLoaded) {
+                  return _buildProjectSelectionView(context, projectState);
+                }
+
+                // 如果项目状态有错误，显示错误界面
+                if (projectState is ProjectError) {
+                  return _buildErrorView(context, projectState.message);
+                }
+
+                // 如果没有项目数据，显示空状态
+                if (projectState is ProjectEmpty) {
+                  return _buildEmptyProjectView(context, '暂无项目数据');
+                }
+
+                // return Container();
+                // 默认显示加载界面
+                return const Center(child: CircularProgressIndicator());
               },
-            );
-          },
+            ),
+            // 项目切换overlay
+            if (_showProjectSwitchingOverlay) _buildProjectSwitchingOverlay(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 构建项目切换时的loading overlay
+  Widget _buildProjectSwitchingOverlay() {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.3),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                '正在切换项目...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   /// 根据角色构建首页内容
-  Widget _buildRoleBasedHome(BuildContext context, ProjectContextLoaded state) {
+  Widget _buildRoleBasedHome(
+    BuildContext context,
+    ProjectRoleInfoLoaded state,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -113,7 +177,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 构建项目头部信息
-  Widget _buildProjectHeader(BuildContext context, ProjectContextLoaded state) {
+  Widget _buildProjectHeader(
+    BuildContext context,
+    ProjectRoleInfoLoaded state,
+  ) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -169,7 +236,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            state.currentProject.name,
+                            state.currentProject.projectName,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -267,7 +334,7 @@ class _HomePageState extends State<HomePage> {
                             child: _buildDetailRow(
                               Icons.engineering,
                               '工程状态',
-                              state.currentProject.status.displayName,
+                              state.currentProject.projectCode,
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -275,7 +342,7 @@ class _HomePageState extends State<HomePage> {
                             child: _buildDetailRow(
                               Icons.person,
                               '负责人',
-                              state.currentProject.contactPerson ?? '未设置',
+                              state.currentProject.orgName ?? '未设置',
                             ),
                           ),
                         ],
@@ -451,7 +518,7 @@ class _HomePageState extends State<HomePage> {
   /// 获取状态简称
   String _getStatusShort(dynamic status) {
     // 根据实际状态枚举返回简称
-    String displayName = status.displayName ?? '未知';
+    String displayName = status ?? '未知';
     if (displayName.length > 4) {
       return displayName.substring(0, 4);
     }
@@ -459,52 +526,40 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 格式化工程周期（简化版）
-  String _formatProjectDurationShort(Project project) {
-    if (project.startDate == null || project.endDate == null) {
-      return '未设置';
-    }
-
-    final startDate = project.startDate!;
-    final endDate = project.endDate!;
-
-    return '${startDate.month}/${startDate.day}-${endDate.month}/${endDate.day}';
+  String _formatProjectDurationShort(ProjectInfo project) {
+    // ProjectInfo 不包含日期信息，返回项目名称
+    return project.projectName;
   }
 
   /// 获取耗材总数（模拟数据，实际应从项目数据中获取）
-  int _getMaterialCount(Project project) {
+  int _getMaterialCount(ProjectInfo project) {
     // 这里应该从实际的项目数据或API获取耗材总数
     // 暂时返回模拟数据
     return 62;
   }
 
   /// 获取验收通过耗材数（模拟数据）
-  int _getAcceptedMaterialCount(Project project) {
+  int _getAcceptedMaterialCount(ProjectInfo project) {
     // 这里应该从实际的项目数据或API获取验收通过的耗材数
     // 暂时返回模拟数据
     return 59;
   }
 
   /// 获取验收退回耗材数（模拟数据）
-  int _getRejectedMaterialCount(Project project) {
+  int _getRejectedMaterialCount(ProjectInfo project) {
     // 这里应该从实际的项目数据或API获取验收退回的耗材数
     // 暂时返回模拟数据
     return 3;
   }
 
   /// 格式化工程周期
-  String _formatProjectDuration(Project project) {
-    if (project.startDate == null || project.endDate == null) {
-      return '未设置';
-    }
-
-    final startDate = project.startDate!;
-    final endDate = project.endDate!;
-
-    return '${startDate.year}年${startDate.month}月${startDate.day}日 - ${endDate.year}年${endDate.month}月${endDate.day}日';
+  String _formatProjectDuration(ProjectInfo project) {
+    // ProjectInfo 不包含日期信息，返回项目基本信息
+    return '${project.projectName} - ${project.orgName}';
   }
 
   /// 显示项目选择器
-  void _showProjectSelector(BuildContext context, ProjectContextLoaded state) {
+  void _showProjectSelector(BuildContext context, ProjectRoleInfoLoaded state) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -522,21 +577,22 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 16),
             ...state.availableProjects.map((project) {
-              final isCurrentProject = project.id == state.currentProject.id;
+              final isCurrentProject =
+                  project.projectCode == state.currentProject.projectCode;
               return ListTile(
                 leading: Icon(
                   isCurrentProject ? Icons.check_circle : Icons.business,
                   color: isCurrentProject ? Colors.green : Colors.grey,
                 ),
                 title: Text(
-                  project.name,
+                  project.projectName,
                   style: TextStyle(
                     fontWeight: isCurrentProject
                         ? FontWeight.bold
                         : FontWeight.normal,
                   ),
                 ),
-                subtitle: Text(project.description),
+                subtitle: Text(project.orgName),
                 trailing: isCurrentProject
                     ? Container(
                         padding: const EdgeInsets.symmetric(
@@ -562,7 +618,14 @@ class _HomePageState extends State<HomePage> {
                     : () {
                         Navigator.pop(context);
                         context.read<ProjectBloc>().add(
-                          ProjectSwitchProject(projectId: project.id),
+                          ProjectSelectProject(
+                            projectId: int.parse(
+                              project.projectCode.replaceAll(
+                                RegExp(r'[^0-9]'),
+                                '',
+                              ),
+                            ),
+                          ),
                         );
                       },
               );
@@ -574,7 +637,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 构建菜单功能区域
-  Widget _buildMenuSection(BuildContext context, ProjectContextLoaded state) {
+  Widget _buildMenuSection(BuildContext context, ProjectRoleInfoLoaded state) {
     final menuItems = state.menuItems;
 
     if (menuItems.isEmpty) {
@@ -635,7 +698,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildMenuCard(
     BuildContext context,
     MenuItem menuItem,
-    ProjectContextLoaded state,
+    ProjectRoleInfoLoaded state,
   ) {
     return Card(
       elevation: 4,
@@ -716,6 +779,146 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// 构建项目选择界面
+  Widget _buildProjectSelectionView(
+    BuildContext context,
+    ProjectListLoaded state,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 用户信息展示
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.blue[100],
+                    child: Text(
+                      state.wxLoginVO.name.isNotEmpty
+                          ? state.wxLoginVO.name[0]
+                          : '用',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[600],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          state.wxLoginVO.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          state.wxLoginVO.orgName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // 项目选择标题
+          Text(
+            '请选择要进入的项目：',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[800],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 项目列表
+          Expanded(
+            child: ListView.builder(
+              itemCount: state.availableProjects.length,
+              itemBuilder: (context, index) {
+                final project = state.availableProjects[index];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue[100],
+                      child: Icon(Icons.business, color: Colors.blue[600]),
+                    ),
+                    title: Text(
+                      project.projectName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(project.orgName),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green[100],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '角色: ${project.projectRoleType}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.green[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      // 提取项目ID（从项目编码中解析）
+                      final projectIdString = project.projectCode.replaceAll(
+                        RegExp(r'[^0-9]'),
+                        '',
+                      );
+                      final projectId = int.tryParse(projectIdString);
+
+                      if (projectId != null) {
+                        context.read<ProjectBloc>().add(
+                          ProjectSelectProject(projectId: projectId),
+                        );
+                      }
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// 构建空菜单视图
   Widget _buildEmptyMenuView(BuildContext context) {
     return Expanded(
@@ -760,10 +963,11 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
+              // 通过重新触发用户状态来重新加载项目
               final userState = context.read<UserBloc>().state;
               if (userState is UserLoaded) {
                 context.read<ProjectBloc>().add(
-                  ProjectLoadUserContext(userId: userState.user.id),
+                  ProjectLoadUserProjects(wxLoginVO: userState.wxLoginVO),
                 );
               }
             },
@@ -953,7 +1157,7 @@ class _HomePageState extends State<HomePage> {
   void _handleMenuTap(
     BuildContext context,
     MenuItem menuItem,
-    ProjectContextLoaded state,
+    ProjectRoleInfoLoaded state,
   ) {
     if (menuItem.isPageMenu && menuItem.route != null) {
       // 导航到页面
@@ -977,7 +1181,7 @@ class _HomePageState extends State<HomePage> {
   void _executeAction(
     BuildContext context,
     String action,
-    ProjectContextLoaded state,
+    ProjectRoleInfoLoaded state,
   ) {
     // 验证action是否有效
     if (!MenuActions.isValidAction(action)) {
@@ -1023,7 +1227,7 @@ class _HomePageState extends State<HomePage> {
   void _showSubMenu(
     BuildContext context,
     MenuItem menuItem,
-    ProjectContextLoaded state,
+    ProjectRoleInfoLoaded state,
   ) {
     showModalBottomSheet(
       context: context,
@@ -1068,7 +1272,7 @@ class _HomePageState extends State<HomePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('选择${scanType.displayName}模式'),
+        title: Text('选择${scanType}模式'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1080,10 +1284,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pop(context);
                 _navigateToScan(
                   context,
-                  QrScanConfig(
-                    scanType: scanType,
-                    scanMode: QrScanMode.single,
-                  ),
+                  QrScanConfig(scanType: scanType, scanMode: QrScanMode.single),
                 );
               },
             ),
@@ -1096,10 +1297,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pop(context);
                 _navigateToScan(
                   context,
-                  QrScanConfig(
-                    scanType: scanType,
-                    scanMode: QrScanMode.batch,
-                  ),
+                  QrScanConfig(scanType: scanType, scanMode: QrScanMode.batch),
                 );
               },
             ),
@@ -1132,7 +1330,7 @@ class _HomePageState extends State<HomePage> {
         title = scanMode == QrScanMode.single ? '单个物料盘点' : '批量物料盘点';
         break;
       default:
-        title = scanMode.displayName;
+        title = scanMode.toString();
     }
     return Text(title, style: const TextStyle(fontWeight: FontWeight.w500));
   }
@@ -1164,7 +1362,10 @@ class _HomePageState extends State<HomePage> {
       default:
         subtitle = '选择扫码模式';
     }
-    return Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey[600]));
+    return Text(
+      subtitle,
+      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+    );
   }
 
   /// 导航到扫码页面（使用GoRouter）

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
+import '../../models/auth/login_account_vo.dart';
 import '../../utils/toast_utils.dart';
 
 class LoginPage extends StatefulWidget {
@@ -28,12 +29,10 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
+      appBar: AppBar(title: const Text('Login')),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthAuthenticated) {
+          if (state is AuthLoginSuccess) {
             context.showSuccessToast('登录成功');
             context.go('/main');
           } else if (state is AuthFailure) {
@@ -103,11 +102,14 @@ class _LoginPageState extends State<LoginPage> {
   void _login() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
-            AuthLoginRequested(
-              username: _usernameController.text,
-              password: _passwordController.text,
-            ),
-          );
+        AuthLoginWithPasswordRequested(
+          loginRequest: LoginAccountVO(
+            account: _usernameController.text,
+            password: _passwordController.text,
+            code: '', // 密码登录不需要验证码
+          ),
+        ),
+      );
     }
   }
 }

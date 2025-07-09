@@ -25,6 +25,10 @@ class StorageService {
     return _prefs.getString(_tokenKey);
   }
 
+  Future<void> clearAuthToken() async {
+    await _prefs.remove(_tokenKey);
+  }
+
   Future<void> saveUserId(String userId) async {
     await _prefs.setString(_userIdKey, userId);
   }
@@ -86,5 +90,29 @@ class StorageService {
 
   Map<String, dynamic> decodeJsonString(String jsonString) {
     return jsonDecode(jsonString) as Map<String, dynamic>;
+  }
+
+  // User data specific methods
+  Future<void> saveUserData(Map<String, dynamic> userData) async {
+    await setString('user_data', encodeJsonString(userData));
+  }
+
+  Map<String, dynamic>? getUserData() {
+    final userDataString = getString('user_data');
+    if (userDataString == null) return null;
+    return decodeJsonString(userDataString);
+  }
+
+  Future<void> clearUserData() async {
+    await remove('user_data');
+  }
+
+  // Token related methods
+  Future<void> saveString(String key, String value) async {
+    await setString(key, value);
+  }
+
+  Future<void> saveBool(String key, bool value) async {
+    await setBool(key, value);
   }
 }

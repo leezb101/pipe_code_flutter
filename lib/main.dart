@@ -19,7 +19,6 @@ import 'bloc/project/project_event.dart';
 import 'cubits/list_cubit.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/user_repository.dart';
-import 'repositories/project_repository.dart';
 import 'repositories/list_repository.dart';
 
 void main() async {
@@ -57,8 +56,7 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<ProjectBloc>(
           create: (context) => ProjectBloc(
-            projectRepository: getIt<ProjectRepository>(),
-            userRepository: getIt<UserRepository>(),
+            authRepository: getIt<AuthRepository>(),
           ),
         ),
         BlocProvider<ListCubit>(
@@ -68,8 +66,8 @@ class MyApp extends StatelessWidget {
       ],
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthAuthenticated) {
-            context.read<UserBloc>().add(UserSetData(user: state.user));
+          if (state is AuthFullyAuthenticated) {
+            context.read<UserBloc>().add(UserSetData(wxLoginVO: state.wxLoginVO));
             // // 登录成功后，触发项目上下文加载
             // context.read<ProjectBloc>().add(
             //   ProjectLoadUserContext(userId: state.user.id),

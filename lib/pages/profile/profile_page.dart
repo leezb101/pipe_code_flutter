@@ -61,24 +61,24 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: ListTile(
                         leading: const Icon(Icons.person),
                         title: const Text('Username'),
-                        subtitle: Text(userState.user.username),
+                        subtitle: Text(userState.wxLoginVO.account),
                       ),
                     ),
                     Card(
                       child: ListTile(
                         leading: const Icon(Icons.email),
                         title: const Text('Email'),
-                        subtitle: Text(userState.user.email.isEmpty ? 'No email' : userState.user.email),
+                        subtitle: Text(userState.wxLoginVO.phone.isEmpty ? 'No email' : userState.wxLoginVO.phone),
                       ),
                     ),
-                    if (userState.user.firstName != null || userState.user.lastName != null)
+                    if (userState.wxLoginVO.name != null || userState.wxLoginVO.nick != null)
                       Card(
                         child: ListTile(
                           leading: const Icon(Icons.badge),
                           title: const Text('Name'),
-                          subtitle: ('${userState.user.firstName ?? ''} ${userState.user.lastName ?? ''}').trim().isEmpty 
+                          subtitle: ('${userState.wxLoginVO.name ?? ''} ${userState.wxLoginVO.nick ?? ''}').trim().isEmpty 
                             ? const Text('No name set')
-                            : Text('${userState.user.firstName ?? ''} ${userState.user.lastName ?? ''}'),
+                            : Text('${userState.wxLoginVO.name ?? ''} ${userState.wxLoginVO.nick ?? ''}'),
                         ),
                       ),
                   ] else if (userState is UserLoading) ...[

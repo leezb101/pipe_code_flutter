@@ -1,310 +1,251 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-10 00:00:00
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-10 00:00:00
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'dart:math';
-import '../models/user/user.dart';
-import '../models/user/user_role.dart';
-import '../models/user/user_project_role.dart';
-import '../models/project/project.dart';
+import '../models/user/wx_login_vo.dart';
+import '../models/user/current_user_on_project_role_info.dart';
+import '../models/project/project_info.dart';
 import '../models/list_item/list_item.dart';
 
 class MockDataGenerator {
   static final Random _random = Random();
 
-  static final List<String> _firstNames = [
-    'John',
-    'Jane',
-    'Mike',
-    'Sarah',
-    'David',
-    'Emma',
-    'Chris',
-    'Lisa',
-    'Tom',
-    'Anna',
-    'James',
-    'Maria',
-    'Robert',
-    'Linda',
-    'Michael',
-    'Patricia',
+  static final List<String> _chineseNames = [
+    '张三',
+    '李四',
+    '王五',
+    '赵六',
+    '孙七',
+    '周八',
+    '吴九',
+    '郑十',
+    '陈明',
+    '刘华',
+    '黄建',
+    '林伟',
+    '何强',
+    '马军',
+    '邓磊',
+    '梁杰',
   ];
 
-  static final List<String> _lastNames = [
-    'Smith',
-    'Johnson',
-    'Williams',
-    'Brown',
-    'Jones',
-    'Garcia',
-    'Miller',
-    'Davis',
-    'Rodriguez',
-    'Martinez',
-    'Hernandez',
-    'Lopez',
-    'Gonzalez',
+  static final List<String> _orgNames = [
+    '高新供水有限公司',
+    '市政建设监理公司',
+    '水务工程建设集团',
+    '城市管网建设公司',
+    '水利工程施工队',
+    '质量检测中心',
+    '水务管理局',
+    '供水设备制造商',
   ];
 
-  static final List<String> _titles = [
-    'Flutter Development Best Practices',
-    'Building Scalable Mobile Apps',
-    'State Management in Flutter',
-    'Clean Architecture Principles',
-    'API Integration Strategies',
-    'User Experience Design',
-    'Performance Optimization Tips',
-    'Testing Flutter Applications',
-    'Publishing to App Stores',
-    'Cross-Platform Development',
+  static final List<String> _projectNames = [
+    '智慧水务示例项目A',
+    '智慧水务示例项目B',
+    '智慧水务示例项目C',
+    '城市供水管网改造工程',
+    '水务信息化建设项目',
+    '供水安全保障工程',
+    '管网监测系统建设',
+    '水质监控平台项目',
   ];
 
-  static final List<String> _descriptions = [
-    'Learn the essential concepts and best practices for modern mobile development.',
-    'Discover how to build applications that scale with your business needs.',
-    'Master the art of managing application state effectively and efficiently.',
-    'Implement clean architecture patterns for maintainable code.',
-    'Integrate with external APIs and handle data synchronization.',
-    'Create intuitive and engaging user interfaces that delight users.',
-    'Optimize your application performance for better user experience.',
-    'Write comprehensive tests to ensure code quality and reliability.',
-    'Deploy your applications to app stores successfully.',
-    'Build once, run everywhere with cross-platform solutions.',
+  static final List<String> _roleTypes = [
+    'suppliers',
+    'construction',
+    'supervisor',
+    'builder',
+    'check',
+    'builder_sub',
+    'laborer',
+    'playgoer',
   ];
 
-  static String _randomString(List<String> options) {
-    return options[_random.nextInt(options.length)];
+  /// 生成模拟网络延迟
+  static Future<void> simulateNetworkDelay({
+    Duration delay = const Duration(milliseconds: 500),
+  }) async {
+    await Future.delayed(delay);
   }
 
-  static String _randomId() {
-    return DateTime.now().millisecondsSinceEpoch.toString() +
-        _random.nextInt(1000).toString();
-  }
-
-  static User generateUser({String? id}) {
-    final firstName = _randomString(_firstNames);
-    final lastName = _randomString(_lastNames);
-    final username = '${firstName.toLowerCase()}_${lastName.toLowerCase()}';
-
-    return User(
-      id: id ?? _randomId(),
-      username: username,
-      email: '$username@example.com',
-      firstName: firstName,
-      lastName: lastName,
-      avatar: null,
-    );
-  }
-
-  static ListItem generateListItem({String? id}) {
-    return ListItem(
-      id: id ?? _randomId(),
-      title: _randomString(_titles),
-      description: _randomString(_descriptions),
-      imageUrl: null,
-      createdAt: DateTime.now().subtract(
-        Duration(
-          days: _random.nextInt(30),
-          hours: _random.nextInt(24),
-          minutes: _random.nextInt(60),
-        ),
-      ),
-      updatedAt: DateTime.now().subtract(
-        Duration(hours: _random.nextInt(24), minutes: _random.nextInt(60)),
-      ),
-    );
-  }
-
-  static List<ListItem> generateListItems(int count) {
-    return List.generate(count, (index) => generateListItem());
-  }
-
-  static Map<String, dynamic> generateAuthResponse({
-    required String username,
-    String? email,
-  }) {
-    final user = User(
-      id: _randomId(),
-      username: username,
-      email: email ?? '$username@example.com',
-      firstName: _randomString(_firstNames),
-      lastName: _randomString(_lastNames),
-      avatar: null,
-    );
-
-    return {
-      'token': 'mock_jwt_token_${_randomId()}',
-      'user': user.toJson(),
-      'expires_in': 3600,
-    };
-  }
-
-  static Future<void> simulateNetworkDelay({Duration? delay}) async {
-    final actualDelay =
-        delay ??
-        Duration(
-          milliseconds: 500 + _random.nextInt(1500), // 0.5 - 2 seconds
-        );
-    await Future.delayed(actualDelay);
-  }
-
+  /// 判断是否应该失败（基于失败率）
   static bool shouldFail({double failureRate = 0.1}) {
     return _random.nextDouble() < failureRate;
   }
 
-  // 新增的项目和角色相关数据生成方法
+  /// 生成随机中文姓名
+  static String generateChineseName() {
+    return _chineseNames[_random.nextInt(_chineseNames.length)];
+  }
 
-  static final List<String> _projectNames = [
-    '高新区主干道路管网改造项目',
-    '科技园给水管网升级改造',
-    '东区供水管网新建工程',
-    '西区排水管网维修项目',
-    '南区智能水表改造工程',
-    '北区二次供水设施建设',
-    '中心区管网漏损修复项目',
-    '工业园区统管网建设',
-  ];
+  /// 生成随机组织名称
+  static String generateOrgName() {
+    return _orgNames[_random.nextInt(_orgNames.length)];
+  }
 
-  static final List<String> _projectDescriptions = [
-    '本项目旨在改善区域内的供水质量和稳定性',
-    '提升城市供水系统的整体效率和服务水平',
-    '建设现代化的智能供水网络系统',
-    '解决现有管网老化和漏损问题',
-    '实现水资源的科学配置和高效利用',
-    '保障居民安全、可靠的用水需求',
-  ];
+  /// 生成随机项目名称
+  static String generateProjectName() {
+    return _projectNames[_random.nextInt(_projectNames.length)];
+  }
 
-  static Project generateProject({String? id}) {
+  /// 生成随机角色类型
+  static String generateRoleType() {
+    return _roleTypes[_random.nextInt(_roleTypes.length)];
+  }
+
+  /// 生成随机手机号
+  static String generatePhoneNumber() {
+    final prefixes = ['138', '139', '150', '151', '152', '188', '189'];
+    final prefix = prefixes[_random.nextInt(prefixes.length)];
+    final suffix = _random.nextInt(100000000).toString().padLeft(8, '0');
+    return '$prefix$suffix';
+  }
+
+  /// 生成随机邮箱
+  static String generateEmail(String name) {
+    final domains = ['example.com', 'test.com', 'demo.com'];
+    final domain = domains[_random.nextInt(domains.length)];
+    return '${name.toLowerCase()}@$domain';
+  }
+
+  /// 生成随机头像URL
+  static String generateAvatarUrl() {
+    final avatarId = _random.nextInt(1000);
+    return 'https://example.com/avatar_$avatarId.jpg';
+  }
+
+  /// 生成随机地址
+  static String generateAddress() {
+    final cities = ['北京市', '上海市', '广州市', '深圳市', '杭州市', '成都市'];
+    final districts = ['朝阳区', '海淀区', '西城区', '东城区', '丰台区', '石景山区'];
+    final city = cities[_random.nextInt(cities.length)];
+    final district = districts[_random.nextInt(districts.length)];
+    final street = '${_random.nextInt(999) + 1}号';
+    return '$city$district测试街道$street';
+  }
+
+  /// 生成ProjectInfo列表
+  static List<ProjectInfo> generateProjectInfos({int count = 3}) {
+    return List.generate(count, (index) {
+      return ProjectInfo(
+        projectRoleType: generateRoleType(),
+        projectCode: 'WM${(index + 1).toString().padLeft(3, '0')}',
+        projectName: generateProjectName(),
+        orgCode: 'ORG${(index + 1).toString().padLeft(3, '0')}',
+        orgName: generateOrgName(),
+      );
+    });
+  }
+
+  /// 生成WxLoginVO
+  static WxLoginVO generateWxLoginVO({
+    String? customName,
+    String? customPhone,
+    bool isPhoneLogin = false,
+  }) {
     final now = DateTime.now();
-    final startDate = now.subtract(Duration(days: _random.nextInt(180)));
-    final duration = 180 + _random.nextInt(365); // 6个月到2年
-    final endDate = startDate.add(Duration(days: duration));
+    final name = customName ?? generateChineseName();
+    final phone = customPhone ?? generatePhoneNumber();
+    final projectInfos = generateProjectInfos();
 
-    return Project(
-      id: id ?? _randomId(),
-      name: _randomString(_projectNames),
-      description: _randomString(_projectDescriptions),
-      status:
-          ProjectStatus.values[_random.nextInt(ProjectStatus.values.length)],
-      location: '广州市高新区${_random.nextInt(100)}号',
-      startDate: startDate,
-      endDate: endDate,
-      budget: 1000000.0 + _random.nextDouble() * 9000000.0, // 100万到1000万
-      contactPerson:
-          '${_randomString(_firstNames)}${_randomString(_lastNames)}',
-      contactPhone: '138${_random.nextInt(90000000) + 10000000}',
-      createdAt: now.subtract(Duration(days: _random.nextInt(365))),
-      remarks: _random.nextBool() ? '重点项目，需要优先处理' : null,
+    return WxLoginVO(
+      id: 'user_${now.millisecondsSinceEpoch}',
+      tk: 'token_${now.millisecondsSinceEpoch}_${_random.nextInt(9999)}',
+      unionid: 'union_${now.millisecondsSinceEpoch}',
+      account: isPhoneLogin ? '' : 'test_${name}_${_random.nextInt(999)}',
+      phone: phone,
+      name: name,
+      nick: '$name的昵称',
+      birthday: '1990-0${_random.nextInt(9) + 1}-${_random.nextInt(28) + 1}',
+      avatar: generateAvatarUrl(),
+      address: generateAddress(),
+      sex: _random.nextBool() ? '男' : '女',
+      lastLoginTime: now.toIso8601String(),
+      complete: true,
+      orgCode: 'ORG001',
+      orgName: generateOrgName(),
+      own: true,
+      boss: _random.nextInt(5) == 0, // 20% 概率是管理层
+      admin: _random.nextInt(10) == 0, // 10% 概率是管理员
+      projectInfos: projectInfos,
+      currentProject: projectInfos.isNotEmpty ? projectInfos.first : null,
     );
   }
 
-  static List<Project> generateProjects({int count = 5}) {
-    return List.generate(count, (index) => generateProject());
-  }
-
-  static Map<String, dynamic> generateUserProjectRoleJson({
-    required String userId,
-    required String projectId,
-    Project? project,
-    UserRole? role,
+  /// 生成CurrentUserOnProjectRoleInfo
+  static CurrentUserOnProjectRoleInfo generateCurrentUserOnProjectRoleInfo({
+    int? projectId,
+    String? roleType,
+    bool forceExpired = false,
   }) {
-    final now = DateTime.now();
-    final assignedAt = now.subtract(Duration(days: _random.nextInt(180)));
-    final selectedRole =
-        role ?? UserRole.values[_random.nextInt(UserRole.values.length)];
+    final id = projectId ?? _random.nextInt(1000) + 1;
+    final role = roleType ?? generateRoleType();
+    
+    // 模拟劳务人员过期场景
+    final isExpired = forceExpired || (role == 'laborer' && _random.nextInt(4) == 0);
 
-    final userProjectRole = UserProjectRole(
-      id: _randomId(),
-      userId: userId,
-      projectId: projectId,
-      role: selectedRole,
-      assignedAt: assignedAt,
-      assignedBy: 'admin_${_random.nextInt(1000)}',
-      validFrom: assignedAt,
-      validUntil: _random.nextBool()
-          ? null
-          : assignedAt.add(Duration(days: 365)),
-      isActive: true,
-      project: project,
-    );
-
-    // 将对象转换为JSON，确保project字段也是Map格式
-    final json = userProjectRole.toJson();
-    if (project != null) {
-      json['project'] = project.toJson();
-    }
-    return json;
-  }
-
-  static UserProjectRole generateUserProjectRole({
-    required String userId,
-    required String projectId,
-    Project? project,
-    UserRole? role,
-  }) {
-    final now = DateTime.now();
-    final assignedAt = now.subtract(Duration(days: _random.nextInt(180)));
-    final selectedRole =
-        role ?? UserRole.values[_random.nextInt(UserRole.values.length)];
-
-    return UserProjectRole(
-      id: _randomId(),
-      userId: userId,
-      projectId: projectId,
-      role: selectedRole,
-      assignedAt: assignedAt,
-      assignedBy: 'admin_${_random.nextInt(1000)}',
-      validFrom: assignedAt,
-      validUntil: _random.nextBool()
-          ? null
-          : assignedAt.add(Duration(days: 365)),
-      isActive: true,
-      project: project,
+    return CurrentUserOnProjectRoleInfo(
+      currentProjectRoleType: role,
+      currentProjectId: id,
+      currentProjectCode: 'WM${id.toString().padLeft(3, '0')}',
+      currentProjectName: generateProjectName(),
+      currentOrgCode: 'ORG${(id % 5 + 1).toString().padLeft(3, '0')}',
+      currentOrgName: generateOrgName(),
+      currentProjectSuperiorUserId: role.contains('builder') ? 12345 : null,
+      currentProjectAuthorUserId: role.contains('builder') ? 67890 : null,
+      expire: isExpired,
     );
   }
 
-  static List<Map<String, dynamic>> generateUserProjectRolesJson(
-    String userId, {
-    int count = 3,
+  /// 生成ListItem数据
+  static List<ListItem> generateListItems({
+    int count = 10,
+    String? category,
   }) {
-    final projects = generateProjects(count: count);
-    return projects
-        .map(
-          (project) => generateUserProjectRoleJson(
-            userId: userId,
-            projectId: project.id,
-            project: project,
-            role: UserRole.values[_random.nextInt(UserRole.values.length)],
-          ),
-        )
-        .toList();
+    return List.generate(count, (index) {
+      return ListItem(
+        id: 'item_${index + 1}',
+        title: '列表项目 ${index + 1}',
+        description: '这是第${index + 1}个列表项目的描述',
+        imageUrl: 'https://example.com/icon_${index + 1}.png',
+        createdAt: DateTime.now().subtract(Duration(hours: index)),
+        updatedAt: DateTime.now(),
+      );
+    });
   }
 
-  static List<UserProjectRole> generateUserProjectRoles(
-    String userId, {
-    int count = 3,
+  /// 生成认证响应（向后兼容）
+  static Map<String, dynamic> generateAuthResponse({
+    required String username,
+    String? email,
   }) {
-    final projects = generateProjects(count: count);
-    return projects
-        .map(
-          (project) => generateUserProjectRole(
-            userId: userId,
-            projectId: project.id,
-            project: project,
-            role: UserRole.values[_random.nextInt(UserRole.values.length)],
-          ),
-        )
-        .toList();
+    final wxLoginVO = generateWxLoginVO(customName: username);
+    return {
+      'token': wxLoginVO.tk,
+      'user': wxLoginVO.toJson(),
+    };
   }
 
-  static UserProjectContext generateUserProjectContext(String userId) {
-    final user = generateUser(id: userId);
-    final projectRoles = generateUserProjectRoles(userId);
-    final currentRole = projectRoles.first;
-    final currentProject = currentRole.project!;
+  /// 生成随机布尔值
+  static bool generateRandomBool() {
+    return _random.nextBool();
+  }
 
-    return UserProjectContext(
-      user: user,
-      currentProject: currentProject,
-      currentRole: currentRole,
-      allProjectRoles: projectRoles,
+  /// 生成随机整数
+  static int generateRandomInt({int min = 0, int max = 100}) {
+    return min + _random.nextInt(max - min + 1);
+  }
+
+  /// 生成随机字符串
+  static String generateRandomString({int length = 8}) {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    return String.fromCharCodes(
+      Iterable.generate(length, (_) => chars.codeUnitAt(_random.nextInt(chars.length))),
     );
   }
 }

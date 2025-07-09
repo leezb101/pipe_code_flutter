@@ -12,8 +12,8 @@ class MockUserApiService implements UserApiService {
       throw 'Failed to load user profile';
     }
 
-    final user = MockDataGenerator.generateUser(id: 'current_user');
-    return user.toJson();
+    final wxLoginVO = MockDataGenerator.generateWxLoginVO(customName: 'Current User');
+    return wxLoginVO.toJson();
   }
 
   @override
@@ -26,16 +26,12 @@ class MockUserApiService implements UserApiService {
       throw 'Failed to update user profile';
     }
 
-    final user = MockDataGenerator.generateUser(id: 'current_user');
-    final updatedUser = user.copyWith(
-      username: data['username'] ?? user.username,
-      email: data['email'] ?? user.email,
-      firstName: data['firstName'] ?? user.firstName,
-      lastName: data['lastName'] ?? user.lastName,
-      avatar: data['avatar'] ?? user.avatar,
+    final wxLoginVO = MockDataGenerator.generateWxLoginVO(
+      customName: data['name'] ?? 'Updated User',
+      customPhone: data['phone'],
     );
     
-    return updatedUser.toJson();
+    return wxLoginVO.toJson();
   }
 
   @override
@@ -48,9 +44,9 @@ class MockUserApiService implements UserApiService {
       throw 'Failed to load user project roles';
     }
 
-    // 生成模拟的用户项目角色数据（直接返回JSON格式）
-    final projectRoles = MockDataGenerator.generateUserProjectRolesJson(userId);
-    return projectRoles;
+    // 生成模拟的项目信息数据
+    final projectInfos = MockDataGenerator.generateProjectInfos(count: 3);
+    return projectInfos.map((project) => project.toJson()).toList();
   }
 
   @override
@@ -64,7 +60,7 @@ class MockUserApiService implements UserApiService {
     }
 
     // 生成模拟的项目数据
-    final projects = MockDataGenerator.generateProjects();
+    final projects = MockDataGenerator.generateProjectInfos(count: 5);
     return projects.map((project) => project.toJson()).toList();
   }
 
@@ -97,8 +93,8 @@ class MockUserApiService implements UserApiService {
       throw 'Failed to load user project context';
     }
 
-    // 生成模拟的用户项目上下文
-    final context = MockDataGenerator.generateUserProjectContext(userId);
-    return context.toJson();
+    // 生成模拟的当前用户角色信息
+    final currentUserRoleInfo = MockDataGenerator.generateCurrentUserOnProjectRoleInfo();
+    return currentUserRoleInfo.toJson();
   }
 }
