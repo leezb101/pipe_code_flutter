@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 16:40:22
+ * @LastEditTime: 2025-07-09 21:44:37
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -1174,7 +1174,8 @@ class _HomePageState extends State<HomePage> {
   /// 导航到页面
   void _navigateToPage(BuildContext context, String route) {
     // 这里可以实现路由导航逻辑
-    context.showInfoToast('导航到: $route');
+    // 使用goRouter进行导航
+    context.push(route);
   }
 
   /// 执行操作

@@ -1,0 +1,604 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "一管一码",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "移动端"
+    },
+    {
+      "name": "移动端/项目控制器"
+    }
+  ],
+  "paths": {
+    "/project/add": {
+      "post": {
+        "summary": "新增",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/项目控制器"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectSaveVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/update": {
+      "post": {
+        "summary": "修改",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/项目控制器"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectSaveVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/commit": {
+      "post": {
+        "summary": "提交",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/项目控制器"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectSaveVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/init/list": {
+      "get": {
+        "summary": "立项 列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/项目控制器"
+        ],
+        "parameters": [
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 1,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 10,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectCode",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "projectStart": "",
+                        "projectEnd": "",
+                        "createdName": "",
+                        "createdId": 0,
+                        "status": 0
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": "",
+                    "pages": 0
+                  },
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/detail": {
+      "get": {
+        "summary": "项目详情查询",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/项目控制器"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": {
+                    "id": 0,
+                    "projectName": "",
+                    "projectCode": "",
+                    "projectStart": "",
+                    "projectEnd": "",
+                    "projectReportUrl": "",
+                    "publishBidUrl": "",
+                    "aimBidUrl": "",
+                    "otherDocUrl": "",
+                    "status": 0,
+                    "supplyType": 0,
+                    "type": 0,
+                    "createdName": "",
+                    "createdId": "",
+                    "auditOpinion": "",
+                    "auditTime": "",
+                    "auditName": "",
+                    "auditId": "",
+                    "materialList": [
+                      {
+                        "name": "",
+                        "type": 0,
+                        "typeName": "",
+                        "needNum": 0
+                      }
+                    ],
+                    "constructionUserList": [
+                      {
+                        "userId": 0,
+                        "name": "",
+                        "code": "",
+                        "orgName": "",
+                        "phone": ""
+                      }
+                    ],
+                    "supervisorUserList": [
+                      {
+                        "userId": 0,
+                        "name": "",
+                        "code": "",
+                        "orgName": "",
+                        "phone": ""
+                      }
+                    ],
+                    "builderUserList": [
+                      {
+                        "userId": 0,
+                        "name": "",
+                        "code": "",
+                        "orgName": "",
+                        "phone": ""
+                      }
+                    ]
+                  },
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/delete": {
+      "post": {
+        "summary": "delete",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/项目控制器"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Result": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "type": "object",
+            "properties": {},
+            "description": "具体的内容."
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SupplierVO": {
+        "type": "object",
+        "properties": {
+          "orgCode": {
+            "type": "string",
+            "description": "供应商编码"
+          },
+          "orgName": {
+            "type": "string",
+            "description": "供应商名称"
+          }
+        }
+      },
+      "ProjectBindMaterialVO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "物料名称"
+          },
+          "type": {
+            "type": "integer",
+            "description": "物料类型"
+          },
+          "typeName": {
+            "type": "string",
+            "description": "物料类型名称"
+          },
+          "needNum": {
+            "type": "integer",
+            "description": "需求数量"
+          }
+        }
+      },
+      "ProjectConstructionVO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "description": "用户id"
+          },
+          "name": {
+            "type": "string",
+            "description": "用户姓名"
+          },
+          "code": {
+            "type": "string",
+            "description": "用户所在组织机构代码"
+          },
+          "orgName": {
+            "type": "string",
+            "description": "用户所在公司名称"
+          },
+          "phone": {
+            "type": "string",
+            "description": ""
+          }
+        }
+      },
+      "ProjectSupervisorVO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "description": "用户id"
+          },
+          "name": {
+            "type": "string",
+            "description": "用户姓名"
+          },
+          "code": {
+            "type": "string",
+            "description": "用户所在组织机构代码"
+          },
+          "orgName": {
+            "type": "string",
+            "description": "用户所在公司名称"
+          },
+          "phone": {
+            "type": "string",
+            "description": "用户手机号"
+          }
+        }
+      },
+      "ProjectBuilderVO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "description": "用户id"
+          },
+          "name": {
+            "type": "string",
+            "description": "用户姓名"
+          },
+          "code": {
+            "type": "string",
+            "description": "用户所在组织机构代码"
+          },
+          "orgName": {
+            "type": "string",
+            "description": "用户所在公司名称"
+          },
+          "phone": {
+            "type": "string",
+            "description": "用户手机号"
+          }
+        }
+      },
+      "ProjectSaveVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": ""
+          },
+          "projectName": {
+            "type": "string",
+            "description": "项目名称"
+          },
+          "projectCode": {
+            "type": "string",
+            "description": "项目编号"
+          },
+          "projectStart": {
+            "type": "string",
+            "description": "项目开始时间"
+          },
+          "projectEnd": {
+            "type": "string",
+            "description": "项目结束时间"
+          },
+          "supplyType": {
+            "type": "integer",
+            "description": "0甲供材1乙供材 2混合供材"
+          },
+          "projectReportUrl": {
+            "type": "string",
+            "description": "立项报告上传url"
+          },
+          "publishBidUrl": {
+            "type": "string",
+            "description": "招标文件上传url"
+          },
+          "aimBidUrl": {
+            "type": "string",
+            "description": "中标文件上传url"
+          },
+          "otherDocUrl": {
+            "type": "string",
+            "description": "其他文件上传url"
+          },
+          "supplierList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupplierVO",
+              "description": "供应商列表"
+            },
+            "description": "供应商列表"
+          },
+          "materialList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectBindMaterialVO",
+              "description": "项目绑定耗材"
+            },
+            "description": "项目需求物料列表"
+          },
+          "constructionUserList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectConstructionVO",
+              "description": "项目建设方用户VO"
+            },
+            "description": "建设方负责人列表"
+          },
+          "supervisorUserList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectSupervisorVO",
+              "description": "项目监理方用户VO"
+            },
+            "description": "监理方负责人列表"
+          },
+          "builderUserList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectBuilderVO",
+              "description": "项目施工方用户VO"
+            },
+            "description": "施工方负责人列表"
+          }
+        }
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}

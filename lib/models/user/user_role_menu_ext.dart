@@ -19,11 +19,11 @@ extension UserRoleMenuExtension on UserRole {
       case UserRole.construction:
         return [
           _createMenuItem(
-            id: 'project_create',
+            id: 'project_initiation',
             title: '立项',
             type: MenuItemType.page,
             icon: 'add_business',
-            route: '/project-create',
+            route: '/main/project-initiation',
             order: 1,
             isEnabled: !isExpired,
           ),

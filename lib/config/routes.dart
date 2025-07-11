@@ -14,9 +14,14 @@ import '../pages/main_page.dart';
 import '../pages/qr_scan/qr_scan_page.dart';
 import '../pages/inventory/inventory_confirmation_page.dart';
 import '../pages/developer_settings_page.dart';
+import '../pages/project_initiation/project_initiation_form_page.dart';
+import '../pages/project_initiation/material_selection_page.dart';
 import '../bloc/qr_scan/qr_scan_bloc.dart';
+import '../bloc/project_initiation/project_initiation_bloc.dart';
+import '../cubits/material_selection_cubit.dart';
 import '../models/qr_scan/qr_scan_config.dart';
 import '../models/inventory/pipe_material.dart';
+import '../models/project/project_initiation.dart';
 import '../services/qr_scan_service.dart';
 import 'service_locator.dart';
 
@@ -71,6 +76,35 @@ final GoRouter appRouter = GoRouter(
               scanMode: scanMode,
             );
           },
+        ),
+        GoRoute(
+          path: '/project-initiation',
+          name: 'project-initiation',
+          builder: (context, state) {
+            final projectId = state.uri.queryParameters['projectId'];
+            return BlocProvider(
+              create: (context) => ProjectInitiationBloc(),
+              child: ProjectInitiationFormPage(
+                projectId: projectId != null ? int.tryParse(projectId) : null,
+              ),
+            );
+          },
+          routes: [
+            GoRoute(
+              path: '/material-selection',
+              name: 'material-selection',
+              builder: (context, state) {
+                final data = state.extra as Map<String, dynamic>?;
+                return BlocProvider(
+                  create: (context) => MaterialSelectionCubit(),
+                  child: MaterialSelectionPage(
+                    existingMaterials: data?['existingMaterials'] as List<ProjectMaterial>?,
+                    remarks: data?['remarks'] as String?,
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ],
     ),
