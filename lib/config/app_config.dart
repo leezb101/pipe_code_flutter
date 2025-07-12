@@ -102,7 +102,7 @@ class AppConfig {
     }
   }
 
-  static Duration get apiTimeout => const Duration(seconds: 10);
+  static Duration get apiTimeout => const Duration(seconds: 100);
 
   static Map<String, String> get defaultHeaders => {
     'Content-Type': 'application/json',

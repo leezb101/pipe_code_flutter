@@ -61,7 +61,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: ListTile(
                         leading: const Icon(Icons.person),
                         title: const Text('Username'),
-                        subtitle: Text(userState.wxLoginVO.account),
+                        subtitle: Text(userState.wxLoginVO.account ?? '用户'),
                       ),
                     ),
                     Card(

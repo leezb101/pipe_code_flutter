@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'dart:convert';
 
 enum LogLevel { debug, info, warning, error }
 
@@ -171,5 +172,119 @@ class Logger {
   static void navigation(String message, {String? route}) {
     final tag = route != null ? 'NAV:$route' : 'NAV';
     debug(message, tag: tag);
+  }
+
+  /// Enhanced network logging methods
+  
+  /// Log network request details
+  static void networkRequest(String method, String url, {
+    Map<String, dynamic>? headers,
+    dynamic body,
+    Map<String, dynamic>? queryParams,
+  }) {
+    final details = <String>[];
+    details.add('$method $url');
+    
+    if (queryParams != null && queryParams.isNotEmpty) {
+      details.add('Query: $queryParams');
+    }
+    if (headers != null && headers.isNotEmpty) {
+      // Filter sensitive headers
+      final filteredHeaders = Map<String, dynamic>.from(headers);
+      filteredHeaders.removeWhere((key, value) => 
+          key.toLowerCase().contains('authorization') ||
+          key.toLowerCase().contains('token'));
+      details.add('Headers: $filteredHeaders');
+    }
+    if (body != null) {
+      details.add('Body: ${_truncateData(body.toString())}');
+    }
+    
+    debug('REQUEST: ${details.join(' | ')}', tag: 'NETWORK');
+  }
+
+  /// Log network response details
+  static void networkResponse(String method, String url, int? statusCode, 
+      {Duration? duration, dynamic responseBody, Map<String, List<String>>? headers}) {
+    final details = <String>[];
+    details.add('$method $url');
+    details.add('Status: ${statusCode ?? 'UNKNOWN'}');
+    
+    if (duration != null) {
+      details.add('Duration: ${duration.inMilliseconds}ms');
+    }
+    
+    // Check for special headers like img_code
+    if (headers != null) {
+      final imgCode = headers['img_code']?.first;
+      if (imgCode != null) {
+        details.add('ImgCode: $imgCode');
+      }
+    }
+    
+    if (responseBody != null) {
+      details.add('Response: ${_truncateData(responseBody.toString())}');
+    }
+    
+    final icon = (statusCode != null && statusCode >= 200 && statusCode < 300) ? '✅' : '❌';
+    debug('RESPONSE $icon: ${details.join(' | ')}', tag: 'NETWORK');
+  }
+
+  /// Log network errors
+  static void networkError(String method, String url, String errorType, 
+      {String? message, int? statusCode, Duration? duration}) {
+    final details = <String>[];
+    details.add('$method $url');
+    details.add('Error: $errorType');
+    
+    if (statusCode != null) {
+      details.add('Status: $statusCode');
+    }
+    if (duration != null) {
+      details.add('Duration: ${duration.inMilliseconds}ms');
+    }
+    if (message != null) {
+      details.add('Message: $message');
+    }
+    
+    error('NETWORK ERROR ❌: ${details.join(' | ')}', tag: 'NETWORK');
+  }
+
+  /// Log captcha-specific operations
+  static void captcha(String message, {String? imgCode, int? dataSize}) {
+    final details = <String>[message];
+    
+    if (imgCode != null) {
+      details.add('ImgCode: $imgCode');
+    }
+    if (dataSize != null) {
+      details.add('DataSize: ${dataSize}B');
+    }
+    
+    info('CAPTCHA 🔑: ${details.join(' | ')}', tag: 'AUTH');
+  }
+
+  /// Log performance metrics
+  static void performance(String operation, Duration duration, {String? details}) {
+    final message = '$operation took ${duration.inMilliseconds}ms';
+    final fullMessage = details != null ? '$message - $details' : message;
+    debug('PERFORMANCE ⚡: $fullMessage', tag: 'PERF');
+  }
+
+  /// Truncate data for logging to avoid excessive output
+  static String _truncateData(String data, {int maxLength = 200}) {
+    if (data.length <= maxLength) return data;
+    return '${data.substring(0, maxLength)}...(${data.length} chars total)';
+  }
+
+  /// Log JSON data with formatting
+  static void json(String tag, dynamic data, {LogLevel level = LogLevel.debug}) {
+    try {
+      final jsonString = data is String ? data : 
+          const JsonEncoder.withIndent('  ').convert(data);
+      _log(level, 'JSON Data:\n$jsonString', tag: tag);
+    } catch (e) {
+      _log(level, 'Failed to format JSON: $e', tag: tag);
+    }
   }
 }

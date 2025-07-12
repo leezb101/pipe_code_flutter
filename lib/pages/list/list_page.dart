@@ -15,7 +15,7 @@ class _ListPageState extends State<ListPage> {
   @override
   void initState() {
     super.initState();
-    context.read<ListCubit>().loadItems();
+    // context.read<ListCubit>().loadItems();
   }
 
   @override
@@ -46,11 +46,7 @@ class _ListPageState extends State<ListPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.list_alt,
-                    size: 100,
-                    color: Colors.grey,
-                  ),
+                  Icon(Icons.list_alt, size: 100, color: Colors.grey),
                   SizedBox(height: 20),
                   Text(
                     'No items available',
@@ -93,12 +89,8 @@ class _ListItemWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         leading: item.imageUrl != null
-            ? CircleAvatar(
-                backgroundImage: NetworkImage(item.imageUrl!),
-              )
-            : const CircleAvatar(
-                child: Icon(Icons.image),
-              ),
+            ? CircleAvatar(backgroundImage: NetworkImage(item.imageUrl!))
+            : const CircleAvatar(child: Icon(Icons.image)),
         title: Text(
           item.title,
           style: const TextStyle(fontWeight: FontWeight.bold),

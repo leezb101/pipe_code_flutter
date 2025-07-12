@@ -11,6 +11,8 @@ import '../../../models/user/wx_login_vo.dart';
 import '../../../models/user/current_user_on_project_role_info.dart';
 import '../../../models/auth/login_account_vo.dart';
 import '../../../models/auth/rf.dart';
+import '../../../models/auth/captcha_result.dart';
+import '../../../models/auth/sms_code_result.dart';
 import '../../../models/project/project_info.dart';
 import '../../../utils/mock_data_generator.dart';
 
@@ -22,16 +24,45 @@ class MockAuthApiService implements AuthApiService {
 
   @override
   Future<Result<WxLoginVO>> loginWithPassword(
-    LoginAccountVO loginRequest,
-  ) async {
+    LoginAccountVO loginRequest, {
+    String? imgCode,
+  }) async {
     await MockDataGenerator.simulateNetworkDelay(delay: _defaultDelay);
 
-    if (MockDataGenerator.shouldFail(failureRate: 0.2)) {
-      return const Result(code: 400, msg: '账号或密码错误', tc: 800, data: null);
+    // 模拟验证码验证失败
+    if (loginRequest.code.isEmpty) {
+      return const Result(code: 400, msg: '请输入验证码', tc: 800, data: null);
+    }
+    
+    if (loginRequest.code.length < 4) {
+      return const Result(code: 400, msg: '验证码长度不正确', tc: 800, data: null);
     }
 
-    if (loginRequest.password.length < 3) {
-      return const Result(code: 400, msg: '密码长度不能少于3位', tc: 800, data: null);
+    // 模拟imgCode验证（在mock环境中不严格要求）
+    if (imgCode == null || imgCode.isEmpty) {
+      // 在mock环境中只记录警告，不阻断流程
+      print('Mock Warning: imgCode未提供，实际环境中可能导致验证失败');
+    }
+
+    if (MockDataGenerator.shouldFail(failureRate: 0.2)) {
+      return const Result(code: 400, msg: '账号、密码或验证码错误', tc: 800, data: null);
+    }
+
+    // 检查密码是否为RSA加密格式（Base64编码，长度通常较长）
+    final password = loginRequest.password;
+    final isEncrypted = password.length > 100 && RegExp(r'^[A-Za-z0-9+/=]+$').hasMatch(password);
+    
+    if (isEncrypted) {
+      // RSA加密密码验证 - 在mock环境中简化验证逻辑
+      print('Mock Info: 检测到RSA加密密码，长度: ${password.length}');
+      // 在实际环境中，这里应该解密并验证密码
+      // Mock环境中，只要是有效的Base64格式就认为通过
+    } else {
+      // 未加密的明文密码（用于向后兼容）
+      if (password.length < 3) {
+        return const Result(code: 400, msg: '密码长度不能少于3位', tc: 800, data: null);
+      }
+      print('Mock Warning: 检测到明文密码，建议使用RSA加密');
     }
 
     final mockLoginData = _generateMockWxLoginVO(loginRequest.account);
@@ -41,11 +72,19 @@ class MockAuthApiService implements AuthApiService {
   }
 
   @override
-  Future<Result<WxLoginVO>> loginWithSms(String phone, String code) async {
+  Future<Result<WxLoginVO>> loginWithSms(String phone, String code, {String? smsCode}) async {
     await MockDataGenerator.simulateNetworkDelay(delay: _defaultDelay);
 
     if (MockDataGenerator.shouldFail(failureRate: 0.15)) {
       return const Result(code: 400, msg: '验证码错误', tc: 800, data: null);
+    }
+
+    // 模拟smsCode验证（在mock环境中不严格要求）
+    if (smsCode == null || smsCode.isEmpty) {
+      // 在mock环境中只记录警告，不阻断流程
+      print('Mock Warning: smsCode未提供，实际环境中可能导致验证失败');
+    } else {
+      print('Mock Info: 检测到smsCode，标识符: ${smsCode.length > 8 ? '${smsCode.substring(0, 8)}...' : smsCode}');
     }
 
     if (code != '1234') {
@@ -59,7 +98,7 @@ class MockAuthApiService implements AuthApiService {
   }
 
   @override
-  Future<Result<void>> requestSmsCode(String phone) async {
+  Future<Result<SmsCodeResult>> requestSmsCode(String phone) async {
     await MockDataGenerator.simulateNetworkDelay(
       delay: Duration(milliseconds: 500),
     );
@@ -72,11 +111,21 @@ class MockAuthApiService implements AuthApiService {
       return const Result(code: 400, msg: '手机号格式不正确', tc: 500, data: null);
     }
 
-    return const Result(code: 0, msg: '验证码发送成功', tc: 500, data: null);
+    // 生成模拟的smsCode
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final mockSmsCode = 'MOCK_SMS_${timestamp % 10000}';
+    
+    final smsCodeResult = SmsCodeResult.create(
+      phone: phone,
+      smsCode: mockSmsCode,
+      message: '验证码发送成功',
+    );
+    
+    return Result(code: 0, msg: '验证码发送成功', tc: 500, data: smsCodeResult);
   }
 
   @override
-  Future<Result<String>> requestCaptcha() async {
+  Future<Result<CaptchaResult>> requestCaptcha() async {
     await MockDataGenerator.simulateNetworkDelay(
       delay: Duration(milliseconds: 300),
     );
@@ -88,7 +137,16 @@ class MockAuthApiService implements AuthApiService {
     // 返回模拟的base64图片数据（一个简单的透明PNG的base64）
     const mockCaptchaBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
     
-    return const Result(code: 0, msg: '验证码获取成功', tc: 300, data: mockCaptchaBase64);
+    // 生成模拟的imgCode
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final mockImgCode = 'MOCK_IMG_${timestamp % 10000}';
+    
+    final captchaResult = CaptchaResult(
+      base64Data: mockCaptchaBase64,
+      imgCode: mockImgCode,
+    );
+    
+    return Result(code: 0, msg: '验证码获取成功', tc: 300, data: captchaResult);
   }
 
   @override

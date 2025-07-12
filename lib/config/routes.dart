@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/register_page.dart';
+import '../pages/auth/sms_login_page.dart';
 import '../pages/main_page.dart';
 import '../pages/qr_scan/qr_scan_page.dart';
 import '../pages/inventory/inventory_confirmation_page.dart';
@@ -37,6 +38,11 @@ final GoRouter appRouter = GoRouter(
       path: '/register',
       name: 'register',
       builder: (context, state) => const RegisterPage(),
+    ),
+    GoRoute(
+      path: '/sms-login',
+      name: 'sms-login',
+      builder: (context, state) => const SmsLoginPage(),
     ),
     GoRoute(
       path: '/main',

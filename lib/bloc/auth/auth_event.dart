@@ -19,12 +19,15 @@ abstract class AuthEvent extends Equatable {
 class AuthLoginWithPasswordRequested extends AuthEvent {
   const AuthLoginWithPasswordRequested({
     required this.loginRequest,
+    this.imgCode,
   });
 
   final LoginAccountVO loginRequest;
+  /// 验证码标识符，来自验证码接口response header的img_code字段
+  final String? imgCode;
 
   @override
-  List<Object> get props => [loginRequest];
+  List<Object> get props => [loginRequest, if (imgCode != null) imgCode!];
 }
 
 /// 短信验证码登录请求
@@ -32,13 +35,16 @@ class AuthLoginWithSmsRequested extends AuthEvent {
   const AuthLoginWithSmsRequested({
     required this.phone,
     required this.code,
+    this.smsCode,
   });
 
   final String phone;
   final String code;
+  /// SMS验证码标识符，来自短信验证码接口response header的sms_code字段
+  final String? smsCode;
 
   @override
-  List<Object> get props => [phone, code];
+  List<Object> get props => [phone, code, if (smsCode != null) smsCode!];
 }
 
 /// 请求短信验证码

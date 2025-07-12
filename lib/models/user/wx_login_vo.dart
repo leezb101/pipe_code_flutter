@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:10:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 22:10:00
+ * @LastEditTime: 2025-07-12 18:10:56
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:json_annotation/json_annotation.dart';
@@ -45,10 +45,10 @@ class WxLoginVO extends Equatable {
   final String tk;
 
   /// 联合ID
-  final String unionid;
+  final String? unionid;
 
   /// 账号
-  final String account;
+  final String? account;
 
   /// 手机号
   final String phone;
@@ -57,31 +57,31 @@ class WxLoginVO extends Equatable {
   final String name;
 
   /// 昵称
-  final String nick;
+  final String? nick;
 
   /// 生日
-  final String birthday;
+  final String? birthday;
 
   /// 头像
-  final String avatar;
+  final String? avatar;
 
   /// 地址
-  final String address;
+  final String? address;
 
   /// 性别（男 or 女）
-  final String sex;
+  final String? sex;
 
   /// 最后登录时间
-  final String lastLoginTime;
+  final String? lastLoginTime;
 
   /// 是否完善用户信息
-  final bool complete;
+  final bool? complete;
 
   /// 归属组织代码
-  final String orgCode;
+  final String? orgCode;
 
   /// 归属组织名称
-  final String orgName;
+  final String? orgName;
 
   /// 是否自有人员（非自有人员则为游客）
   final bool own;
@@ -151,25 +151,25 @@ class WxLoginVO extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        tk,
-        unionid,
-        account,
-        phone,
-        name,
-        nick,
-        birthday,
-        avatar,
-        address,
-        sex,
-        lastLoginTime,
-        complete,
-        orgCode,
-        orgName,
-        own,
-        boss,
-        admin,
-        projectInfos,
-        currentProject,
-      ];
+    id,
+    tk,
+    unionid,
+    account,
+    phone,
+    name,
+    nick,
+    birthday,
+    avatar,
+    address,
+    sex,
+    lastLoginTime,
+    complete,
+    orgCode,
+    orgName,
+    own,
+    boss,
+    admin,
+    projectInfos,
+    currentProject,
+  ];
 }

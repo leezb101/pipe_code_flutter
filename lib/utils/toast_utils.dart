@@ -14,6 +14,10 @@ import '../widgets/toast/toast_type.dart';
 class ToastUtils {
   static final List<OverlayEntry> _activeToasts = [];
   static const int _maxConcurrentToasts = 3;
+  
+  // 防重复显示的消息缓存
+  static final Map<String, DateTime> _recentMessages = {};
+  static const Duration _duplicateWindow = Duration(milliseconds: 1000); // 1秒内不重复显示相同消息
 
   /// 显示成功提示
   static void showSuccess(
@@ -87,6 +91,25 @@ class ToastUtils {
     Duration duration = const Duration(seconds: 3),
     bool showIcon = true,
   }) {
+    // 检查是否为重复消息
+    final now = DateTime.now();
+    final messageKey = '${type.name}_$message';
+    
+    if (_recentMessages.containsKey(messageKey)) {
+      final lastShown = _recentMessages[messageKey]!;
+      if (now.difference(lastShown) < _duplicateWindow) {
+        // 在重复显示窗口内，忽略重复消息
+        return;
+      }
+    }
+    
+    // 记录当前消息
+    _recentMessages[messageKey] = now;
+    
+    // 清理过期的消息记录
+    _recentMessages.removeWhere((key, time) => 
+        now.difference(time) > _duplicateWindow);
+    
     // 如果超过最大数量，移除最老的 toast
     if (_activeToasts.length >= _maxConcurrentToasts) {
       final oldestToast = _activeToasts.removeAt(0);
@@ -143,6 +166,11 @@ class ToastUtils {
       }
     }
     _activeToasts.clear();
+  }
+
+  /// 清除重复消息缓存（用于页面切换时重置）
+  static void clearDuplicateCache() {
+    _recentMessages.clear();
   }
 
   /// 手动移除最新的 toast

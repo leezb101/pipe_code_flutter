@@ -823,7 +823,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          state.wxLoginVO.orgName,
+                          state.wxLoginVO.orgName ?? '',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],

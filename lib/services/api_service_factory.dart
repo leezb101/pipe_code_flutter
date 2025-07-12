@@ -8,6 +8,7 @@
 import 'package:dio/dio.dart';
 import '../config/app_config.dart';
 import '../utils/logger.dart';
+import '../utils/network_logger.dart';
 import 'api/interfaces/api_service_interface.dart';
 import 'api/implementations/api_service_impl.dart';
 import 'api/mock/mock_api_service.dart';
@@ -31,22 +32,14 @@ class ApiServiceFactory {
     dio.options.receiveTimeout = AppConfig.apiTimeout;
     dio.options.headers.addAll(AppConfig.defaultHeaders);
 
-    // Add interceptors for logging in development
+    // Add enhanced network logging interceptor in development
     if (AppConfig.isDevelopment) {
-      dio.interceptors.add(
-        LogInterceptor(
-          requestBody: true,
-          responseBody: true,
-          requestHeader: true,
-          responseHeader: false,
-          logPrint: (object) {
-            // Custom log print to avoid sensitive data logging
-            if (!object.toString().contains('Authorization')) {
-              Logger.api(object.toString());
-            }
-          },
-        ),
-      );
+      // Use our custom network logger with detailed formatting
+      dio.interceptors.add(NetworkLogger.createNetworkInterceptor());
+      
+      // Log Dio configuration
+      Logger.info('Dio configured with base URL: ${AppConfig.apiBaseUrl}', tag: 'NETWORK');
+      Logger.info('Request timeout: ${AppConfig.apiTimeout}', tag: 'NETWORK');
     }
 
     // Add error handling interceptor

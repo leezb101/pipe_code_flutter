@@ -10,6 +10,8 @@ import '../models/user/wx_login_vo.dart';
 import '../models/user/current_user_on_project_role_info.dart';
 import '../models/auth/login_account_vo.dart';
 import '../models/auth/rf.dart';
+import '../models/auth/captcha_result.dart';
+import '../models/auth/sms_code_result.dart';
 import '../services/api/interfaces/api_service_interface.dart';
 import '../services/storage_service.dart';
 
@@ -24,9 +26,16 @@ class AuthRepository {
         _storageService = storageService;
 
   /// 账号密码登录
-  Future<Result<WxLoginVO>> loginWithPassword(LoginAccountVO loginRequest) async {
+  /// [imgCode] 验证码标识符，来自验证码接口response header的img_code字段
+  Future<Result<WxLoginVO>> loginWithPassword(
+    LoginAccountVO loginRequest, {
+    String? imgCode,
+  }) async {
     try {
-      final result = await _apiService.auth.loginWithPassword(loginRequest);
+      final result = await _apiService.auth.loginWithPassword(
+        loginRequest,
+        imgCode: imgCode,
+      );
       
       if (result.isSuccess && result.data != null) {
         // 保存token
@@ -49,9 +58,10 @@ class AuthRepository {
   }
 
   /// 短信验证码登录
-  Future<Result<WxLoginVO>> loginWithSms(String phone, String code) async {
+  /// [smsCode] SMS验证码标识符，来自短信验证码接口response header的sms_code字段
+  Future<Result<WxLoginVO>> loginWithSms(String phone, String code, {String? smsCode}) async {
     try {
-      final result = await _apiService.auth.loginWithSms(phone, code);
+      final result = await _apiService.auth.loginWithSms(phone, code, smsCode: smsCode);
       
       if (result.isSuccess && result.data != null) {
         // 保存token
@@ -74,7 +84,8 @@ class AuthRepository {
   }
 
   /// 请求短信验证码
-  Future<Result<void>> requestSmsCode(String phone) async {
+  /// 返回包含sms_code标识符的完整结果
+  Future<Result<SmsCodeResult>> requestSmsCode(String phone) async {
     try {
       return await _apiService.auth.requestSmsCode(phone);
     } catch (e) {
@@ -88,7 +99,8 @@ class AuthRepository {
   }
 
   /// 请求图片验证码
-  Future<Result<String>> requestCaptcha() async {
+  /// 返回包含base64图片数据和img_code标识符的完整结果
+  Future<Result<CaptchaResult>> requestCaptcha() async {
     try {
       return await _apiService.auth.requestCaptcha();
     } catch (e) {

@@ -33,7 +33,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      final result = await _authRepository.loginWithPassword(event.loginRequest);
+      final result = await _authRepository.loginWithPassword(
+        event.loginRequest,
+        imgCode: event.imgCode,
+      );
       if (result.isSuccess) {
         emit(AuthLoginSuccess(wxLoginVO: result.data!));
       } else {
@@ -50,7 +53,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      final result = await _authRepository.loginWithSms(event.phone, event.code);
+      final result = await _authRepository.loginWithSms(
+        event.phone, 
+        event.code, 
+        smsCode: event.smsCode,
+      );
       if (result.isSuccess) {
         emit(AuthLoginSuccess(wxLoginVO: result.data!));
       } else {
@@ -68,8 +75,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthSmsCodeSending());
     try {
       final result = await _authRepository.requestSmsCode(event.phone);
-      if (result.isSuccess) {
-        emit(AuthSmsCodeSent(phone: event.phone));
+      if (result.isSuccess && result.data != null) {
+        final smsCodeResult = result.data!;
+        emit(AuthSmsCodeSent(
+          phone: event.phone,
+          smsCode: smsCodeResult.smsCode,
+        ));
       } else {
         emit(AuthFailure(error: result.msg));
       }
@@ -85,8 +96,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthCaptchaLoading());
     try {
       final result = await _authRepository.requestCaptcha();
-      if (result.isSuccess) {
-        emit(AuthCaptchaLoaded(captchaBase64: result.data!));
+      if (result.isSuccess && result.data != null) {
+        final captchaResult = result.data!;
+        emit(AuthCaptchaLoaded(
+          captchaBase64: captchaResult.base64Data,
+          imgCode: captchaResult.imgCode,
+        ));
       } else {
         emit(AuthFailure(error: result.msg));
       }

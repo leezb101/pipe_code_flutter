@@ -63,6 +63,10 @@ dependencies:
   image_picker: ^1.0.7
   file_picker: ^8.0.0+1
   dotted_border: ^2.1.0
+  
+  # Encryption
+  encrypt: ^5.0.3
+  pointycastle: ^3.9.1
 
 dev_dependencies:
   flutter_test:

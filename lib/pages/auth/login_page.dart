@@ -6,6 +6,7 @@ import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../models/auth/login_account_vo.dart';
 import '../../utils/toast_utils.dart';
+import '../../utils/rsa_encryption_util.dart';
 import '../../widgets/captcha_widget.dart';
 
 class LoginPage extends StatefulWidget {
@@ -27,6 +28,8 @@ class _LoginPageState extends State<LoginPage> {
     _usernameController.dispose();
     _passwordController.dispose();
     _captchaController.dispose();
+    // 清除toast重复消息缓存，避免页面切换时重复显示
+    ToastUtils.clearDuplicateCache();
     super.dispose();
   }
 
@@ -305,8 +308,7 @@ class _LoginPageState extends State<LoginPage> {
         // 短信登录按钮
         TextButton(
           onPressed: () {
-            // TODO: 实现短信登录
-            context.showInfoToast('短信登录功能即将开放');
+            context.push('/sms-login');
           },
           style: TextButton.styleFrom(
             foregroundColor: Colors.white,
@@ -342,13 +344,42 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
+      // 获取当前的验证码状态以提取imgCode
+      final authState = context.read<AuthBloc>().state;
+      String? imgCode;
+      
+      if (authState is AuthCaptchaLoaded) {
+        imgCode = authState.imgCode;
+        if (imgCode.isEmpty) {
+          context.showErrorToast('验证码状态异常，请重新获取');
+          context.read<AuthBloc>().add(const AuthCaptchaRequested());
+          return;
+        }
+      } else {
+        context.showErrorToast('请先获取图形验证码');
+        context.read<AuthBloc>().add(const AuthCaptchaRequested());
+        return;
+      }
+
+      // RSA加密密码
+      final rawPassword = _passwordController.text;
+      String encryptedPassword;
+      
+      try {
+        encryptedPassword = RSAEncryptionUtil.encryptPassword(rawPassword);
+      } catch (e) {
+        context.showErrorToast('密码加密失败，请重试');
+        return;
+      }
+
       context.read<AuthBloc>().add(
         AuthLoginWithPasswordRequested(
           loginRequest: LoginAccountVO(
             account: _usernameController.text.trim(),
-            password: _passwordController.text,
+            password: encryptedPassword,
             code: captchaCode,
           ),
+          imgCode: imgCode,
         ),
       );
     }
