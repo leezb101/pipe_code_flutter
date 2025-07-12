@@ -53,6 +53,14 @@ class AuthSmsCodeRequested extends AuthEvent {
   List<Object> get props => [phone];
 }
 
+/// 请求图片验证码
+class AuthCaptchaRequested extends AuthEvent {
+  const AuthCaptchaRequested();
+
+  @override
+  List<Object> get props => [];
+}
+
 /// 选择项目
 class AuthProjectSelected extends AuthEvent {
   const AuthProjectSelected({

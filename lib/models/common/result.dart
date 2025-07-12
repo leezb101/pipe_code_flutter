@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 22:00:00
+ * @LastEditTime: 2025-07-12 13:27:13
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:json_annotation/json_annotation.dart';
@@ -24,24 +24,23 @@ class Result<T> extends Equatable {
 
   /// 错误码
   final int code;
-  
+
   /// 提示信息
   final String msg;
-  
+
   /// 接口耗时time consuming
-  final int tc;
-  
+  final int? tc;
+
   /// 具体的内容
   final T? data;
-  
+
   /// 是否成功
   final bool? success;
 
   factory Result.fromJson(
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT,
-  ) =>
-      _$ResultFromJson(json, fromJsonT);
+  ) => _$ResultFromJson(json, fromJsonT);
 
   Map<String, dynamic> toJson(Object? Function(T value) toJsonT) =>
       _$ResultToJson(this, toJsonT);
@@ -84,13 +83,13 @@ class ResultBoolean extends Equatable {
 
   /// 错误码
   final int code;
-  
+
   /// 提示信息
   final String msg;
-  
+
   /// 接口耗时time consuming
   final int tc;
-  
+
   /// 具体的内容
   final bool? data;
 

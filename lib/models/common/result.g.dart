@@ -12,7 +12,7 @@ Result<T> _$ResultFromJson<T>(
 ) => Result<T>(
   code: (json['code'] as num).toInt(),
   msg: json['msg'] as String,
-  tc: (json['tc'] as num).toInt(),
+  tc: (json['tc'] as num?)?.toInt(),
   data: _$nullableGenericFromJson(json['data'], fromJsonT),
   success: json['success'] as bool?,
 );

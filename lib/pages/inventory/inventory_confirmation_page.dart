@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-07 14:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-07 14:00:00
+ * @LastEditTime: 2025-07-11 18:02:33
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -23,13 +23,15 @@ class InventoryConfirmationPage extends StatefulWidget {
   final String scanMode; // 'batch' or 'delivery'
 
   @override
-  State<InventoryConfirmationPage> createState() => _InventoryConfirmationPageState();
+  State<InventoryConfirmationPage> createState() =>
+      _InventoryConfirmationPageState();
 }
 
 class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
   List<File> _acceptancePhotos = [];
   List<File> _inspectionReports = [];
   List<File> _acceptanceReports = [];
+  bool _isSameAcceptance = true; // 是否同时验收
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +51,8 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  // 同时验收单选框
+                  _buildSameAcceptanceRadio(),
                   _buildMaterialsList(),
                   const SizedBox(height: 16),
                   _buildAttachmentSection(),
@@ -62,12 +66,49 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
     );
   }
 
+  Widget _buildSameAcceptanceRadio() {
+    return Row(
+      children: [
+        const SizedBox(width: 4),
+        Text(
+          '同时验收',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: Colors.red[400],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Radio(
+          value: true,
+          groupValue: _isSameAcceptance,
+          onChanged: (value) {
+            setState(() {
+              _isSameAcceptance = value!;
+            });
+          },
+        ),
+        const Text('是', style: TextStyle(fontSize: 16)),
+        const SizedBox(width: 16),
+        Radio(
+          value: false,
+          groupValue: _isSameAcceptance,
+          onChanged: (value) {
+            setState(() {
+              _isSameAcceptance = value!;
+            });
+          },
+        ),
+        const Text('否', style: TextStyle(fontSize: 16)),
+        const Spacer(),
+      ],
+    );
+  }
+
   Widget _buildMaterialsList() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -75,11 +116,7 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.inventory,
-                  size: 24,
-                  color: Colors.blue[600],
-                ),
+                Icon(Icons.inventory, size: 24, color: Colors.blue[600]),
                 const SizedBox(width: 8),
                 const Text(
                   '材料清单',
@@ -92,7 +129,9 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
               ],
             ),
             const SizedBox(height: 16),
-            ...widget.materials.map((material) => _buildMaterialItem(material)).toList(),
+            ...widget.materials
+                .map((material) => _buildMaterialItem(material))
+                .toList(),
           ],
         ),
       ),
@@ -116,11 +155,7 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
               color: Colors.blue[100],
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              Icons.water_drop,
-              size: 20,
-              color: Colors.blue[700],
-            ),
+            child: Icon(Icons.water_drop, size: 20, color: Colors.blue[700]),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -138,10 +173,7 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
                 const SizedBox(height: 4),
                 Text(
                   material.specification,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -169,9 +201,7 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
   Widget _buildAttachmentSection() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -179,11 +209,7 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.attach_file,
-                  size: 24,
-                  color: Colors.green[600],
-                ),
+                Icon(Icons.attach_file, size: 24, color: Colors.green[600]),
                 const SizedBox(width: 8),
                 const Text(
                   '附件上传',
@@ -227,10 +253,6 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
     );
   }
 
-
-
-
-
   Widget _buildActionButtons() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -263,7 +285,10 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
                     ),
                     child: const Text(
                       '验收确认',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -282,7 +307,10 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
                     ),
                     child: const Text(
                       '验收驳回',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -304,7 +332,10 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
                     ),
                     child: const Text(
                       '处理退库',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -322,7 +353,10 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
                     ),
                     child: const Text(
                       '返回',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -336,25 +370,25 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
 
   void _handleConfirmAcceptance() {
     // TODO: Implement acceptance confirmation logic
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('验收确认成功')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('验收确认成功')));
     Navigator.of(context).pop();
   }
 
   void _handleRejectAcceptance() {
     // TODO: Implement acceptance rejection logic
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('验收驳回成功')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('验收驳回成功')));
     Navigator.of(context).pop();
   }
 
   void _handleProcessReturn() {
     // TODO: Implement return processing logic
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('处理退库成功')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('处理退库成功')));
     Navigator.of(context).pop();
   }
 

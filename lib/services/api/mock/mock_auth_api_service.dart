@@ -76,6 +76,22 @@ class MockAuthApiService implements AuthApiService {
   }
 
   @override
+  Future<Result<String>> requestCaptcha() async {
+    await MockDataGenerator.simulateNetworkDelay(
+      delay: Duration(milliseconds: 300),
+    );
+
+    if (MockDataGenerator.shouldFail(failureRate: 0.05)) {
+      return const Result(code: 500, msg: '验证码生成失败', tc: 300, data: null);
+    }
+
+    // 返回模拟的base64图片数据（一个简单的透明PNG的base64）
+    const mockCaptchaBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+    
+    return const Result(code: 0, msg: '验证码获取成功', tc: 300, data: mockCaptchaBase64);
+  }
+
+  @override
   Future<Result<WxLoginVO>> checkToken({String? tk}) async {
     await MockDataGenerator.simulateNetworkDelay(
       delay: Duration(milliseconds: 300),

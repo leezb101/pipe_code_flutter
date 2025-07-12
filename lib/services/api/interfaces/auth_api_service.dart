@@ -26,6 +26,10 @@ abstract class AuthApiService {
   /// GET /wx/sms/{phone}
   Future<Result<void>> requestSmsCode(String phone);
 
+  /// 获取图片验证码
+  /// GET /wx/login/getCodeImg
+  Future<Result<String>> requestCaptcha();
+
   /// 验证用户是否登录
   /// GET /wx/check
   Future<Result<WxLoginVO>> checkToken({String? tk});

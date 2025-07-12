@@ -35,6 +35,19 @@ class AuthSmsCodeSent extends AuthState {
   List<Object> get props => [phone];
 }
 
+/// 图片验证码加载中
+class AuthCaptchaLoading extends AuthState {}
+
+/// 图片验证码加载成功
+class AuthCaptchaLoaded extends AuthState {
+  const AuthCaptchaLoaded({required this.captchaBase64});
+
+  final String captchaBase64;
+
+  @override
+  List<Object> get props => [captchaBase64];
+}
+
 /// 登录成功，等待选择项目
 class AuthLoginSuccess extends AuthState {
   const AuthLoginSuccess({required this.wxLoginVO});

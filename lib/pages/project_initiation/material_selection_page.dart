@@ -63,6 +63,7 @@ class _MaterialSelectionPageState extends State<MaterialSelectionPage> {
         elevation: 0,
         centerTitle: true,
       ),
+      backgroundColor: Colors.grey[50],
       body: BlocConsumer<MaterialSelectionCubit, MaterialSelectionState>(
         listener: (context, state) {
           if (state is MaterialSelectionSuccess) {
@@ -77,22 +78,27 @@ class _MaterialSelectionPageState extends State<MaterialSelectionPage> {
           }
           
           if (state is MaterialSelectionLoaded) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildMaterialInputSection(),
-                  const SizedBox(height: 24),
-                  _buildSelectedMaterialsList(state.selectedMaterials),
-                  const SizedBox(height: 24),
-                  _buildActionButtons(),
-                  const SizedBox(height: 24),
-                  _buildRemarksSection(),
-                  const SizedBox(height: 32),
-                  _buildBottomButtons(),
-                ],
-              ),
+            return Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildMaterialInputSection(),
+                        const SizedBox(height: 16),
+                        _buildSelectedMaterialsList(state.selectedMaterials),
+                        const SizedBox(height: 16),
+                        _buildActionButtons(),
+                        const SizedBox(height: 16),
+                        _buildRemarksSection(),
+                      ],
+                    ),
+                  ),
+                ),
+                _buildBottomButtons(),
+              ],
             );
           }
           
@@ -104,15 +110,43 @@ class _MaterialSelectionPageState extends State<MaterialSelectionPage> {
 
   /// 物料输入部分
   Widget _buildMaterialInputSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildInputRow('耗材大类：', _buildMaterialTypeDropdown()),
-        const SizedBox(height: 16),
-        _buildInputRow('材料名称：', _buildMaterialNameInput()),
-        const SizedBox(height: 16),
-        _buildInputRow('数量：', _buildQuantityInput()),
-      ],
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.add_box,
+                  size: 24,
+                  color: Colors.blue[600],
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  '添加物料',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildFormField('耗材大类', _buildMaterialTypeDropdown()),
+            const SizedBox(height: 16),
+            _buildFormField('材料名称', _buildMaterialNameInput()),
+            const SizedBox(height: 16),
+            _buildFormField('数量', _buildQuantityInput()),
+          ],
+        ),
+      ),
     );
   }
 
@@ -120,17 +154,27 @@ class _MaterialSelectionPageState extends State<MaterialSelectionPage> {
   Widget _buildMaterialTypeDropdown() {
     return DropdownButtonFormField<project_models.MaterialType>(
       value: _selectedMaterialType,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
       items: project_models.MaterialType.values.map((project_models.MaterialType type) {
         return DropdownMenuItem<project_models.MaterialType>(
           value: type,
           child: Row(
             children: [
+              Icon(
+                _getMaterialTypeIcon(type),
+                size: 18,
+                color: Colors.blue[600],
+              ),
+              const SizedBox(width: 8),
               Text(type.label),
-              if (type == project_models.MaterialType.pipe) // 显示选中状态
+              if (type == _selectedMaterialType)
                 const Padding(
                   padding: EdgeInsets.only(left: 8),
                   child: Icon(Icons.check, color: Colors.blue, size: 16),
@@ -151,9 +195,15 @@ class _MaterialSelectionPageState extends State<MaterialSelectionPage> {
   Widget _buildMaterialNameInput() {
     return TextFormField(
       controller: _materialNameController,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: InputDecoration(
+        hintText: '请输入材料名称',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        filled: true,
+        fillColor: Colors.grey[50],
+        prefixIcon: const Icon(Icons.engineering, size: 20),
       ),
     );
   }
@@ -162,9 +212,15 @@ class _MaterialSelectionPageState extends State<MaterialSelectionPage> {
   Widget _buildQuantityInput() {
     return TextFormField(
       controller: _quantityController,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: InputDecoration(
+        hintText: '请输入数量',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        filled: true,
+        fillColor: Colors.grey[50],
+        prefixIcon: const Icon(Icons.format_list_numbered, size: 20),
       ),
       keyboardType: TextInputType.number,
     );
@@ -172,137 +228,170 @@ class _MaterialSelectionPageState extends State<MaterialSelectionPage> {
 
   /// 已选择物料列表
   Widget _buildSelectedMaterialsList(List<project_models.ProjectMaterial> materials) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '已选择物料：',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (materials.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              '暂无选择的物料',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 14,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          )
-        else
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      topRight: Radius.circular(8),
-                    ),
-                  ),
-                  child: const Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          '物料名称',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Text(
-                          '类型',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Text(
-                          '数量',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 60),
-                    ],
+                Icon(
+                  Icons.inventory,
+                  size: 24,
+                  color: Colors.green[600],
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  '已选择物料',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
                   ),
                 ),
-                ...materials.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final material = entry.value;
-                  return _buildMaterialRow(material, index);
-                }).toList(),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${materials.length}项',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green[700],
+                    ),
+                  ),
+                ),
               ],
             ),
-          ),
-      ],
+            const SizedBox(height: 16),
+            if (materials.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: 48,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '暂无选择的物料',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              )
+            else
+              ...materials.asMap().entries.map((entry) {
+                final index = entry.key;
+                final material = entry.value;
+                return _buildMaterialCard(material, index);
+              }),
+          ],
+        ),
+      ),
     );
   }
 
-  /// 物料行
-  Widget _buildMaterialRow(project_models.ProjectMaterial material, int index) {
+  /// 物料卡片
+  Widget _buildMaterialCard(project_models.ProjectMaterial material, int index) {
+    final materialType = project_models.MaterialType.values.firstWhere(
+      (type) => type.value == material.type,
+      orElse: () => project_models.MaterialType.pipe,
+    );
+    
     return Container(
+      margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200),
-        ),
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blue[200]!),
       ),
       child: Row(
         children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              material.name,
-              style: const TextStyle(fontSize: 14),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.blue[100],
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(
+              _getMaterialTypeIcon(materialType),
+              size: 18,
+              color: Colors.blue[700],
             ),
           ),
+          const SizedBox(width: 12),
           Expanded(
-            flex: 1,
-            child: Text(
-              material.typeName,
-              style: const TextStyle(fontSize: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  material.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      material.typeName,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[600],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${material.needNum}件',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              '${material.needNum}',
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
-          SizedBox(
-            width: 60,
-            child: IconButton(
-              onPressed: () => _removeMaterial(index),
-              icon: const Icon(Icons.delete, color: Colors.red, size: 18),
-              padding: EdgeInsets.zero,
+          IconButton(
+            onPressed: () => _removeMaterial(index),
+            icon: const Icon(Icons.remove_circle, color: Colors.red, size: 24),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.red[50],
+              shape: const CircleBorder(),
             ),
           ),
         ],
@@ -312,111 +401,233 @@ class _MaterialSelectionPageState extends State<MaterialSelectionPage> {
 
   /// 操作按钮
   Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: _addMaterial,
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.build,
+                  size: 24,
+                  color: Colors.orange[600],
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  '操作工具',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
             ),
-            child: const Text('添加'),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: OutlinedButton(
-            onPressed: _importMaterials,
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _addMaterial,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[600],
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('添加', style: TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _importMaterials,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.green[600],
+                      side: BorderSide(color: Colors.green[600]!),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    icon: const Icon(Icons.upload, size: 18),
+                    label: const Text('导入', style: TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _downloadTemplate,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.purple[600],
+                      side: BorderSide(color: Colors.purple[600]!),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    icon: const Icon(Icons.download, size: 18),
+                    label: const Text('模板', style: TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ],
             ),
-            child: const Text('导入'),
-          ),
+          ],
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: OutlinedButton(
-            onPressed: _downloadTemplate,
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            child: const Text('下载模板'),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
   /// 备注部分
   Widget _buildRemarksSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '备注：',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.note_alt,
+                  size: 24,
+                  color: Colors.indigo[600],
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  '备注信息',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _remarksController,
+              maxLines: 4,
+              decoration: InputDecoration(
+                hintText: '请输入备注信息...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.all(16),
+                filled: true,
+                fillColor: Colors.grey[50],
+              ),
+              onChanged: (value) {
+                context.read<MaterialSelectionCubit>().updateRemarks(value);
+              },
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _remarksController,
-          maxLines: 5,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.all(12),
-          ),
-          onChanged: (value) {
-            context.read<MaterialSelectionCubit>().updateRemarks(value);
-          },
-        ),
-      ],
+      ),
     );
   }
 
   /// 底部按钮
   Widget _buildBottomButtons() {
-    return Row(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _confirmSelection,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: const Text(
+                  '确认选择',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => context.pop(),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.grey[600],
+                  side: BorderSide(color: Colors.grey[400]!),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  '返回',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 构建表单字段
+  Widget _buildFormField(String label, Widget child) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: ElevatedButton(
-            onPressed: _confirmSelection,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            child: const Text('确认'),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
           ),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: OutlinedButton(
-            onPressed: () => context.pop(),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            child: const Text('返回'),
-          ),
-        ),
+        const SizedBox(height: 8),
+        child,
       ],
     );
   }
 
-  /// 构建输入行
-  Widget _buildInputRow(String label, Widget child) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 16),
-          ),
-        ),
-        Expanded(child: child),
-      ],
-    );
+  /// 获取物料类型图标
+  IconData _getMaterialTypeIcon(project_models.MaterialType type) {
+    switch (type) {
+      case project_models.MaterialType.pipe:
+        return Icons.water;
+      case project_models.MaterialType.fitting:
+        return Icons.settings;
+      case project_models.MaterialType.equipment:
+        return Icons.build_circle;
+    }
   }
 
   /// 添加物料

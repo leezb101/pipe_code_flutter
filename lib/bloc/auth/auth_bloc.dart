@@ -20,6 +20,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLoginWithPasswordRequested>(_onLoginWithPasswordRequested);
     on<AuthLoginWithSmsRequested>(_onLoginWithSmsRequested);
     on<AuthSmsCodeRequested>(_onSmsCodeRequested);
+    on<AuthCaptchaRequested>(_onCaptchaRequested);
     on<AuthProjectSelected>(_onProjectSelected);
     on<AuthLogoutRequested>(_onLogoutRequested);
     on<AuthCheckRequested>(_onCheckRequested);
@@ -69,6 +70,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final result = await _authRepository.requestSmsCode(event.phone);
       if (result.isSuccess) {
         emit(AuthSmsCodeSent(phone: event.phone));
+      } else {
+        emit(AuthFailure(error: result.msg));
+      }
+    } catch (e) {
+      emit(AuthFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> _onCaptchaRequested(
+    AuthCaptchaRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthCaptchaLoading());
+    try {
+      final result = await _authRepository.requestCaptcha();
+      if (result.isSuccess) {
+        emit(AuthCaptchaLoaded(captchaBase64: result.data!));
       } else {
         emit(AuthFailure(error: result.msg));
       }

@@ -50,6 +50,16 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
   }
 
   @override
+  Future<Result<String>> requestCaptcha() async {
+    try {
+      final response = await dio.get('/wx/login/getCodeImg');
+      return Result.fromJson(response.data, (json) => json as String);
+    } on DioException catch (e) {
+      throw handleError(e);
+    }
+  }
+
+  @override
   Future<Result<WxLoginVO>> checkToken({String? tk}) async {
     try {
       final queryParams = tk != null ? {'tk': tk} : <String, dynamic>{};

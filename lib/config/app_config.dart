@@ -1,16 +1,9 @@
 import '../services/storage_service.dart';
 import 'service_locator.dart';
 
-enum Environment {
-  development,
-  staging,
-  production,
-}
+enum Environment { development, staging, production }
 
-enum DataSource {
-  mock,
-  api,
-}
+enum DataSource { mock, api }
 
 class AppConfig {
   static Environment _environment = Environment.development;
@@ -19,17 +12,17 @@ class AppConfig {
 
   static Environment get environment => _environment;
   static DataSource get dataSource => _dataSource;
-  
+
   static bool get isMockEnabled => _dataSource == DataSource.mock;
   static bool get isProduction => _environment == Environment.production;
   static bool get isDevelopment => _environment == Environment.development;
 
   static Future<void> initialize() async {
     if (_isInitialized) return;
-    
+
     try {
       final storageService = getIt<StorageService>();
-      
+
       // Load environment setting
       final envString = storageService.getString('app_environment');
       if (envString != null) {
@@ -38,7 +31,7 @@ class AppConfig {
           orElse: () => Environment.development,
         );
       }
-      
+
       // Load data source setting
       final dataSourceString = storageService.getString('app_data_source');
       if (dataSourceString != null) {
@@ -47,7 +40,7 @@ class AppConfig {
           orElse: () => DataSource.mock,
         );
       }
-      
+
       _isInitialized = true;
     } catch (e) {
       // If there's an error loading settings, use defaults
@@ -100,7 +93,8 @@ class AppConfig {
   static String get apiBaseUrl {
     switch (_environment) {
       case Environment.development:
-        return 'https://dev-api.example.com';
+        // return 'https://dev-api.example.com';
+        return 'http://10.2.220.12:8775/m';
       case Environment.staging:
         return 'https://staging-api.example.com';
       case Environment.production:

@@ -1,0 +1,872 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "一管一码",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "移动端"
+    },
+    {
+      "name": "移动端/移动端相关接口"
+    },
+    {
+      "name": "auth"
+    },
+    {
+      "name": "wx"
+    }
+  ],
+  "paths": {
+    "/wx/select/{projectId}": {
+      "get": {
+        "summary": "登陆后选中项目(小程序/APP)",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/移动端相关接口"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultCurrentUserOnProjectRoleInfo",
+                  "description": "data true 标识正常登录成功 false 标识用户授权已过期(针对临时劳务) ,抛异常则为恶意访问"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "currentProjectRoleType": "",
+                    "currentProjectId": 0,
+                    "currentProjectCode": "",
+                    "currentProjectName": "",
+                    "currentOrgCode": "",
+                    "currentOrgName": "",
+                    "currentProjectSuperiorUserId": 0,
+                    "currentProjectAuthorUserId": 0,
+                    "expire": false
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/login/unite/password": {
+      "post": {
+        "summary": "账号密码登录",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/移动端相关接口",
+          "auth"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginAccountVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultWxLoginVO"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "id": "",
+                    "tk": "",
+                    "unionid": "",
+                    "account": "",
+                    "phone": "",
+                    "name": "",
+                    "nick": "",
+                    "birthday": "",
+                    "avatar": "",
+                    "address": "",
+                    "sex": "",
+                    "lastLoginTime": "",
+                    "complete": false,
+                    "orgCode": "",
+                    "orgName": "",
+                    "own": false,
+                    "boss": false,
+                    "admin": false,
+                    "projectInfos": [
+                      {
+                        "projectRoleType": "",
+                        "projectCode": "",
+                        "projectName": "",
+                        "orgCode": "",
+                        "orgName": ""
+                      }
+                    ],
+                    "currentProject": {
+                      "projectRoleType": "",
+                      "projectCode": "",
+                      "projectName": "",
+                      "orgCode": "",
+                      "orgName": ""
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/login/getCodeImg": {
+      "get": {
+        "summary": "获取图片验证码 Copy",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/移动端相关接口",
+          "auth"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultString"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": ""
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/sms/{phone}": {
+      "get": {
+        "summary": "获取短信验证码",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/移动端相关接口"
+        ],
+        "parameters": [
+          {
+            "name": "phone",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/login/sms/{phone}/{code}": {
+      "post": {
+        "summary": "短信验证码登录",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/移动端相关接口",
+          "auth"
+        ],
+        "parameters": [
+          {
+            "name": "phone",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultWxLoginVO"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "id": "",
+                    "tk": "",
+                    "unionid": "",
+                    "account": "",
+                    "phone": "",
+                    "name": "",
+                    "nick": "",
+                    "birthday": "",
+                    "avatar": "",
+                    "address": "",
+                    "sex": "",
+                    "lastLoginTime": "",
+                    "complete": false,
+                    "orgCode": "",
+                    "orgName": "",
+                    "own": false,
+                    "boss": false,
+                    "admin": false,
+                    "projectInfos": [
+                      {
+                        "projectRoleType": "",
+                        "projectCode": "",
+                        "projectName": "",
+                        "orgCode": "",
+                        "orgName": ""
+                      }
+                    ],
+                    "currentProject": {
+                      "projectRoleType": "",
+                      "projectCode": "",
+                      "projectName": "",
+                      "orgCode": "",
+                      "orgName": ""
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/check": {
+      "get": {
+        "summary": "验证用户是否登录",
+        "deprecated": false,
+        "description": "返回用户的扩展信息及是否完善信息",
+        "tags": [
+          "移动端/移动端相关接口"
+        ],
+        "parameters": [
+          {
+            "name": "tk",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": {
+                    "id": "",
+                    "tk": "",
+                    "unionid": "",
+                    "account": "",
+                    "phone": "",
+                    "name": "",
+                    "nick": "",
+                    "birthday": "",
+                    "avatar": "",
+                    "address": "",
+                    "sex": "",
+                    "lastLoginTime": "",
+                    "complete": false,
+                    "orgCode": "",
+                    "orgName": "",
+                    "own": false,
+                    "boss": false,
+                    "admin": false,
+                    "projectInfos": [
+                      {
+                        "projectRoleType": "",
+                        "projectCode": "",
+                        "projectName": "",
+                        "orgCode": "",
+                        "orgName": ""
+                      }
+                    ],
+                    "currentProject": {
+                      "projectRoleType": "",
+                      "projectCode": "",
+                      "projectName": "",
+                      "orgCode": "",
+                      "orgName": ""
+                    }
+                  },
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/logout": {
+      "get": {
+        "summary": "logout",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/移动端相关接口"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/rf": {
+      "post": {
+        "summary": "刷新用户tk接口,仅对完成完整流程登录的用户有效",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/移动端相关接口",
+          "wx"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RF",
+                "description": "包含属性uid,uid 经过公钥加密的unionid信息,原文 为json格式 ,包含两个属性,1 timestamp(当前时间毫秒数) 2 unionid"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultWxLoginVO",
+                  "description": "WxLoginVO(包含tk)"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "id": "",
+                    "tk": "",
+                    "unionid": "",
+                    "account": "",
+                    "phone": "",
+                    "name": "",
+                    "nick": "",
+                    "birthday": "",
+                    "avatar": "",
+                    "address": "",
+                    "sex": "",
+                    "lastLoginTime": "",
+                    "complete": false,
+                    "orgCode": "",
+                    "orgName": "",
+                    "own": false,
+                    "boss": false,
+                    "admin": false,
+                    "projectInfos": [
+                      {
+                        "projectRoleType": "",
+                        "projectCode": "",
+                        "projectName": "",
+                        "orgCode": "",
+                        "orgName": ""
+                      }
+                    ],
+                    "currentProject": {
+                      "projectRoleType": "",
+                      "projectCode": "",
+                      "projectName": "",
+                      "orgCode": "",
+                      "orgName": ""
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/wx/logoff": {
+      "get": {
+        "summary": "注销用户",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/移动端相关接口"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Result": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/"
+            },
+            "description": "具体的内容."
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "LoginAccountVO": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "type": "string",
+            "description": ""
+          },
+          "password": {
+            "type": "string",
+            "description": ""
+          },
+          "code": {
+            "type": "string",
+            "description": ""
+          }
+        },
+        "required": [
+          "account",
+          "password",
+          "code"
+        ]
+      },
+      "ResultString": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "type": "string",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "ResultBoolean": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "type": "boolean",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "": {
+        "type": "object",
+        "properties": {
+          "msg": {
+            "type": "string"
+          },
+          "code": {
+            "type": "integer"
+          }
+        }
+      },
+      "ProjectInfo": {
+        "type": "object",
+        "properties": {
+          "projectRoleType": {
+            "type": "string",
+            "description": "",
+            "enum": [
+              "suppliers",
+              "construction",
+              "supervisor",
+              "builder",
+              "check",
+              "builder_sub",
+              "laborer",
+              "playgoer"
+            ]
+          },
+          "projectCode": {
+            "type": "string",
+            "description": ""
+          },
+          "projectName": {
+            "type": "string",
+            "description": ""
+          },
+          "orgCode": {
+            "type": "string",
+            "description": ""
+          },
+          "orgName": {
+            "type": "string",
+            "description": ""
+          }
+        }
+      },
+      "WxLoginVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "private int id;"
+          },
+          "tk": {
+            "type": "string",
+            "description": ""
+          },
+          "unionid": {
+            "type": "string",
+            "description": ""
+          },
+          "account": {
+            "type": "string",
+            "description": ""
+          },
+          "phone": {
+            "type": "string",
+            "description": ""
+          },
+          "name": {
+            "type": "string",
+            "description": ""
+          },
+          "nick": {
+            "type": "string",
+            "description": ""
+          },
+          "birthday": {
+            "type": "string",
+            "description": ""
+          },
+          "avatar": {
+            "type": "string",
+            "description": ""
+          },
+          "address": {
+            "type": "string",
+            "description": ""
+          },
+          "sex": {
+            "type": "string",
+            "description": "男 or 女"
+          },
+          "lastLoginTime": {
+            "type": "string",
+            "description": ""
+          },
+          "complete": {
+            "type": "boolean",
+            "description": "是否完善用户信息"
+          },
+          "orgCode": {
+            "type": "string",
+            "description": "归属组织"
+          },
+          "orgName": {
+            "type": "string",
+            "description": "归属组织"
+          },
+          "own": {
+            "type": "boolean",
+            "description": "是否自有人员\n非自有人员则为游客"
+          },
+          "boss": {
+            "type": "boolean",
+            "description": "是否管理层"
+          },
+          "admin": {
+            "type": "boolean",
+            "description": "是否管理员"
+          },
+          "projectInfos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectInfo",
+              "description": "项目列表信息"
+            },
+            "description": "参与的项目信息"
+          },
+          "currentProject": {
+            "$ref": "#/components/schemas/ProjectInfo",
+            "description": "当前选中项目"
+          }
+        }
+      },
+      "ResultWxLoginVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/WxLoginVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "RF": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": ""
+          }
+        }
+      },
+      "CurrentUserOnProjectRoleInfo": {
+        "type": "object",
+        "properties": {
+          "currentProjectRoleType": {
+            "type": "string",
+            "description": "当前项目信息",
+            "enum": [
+              "suppliers",
+              "construction",
+              "supervisor",
+              "builder",
+              "check",
+              "builder_sub",
+              "laborer",
+              "playgoer"
+            ]
+          },
+          "currentProjectId": {
+            "type": "integer",
+            "description": "当前项目id"
+          },
+          "currentProjectCode": {
+            "type": "string",
+            "description": "当前项目code"
+          },
+          "currentProjectName": {
+            "type": "string",
+            "description": "当前项目名称"
+          },
+          "currentOrgCode": {
+            "type": "string",
+            "description": ""
+          },
+          "currentOrgName": {
+            "type": "string",
+            "description": ""
+          },
+          "currentProjectSuperiorUserId": {
+            "type": "integer",
+            "description": "当前选中项目上级授权用户userId,施工方角色存在此字段"
+          },
+          "currentProjectAuthorUserId": {
+            "type": "integer",
+            "description": "当前选中项目根授权用户userId,施工方角色存在此字段"
+          },
+          "expire": {
+            "type": "boolean",
+            "description": "是否过期,仅劳务角色涉及"
+          }
+        }
+      },
+      "ResultCurrentUserOnProjectRoleInfo": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CurrentUserOnProjectRoleInfo",
+            "description": "具体的内容."
+          }
+        }
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}

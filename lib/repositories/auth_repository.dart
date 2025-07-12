@@ -87,6 +87,20 @@ class AuthRepository {
     }
   }
 
+  /// 请求图片验证码
+  Future<Result<String>> requestCaptcha() async {
+    try {
+      return await _apiService.auth.requestCaptcha();
+    } catch (e) {
+      return Result(
+        code: -1,
+        msg: e.toString(),
+        tc: 0,
+        data: null,
+      );
+    }
+  }
+
   /// 选择项目
   Future<Result<CurrentUserOnProjectRoleInfo>> selectProject(int projectId) async {
     try {
