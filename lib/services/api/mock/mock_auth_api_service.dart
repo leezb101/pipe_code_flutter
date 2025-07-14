@@ -33,7 +33,7 @@ class MockAuthApiService implements AuthApiService {
     if (loginRequest.code.isEmpty) {
       return const Result(code: 400, msg: '请输入验证码', tc: 800, data: null);
     }
-    
+
     if (loginRequest.code.length < 4) {
       return const Result(code: 400, msg: '验证码长度不正确', tc: 800, data: null);
     }
@@ -50,8 +50,10 @@ class MockAuthApiService implements AuthApiService {
 
     // 检查密码是否为RSA加密格式（Base64编码，长度通常较长）
     final password = loginRequest.password;
-    final isEncrypted = password.length > 100 && RegExp(r'^[A-Za-z0-9+/=]+$').hasMatch(password);
-    
+    final isEncrypted =
+        password.length > 100 &&
+        RegExp(r'^[A-Za-z0-9+/=]+$').hasMatch(password);
+
     if (isEncrypted) {
       // RSA加密密码验证 - 在mock环境中简化验证逻辑
       print('Mock Info: 检测到RSA加密密码，长度: ${password.length}');
@@ -72,7 +74,11 @@ class MockAuthApiService implements AuthApiService {
   }
 
   @override
-  Future<Result<WxLoginVO>> loginWithSms(String phone, String code, {String? smsCode}) async {
+  Future<Result<WxLoginVO>> loginWithSms(
+    String phone,
+    String code, {
+    String? smsCode,
+  }) async {
     await MockDataGenerator.simulateNetworkDelay(delay: _defaultDelay);
 
     if (MockDataGenerator.shouldFail(failureRate: 0.15)) {
@@ -84,7 +90,9 @@ class MockAuthApiService implements AuthApiService {
       // 在mock环境中只记录警告，不阻断流程
       print('Mock Warning: smsCode未提供，实际环境中可能导致验证失败');
     } else {
-      print('Mock Info: 检测到smsCode，标识符: ${smsCode.length > 8 ? '${smsCode.substring(0, 8)}...' : smsCode}');
+      print(
+        'Mock Info: 检测到smsCode，标识符: ${smsCode.length > 8 ? '${smsCode.substring(0, 8)}...' : smsCode}',
+      );
     }
 
     if (code != '1234') {
@@ -114,13 +122,13 @@ class MockAuthApiService implements AuthApiService {
     // 生成模拟的smsCode
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final mockSmsCode = 'MOCK_SMS_${timestamp % 10000}';
-    
+
     final smsCodeResult = SmsCodeResult.create(
       phone: phone,
       smsCode: mockSmsCode,
       message: '验证码发送成功',
     );
-    
+
     return Result(code: 0, msg: '验证码发送成功', tc: 500, data: smsCodeResult);
   }
 
@@ -135,17 +143,18 @@ class MockAuthApiService implements AuthApiService {
     }
 
     // 返回模拟的base64图片数据（一个简单的透明PNG的base64）
-    const mockCaptchaBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
-    
+    const mockCaptchaBase64 =
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+
     // 生成模拟的imgCode
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final mockImgCode = 'MOCK_IMG_${timestamp % 10000}';
-    
+
     final captchaResult = CaptchaResult(
       base64Data: mockCaptchaBase64,
       imgCode: mockImgCode,
     );
-    
+
     return Result(code: 0, msg: '验证码获取成功', tc: 300, data: captchaResult);
   }
 
@@ -240,26 +249,32 @@ class MockAuthApiService implements AuthApiService {
   }) {
     final now = DateTime.now();
     final projectInfos = [
-      const ProjectInfo(
+      ProjectInfo(
         projectRoleType: 'construction',
         projectCode: 'WM001',
         projectName: '智慧水务示例项目A',
         orgCode: 'ORG001',
         orgName: '高新供水有限公司',
+        startTime: now.subtract(Duration(days: 30)),
+        endTime: now.add(Duration(days: 365)),
       ),
-      const ProjectInfo(
+      ProjectInfo(
         projectRoleType: 'supervisor',
         projectCode: 'WM002',
         projectName: '智慧水务示例项目B',
         orgCode: 'ORG002',
         orgName: '市政建设监理公司',
+        startTime: now.subtract(Duration(days: 15)),
+        endTime: now.add(Duration(days: 180)),
       ),
-      const ProjectInfo(
+      ProjectInfo(
         projectRoleType: 'laborer',
         projectCode: 'WM003',
         projectName: '智慧水务示例项目C',
         orgCode: 'ORG001',
         orgName: '高新供水有限公司',
+        startTime: now.subtract(Duration(days: 7)),
+        endTime: now.add(Duration(days: 90)),
       ),
     ];
 

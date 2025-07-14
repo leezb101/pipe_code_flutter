@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-13 15:41:09
+ * @LastEditTime: 2025-07-14 15:43:01
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -593,7 +593,7 @@ class _HomePageState extends State<HomePage> {
                         : FontWeight.normal,
                   ),
                 ),
-                subtitle: Text(project.orgName),
+                subtitle: Text(project.orgName ?? '无组织信息'),
                 trailing: isCurrentProject
                     ? Container(
                         padding: const EdgeInsets.symmetric(
@@ -879,7 +879,7 @@ class _HomePageState extends State<HomePage> {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(project.orgName),
+                        Text(project.orgName ?? '有关部门'),
                         const SizedBox(height: 4),
                         Container(
                           padding: const EdgeInsets.symmetric(

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:05:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 22:05:00
+ * @LastEditTime: 2025-07-14 15:42:05
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:json_annotation/json_annotation.dart';
@@ -18,8 +18,10 @@ class ProjectInfo extends Equatable {
     required this.projectRoleType,
     required this.projectCode,
     required this.projectName,
-    required this.orgCode,
-    required this.orgName,
+    this.orgCode,
+    this.orgName,
+    this.startTime,
+    this.endTime,
   });
 
   /// 项目角色类型
@@ -32,10 +34,16 @@ class ProjectInfo extends Equatable {
   final String projectName;
 
   /// 组织代码
-  final String orgCode;
+  final String? orgCode;
 
   /// 组织名称
-  final String orgName;
+  final String? orgName;
+
+  /// 角色项目授权起始时间
+  final DateTime? startTime;
+
+  /// 角色项目授权终止时间
+  final DateTime? endTime;
 
   factory ProjectInfo.fromJson(Map<String, dynamic> json) =>
       _$ProjectInfoFromJson(json);
@@ -48,6 +56,8 @@ class ProjectInfo extends Equatable {
     String? projectName,
     String? orgCode,
     String? orgName,
+    DateTime? startTime,
+    DateTime? endTime,
   }) {
     return ProjectInfo(
       projectRoleType: projectRoleType ?? this.projectRoleType,
@@ -55,15 +65,19 @@ class ProjectInfo extends Equatable {
       projectName: projectName ?? this.projectName,
       orgCode: orgCode ?? this.orgCode,
       orgName: orgName ?? this.orgName,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
     );
   }
 
   @override
   List<Object?> get props => [
-        projectRoleType,
-        projectCode,
-        projectName,
-        orgCode,
-        orgName,
-      ];
+    projectRoleType,
+    projectCode,
+    projectName,
+    orgCode,
+    orgName,
+    startTime,
+    endTime,
+  ];
 }
