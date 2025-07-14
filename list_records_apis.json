@@ -1,0 +1,1075 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "一管一码",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "移动端"
+    },
+    {
+      "name": "移动端/报废controller"
+    },
+    {
+      "name": "移动端/验收controller"
+    },
+    {
+      "name": "移动端/退库controller"
+    },
+    {
+      "name": "移动端/入库controller"
+    },
+    {
+      "name": "移动端/安装controller"
+    },
+    {
+      "name": "移动端/项目控制器"
+    },
+    {
+      "name": "移动端/出库controller"
+    },
+    {
+      "name": "移动端/调拨controller"
+    }
+  ],
+  "paths": {
+    "/waste/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/报废controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/accept/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/验收controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/return/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/退库controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/signin/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/入库controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/install/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/安装controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/init/list": {
+      "get": {
+        "summary": "立项 列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/项目控制器"
+        ],
+        "parameters": [
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 1,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 10,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectCode",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "projectStart": "",
+                        "projectEnd": "",
+                        "createdName": "",
+                        "createdId": 0,
+                        "status": 0
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": "",
+                    "pages": 0
+                  },
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/project/audit/list": {
+      "get": {
+        "summary": "监管部 待审核列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/项目控制器"
+        ],
+        "parameters": [
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 1,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 10,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectCode",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "projectStart": "",
+                        "projectEnd": "",
+                        "createdName": "",
+                        "createdId": 0,
+                        "status": 0
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": "",
+                    "pages": 0
+                  },
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/signout/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/出库controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/dispatch/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/调拨controller"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Result": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/"
+            },
+            "description": "具体的内容."
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OrderItem": {
+        "type": "object",
+        "properties": {
+          "column": {
+            "type": "string",
+            "description": ""
+          },
+          "asc": {
+            "type": "boolean",
+            "description": ""
+          }
+        }
+      },
+      "": {
+        "type": "object",
+        "properties": {
+          "msg": {
+            "type": "string"
+          },
+          "code": {
+            "type": "integer"
+          }
+        }
+      },
+      "CommonBusinessListVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "业务id"
+          },
+          "bizType": {
+            "type": "integer",
+            "description": "业务类型"
+          },
+          "projectName": {
+            "type": "string",
+            "description": "项目名称"
+          },
+          "projectCode": {
+            "type": "string",
+            "description": "项目编号"
+          },
+          "materialNum": {
+            "type": "integer",
+            "description": "耗材数量"
+          },
+          "userName": {
+            "type": "string",
+            "description": "负责人姓名"
+          },
+          "doTime": {
+            "type": "string",
+            "description": "操作时间"
+          }
+        }
+      },
+      "PageCommonBusinessListVO": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonBusinessListVO",
+              "description": "com.zzwater.pipeline.mobile.entity.vo.CommonBusinessListVO"
+            },
+            "description": ""
+          },
+          "total": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "size": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "current": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem",
+              "description": "com.baomidou.mybatisplus.core.metadata.OrderItem"
+            },
+            "description": ""
+          },
+          "optimizeCountSql": {
+            "type": "boolean",
+            "description": ""
+          },
+          "searchCount": {
+            "type": "boolean",
+            "description": ""
+          },
+          "optimizeJoinOfCountSql": {
+            "type": "boolean",
+            "description": ""
+          },
+          "maxLimit": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "countId": {
+            "type": "string",
+            "description": ""
+          }
+        }
+      },
+      "ResultPageCommonBusinessListVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageCommonBusinessListVO",
+            "description": "具体的内容."
+          }
+        }
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}

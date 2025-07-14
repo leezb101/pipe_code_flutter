@@ -17,12 +17,16 @@ import '../pages/inventory/inventory_confirmation_page.dart';
 import '../pages/developer_settings_page.dart';
 import '../pages/project_initiation/project_initiation_form_page.dart';
 import '../pages/project_initiation/material_selection_page.dart';
+import '../pages/records/records_list_page.dart';
 import '../bloc/qr_scan/qr_scan_bloc.dart';
 import '../bloc/project_initiation/project_initiation_bloc.dart';
+import '../bloc/records/records_bloc.dart';
 import '../cubits/material_selection_cubit.dart';
+import '../repositories/records_repository.dart';
 import '../models/qr_scan/qr_scan_config.dart';
 import '../models/inventory/pipe_material.dart';
 import '../models/project/project_initiation.dart';
+import '../models/records/record_type.dart';
 import '../services/qr_scan_service.dart';
 import 'service_locator.dart';
 
@@ -80,6 +84,27 @@ final GoRouter appRouter = GoRouter(
             return InventoryConfirmationPage(
               materials: materials,
               scanMode: scanMode,
+            );
+          },
+        ),
+        GoRoute(
+          path: '/records',
+          name: 'records',
+          builder: (context, state) {
+            final tabParam = state.uri.queryParameters['tab'];
+            RecordType? initialTab;
+            if (tabParam != null) {
+              try {
+                initialTab = RecordType.values.firstWhere(
+                  (type) => type.name == tabParam,
+                );
+              } catch (e) {
+                initialTab = null;
+              }
+            }
+            return BlocProvider(
+              create: (context) => RecordsBloc(getIt<RecordsRepository>()),
+              child: RecordsListPage(initialTab: initialTab),
             );
           },
         ),

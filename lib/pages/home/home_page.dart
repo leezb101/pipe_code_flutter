@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 21:44:37
+ * @LastEditTime: 2025-07-13 15:41:09
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
+import 'package:pipe_code_flutter/widgets/toast/ios_toast.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
 import '../../bloc/project/project_bloc.dart';
@@ -638,9 +639,15 @@ class _HomePageState extends State<HomePage> {
 
   /// 构建菜单功能区域
   Widget _buildMenuSection(BuildContext context, ProjectRoleInfoLoaded state) {
-    final menuItems = state.menuItems;
+    // 对菜单项进行排序：启用的菜单项在前，禁用的菜单项在后
+    final sortedMenuItems = [...state.menuItems]
+      ..sort((a, b) {
+        if (a.isEnabled && !b.isEnabled) return -1;
+        if (!a.isEnabled && b.isEnabled) return 1;
+        return 0;
+      });
 
-    if (menuItems.isEmpty) {
+    if (sortedMenuItems.isEmpty) {
       return _buildEmptyMenuView(context);
     }
 
@@ -682,9 +689,9 @@ class _HomePageState extends State<HomePage> {
                 crossAxisSpacing: 16,
                 childAspectRatio: 1.0,
               ),
-              itemCount: menuItems.length,
+              itemCount: sortedMenuItems.length,
               itemBuilder: (context, index) {
-                final menuItem = menuItems[index];
+                final menuItem = sortedMenuItems[index];
                 return _buildMenuCard(context, menuItem, state);
               },
             ),
@@ -707,7 +714,7 @@ class _HomePageState extends State<HomePage> {
         borderRadius: BorderRadius.circular(12),
         onTap: menuItem.isEnabled
             ? () => _handleMenuTap(context, menuItem, state)
-            : null,
+            : () => _showDisabledMenuAlert(context),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -1264,6 +1271,23 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// 显示禁用菜单项的提示
+  void _showDisabledMenuAlert(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('授权已过期'),
+        content: const Text('您在该项目的授权已过期，如有疑问请联系项目管理员'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('确定'),
+          ),
+        ],
       ),
     );
   }

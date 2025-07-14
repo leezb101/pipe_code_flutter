@@ -4,7 +4,9 @@ import '../repositories/auth_repository.dart';
 import '../repositories/user_repository.dart';
 import '../repositories/project_repository.dart';
 import '../repositories/list_repository.dart';
+import '../repositories/records_repository.dart';
 import '../services/api/interfaces/api_service_interface.dart';
+import '../services/api/interfaces/records_api_service.dart';
 import '../services/api_service_factory.dart';
 import '../services/storage_service.dart';
 import '../services/qr_scan_service.dart';
@@ -43,6 +45,11 @@ Future<void> setupServiceLocator({
     () => ApiServiceFactory.create(),
   );
 
+  // Records API Service - automatically chooses Mock or Real based on config
+  getIt.registerLazySingleton<RecordsApiService>(
+    () => ApiServiceFactory.createRecordsService(),
+  );
+
   // QR Scan Service
   getIt.registerLazySingleton<QrScanService>(
     () => QrScanServiceImpl(),
@@ -73,6 +80,12 @@ Future<void> setupServiceLocator({
   getIt.registerLazySingleton<ListRepository>(
     () => ListRepository(
       apiService: getIt<ApiServiceInterface>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<RecordsRepository>(
+    () => RecordsRepository(
+      getIt<RecordsApiService>(),
     ),
   );
 }

@@ -9,8 +9,11 @@ import '../bloc/project/project_bloc.dart';
 import '../bloc/project/project_state.dart';
 import '../bloc/project/project_event.dart';
 import '../pages/home/home_page.dart';
-import '../pages/list/list_page.dart';
+import '../pages/records/records_list_page.dart';
 import '../pages/profile/profile_page.dart';
+import '../bloc/records/records_bloc.dart';
+import '../repositories/records_repository.dart';
+import 'package:get_it/get_it.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -24,10 +27,13 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
-  final List<Widget> _pages = const [
-    HomePage(),
-    ListPage(),
-    ProfilePage(),
+  final List<Widget> _pages = [
+    const HomePage(),
+    BlocProvider(
+      create: (context) => RecordsBloc(GetIt.instance<RecordsRepository>()),
+      child: const RecordsListPage(),
+    ),
+    const ProfilePage(),
   ];
 
   @override
@@ -162,7 +168,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.list),
-                    label: 'List',
+                    label: '记录',
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.person),
