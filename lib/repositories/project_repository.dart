@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-10 00:10:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-10 00:10:00
+ * @LastEditTime: 2025-07-14 18:36:54
  * @copyright: Copyright © 2025 高新供水.
  */
 import '../models/user/wx_login_vo.dart';
@@ -27,7 +27,9 @@ class ProjectRepository {
        _storageService = storageService;
 
   /// 保存当前用户项目角色信息
-  Future<void> saveCurrentUserRoleInfo(CurrentUserOnProjectRoleInfo roleInfo) async {
+  Future<void> saveCurrentUserRoleInfo(
+    CurrentUserOnProjectRoleInfo roleInfo,
+  ) async {
     try {
       await _storageService.setString(
         'current_user_role_info',
@@ -54,7 +56,9 @@ class ProjectRepository {
         return _cachedCurrentUserRoleInfo;
       }
 
-      final roleInfoString = _storageService.getString('current_user_role_info');
+      final roleInfoString = _storageService.getString(
+        'current_user_role_info',
+      );
       if (roleInfoString != null) {
         final roleInfoData = Map<String, dynamic>.from(
           _storageService.decodeJsonString(roleInfoString),
@@ -80,19 +84,21 @@ class ProjectRepository {
   }
 
   /// 根据项目ID查找项目信息
-  ProjectInfo? findProjectById(WxLoginVO wxLoginVO, int projectId) {
-    try {
-      return wxLoginVO.projectInfos.firstWhere(
-        (project) => project.projectCode == 'WM${projectId.toString().padLeft(3, '0')}',
-      );
-    } catch (e) {
-      return null;
-    }
-  }
+  // ProjectInfo? findProjectById(WxLoginVO wxLoginVO, int projectId) {
+  //   try {
+  //     return wxLoginVO.projectInfos.firstWhere(
+  //       (project) =>
+  //           project.projectId == 'WM${projectId.toString().padLeft(3, '0')}',
+  //     );
+  //   } catch (e) {
+  //     return null;
+  //   }
+  // }
 
   /// 检查是否为首次登录
   Future<bool> isFirstLogin() async {
-    final hasProjectSelection = _storageService.getString('current_project_id') != null;
+    final hasProjectSelection =
+        _storageService.getString('current_project_id') != null;
     return !hasProjectSelection;
   }
 

@@ -2,11 +2,12 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:15:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 22:15:00
+ * @LastEditTime: 2025-07-14 18:14:18
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:json_annotation/json_annotation.dart';
 import 'package:equatable/equatable.dart';
+import 'user_role.dart';
 
 part 'current_user_on_project_role_info.g.dart';
 
@@ -27,7 +28,10 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
   });
 
   /// 当前项目角色类型
-  final String currentProjectRoleType;
+  // @JsonKey(fromJson: UserRole.fromJson, toJson: _userRoleToJson)
+  final UserRole currentProjectRoleType;
+
+  // static int _userRoleToJson(UserRole role) => role.toJson();
 
   /// 当前项目ID
   final int currentProjectId;
@@ -59,7 +63,7 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
   Map<String, dynamic> toJson() => _$CurrentUserOnProjectRoleInfoToJson(this);
 
   CurrentUserOnProjectRoleInfo copyWith({
-    String? currentProjectRoleType,
+    UserRole? currentProjectRoleType,
     int? currentProjectId,
     String? currentProjectCode,
     String? currentProjectName,
@@ -70,30 +74,33 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
     bool? expire,
   }) {
     return CurrentUserOnProjectRoleInfo(
-      currentProjectRoleType: currentProjectRoleType ?? this.currentProjectRoleType,
+      currentProjectRoleType:
+          currentProjectRoleType ?? this.currentProjectRoleType,
       currentProjectId: currentProjectId ?? this.currentProjectId,
       currentProjectCode: currentProjectCode ?? this.currentProjectCode,
       currentProjectName: currentProjectName ?? this.currentProjectName,
       currentOrgCode: currentOrgCode ?? this.currentOrgCode,
       currentOrgName: currentOrgName ?? this.currentOrgName,
-      currentProjectSuperiorUserId: currentProjectSuperiorUserId ?? this.currentProjectSuperiorUserId,
-      currentProjectAuthorUserId: currentProjectAuthorUserId ?? this.currentProjectAuthorUserId,
+      currentProjectSuperiorUserId:
+          currentProjectSuperiorUserId ?? this.currentProjectSuperiorUserId,
+      currentProjectAuthorUserId:
+          currentProjectAuthorUserId ?? this.currentProjectAuthorUserId,
       expire: expire ?? this.expire,
     );
   }
 
   @override
   List<Object?> get props => [
-        currentProjectRoleType,
-        currentProjectId,
-        currentProjectCode,
-        currentProjectName,
-        currentOrgCode,
-        currentOrgName,
-        currentProjectSuperiorUserId,
-        currentProjectAuthorUserId,
-        expire,
-      ];
+    currentProjectRoleType,
+    currentProjectId,
+    currentProjectCode,
+    currentProjectName,
+    currentOrgCode,
+    currentOrgName,
+    currentProjectSuperiorUserId,
+    currentProjectAuthorUserId,
+    expire,
+  ];
 
   /// 获取项目显示信息
   String get projectDisplayName => currentProjectName;
@@ -102,6 +109,7 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
   String get orgDisplayName => currentOrgName;
 
   /// 判断是否为施工方角色（存在上级或根授权用户）
-  bool get isConstructionRole => 
-      currentProjectSuperiorUserId != null || currentProjectAuthorUserId != null;
+  bool get isConstructionRole =>
+      currentProjectSuperiorUserId != null ||
+      currentProjectAuthorUserId != null;
 }

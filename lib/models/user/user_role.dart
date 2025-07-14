@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-01 17:40:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-01 17:40:00
+ * @LastEditTime: 2025-07-14 17:38:40
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:json_annotation/json_annotation.dart';
@@ -14,31 +14,34 @@ import 'user_role_menu_ext.dart';
 /// 完全匹配API文档中的角色字符串
 @JsonEnum()
 enum UserRole {
-  @JsonValue("suppliers")
-  suppliers("suppliers", "供应商"),
+  @JsonValue(0)
+  suppliers(0, "suppliers", "供应商"),
 
-  @JsonValue("construction")
-  construction("construction", "建设单位"),
+  @JsonValue(1)
+  construction(1, "construction", "建设单位"),
 
-  @JsonValue("supervisor")
-  supervisor("supervisor", "监理单位"),
+  @JsonValue(2)
+  supervisor(2, "supervisor", "监理单位"),
 
-  @JsonValue("builder")
-  builder("builder", "施工单位"),
+  @JsonValue(3)
+  builder(3, "builder", "施工单位"),
 
-  @JsonValue("check")
-  check("check", "质检部门"),
+  @JsonValue(4)
+  check(4, "check", "质检部门"),
 
-  @JsonValue("builder_sub")
-  builderSub("builder_sub", "施工单位二级负责人"),
+  @JsonValue(5)
+  builderSub(5, "builder_sub", "施工单位二级负责人"),
 
-  @JsonValue("laborer")
-  laborer("laborer", "劳务人员(允许代理收获和代理验收)"),
+  @JsonValue(6)
+  laborer(6, "laborer", "劳务人员(允许代理收获和代理验收)"),
 
-  @JsonValue("playgoer")
-  playgoer("playgoer", "热心群众,无组织,游客");
+  @JsonValue(7)
+  playgoer(7, "playgoer", "热心群众,无组织,游客");
 
-  const UserRole(this.apiValue, this.displayName);
+  const UserRole(this.value, this.apiValue, this.displayName);
+
+  /// 角色的原始int值
+  final int value;
 
   /// 角色的API字符串标识
   final String apiValue;
@@ -54,29 +57,27 @@ enum UserRole {
     );
   }
 
-  /// 从数值获取角色（向后兼容）
+  /// 从int值获取角色
   static UserRole fromValue(int value) {
-    switch (value) {
-      case 0:
-        return UserRole.suppliers;
-      case 1:
-        return UserRole.construction;
-      case 2:
-        return UserRole.supervisor;
-      case 3:
-        return UserRole.builder;
-      case 4:
-        return UserRole.check;
-      case 5:
-        return UserRole.builderSub;
-      case 6:
-        return UserRole.laborer;
-      case 7:
-        return UserRole.playgoer;
-      default:
-        return UserRole.playgoer;
-    }
+    return UserRole.values.firstWhere(
+      (role) => role.value == value,
+      orElse: () => UserRole.playgoer,
+    );
   }
+
+  /// 兼容json序列化：支持int和string
+  static UserRole fromJson(dynamic json) {
+    if (json is int) {
+      return fromValue(json);
+    } else if (json is String) {
+      // 兼容老数据
+      return fromApiValue(json);
+    }
+    return UserRole.playgoer;
+  }
+
+  /// 用于json序列化
+  int toJson() => value;
 
   /// 获取角色的权限级别（数值越小权限越高）
   int get authorityLevel {
@@ -150,4 +151,3 @@ enum UserRole {
     return getMenuItemsWithExpireState(false);
   }
 }
-

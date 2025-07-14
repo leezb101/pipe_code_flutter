@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-10 00:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-10 00:00:00
+ * @LastEditTime: 2025-07-14 18:27:59
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'dart:math';
@@ -10,6 +10,7 @@ import '../models/user/wx_login_vo.dart';
 import '../models/user/current_user_on_project_role_info.dart';
 import '../models/project/project_info.dart';
 import '../models/list_item/list_item.dart';
+import '../models/user/user_role.dart';
 
 class MockDataGenerator {
   static final Random _random = Random();
@@ -55,15 +56,15 @@ class MockDataGenerator {
     '水质监控平台项目',
   ];
 
-  static final List<String> _roleTypes = [
-    'suppliers',
-    'construction',
-    'supervisor',
-    'builder',
-    'check',
-    'builder_sub',
-    'laborer',
-    'playgoer',
+  static final List<UserRole> _roleTypes = [
+    UserRole.suppliers,
+    UserRole.construction,
+    UserRole.supervisor,
+    UserRole.builder,
+    UserRole.check,
+    UserRole.builderSub,
+    UserRole.laborer,
+    UserRole.playgoer,
   ];
 
   /// 生成模拟网络延迟
@@ -94,7 +95,7 @@ class MockDataGenerator {
   }
 
   /// 生成随机角色类型
-  static String generateRoleType() {
+  static UserRole generateRoleType() {
     return _roleTypes[_random.nextInt(_roleTypes.length)];
   }
 
@@ -133,6 +134,7 @@ class MockDataGenerator {
   static List<ProjectInfo> generateProjectInfos({int count = 3}) {
     return List.generate(count, (index) {
       return ProjectInfo(
+        projectId: index + 1,
         projectRoleType: generateRoleType(),
         projectCode: 'WM${(index + 1).toString().padLeft(3, '0')}',
         projectName: generateProjectName(),
@@ -180,14 +182,15 @@ class MockDataGenerator {
   /// 生成CurrentUserOnProjectRoleInfo
   static CurrentUserOnProjectRoleInfo generateCurrentUserOnProjectRoleInfo({
     int? projectId,
-    String? roleType,
+    UserRole? roleType,
     bool forceExpired = false,
   }) {
     final id = projectId ?? _random.nextInt(1000) + 1;
     final role = roleType ?? generateRoleType();
-    
+
     // 模拟劳务人员过期场景
-    final isExpired = forceExpired || (role == 'laborer' && _random.nextInt(4) == 0);
+    final isExpired =
+        forceExpired || (role == UserRole.laborer && _random.nextInt(4) == 0);
 
     return CurrentUserOnProjectRoleInfo(
       currentProjectRoleType: role,
@@ -196,17 +199,20 @@ class MockDataGenerator {
       currentProjectName: generateProjectName(),
       currentOrgCode: 'ORG${(id % 5 + 1).toString().padLeft(3, '0')}',
       currentOrgName: generateOrgName(),
-      currentProjectSuperiorUserId: role.contains('builder') ? 12345 : null,
-      currentProjectAuthorUserId: role.contains('builder') ? 67890 : null,
+      currentProjectSuperiorUserId:
+          (role == UserRole.builder || role == UserRole.builderSub)
+          ? 12345
+          : null,
+      currentProjectAuthorUserId:
+          (role == UserRole.builder || role == UserRole.builderSub)
+          ? 67890
+          : null,
       expire: isExpired,
     );
   }
 
   /// 生成ListItem数据
-  static List<ListItem> generateListItems({
-    int count = 10,
-    String? category,
-  }) {
+  static List<ListItem> generateListItems({int count = 10, String? category}) {
     return List.generate(count, (index) {
       return ListItem(
         id: 'item_${index + 1}',
@@ -225,10 +231,7 @@ class MockDataGenerator {
     String? email,
   }) {
     final wxLoginVO = generateWxLoginVO(customName: username);
-    return {
-      'token': wxLoginVO.tk,
-      'user': wxLoginVO.toJson(),
-    };
+    return {'token': wxLoginVO.tk, 'user': wxLoginVO.toJson()};
   }
 
   /// 生成随机布尔值
@@ -243,9 +246,13 @@ class MockDataGenerator {
 
   /// 生成随机字符串
   static String generateRandomString({int length = 8}) {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     return String.fromCharCodes(
-      Iterable.generate(length, (_) => chars.codeUnitAt(_random.nextInt(chars.length))),
+      Iterable.generate(
+        length,
+        (_) => chars.codeUnitAt(_random.nextInt(chars.length)),
+      ),
     );
   }
 }

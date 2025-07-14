@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 23:40:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 23:40:00
+ * @LastEditTime: 2025-07-14 18:30:39
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,10 +14,9 @@ import 'project_state.dart';
 class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
   final AuthRepository _authRepository;
 
-  ProjectBloc({
-    required AuthRepository authRepository,
-  }) : _authRepository = authRepository,
-       super(const ProjectInitial()) {
+  ProjectBloc({required AuthRepository authRepository})
+    : _authRepository = authRepository,
+      super(const ProjectInitial()) {
     on<ProjectLoadUserProjects>(_onLoadUserProjects);
     on<ProjectSelectProject>(_onSelectProject);
     on<ProjectSetCurrentRoleInfo>(_onSetCurrentRoleInfo);
@@ -32,11 +31,13 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     emit(const ProjectLoading());
     try {
       // 发射项目列表已加载状态
-      emit(ProjectListLoaded(
-        wxLoginVO: event.wxLoginVO,
-        availableProjects: event.wxLoginVO.projectInfos,
-      ));
-      
+      emit(
+        ProjectListLoaded(
+          wxLoginVO: event.wxLoginVO,
+          availableProjects: event.wxLoginVO.projectInfos,
+        ),
+      );
+
       // 执行智能项目选择逻辑
       await smartProjectSelection(
         event.wxLoginVO.id,
@@ -54,9 +55,10 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     Emitter<ProjectState> emit,
   ) async {
     final currentState = state;
-    
+
     // 支持从项目列表加载状态和项目角色信息加载状态进行项目切换
-    if (currentState is ProjectListLoaded || currentState is ProjectRoleInfoLoaded) {
+    if (currentState is ProjectListLoaded ||
+        currentState is ProjectRoleInfoLoaded) {
       emit(const ProjectLoading());
       try {
         final result = await _authRepository.selectProject(event.projectId);
@@ -70,11 +72,13 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
           } else {
             throw Exception('无法获取用户登录信息');
           }
-          
-          emit(ProjectRoleInfoLoaded(
-            wxLoginVO: wxLoginVO,
-            currentUserRoleInfo: result.data!,
-          ));
+
+          emit(
+            ProjectRoleInfoLoaded(
+              wxLoginVO: wxLoginVO,
+              currentUserRoleInfo: result.data!,
+            ),
+          );
         } else {
           emit(ProjectError(message: result.msg));
         }
@@ -89,10 +93,12 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     ProjectSetCurrentRoleInfo event,
     Emitter<ProjectState> emit,
   ) async {
-    emit(ProjectRoleInfoLoaded(
-      wxLoginVO: event.wxLoginVO,
-      currentUserRoleInfo: event.currentUserRoleInfo,
-    ));
+    emit(
+      ProjectRoleInfoLoaded(
+        wxLoginVO: event.wxLoginVO,
+        currentUserRoleInfo: event.currentUserRoleInfo,
+      ),
+    );
   }
 
   /// 清除项目数据
@@ -116,7 +122,7 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
 
     // 检查是否为首次登录
     final isFirstLogin = await _authRepository.isFirstLogin();
-    
+
     if (isFirstLogin) {
       // 首次登录，让用户选择项目
       // 这里应该显示项目选择界面
@@ -124,20 +130,20 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     }
 
     // 非首次登录，尝试使用最后选择的项目
-    final lastSelectedProjectId = await _authRepository.getLastSelectedProjectId();
+    final lastSelectedProjectId = await _authRepository
+        .getLastSelectedProjectId();
     if (lastSelectedProjectId != null) {
       final projectId = int.tryParse(lastSelectedProjectId);
       if (projectId != null) {
         // 验证项目ID是否在用户的可用项目列表中
         final hasValidProject = projectInfos.any((project) {
-          final projectCode = project.projectCode as String?;
-          if (projectCode != null) {
-            final extractedId = int.tryParse(projectCode.replaceAll(RegExp(r'[^0-9]'), ''));
-            return extractedId == projectId;
+          final pid = project.projectId;
+          if (pid != null) {
+            return pid == projectId;
           }
           return false;
         });
-        
+
         if (hasValidProject) {
           // 自动选择最后选择的项目
           add(ProjectSelectProject(projectId: projectId));

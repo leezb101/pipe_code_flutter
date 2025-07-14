@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 23:35:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 23:35:00
+ * @LastEditTime: 2025-07-14 18:27:20
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:equatable/equatable.dart';
@@ -59,21 +59,25 @@ class ProjectRoleInfoLoaded extends ProjectState {
 
   /// 获取当前项目信息
   ProjectInfo get currentProject => ProjectInfo(
-        projectRoleType: currentUserRoleInfo.currentProjectRoleType,
-        projectCode: currentUserRoleInfo.currentProjectCode,
-        projectName: currentUserRoleInfo.currentProjectName,
-        orgCode: currentUserRoleInfo.currentOrgCode,
-        orgName: currentUserRoleInfo.currentOrgName,
-      );
+    projectId: currentUserRoleInfo.currentProjectId,
+    projectRoleType: currentUserRoleInfo.currentProjectRoleType,
+    projectCode: currentUserRoleInfo.currentProjectCode,
+    projectName: currentUserRoleInfo.currentProjectName,
+    orgCode: currentUserRoleInfo.currentOrgCode,
+    orgName: currentUserRoleInfo.currentOrgName,
+  );
 
   /// 获取当前用户角色
-  UserRole get currentUserRole => UserRole.fromApiValue(currentUserRoleInfo.currentProjectRoleType);
+  UserRole get currentUserRole => currentUserRoleInfo.currentProjectRoleType;
 
   /// 获取当前角色的菜单项
-  List<MenuItem> get menuItems => currentUserRole.getMenuItemsWithExpireState(currentUserRoleInfo.expire);
+  List<MenuItem> get menuItems =>
+      currentUserRole.getMenuItemsWithExpireState(currentUserRoleInfo.expire);
 
   /// 获取启用的菜单项
-  List<MenuItem> get enabledMenuItems => currentUserRole.getEnabledMenuItems(isExpired: currentUserRoleInfo.expire);
+  List<MenuItem> get enabledMenuItems => currentUserRole.getEnabledMenuItems(
+    isExpired: currentUserRoleInfo.expire,
+  );
 
   /// 检查是否有指定菜单项
   bool hasMenuItem(String menuId) => currentUserRole.hasMenuItem(menuId);

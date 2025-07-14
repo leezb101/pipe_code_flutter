@@ -82,15 +82,15 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     _phoneController.dispose();
     _smsCodeController.dispose();
     _flipAnimationController.dispose();
-    
+
     // 确保Timer被正确取消和清理
     _countdownTimer?.cancel();
     _countdownTimer = null;
-    
+
     // 重置倒计时相关状态
     _countdown = 0;
     _canRequestSms = false;
-    
+
     // 清除toast重复消息缓存，避免页面切换时重复显示
     ToastUtils.clearDuplicateCache();
     super.dispose();
@@ -127,9 +127,16 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               } else if (state is AuthSmsCodeSent) {
                 context.showSuccessToast('验证码已发送到 ${state.phone}');
                 _startCountdown();
-              } else if (state is AuthFailure) {
+              } else if (state is AuthCaptchaFailure) {
+                // 图形验证码获取失败，只提示，不自动刷新验证码
                 context.showErrorToast(state.error);
-                // 密码登录失败时刷新验证码
+              } else if (state is AuthFailure || state is AuthLoginFailure) {
+                context.showErrorToast(
+                  state is AuthFailure
+                      ? state.error
+                      : (state as AuthLoginFailure).error,
+                );
+                // 登录失败时刷新验证码
                 if (_isPasswordMode) {
                   context.read<AuthBloc>().add(const AuthCaptchaRequested());
                   _captchaController.clear();
@@ -676,12 +683,14 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       }
     });
   }
-  
+
   void _updateSmsButtonState() {
     setState(() {
       final phone = _phoneController.text.trim();
       // 只有在倒计时结束且手机号有效时才能发送短信
-      if (phone.length == 11 && RegExp(r'^1[3-9]\d{9}$').hasMatch(phone) && _countdown == 0) {
+      if (phone.length == 11 &&
+          RegExp(r'^1[3-9]\d{9}$').hasMatch(phone) &&
+          _countdown == 0) {
         _canRequestSms = true;
       } else {
         _canRequestSms = false;
@@ -827,10 +836,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         context.showErrorToast('验证码状态异常，请重新获取');
         return;
       }
-    } else {
-      context.showErrorToast('请先获取短信验证码');
-      return;
     }
+    // else {
+    //   context.showErrorToast('请先获取短信验证码');
+    //   return;
+    // }
 
     context.read<AuthBloc>().add(
       AuthLoginWithSmsRequested(phone: phone, code: code, smsCode: smsCode),
@@ -845,7 +855,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
     _countdownTimer?.cancel(); // 确保之前的timer被取消
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) { // 确保widget还在树中
+      if (mounted) {
+        // 确保widget还在树中
         setState(() {
           if (_countdown > 0) {
             _countdown--;

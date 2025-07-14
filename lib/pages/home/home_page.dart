@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-14 15:43:01
+ * @LastEditTime: 2025-07-14 18:35:29
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -579,7 +579,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 16),
             ...state.availableProjects.map((project) {
               final isCurrentProject =
-                  project.projectCode == state.currentProject.projectCode;
+                  project.projectId == state.currentProject.projectId;
               return ListTile(
                 leading: Icon(
                   isCurrentProject ? Icons.check_circle : Icons.business,
@@ -619,14 +619,7 @@ class _HomePageState extends State<HomePage> {
                     : () {
                         Navigator.pop(context);
                         context.read<ProjectBloc>().add(
-                          ProjectSelectProject(
-                            projectId: int.parse(
-                              project.projectCode.replaceAll(
-                                RegExp(r'[^0-9]'),
-                                '',
-                              ),
-                            ),
-                          ),
+                          ProjectSelectProject(projectId: project.projectId),
                         );
                       },
               );
@@ -904,17 +897,11 @@ class _HomePageState extends State<HomePage> {
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () {
                       // 提取项目ID（从项目编码中解析）
-                      final projectIdString = project.projectCode.replaceAll(
-                        RegExp(r'[^0-9]'),
-                        '',
-                      );
-                      final projectId = int.tryParse(projectIdString);
+                      final projectId = project.projectId;
 
-                      if (projectId != null) {
-                        context.read<ProjectBloc>().add(
-                          ProjectSelectProject(projectId: projectId),
-                        );
-                      }
+                      context.read<ProjectBloc>().add(
+                        ProjectSelectProject(projectId: projectId),
+                      );
                     },
                   ),
                 );

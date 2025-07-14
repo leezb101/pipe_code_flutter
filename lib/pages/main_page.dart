@@ -43,15 +43,11 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
     _animationController.forward();
-    
+
     // 初始化项目状态管理
     _initializeProjectState();
   }
@@ -90,7 +86,9 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           listener: (context, state) {
             if (state is AuthLoginSuccess) {
               // 登录成功后设置用户数据
-              context.read<UserBloc>().add(UserSetData(wxLoginVO: state.wxLoginVO));
+              context.read<UserBloc>().add(
+                UserSetData(wxLoginVO: state.wxLoginVO),
+              );
             } else if (state is AuthUnauthenticated) {
               // 用户未认证，清除所有状态
               context.read<UserBloc>().add(const UserClearData());
@@ -104,12 +102,10 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           // 如果项目状态为初始状态，显示加载界面
           if (projectState is ProjectInitial) {
             return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
+              body: Center(child: CircularProgressIndicator()),
             );
           }
-          
+
           // 如果项目状态有错误，显示错误界面
           if (projectState is ProjectError) {
             return Scaffold(
@@ -117,7 +113,11 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red,
+                    ),
                     const SizedBox(height: 16),
                     Text('加载项目信息失败: ${projectState.message}'),
                     const SizedBox(height: 16),
@@ -127,7 +127,9 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                         final userState = context.read<UserBloc>().state;
                         if (userState is UserLoaded) {
                           context.read<ProjectBloc>().add(
-                            ProjectLoadUserProjects(wxLoginVO: userState.wxLoginVO),
+                            ProjectLoadUserProjects(
+                              wxLoginVO: userState.wxLoginVO,
+                            ),
                           );
                         }
                       },
@@ -138,16 +140,13 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
               ),
             );
           }
-          
+
           // 如果项目状态为加载中，也显示正常主界面（让HomePage处理loading状态）
           if (projectState is ProjectLoading) {
             return Scaffold(
               body: FadeTransition(
                 opacity: _fadeAnimation,
-                child: IndexedStack(
-                  index: _currentIndex,
-                  children: _pages,
-                ),
+                child: IndexedStack(index: _currentIndex, children: _pages),
               ),
               bottomNavigationBar: BottomNavigationBar(
                 type: BottomNavigationBarType.fixed,
@@ -162,31 +161,22 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                   }
                 },
                 items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home),
-                    label: 'Home',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.list),
-                    label: '记录',
-                  ),
+                  BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
+                  BottomNavigationBarItem(icon: Icon(Icons.list), label: '记录'),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.person),
-                    label: 'Profile',
+                    label: '我的',
                   ),
                 ],
               ),
             );
           }
-          
+
           // 正常显示主界面
           return Scaffold(
             body: FadeTransition(
               opacity: _fadeAnimation,
-              child: IndexedStack(
-                index: _currentIndex,
-                children: _pages,
-              ),
+              child: IndexedStack(index: _currentIndex, children: _pages),
             ),
             bottomNavigationBar: BottomNavigationBar(
               type: BottomNavigationBarType.fixed,
@@ -201,18 +191,9 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                 }
               },
               items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.list),
-                  label: 'List',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person),
-                  label: 'Profile',
-                ),
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
+                BottomNavigationBarItem(icon: Icon(Icons.list), label: '记录'),
+                BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
               ],
             ),
           );

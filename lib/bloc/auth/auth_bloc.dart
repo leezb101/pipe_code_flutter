@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 23:20:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 23:20:00
+ * @LastEditTime: 2025-07-14 18:23:01
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,8 +15,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
 
   AuthBloc({required AuthRepository authRepository})
-      : _authRepository = authRepository,
-        super(AuthInitial()) {
+    : _authRepository = authRepository,
+      super(AuthInitial()) {
     on<AuthLoginWithPasswordRequested>(_onLoginWithPasswordRequested);
     on<AuthLoginWithSmsRequested>(_onLoginWithSmsRequested);
     on<AuthSmsCodeRequested>(_onSmsCodeRequested);
@@ -40,10 +40,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (result.isSuccess) {
         emit(AuthLoginSuccess(wxLoginVO: result.data!));
       } else {
-        emit(AuthFailure(error: result.msg));
+        emit(AuthLoginFailure(error: result.msg));
       }
     } catch (e) {
-      emit(AuthFailure(error: e.toString()));
+      emit(AuthLoginFailure(error: e.toString()));
     }
   }
 
@@ -54,17 +54,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final result = await _authRepository.loginWithSms(
-        event.phone, 
-        event.code, 
+        event.phone,
+        event.code,
         smsCode: event.smsCode,
       );
       if (result.isSuccess) {
         emit(AuthLoginSuccess(wxLoginVO: result.data!));
       } else {
-        emit(AuthFailure(error: result.msg));
+        emit(AuthLoginFailure(error: result.msg));
       }
     } catch (e) {
-      emit(AuthFailure(error: e.toString()));
+      emit(AuthLoginFailure(error: e.toString()));
     }
   }
 
@@ -77,15 +77,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final result = await _authRepository.requestSmsCode(event.phone);
       if (result.isSuccess && result.data != null) {
         final smsCodeResult = result.data!;
-        emit(AuthSmsCodeSent(
-          phone: event.phone,
-          smsCode: smsCodeResult.smsCode,
-        ));
+        emit(
+          AuthSmsCodeSent(phone: event.phone, smsCode: smsCodeResult.smsCode),
+        );
       } else {
-        emit(AuthFailure(error: result.msg));
+        emit(AuthSmsCodeFailure(error: result.msg));
       }
     } catch (e) {
-      emit(AuthFailure(error: e.toString()));
+      emit(AuthSmsCodeFailure(error: e.toString()));
     }
   }
 
@@ -98,15 +97,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final result = await _authRepository.requestCaptcha();
       if (result.isSuccess && result.data != null) {
         final captchaResult = result.data!;
-        emit(AuthCaptchaLoaded(
-          captchaBase64: captchaResult.base64Data,
-          imgCode: captchaResult.imgCode,
-        ));
+        emit(
+          AuthCaptchaLoaded(
+            captchaBase64: captchaResult.base64Data,
+            imgCode: captchaResult.imgCode,
+          ),
+        );
       } else {
-        emit(AuthFailure(error: result.msg));
+        emit(AuthCaptchaFailure(error: result.msg));
       }
     } catch (e) {
-      emit(AuthFailure(error: e.toString()));
+      emit(AuthCaptchaFailure(error: e.toString()));
     }
   }
 
@@ -120,10 +121,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       try {
         final result = await _authRepository.selectProject(event.projectId);
         if (result.isSuccess) {
-          emit(AuthFullyAuthenticated(
-            wxLoginVO: currentState.wxLoginVO,
-            currentUserRoleInfo: result.data!,
-          ));
+          emit(
+            AuthFullyAuthenticated(
+              wxLoginVO: currentState.wxLoginVO,
+              currentUserRoleInfo: result.data!,
+            ),
+          );
         } else {
           emit(AuthFailure(error: result.msg));
         }

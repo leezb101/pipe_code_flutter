@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-12 18:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-12 18:00:00
+ * @LastEditTime: 2025-07-14 16:51:32
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -69,7 +69,8 @@ class _CaptchaWidgetState extends State<CaptchaWidget> {
                 ),
                 prefixIcon: Icon(Icons.security),
               ),
-              validator: widget.validator ??
+              validator:
+                  widget.validator ??
                   (value) {
                     if (value == null || value.isEmpty) {
                       return '请输入验证码';
@@ -80,7 +81,13 @@ class _CaptchaWidgetState extends State<CaptchaWidget> {
                     return null;
                   },
               maxLength: 6,
-              buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null, // 隐藏字符计数器
+              buildCounter:
+                  (
+                    context, {
+                    required currentLength,
+                    required isFocused,
+                    maxLength,
+                  }) => null, // 隐藏字符计数器
             ),
           ),
           const SizedBox(width: 12),
@@ -133,10 +140,7 @@ class _CaptchaWidgetState extends State<CaptchaWidget> {
               padding: const EdgeInsets.all(4),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
-                child: Image.memory(
-                  imageBytes,
-                  fit: BoxFit.contain,
-                ),
+                child: Image.memory(imageBytes, fit: BoxFit.contain),
               ),
             ),
             // 刷新提示图标
@@ -149,11 +153,7 @@ class _CaptchaWidgetState extends State<CaptchaWidget> {
                   color: Colors.black54,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
-                  Icons.refresh,
-                  size: 12,
-                  color: Colors.white,
-                ),
+                child: const Icon(Icons.refresh, size: 12, color: Colors.white),
               ),
             ),
           ],
@@ -161,7 +161,7 @@ class _CaptchaWidgetState extends State<CaptchaWidget> {
       } catch (e) {
         return _buildErrorWidget('验证码格式错误');
       }
-    } else if (state is AuthFailure) {
+    } else if (state is AuthFailure || state is AuthCaptchaFailure) {
       return _buildErrorWidget('获取失败');
     } else {
       return _buildErrorWidget('点击获取验证码');
@@ -180,18 +180,11 @@ class _CaptchaWidgetState extends State<CaptchaWidget> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.refresh,
-              size: 16,
-              color: Colors.grey.shade600,
-            ),
+            Icon(Icons.refresh, size: 16, color: Colors.grey.shade600),
             const SizedBox(height: 2),
             Text(
               message,
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
               textAlign: TextAlign.center,
             ),
           ],

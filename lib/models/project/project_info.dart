@@ -2,11 +2,12 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:05:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-14 15:42:05
+ * @LastEditTime: 2025-07-14 18:25:44
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:json_annotation/json_annotation.dart';
 import 'package:equatable/equatable.dart';
+import '../user/user_role.dart';
 
 part 'project_info.g.dart';
 
@@ -18,6 +19,7 @@ class ProjectInfo extends Equatable {
     required this.projectRoleType,
     required this.projectCode,
     required this.projectName,
+    required this.projectId,
     this.orgCode,
     this.orgName,
     this.startTime,
@@ -25,7 +27,13 @@ class ProjectInfo extends Equatable {
   });
 
   /// 项目角色类型
-  final String projectRoleType;
+  // @JsonKey(fromJson: UserRole.fromJson, toJson: _userRoleToJson)
+  final UserRole projectRoleType;
+
+  // static int _userRoleToJson(UserRole role) => role.toJson();
+
+  /// 项目ID
+  final int projectId;
 
   /// 项目代码
   final String projectCode;
@@ -51,7 +59,8 @@ class ProjectInfo extends Equatable {
   Map<String, dynamic> toJson() => _$ProjectInfoToJson(this);
 
   ProjectInfo copyWith({
-    String? projectRoleType,
+    UserRole? projectRoleType,
+    int? projectId,
     String? projectCode,
     String? projectName,
     String? orgCode,
@@ -60,6 +69,7 @@ class ProjectInfo extends Equatable {
     DateTime? endTime,
   }) {
     return ProjectInfo(
+      projectId: projectId ?? this.projectId,
       projectRoleType: projectRoleType ?? this.projectRoleType,
       projectCode: projectCode ?? this.projectCode,
       projectName: projectName ?? this.projectName,

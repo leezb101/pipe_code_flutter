@@ -2,9 +2,11 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:45:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 21:19:13
+ * @LastEditTime: 2025-07-14 18:27:52
  * @copyright: Copyright © 2025 高新供水.
  */
+import 'package:pipe_code_flutter/models/user/user_role.dart';
+
 import '../interfaces/auth_api_service.dart';
 import '../../../models/common/result.dart';
 import '../../../models/user/wx_login_vo.dart';
@@ -250,7 +252,8 @@ class MockAuthApiService implements AuthApiService {
     final now = DateTime.now();
     final projectInfos = [
       ProjectInfo(
-        projectRoleType: 'construction',
+        projectId: 77,
+        projectRoleType: UserRole.supervisor,
         projectCode: 'WM001',
         projectName: '智慧水务示例项目A',
         orgCode: 'ORG001',
@@ -259,7 +262,8 @@ class MockAuthApiService implements AuthApiService {
         endTime: now.add(Duration(days: 365)),
       ),
       ProjectInfo(
-        projectRoleType: 'supervisor',
+        projectId: 88,
+        projectRoleType: UserRole.builder,
         projectCode: 'WM002',
         projectName: '智慧水务示例项目B',
         orgCode: 'ORG002',
@@ -268,7 +272,8 @@ class MockAuthApiService implements AuthApiService {
         endTime: now.add(Duration(days: 180)),
       ),
       ProjectInfo(
-        projectRoleType: 'laborer',
+        projectId: 99,
+        projectRoleType: UserRole.laborer,
         projectCode: 'WM003',
         projectName: '智慧水务示例项目C',
         orgCode: 'ORG001',
@@ -305,11 +310,16 @@ class MockAuthApiService implements AuthApiService {
   /// 生成模拟的当前用户项目角色信息
   CurrentUserOnProjectRoleInfo _generateMockCurrentUserRoleInfo(int projectId) {
     // 模拟不同项目的不同角色
-    final roles = ['builder', 'supervisor', 'laborer', 'construction'];
+    final roles = [
+      UserRole.builder,
+      UserRole.construction,
+      UserRole.supervisor,
+      UserRole.playgoer,
+    ];
     final selectedRole = roles[projectId % roles.length];
 
     // 模拟劳务人员过期场景
-    final isExpired = selectedRole == 'laborer' && projectId % 4 == 0;
+    final isExpired = selectedRole == UserRole.laborer && projectId % 4 == 0;
 
     return CurrentUserOnProjectRoleInfo(
       currentProjectRoleType: selectedRole,
@@ -318,12 +328,8 @@ class MockAuthApiService implements AuthApiService {
       currentProjectName: '智慧水务项目_$projectId',
       currentOrgCode: 'ORG${(projectId % 3 + 1).toString().padLeft(3, '0')}',
       currentOrgName: '组织机构_${projectId % 3 + 1}',
-      currentProjectSuperiorUserId: selectedRole.contains('builder')
-          ? 12345
-          : null,
-      currentProjectAuthorUserId: selectedRole.contains('builder')
-          ? 67890
-          : null,
+      currentProjectSuperiorUserId: 12345,
+      currentProjectAuthorUserId: 67890,
       expire: isExpired,
     );
   }

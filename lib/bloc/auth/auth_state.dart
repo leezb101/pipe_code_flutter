@@ -116,6 +116,36 @@ class AuthFailure extends AuthState {
   List<Object> get props => [error];
 }
 
+/// 登录失败
+class AuthLoginFailure extends AuthState {
+  const AuthLoginFailure({required this.error});
+
+  final String error;
+
+  @override
+  List<Object> get props => [error];
+}
+
+/// 验证码获取失败
+class AuthCaptchaFailure extends AuthState {
+  const AuthCaptchaFailure({required this.error});
+
+  final String error;
+
+  @override
+  List<Object> get props => [error];
+}
+
+/// 短信验证码获取失败
+class AuthSmsCodeFailure extends AuthState {
+  const AuthSmsCodeFailure({required this.error});
+
+  final String error;
+
+  @override
+  List<Object> get props => [error];
+}
+
 /// Token刷新成功
 class AuthTokenRefreshed extends AuthState {
   const AuthTokenRefreshed({required this.wxLoginVO});
