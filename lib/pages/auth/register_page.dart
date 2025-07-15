@@ -40,7 +40,7 @@ class _RegisterPageState extends State<RegisterPage> {
         listener: (context, state) {
           if (state is AuthFullyAuthenticated) {
             context.showSuccessToast('注册成功');
-            context.go('/main');
+            context.go('/');
           } else if (state is AuthFailure) {
             context.showErrorToast(state.error);
           }

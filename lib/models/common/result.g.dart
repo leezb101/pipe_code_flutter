@@ -12,7 +12,6 @@ Result<T> _$ResultFromJson<T>(
 ) => Result<T>(
   code: (json['code'] as num).toInt(),
   msg: json['msg'] as String,
-  tc: (json['tc'] as num?)?.toInt(),
   data: _$nullableGenericFromJson(json['data'], fromJsonT),
   success: json['success'] as bool?,
 );
@@ -23,7 +22,6 @@ Map<String, dynamic> _$ResultToJson<T>(
 ) => <String, dynamic>{
   'code': instance.code,
   'msg': instance.msg,
-  'tc': instance.tc,
   'data': _$nullableGenericToJson(instance.data, toJsonT),
   'success': instance.success,
 };
@@ -42,7 +40,6 @@ ResultBoolean _$ResultBooleanFromJson(Map<String, dynamic> json) =>
     ResultBoolean(
       code: (json['code'] as num).toInt(),
       msg: json['msg'] as String,
-      tc: (json['tc'] as num).toInt(),
       data: json['data'] as bool?,
     );
 
@@ -50,6 +47,5 @@ Map<String, dynamic> _$ResultBooleanToJson(ResultBoolean instance) =>
     <String, dynamic>{
       'code': instance.code,
       'msg': instance.msg,
-      'tc': instance.tc,
       'data': instance.data,
     };

@@ -12,6 +12,7 @@ import 'package:dio/io.dart';
 import '../config/app_config.dart';
 import '../utils/logger.dart';
 import '../utils/network_logger.dart';
+import '../utils/auth_interceptor.dart';
 import 'api/interfaces/api_service_interface.dart';
 import 'api/implementations/api_service_impl.dart';
 import 'api/mock/mock_api_service.dart';
@@ -59,6 +60,9 @@ class ApiServiceFactory {
     dio.options.connectTimeout = AppConfig.apiTimeout;
     dio.options.receiveTimeout = AppConfig.apiTimeout;
     dio.options.headers.addAll(AppConfig.defaultHeaders);
+
+    // Add authentication interceptor (must be added before logging)
+    dio.interceptors.add(AuthInterceptor());
 
     // Add enhanced network logging interceptor in development
     if (AppConfig.isDevelopment) {

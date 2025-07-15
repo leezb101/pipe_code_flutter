@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-10 00:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-14 18:27:59
+ * @LastEditTime: 2025-07-14 19:17:36
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'dart:math';
@@ -193,7 +193,7 @@ class MockDataGenerator {
         forceExpired || (role == UserRole.laborer && _random.nextInt(4) == 0);
 
     return CurrentUserOnProjectRoleInfo(
-      currentProjectRoleType: role,
+      projectRoleType: role,
       currentProjectId: id,
       currentProjectCode: 'WM${id.toString().padLeft(3, '0')}',
       currentProjectName: generateProjectName(),

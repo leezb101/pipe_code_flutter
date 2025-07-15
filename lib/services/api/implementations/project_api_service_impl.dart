@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:05:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 21:15:21
+ * @LastEditTime: 2025-07-14 19:35:35
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
@@ -26,7 +26,6 @@ class ProjectApiServiceImpl extends BaseApiService
       return Result(
         code: e.response?.statusCode ?? 500,
         msg: handleError(e),
-        tc: 0,
         data: null,
       );
     }
@@ -44,7 +43,6 @@ class ProjectApiServiceImpl extends BaseApiService
       return Result(
         code: e.response?.statusCode ?? 500,
         msg: handleError(e),
-        tc: 0,
         data: null,
       );
     }
@@ -62,7 +60,6 @@ class ProjectApiServiceImpl extends BaseApiService
       return Result(
         code: e.response?.statusCode ?? 500,
         msg: handleError(e),
-        tc: 0,
         data: null,
       );
     }
@@ -77,7 +74,6 @@ class ProjectApiServiceImpl extends BaseApiService
       return Result(
         code: e.response?.statusCode ?? 500,
         msg: handleError(e),
-        tc: 0,
         data: null,
       );
     }
@@ -114,25 +110,14 @@ class ProjectApiServiceImpl extends BaseApiService
         final projects = records
             .map((json) => ProjectListItem.fromJson(json))
             .toList();
-        return Result(
-          code: result.code,
-          msg: result.msg,
-          tc: result.tc,
-          data: projects,
-        );
+        return Result(code: result.code, msg: result.msg, data: projects);
       }
 
-      return Result(
-        code: result.code,
-        msg: result.msg,
-        tc: result.tc,
-        data: null,
-      );
+      return Result(code: result.code, msg: result.msg, data: null);
     } on DioException catch (e) {
       return Result(
         code: e.response?.statusCode ?? 500,
         msg: handleError(e),
-        tc: 0,
         data: null,
       );
     }
@@ -149,25 +134,14 @@ class ProjectApiServiceImpl extends BaseApiService
 
       if (result.code == 0 && result.data != null) {
         final detail = ProjectDetail.fromJson((result.data as Map)['project']);
-        return Result(
-          code: result.code,
-          msg: result.msg,
-          tc: result.tc,
-          data: detail,
-        );
+        return Result(code: result.code, msg: result.msg, data: detail);
       }
 
-      return Result(
-        code: result.code,
-        msg: result.msg,
-        tc: result.tc,
-        data: null,
-      );
+      return Result(code: result.code, msg: result.msg, data: null);
     } on DioException catch (e) {
       return Result(
         code: e.response?.statusCode ?? 500,
         msg: handleError(e),
-        tc: 0,
         data: null,
       );
     }
@@ -183,25 +157,14 @@ class ProjectApiServiceImpl extends BaseApiService
         final suppliers = (result.data as List)
             .map((json) => ProjectSupplier.fromJson(json))
             .toList();
-        return Result(
-          code: result.code,
-          msg: result.msg,
-          tc: result.tc,
-          data: suppliers,
-        );
+        return Result(code: result.code, msg: result.msg, data: suppliers);
       }
 
-      return Result(
-        code: result.code,
-        msg: result.msg,
-        tc: result.tc,
-        data: null,
-      );
+      return Result(code: result.code, msg: result.msg, data: null);
     } on DioException catch (e) {
       return Result(
         code: e.response?.statusCode ?? 500,
         msg: handleError(e),
-        tc: 0,
         data: null,
       );
     }
@@ -217,25 +180,14 @@ class ProjectApiServiceImpl extends BaseApiService
         final types = (result.data as List)
             .map((json) => MaterialType.fromValue(json['value']))
             .toList();
-        return Result(
-          code: result.code,
-          msg: result.msg,
-          tc: result.tc,
-          data: types,
-        );
+        return Result(code: result.code, msg: result.msg, data: types);
       }
 
-      return Result(
-        code: result.code,
-        msg: result.msg,
-        tc: result.tc,
-        data: null,
-      );
+      return Result(code: result.code, msg: result.msg, data: null);
     } on DioException catch (e) {
       return Result(
         code: e.response?.statusCode ?? 500,
         msg: handleError(e),
-        tc: 0,
         data: null,
       );
     }
@@ -266,25 +218,14 @@ class ProjectApiServiceImpl extends BaseApiService
         final users = (result.data as List)
             .map((json) => ProjectUser.fromJson(json))
             .toList();
-        return Result(
-          code: result.code,
-          msg: result.msg,
-          tc: result.tc,
-          data: users,
-        );
+        return Result(code: result.code, msg: result.msg, data: users);
       }
 
-      return Result(
-        code: result.code,
-        msg: result.msg,
-        tc: result.tc,
-        data: null,
-      );
+      return Result(code: result.code, msg: result.msg, data: null);
     } on DioException catch (e) {
       return Result(
         code: e.response?.statusCode ?? 500,
         msg: handleError(e),
-        tc: 0,
         data: null,
       );
     }

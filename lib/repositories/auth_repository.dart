@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 23:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 23:25:00
+ * @LastEditTime: 2025-07-14 19:34:51
  * @copyright: Copyright © 2025 高新供水.
  */
 import '../models/common/result.dart';
@@ -22,8 +22,8 @@ class AuthRepository {
   AuthRepository({
     required ApiServiceInterface apiService,
     required StorageService storageService,
-  })  : _apiService = apiService,
-        _storageService = storageService;
+  }) : _apiService = apiService,
+       _storageService = storageService;
 
   /// 账号密码登录
   /// [imgCode] 验证码标识符，来自验证码接口response header的img_code字段
@@ -36,50 +36,48 @@ class AuthRepository {
         loginRequest,
         imgCode: imgCode,
       );
-      
+
       if (result.isSuccess && result.data != null) {
         // 保存token
         await _storageService.saveAuthToken(result.data!.tk);
         _apiService.auth.setAuthToken(result.data!.tk);
-        
+
         // 保存用户信息
         await _storageService.saveUserData(result.data!.toJson());
       }
-      
+
       return result;
     } catch (e) {
-      return Result(
-        code: -1,
-        msg: e.toString(),
-        tc: 0,
-        data: null,
-      );
+      return Result(code: -1, msg: e.toString(), data: null);
     }
   }
 
   /// 短信验证码登录
   /// [smsCode] SMS验证码标识符，来自短信验证码接口response header的sms_code字段
-  Future<Result<WxLoginVO>> loginWithSms(String phone, String code, {String? smsCode}) async {
+  Future<Result<WxLoginVO>> loginWithSms(
+    String phone,
+    String code, {
+    String? smsCode,
+  }) async {
     try {
-      final result = await _apiService.auth.loginWithSms(phone, code, smsCode: smsCode);
-      
+      final result = await _apiService.auth.loginWithSms(
+        phone,
+        code,
+        smsCode: smsCode,
+      );
+
       if (result.isSuccess && result.data != null) {
         // 保存token
         await _storageService.saveAuthToken(result.data!.tk);
         _apiService.auth.setAuthToken(result.data!.tk);
-        
+
         // 保存用户信息
         await _storageService.saveUserData(result.data!.toJson());
       }
-      
+
       return result;
     } catch (e) {
-      return Result(
-        code: -1,
-        msg: e.toString(),
-        tc: 0,
-        data: null,
-      );
+      return Result(code: -1, msg: e.toString(), data: null);
     }
   }
 
@@ -89,12 +87,7 @@ class AuthRepository {
     try {
       return await _apiService.auth.requestSmsCode(phone);
     } catch (e) {
-      return Result(
-        code: -1,
-        msg: e.toString(),
-        tc: 0,
-        data: null,
-      );
+      return Result(code: -1, msg: e.toString(), data: null);
     }
   }
 
@@ -104,34 +97,32 @@ class AuthRepository {
     try {
       return await _apiService.auth.requestCaptcha();
     } catch (e) {
-      return Result(
-        code: -1,
-        msg: e.toString(),
-        tc: 0,
-        data: null,
-      );
+      return Result(code: -1, msg: e.toString(), data: null);
     }
   }
 
   /// 选择项目
-  Future<Result<CurrentUserOnProjectRoleInfo>> selectProject(int projectId) async {
+  Future<Result<CurrentUserOnProjectRoleInfo>> selectProject(
+    int projectId,
+  ) async {
     try {
       final result = await _apiService.auth.selectProject(projectId);
-      
+
       if (result.isSuccess && result.data != null) {
         // 保存项目选择信息
-        await _storageService.saveString('last_selected_project_id', projectId.toString());
-        await _storageService.saveString('current_project_role_info', result.data!.toJson().toString());
+        await _storageService.saveString(
+          'last_selected_project_id',
+          projectId.toString(),
+        );
+        await _storageService.saveString(
+          'current_project_role_info',
+          result.data!.toJson().toString(),
+        );
       }
-      
+
       return result;
     } catch (e) {
-      return Result(
-        code: -1,
-        msg: e.toString(),
-        tc: 0,
-        data: null,
-      );
+      return Result(code: -1, msg: e.toString(), data: null);
     }
   }
 
@@ -140,22 +131,12 @@ class AuthRepository {
     try {
       final token = await _storageService.getAuthToken();
       if (token == null) {
-        return const Result(
-          code: 401,
-          msg: '未登录',
-          tc: 0,
-          data: null,
-        );
+        return const Result(code: 401, msg: '未登录', data: null);
       }
-      
+
       return await _apiService.auth.checkToken(tk: token);
     } catch (e) {
-      return Result(
-        code: -1,
-        msg: e.toString(),
-        tc: 0,
-        data: null,
-      );
+      return Result(code: -1, msg: e.toString(), data: null);
     }
   }
 
@@ -163,24 +144,19 @@ class AuthRepository {
   Future<Result<WxLoginVO>> refreshToken(RF refreshRequest) async {
     try {
       final result = await _apiService.auth.refreshToken(refreshRequest);
-      
+
       if (result.isSuccess && result.data != null) {
         // 更新token
         await _storageService.saveAuthToken(result.data!.tk);
         _apiService.auth.setAuthToken(result.data!.tk);
-        
+
         // 更新用户信息
         await _storageService.saveUserData(result.data!.toJson());
       }
-      
+
       return result;
     } catch (e) {
-      return Result(
-        code: -1,
-        msg: e.toString(),
-        tc: 0,
-        data: null,
-      );
+      return Result(code: -1, msg: e.toString(), data: null);
     }
   }
 

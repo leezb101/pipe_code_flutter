@@ -9,10 +9,7 @@ part of 'current_user_on_project_role_info.dart';
 CurrentUserOnProjectRoleInfo _$CurrentUserOnProjectRoleInfoFromJson(
   Map<String, dynamic> json,
 ) => CurrentUserOnProjectRoleInfo(
-  currentProjectRoleType: $enumDecode(
-    _$UserRoleEnumMap,
-    json['currentProjectRoleType'],
-  ),
+  projectRoleType: $enumDecode(_$UserRoleEnumMap, json['projectRoleType']),
   currentProjectId: (json['currentProjectId'] as num).toInt(),
   currentProjectCode: json['currentProjectCode'] as String,
   currentProjectName: json['currentProjectName'] as String,
@@ -28,7 +25,7 @@ CurrentUserOnProjectRoleInfo _$CurrentUserOnProjectRoleInfoFromJson(
 Map<String, dynamic> _$CurrentUserOnProjectRoleInfoToJson(
   CurrentUserOnProjectRoleInfo instance,
 ) => <String, dynamic>{
-  'currentProjectRoleType': instance.currentProjectRoleType,
+  'projectRoleType': instance.projectRoleType,
   'currentProjectId': instance.currentProjectId,
   'currentProjectCode': instance.currentProjectCode,
   'currentProjectName': instance.currentProjectName,

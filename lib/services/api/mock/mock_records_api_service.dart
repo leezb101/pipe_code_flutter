@@ -37,20 +37,9 @@ class MockRecordsApiService implements RecordsApiService {
       total: totalRecords,
       size: pageSize,
       current: pageNum,
-      orders: const [OrderItem(column: 'doTime', asc: false)],
-      optimizeCountSql: false,
-      searchCount: false,
-      optimizeJoinOfCountSql: false,
-      maxLimit: 500,
-      countId: '',
     );
 
-    return BusinessRecordListResponse(
-      code: 0,
-      msg: '成功',
-      tc: _random.nextInt(100) + 50,
-      data: pageData,
-    );
+    return BusinessRecordListResponse(code: 0, msg: '成功', data: pageData);
   }
 
   @override
@@ -77,19 +66,12 @@ class MockRecordsApiService implements RecordsApiService {
       total: totalRecords,
       size: pageSize,
       current: pageNum,
-      orders: const [OrderItem(column: 'projectStart', asc: false)],
-      optimizeCountSql: false,
-      searchCount: false,
-      optimizeJoinOfCountSql: false,
-      maxLimit: 500,
-      countId: '',
       pages: (totalRecords / pageSize).ceil(),
     );
 
     return ProjectRecordListResponse(
       code: 0,
       msg: '成功',
-      tc: _random.nextInt(100) + 50,
       data: pageData,
       success: true,
     );
@@ -119,19 +101,12 @@ class MockRecordsApiService implements RecordsApiService {
       total: totalRecords,
       size: pageSize,
       current: pageNum,
-      orders: const [OrderItem(column: 'projectStart', asc: false)],
-      optimizeCountSql: false,
-      searchCount: false,
-      optimizeJoinOfCountSql: false,
-      maxLimit: 500,
-      countId: '',
       pages: (totalRecords / pageSize).ceil(),
     );
 
     return ProjectRecordListResponse(
       code: 0,
       msg: '成功',
-      tc: _random.nextInt(100) + 50,
       data: pageData,
       success: true,
     );
@@ -147,25 +122,16 @@ class MockRecordsApiService implements RecordsApiService {
       '智能水表安装工程',
     ];
 
-    final userNames = [
-      '张工程师',
-      '李技术员',
-      '王施工员',
-      '赵监理',
-      '刘验收员',
-      '陈项目经理',
-    ];
+    final userNames = ['张工程师', '李技术员', '王施工员', '赵监理', '刘验收员', '陈项目经理'];
 
     final now = DateTime.now();
     final randomDays = _random.nextInt(30);
     final randomHours = _random.nextInt(24);
     final randomMinutes = _random.nextInt(60);
-    
-    final doTime = now.subtract(Duration(
-      days: randomDays,
-      hours: randomHours,
-      minutes: randomMinutes,
-    ));
+
+    final doTime = now.subtract(
+      Duration(days: randomDays, hours: randomHours, minutes: randomMinutes),
+    );
 
     return BusinessRecord(
       id: 1000 + index,
@@ -174,7 +140,8 @@ class MockRecordsApiService implements RecordsApiService {
       projectCode: 'FDSFS${433289 + index}',
       materialNum: _random.nextInt(1000) + 1,
       userName: userNames[_random.nextInt(userNames.length)],
-      doTime: '${doTime.year}年${doTime.month}月${doTime.day}日 ${doTime.hour}点${doTime.minute}分',
+      doTime:
+          '${doTime.year}年${doTime.month}月${doTime.day}日 ${doTime.hour}点${doTime.minute}分',
     );
   }
 
@@ -188,14 +155,7 @@ class MockRecordsApiService implements RecordsApiService {
       '智能水表安装工程',
     ];
 
-    final userNames = [
-      '张项目经理',
-      '李工程师',
-      '王技术负责人',
-      '赵监理工程师',
-      '刘总工',
-      '陈项目总监',
-    ];
+    final userNames = ['张项目经理', '李工程师', '王技术负责人', '赵监理工程师', '刘总工', '陈项目总监'];
 
     final now = DateTime.now();
     final startDate = now.subtract(Duration(days: _random.nextInt(90) + 30));
@@ -205,8 +165,10 @@ class MockRecordsApiService implements RecordsApiService {
       id: 2000 + index,
       projectName: projectNames[_random.nextInt(projectNames.length)],
       projectCode: 'PROJ${20250001 + index}',
-      projectStart: '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}',
-      projectEnd: '${endDate.year}-${endDate.month.toString().padLeft(2, '0')}-${endDate.day.toString().padLeft(2, '0')}',
+      projectStart:
+          '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}',
+      projectEnd:
+          '${endDate.year}-${endDate.month.toString().padLeft(2, '0')}-${endDate.day.toString().padLeft(2, '0')}',
       createdName: userNames[_random.nextInt(userNames.length)],
       createdId: 10001 + _random.nextInt(100),
       status: isInit ? _random.nextInt(5) : _random.nextInt(3),

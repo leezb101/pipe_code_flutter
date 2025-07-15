@@ -123,7 +123,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             listener: (context, state) {
               if (state is AuthLoginSuccess) {
                 context.showSuccessToast('登录成功');
-                context.go('/main');
+                context.go('/');
               } else if (state is AuthSmsCodeSent) {
                 context.showSuccessToast('验证码已发送到 ${state.phone}');
                 _startCountdown();

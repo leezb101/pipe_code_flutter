@@ -69,7 +69,7 @@ class InboundStrategy implements QrScanStrategy {
       return QrScanProcessResult(
         success: true,
         navigationData: QrScanNavigationData(
-          route: '/main/inventory-confirmation',
+          route: '/inventory-confirmation',
           data: {
             'materials': materials,
             'scanMode': 'single',
@@ -104,7 +104,7 @@ class InboundStrategy implements QrScanStrategy {
       return QrScanProcessResult(
         success: true,
         navigationData: QrScanNavigationData(
-          route: '/main/inventory-confirmation',
+          route: '/inventory-confirmation',
           data: {
             'materials': materials,
             'scanMode': 'batch',

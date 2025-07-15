@@ -46,8 +46,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '项目创建失败',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -56,8 +55,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '项目名称不能为空',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -65,8 +63,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '项目编号不能为空',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -75,8 +72,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '项目编号已存在',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -96,8 +92,7 @@ class MockProjectApiService implements ProjectApiService {
     return const Result(
       code: 0,
       msg: '项目创建成功',
-      tc: 800,
-      data: null,
+            data: null,
     );
   }
 
@@ -110,8 +105,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '项目更新失败',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -119,8 +113,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '项目ID不能为空',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -129,8 +122,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 404,
         msg: '项目不存在',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -146,8 +138,7 @@ class MockProjectApiService implements ProjectApiService {
     return const Result(
       code: 0,
       msg: '项目更新成功',
-      tc: 800,
-      data: null,
+            data: null,
     );
   }
 
@@ -160,8 +151,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '项目提交失败',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -169,8 +159,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '项目ID不能为空',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -179,8 +168,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 404,
         msg: '项目不存在',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -193,8 +181,7 @@ class MockProjectApiService implements ProjectApiService {
     return const Result(
       code: 0,
       msg: '项目提交成功',
-      tc: 800,
-      data: null,
+            data: null,
     );
   }
 
@@ -207,8 +194,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '项目删除失败',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -217,8 +203,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 404,
         msg: '项目不存在',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -227,8 +212,7 @@ class MockProjectApiService implements ProjectApiService {
     return const Result(
       code: 0,
       msg: '项目删除成功',
-      tc: 800,
-      data: null,
+            data: null,
     );
   }
 
@@ -246,8 +230,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '获取项目列表失败',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -271,8 +254,7 @@ class MockProjectApiService implements ProjectApiService {
     return Result(
       code: 0,
       msg: '成功',
-      tc: 800,
-      data: pagedProjects,
+            data: pagedProjects,
     );
   }
 
@@ -285,8 +267,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '获取项目详情失败',
-        tc: 800,
-        data: null,
+                data: null,
       );
     }
 
@@ -320,8 +301,7 @@ class MockProjectApiService implements ProjectApiService {
     return Result(
       code: 0,
       msg: '成功',
-      tc: 800,
-      data: detail,
+            data: detail,
     );
   }
 
@@ -333,8 +313,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '获取供应商列表失败',
-        tc: 500,
-        data: null,
+                data: null,
       );
     }
 
@@ -349,8 +328,7 @@ class MockProjectApiService implements ProjectApiService {
     return Result(
       code: 0,
       msg: '成功',
-      tc: 500,
-      data: suppliers,
+            data: suppliers,
     );
   }
 
@@ -362,16 +340,14 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '获取物料类型失败',
-        tc: 300,
-        data: null,
+                data: null,
       );
     }
 
     return const Result(
       code: 0,
       msg: '成功',
-      tc: 300,
-      data: MaterialType.values,
+            data: MaterialType.values,
     );
   }
 
@@ -386,8 +362,7 @@ class MockProjectApiService implements ProjectApiService {
       return const Result(
         code: 400,
         msg: '获取用户列表失败',
-        tc: 600,
-        data: null,
+                data: null,
       );
     }
 
@@ -396,8 +371,7 @@ class MockProjectApiService implements ProjectApiService {
     return Result(
       code: 0,
       msg: '成功',
-      tc: 600,
-      data: users,
+            data: users,
     );
   }
 

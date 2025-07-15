@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:15:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-14 18:14:18
+ * @LastEditTime: 2025-07-14 19:16:29
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:json_annotation/json_annotation.dart';
@@ -16,7 +16,8 @@ part 'current_user_on_project_role_info.g.dart';
 @JsonSerializable()
 class CurrentUserOnProjectRoleInfo extends Equatable {
   const CurrentUserOnProjectRoleInfo({
-    required this.currentProjectRoleType,
+    // required this.currentProjectRoleType,
+    required this.projectRoleType,
     required this.currentProjectId,
     required this.currentProjectCode,
     required this.currentProjectName,
@@ -29,9 +30,11 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
 
   /// 当前项目角色类型
   // @JsonKey(fromJson: UserRole.fromJson, toJson: _userRoleToJson)
-  final UserRole currentProjectRoleType;
+  // final UserRole currentProjectRoleType;
 
   // static int _userRoleToJson(UserRole role) => role.toJson();
+
+  final UserRole projectRoleType;
 
   /// 当前项目ID
   final int currentProjectId;
@@ -63,7 +66,7 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
   Map<String, dynamic> toJson() => _$CurrentUserOnProjectRoleInfoToJson(this);
 
   CurrentUserOnProjectRoleInfo copyWith({
-    UserRole? currentProjectRoleType,
+    UserRole? projectRoleType,
     int? currentProjectId,
     String? currentProjectCode,
     String? currentProjectName,
@@ -74,8 +77,9 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
     bool? expire,
   }) {
     return CurrentUserOnProjectRoleInfo(
-      currentProjectRoleType:
-          currentProjectRoleType ?? this.currentProjectRoleType,
+      // currentProjectRoleType:
+      // currentProjectRoleType ?? this.currentProjectRoleType,
+      projectRoleType: projectRoleType ?? this.projectRoleType,
       currentProjectId: currentProjectId ?? this.currentProjectId,
       currentProjectCode: currentProjectCode ?? this.currentProjectCode,
       currentProjectName: currentProjectName ?? this.currentProjectName,
@@ -91,7 +95,8 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
 
   @override
   List<Object?> get props => [
-    currentProjectRoleType,
+    // currentProjectRoleType,
+    projectRoleType,
     currentProjectId,
     currentProjectCode,
     currentProjectName,

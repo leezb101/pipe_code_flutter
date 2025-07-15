@@ -6,14 +6,6 @@ part of 'record_list_response.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-OrderItem _$OrderItemFromJson(Map<String, dynamic> json) =>
-    OrderItem(column: json['column'] as String, asc: json['asc'] as bool);
-
-Map<String, dynamic> _$OrderItemToJson(OrderItem instance) => <String, dynamic>{
-  'column': instance.column,
-  'asc': instance.asc,
-};
-
 BusinessRecordPageData _$BusinessRecordPageDataFromJson(
   Map<String, dynamic> json,
 ) => BusinessRecordPageData(
@@ -23,14 +15,6 @@ BusinessRecordPageData _$BusinessRecordPageDataFromJson(
   total: (json['total'] as num).toInt(),
   size: (json['size'] as num).toInt(),
   current: (json['current'] as num).toInt(),
-  orders: (json['orders'] as List<dynamic>)
-      .map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
-      .toList(),
-  optimizeCountSql: json['optimizeCountSql'] as bool,
-  searchCount: json['searchCount'] as bool,
-  optimizeJoinOfCountSql: json['optimizeJoinOfCountSql'] as bool,
-  maxLimit: (json['maxLimit'] as num).toInt(),
-  countId: json['countId'] as String,
 );
 
 Map<String, dynamic> _$BusinessRecordPageDataToJson(
@@ -40,12 +24,6 @@ Map<String, dynamic> _$BusinessRecordPageDataToJson(
   'total': instance.total,
   'size': instance.size,
   'current': instance.current,
-  'orders': instance.orders,
-  'optimizeCountSql': instance.optimizeCountSql,
-  'searchCount': instance.searchCount,
-  'optimizeJoinOfCountSql': instance.optimizeJoinOfCountSql,
-  'maxLimit': instance.maxLimit,
-  'countId': instance.countId,
 };
 
 ProjectRecordPageData _$ProjectRecordPageDataFromJson(
@@ -57,14 +35,6 @@ ProjectRecordPageData _$ProjectRecordPageDataFromJson(
   total: (json['total'] as num).toInt(),
   size: (json['size'] as num).toInt(),
   current: (json['current'] as num).toInt(),
-  orders: (json['orders'] as List<dynamic>)
-      .map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
-      .toList(),
-  optimizeCountSql: json['optimizeCountSql'] as bool,
-  searchCount: json['searchCount'] as bool,
-  optimizeJoinOfCountSql: json['optimizeJoinOfCountSql'] as bool,
-  maxLimit: (json['maxLimit'] as num).toInt(),
-  countId: json['countId'] as String,
   pages: (json['pages'] as num?)?.toInt(),
 );
 
@@ -75,12 +45,6 @@ Map<String, dynamic> _$ProjectRecordPageDataToJson(
   'total': instance.total,
   'size': instance.size,
   'current': instance.current,
-  'orders': instance.orders,
-  'optimizeCountSql': instance.optimizeCountSql,
-  'searchCount': instance.searchCount,
-  'optimizeJoinOfCountSql': instance.optimizeJoinOfCountSql,
-  'maxLimit': instance.maxLimit,
-  'countId': instance.countId,
   'pages': instance.pages,
 };
 
@@ -89,7 +53,6 @@ BusinessRecordListResponse _$BusinessRecordListResponseFromJson(
 ) => BusinessRecordListResponse(
   code: (json['code'] as num).toInt(),
   msg: json['msg'] as String,
-  tc: (json['tc'] as num).toInt(),
   data: BusinessRecordPageData.fromJson(json['data'] as Map<String, dynamic>),
 );
 
@@ -98,7 +61,6 @@ Map<String, dynamic> _$BusinessRecordListResponseToJson(
 ) => <String, dynamic>{
   'code': instance.code,
   'msg': instance.msg,
-  'tc': instance.tc,
   'data': instance.data,
 };
 
@@ -107,7 +69,6 @@ ProjectRecordListResponse _$ProjectRecordListResponseFromJson(
 ) => ProjectRecordListResponse(
   code: (json['code'] as num).toInt(),
   msg: json['msg'] as String,
-  tc: (json['tc'] as num).toInt(),
   data: ProjectRecordPageData.fromJson(json['data'] as Map<String, dynamic>),
   success: json['success'] as bool?,
 );
@@ -117,7 +78,6 @@ Map<String, dynamic> _$ProjectRecordListResponseToJson(
 ) => <String, dynamic>{
   'code': instance.code,
   'msg': instance.msg,
-  'tc': instance.tc,
   'data': instance.data,
   'success': instance.success,
 };

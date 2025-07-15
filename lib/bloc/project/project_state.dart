@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 23:35:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-14 18:27:20
+ * @LastEditTime: 2025-07-14 19:18:49
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:equatable/equatable.dart';
@@ -60,7 +60,7 @@ class ProjectRoleInfoLoaded extends ProjectState {
   /// 获取当前项目信息
   ProjectInfo get currentProject => ProjectInfo(
     projectId: currentUserRoleInfo.currentProjectId,
-    projectRoleType: currentUserRoleInfo.currentProjectRoleType,
+    projectRoleType: currentUserRoleInfo.projectRoleType,
     projectCode: currentUserRoleInfo.currentProjectCode,
     projectName: currentUserRoleInfo.currentProjectName,
     orgCode: currentUserRoleInfo.currentOrgCode,
@@ -68,7 +68,7 @@ class ProjectRoleInfoLoaded extends ProjectState {
   );
 
   /// 获取当前用户角色
-  UserRole get currentUserRole => currentUserRoleInfo.currentProjectRoleType;
+  UserRole get currentUserRole => currentUserRoleInfo.projectRoleType;
 
   /// 获取当前角色的菜单项
   List<MenuItem> get menuItems =>

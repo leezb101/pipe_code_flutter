@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:45:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-14 18:27:52
+ * @LastEditTime: 2025-07-14 19:17:05
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/models/user/user_role.dart';
@@ -33,11 +33,11 @@ class MockAuthApiService implements AuthApiService {
 
     // 模拟验证码验证失败
     if (loginRequest.code.isEmpty) {
-      return const Result(code: 400, msg: '请输入验证码', tc: 800, data: null);
+      return const Result(code: 400, msg: '请输入验证码', data: null);
     }
 
     if (loginRequest.code.length < 4) {
-      return const Result(code: 400, msg: '验证码长度不正确', tc: 800, data: null);
+      return const Result(code: 400, msg: '验证码长度不正确', data: null);
     }
 
     // 模拟imgCode验证（在mock环境中不严格要求）
@@ -47,7 +47,7 @@ class MockAuthApiService implements AuthApiService {
     }
 
     if (MockDataGenerator.shouldFail(failureRate: 0.2)) {
-      return const Result(code: 400, msg: '账号、密码或验证码错误', tc: 800, data: null);
+      return const Result(code: 400, msg: '账号、密码或验证码错误', data: null);
     }
 
     // 检查密码是否为RSA加密格式（Base64编码，长度通常较长）
@@ -64,7 +64,7 @@ class MockAuthApiService implements AuthApiService {
     } else {
       // 未加密的明文密码（用于向后兼容）
       if (password.length < 3) {
-        return const Result(code: 400, msg: '密码长度不能少于3位', tc: 800, data: null);
+        return const Result(code: 400, msg: '密码长度不能少于3位', data: null);
       }
       print('Mock Warning: 检测到明文密码，建议使用RSA加密');
     }
@@ -72,7 +72,7 @@ class MockAuthApiService implements AuthApiService {
     final mockLoginData = _generateMockWxLoginVO(loginRequest.account);
     _currentToken = mockLoginData.tk;
 
-    return Result(code: 0, msg: '登录成功', tc: 800, data: mockLoginData);
+    return Result(code: 0, msg: '登录成功', data: mockLoginData);
   }
 
   @override
@@ -84,7 +84,7 @@ class MockAuthApiService implements AuthApiService {
     await MockDataGenerator.simulateNetworkDelay(delay: _defaultDelay);
 
     if (MockDataGenerator.shouldFail(failureRate: 0.15)) {
-      return const Result(code: 400, msg: '验证码错误', tc: 800, data: null);
+      return const Result(code: 400, msg: '验证码错误', data: null);
     }
 
     // 模拟smsCode验证（在mock环境中不严格要求）
@@ -98,13 +98,13 @@ class MockAuthApiService implements AuthApiService {
     }
 
     if (code != '1234') {
-      return const Result(code: 400, msg: '验证码不正确', tc: 800, data: null);
+      return const Result(code: 400, msg: '验证码不正确', data: null);
     }
 
     final mockLoginData = _generateMockWxLoginVO(phone, isPhoneLogin: true);
     _currentToken = mockLoginData.tk;
 
-    return Result(code: 0, msg: '登录成功', tc: 600, data: mockLoginData);
+    return Result(code: 0, msg: '登录成功', data: mockLoginData);
   }
 
   @override
@@ -114,11 +114,11 @@ class MockAuthApiService implements AuthApiService {
     );
 
     if (MockDataGenerator.shouldFail(failureRate: 0.1)) {
-      return const Result(code: 400, msg: '发送失败，请重试', tc: 500, data: null);
+      return const Result(code: 400, msg: '发送失败，请重试', data: null);
     }
 
     if (!RegExp(r'^1[3-9]\d{9}$').hasMatch(phone)) {
-      return const Result(code: 400, msg: '手机号格式不正确', tc: 500, data: null);
+      return const Result(code: 400, msg: '手机号格式不正确', data: null);
     }
 
     // 生成模拟的smsCode
@@ -131,7 +131,7 @@ class MockAuthApiService implements AuthApiService {
       message: '验证码发送成功',
     );
 
-    return Result(code: 0, msg: '验证码发送成功', tc: 500, data: smsCodeResult);
+    return Result(code: 0, msg: '验证码发送成功', data: smsCodeResult);
   }
 
   @override
@@ -141,7 +141,7 @@ class MockAuthApiService implements AuthApiService {
     );
 
     if (MockDataGenerator.shouldFail(failureRate: 0.05)) {
-      return const Result(code: 500, msg: '验证码生成失败', tc: 300, data: null);
+      return const Result(code: 500, msg: '验证码生成失败', data: null);
     }
 
     // 返回模拟的base64图片数据（一个简单的透明PNG的base64）
@@ -157,7 +157,7 @@ class MockAuthApiService implements AuthApiService {
       imgCode: mockImgCode,
     );
 
-    return Result(code: 0, msg: '验证码获取成功', tc: 300, data: captchaResult);
+    return Result(code: 0, msg: '验证码获取成功', data: captchaResult);
   }
 
   @override
@@ -168,11 +168,11 @@ class MockAuthApiService implements AuthApiService {
 
     final tokenToCheck = tk ?? _currentToken;
     if (tokenToCheck == null || tokenToCheck.isEmpty) {
-      return const Result(code: 401, msg: 'Token无效', tc: 300, data: null);
+      return const Result(code: 401, msg: 'Token无效', data: null);
     }
 
     final mockLoginData = _generateMockWxLoginVO('testuser');
-    return Result(code: 0, msg: '成功', tc: 300, data: mockLoginData);
+    return Result(code: 0, msg: '成功', data: mockLoginData);
   }
 
   @override
@@ -182,13 +182,13 @@ class MockAuthApiService implements AuthApiService {
     );
 
     if (MockDataGenerator.shouldFail(failureRate: 0.1)) {
-      return const Result(code: 401, msg: '刷新Token失败', tc: 400, data: null);
+      return const Result(code: 401, msg: '刷新Token失败', data: null);
     }
 
     final mockLoginData = _generateMockWxLoginVO('testuser');
     _currentToken = mockLoginData.tk;
 
-    return Result(code: 0, msg: '刷新成功', tc: 400, data: mockLoginData);
+    return Result(code: 0, msg: '刷新成功', data: mockLoginData);
   }
 
   @override
@@ -199,7 +199,7 @@ class MockAuthApiService implements AuthApiService {
 
     _currentToken = null;
 
-    return const ResultBoolean(code: 0, msg: '退出成功', tc: 300, data: true);
+    return const ResultBoolean(code: 0, msg: '退出成功', data: true);
   }
 
   @override
@@ -209,12 +209,12 @@ class MockAuthApiService implements AuthApiService {
     );
 
     if (MockDataGenerator.shouldFail(failureRate: 0.05)) {
-      return const ResultBoolean(code: 400, msg: '注销失败', tc: 500, data: false);
+      return const ResultBoolean(code: 400, msg: '注销失败', data: false);
     }
 
     _currentToken = null;
 
-    return const ResultBoolean(code: 0, msg: '注销成功', tc: 500, data: true);
+    return const ResultBoolean(code: 0, msg: '注销成功', data: true);
   }
 
   @override
@@ -226,12 +226,12 @@ class MockAuthApiService implements AuthApiService {
     );
 
     if (MockDataGenerator.shouldFail(failureRate: 0.1)) {
-      return const Result(code: 400, msg: '项目选择失败', tc: 600, data: null);
+      return const Result(code: 400, msg: '项目选择失败', data: null);
     }
 
     final mockRoleInfo = _generateMockCurrentUserRoleInfo(projectId);
 
-    return Result(code: 0, msg: '项目选择成功', tc: 600, data: mockRoleInfo);
+    return Result(code: 0, msg: '项目选择成功', data: mockRoleInfo);
   }
 
   @override
@@ -322,7 +322,8 @@ class MockAuthApiService implements AuthApiService {
     final isExpired = selectedRole == UserRole.laborer && projectId % 4 == 0;
 
     return CurrentUserOnProjectRoleInfo(
-      currentProjectRoleType: selectedRole,
+      // currentProjectRoleType: selectedRole,
+      projectRoleType: selectedRole,
       currentProjectId: projectId,
       currentProjectCode: 'WM${projectId.toString().padLeft(3, '0')}',
       currentProjectName: '智慧水务项目_$projectId',

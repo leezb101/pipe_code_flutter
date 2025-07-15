@@ -23,7 +23,7 @@ extension UserRoleMenuExtension on UserRole {
             title: '立项',
             type: MenuItemType.page,
             icon: 'add_business',
-            route: '/main/project-initiation',
+            route: '/project-initiation',
             order: 1,
             isEnabled: !isExpired,
           ),
