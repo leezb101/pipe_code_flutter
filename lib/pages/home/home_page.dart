@@ -2,15 +2,15 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-14 18:35:29
+ * @LastEditTime: 2025-07-16 14:32:58
  * @copyright: Copyright © 2025 高新供水.
  */
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/api_service_interface.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
-import 'package:pipe_code_flutter/widgets/toast/ios_toast.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
 import '../../bloc/project/project_bloc.dart';
@@ -21,6 +21,7 @@ import '../../models/qr_scan/qr_scan_type.dart';
 import '../../models/menu/menu_config.dart';
 import '../../models/user/user_role.dart';
 import '../../models/project/project_info.dart';
+import '../../repositories/spareqr_repository.dart';
 import '../../utils/toast_utils.dart';
 import '../toast_demo_page.dart';
 import '../../constants/menu_actions.dart';
@@ -645,6 +646,20 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Expanded(
+      child: GridView.count(
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        crossAxisCount: 4,
+        physics: const ClampingScrollPhysics(),
+        children: <Widget>[
+          for (final menuItem in sortedMenuItems)
+            _buildMenuCard(context, menuItem, state),
+        ],
+      ),
+    );
+
+    /// 暂时留用，手写试试
+    return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -702,16 +717,19 @@ class _HomePageState extends State<HomePage> {
   ) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: CircleBorder(),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        // borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(double.infinity),
         onTap: menuItem.isEnabled
             ? () => _handleMenuTap(context, menuItem, state)
             : () => _showDisabledMenuAlert(context),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            // borderRadius: BorderRadius.circular(12),
+            shape: BoxShape.circle,
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -726,16 +744,16 @@ class _HomePageState extends State<HomePage> {
             children: [
               Icon(
                 _getMenuIcon(menuItem),
-                size: 48,
+                size: 24,
                 color: menuItem.isEnabled
                     ? _getMenuColor(menuItem)
                     : Colors.grey,
               ),
-              const SizedBox(height: 12),
+              // const SizedBox(height: 4),
               Text(
                 menuItem.title,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: menuItem.title.length > 2 ? 12 : 16,
                   fontWeight: FontWeight.bold,
                   color: menuItem.isEnabled
                       ? _getMenuColor(menuItem).withValues(alpha: 0.8)

@@ -2,12 +2,15 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-08 10:07:33
+ * @LastEditTime: 2025-07-16 14:30:33
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
+import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
+import 'package:pipe_code_flutter/repositories/spareqr_repository.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/register_page.dart';
 import '../pages/main_page.dart';
@@ -47,6 +50,17 @@ final GoRouter appRouter = GoRouter(
       name: 'main',
       builder: (context, state) => const MainPage(),
       routes: [
+        GoRoute(
+          path: '/spare-qr',
+          name: 'spare-qr',
+          builder: (context, state) {
+            return BlocProvider(
+              create: (context) =>
+                  SpareQrBloc(repository: getIt<SpareqrRepository>()),
+              child: const SpareQrPage(),
+            );
+          },
+        ),
         GoRoute(
           path: '/qr-scan',
           name: 'qr-scan',
@@ -123,7 +137,8 @@ final GoRouter appRouter = GoRouter(
                 return BlocProvider(
                   create: (context) => MaterialSelectionCubit(),
                   child: MaterialSelectionPage(
-                    existingMaterials: data?['existingMaterials'] as List<ProjectMaterial>?,
+                    existingMaterials:
+                        data?['existingMaterials'] as List<ProjectMaterial>?,
                     remarks: data?['remarks'] as String?,
                   ),
                 );

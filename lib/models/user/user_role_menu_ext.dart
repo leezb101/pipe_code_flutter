@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 22:30:00
+ * @LastEditTime: 2025-07-16 14:32:35
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/constants/menu_actions.dart';
@@ -104,7 +104,7 @@ extension UserRoleMenuExtension on UserRole {
             title: '备用码',
             type: MenuItemType.page,
             icon: 'code',
-            route: '/spare-code',
+            route: '/spare-qr',
             order: 1,
             isEnabled: !isExpired,
           ),
@@ -194,11 +194,11 @@ extension UserRoleMenuExtension on UserRole {
       case UserRole.builderSub:
         return [
           _createMenuItem(
-            id: 'spare_code',
+            id: 'spare_qr',
             title: '备用码',
             type: MenuItemType.page,
             icon: 'code',
-            route: '/spare-code',
+            route: '/spare-qr',
             order: 1,
             isEnabled: !isExpired,
           ),
@@ -292,7 +292,7 @@ extension UserRoleMenuExtension on UserRole {
             title: '备用码',
             type: MenuItemType.page,
             icon: 'code',
-            route: '/spare-code',
+            route: '/spare-qr',
             order: 1,
             isEnabled: !isExpired,
           ),
@@ -418,7 +418,9 @@ extension UserRoleMenuExtension on UserRole {
   /// 根据ID获取菜单项
   MenuItem? getMenuItemById(String menuId, {bool isExpired = false}) {
     try {
-      return getMenuItemsWithExpireState(isExpired).firstWhere((item) => item.id == menuId);
+      return getMenuItemsWithExpireState(
+        isExpired,
+      ).firstWhere((item) => item.id == menuId);
     } catch (e) {
       return null;
     }
@@ -426,24 +428,24 @@ extension UserRoleMenuExtension on UserRole {
 
   /// 获取启用的菜单项
   List<MenuItem> getEnabledMenuItems({bool isExpired = false}) {
-    return getMenuItemsWithExpireState(isExpired)
-        .where((item) => item.isEnabled)
-        .toList()
+    return getMenuItemsWithExpireState(
+        isExpired,
+      ).where((item) => item.isEnabled).toList()
       ..sort((a, b) => a.order.compareTo(b.order));
   }
 
   /// 获取页面类型的菜单项
   List<MenuItem> getPageMenuItems({bool isExpired = false}) {
-    return getMenuItemsWithExpireState(isExpired)
-        .where((item) => item.type == MenuItemType.page)
-        .toList();
+    return getMenuItemsWithExpireState(
+      isExpired,
+    ).where((item) => item.type == MenuItemType.page).toList();
   }
 
   /// 获取操作类型的菜单项
   List<MenuItem> getActionMenuItems({bool isExpired = false}) {
-    return getMenuItemsWithExpireState(isExpired)
-        .where((item) => item.type == MenuItemType.action)
-        .toList();
+    return getMenuItemsWithExpireState(
+      isExpired,
+    ).where((item) => item.type == MenuItemType.action).toList();
   }
 
   /// 获取角色的核心业务权限描述

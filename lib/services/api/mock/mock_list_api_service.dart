@@ -1,3 +1,10 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-06-28 13:17:21
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-16 10:36:51
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import '../interfaces/list_api_service.dart';
 import '../../../utils/mock_data_generator.dart';
 
@@ -30,11 +37,9 @@ class MockListApiService implements ListApiService {
 
     final items = MockDataGenerator.generateListItems(count: 1);
     final item = items.first;
-    return item.copyWith(
-      title: title,
-      description: description,
-      imageUrl: imageUrl,
-    ).toJson();
+    return item
+        .copyWith(title: title, description: description, imageUrl: imageUrl)
+        .toJson();
   }
 
   @override
@@ -52,12 +57,14 @@ class MockListApiService implements ListApiService {
 
     final items = MockDataGenerator.generateListItems(count: 1);
     final item = items.first;
-    return item.copyWith(
-      title: title ?? item.title,
-      description: description ?? item.description,
-      imageUrl: imageUrl ?? item.imageUrl,
-      updatedAt: DateTime.now(),
-    ).toJson();
+    return item
+        .copyWith(
+          title: title ?? item.title,
+          description: description ?? item.description,
+          imageUrl: imageUrl ?? item.imageUrl,
+          updatedAt: DateTime.now(),
+        )
+        .toJson();
   }
 
   @override

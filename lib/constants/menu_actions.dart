@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-05 16:45:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-05 10:22:15
+ * @LastEditTime: 2025-07-16 14:31:19
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -25,6 +25,8 @@ class MenuActions {
   // 委托操作
   static const String delegateHarvest = 'delegate_harvest';
   static const String delegateAccept = 'delegate_accept';
+
+  // 其他操作
 
   // 所有可用的操作列表（用于验证）
   static const List<String> allActions = [

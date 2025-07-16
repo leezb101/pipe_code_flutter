@@ -161,7 +161,7 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
       }
     } on DioException catch (e) {
       Logger.error('短信验证码请求网络错误: ${e.type}', tag: 'SMS_CODE', error: e);
-      throw handleError(e);
+      throw handleErrorForEndpoint(e, '/wx/sms/');
     }
   }
 
@@ -230,7 +230,7 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
       }
     } on DioException catch (e) {
       Logger.error('验证码请求网络错误: ${e.type}', tag: 'CAPTCHA', error: e);
-      throw handleError(e);
+      throw handleErrorForEndpoint(e, '/wx/login/getCodeImg');
     }
   }
 

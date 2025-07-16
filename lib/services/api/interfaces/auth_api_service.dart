@@ -1,5 +1,12 @@
 /*
  * @Author: LeeZB
+ * @Date: 2025-07-09 10:15:25
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-16 10:06:58
+ * @copyright: Copyright © 2025 高新供水.
+ */
+/*
+ * @Author: LeeZB
  * @Date: 2025-07-09 22:35:00
  * @LastEditors: Leezb101 leezb101@126.com
  * @LastEditTime: 2025-07-09 22:35:00
@@ -27,7 +34,11 @@ abstract class AuthApiService {
   /// 短信验证码登录
   /// POST /wx/login/sms/{phone}/{code}
   /// [smsCode] SMS验证码标识符，来自短信验证码接口response header的sms_code字段
-  Future<Result<WxLoginVO>> loginWithSms(String phone, String code, {String? smsCode});
+  Future<Result<WxLoginVO>> loginWithSms(
+    String phone,
+    String code, {
+    String? smsCode,
+  });
 
   /// 获取短信验证码
   /// GET /wx/sms/{phone}
