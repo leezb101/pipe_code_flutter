@@ -37,6 +37,8 @@ class QrScanConfig extends Equatable {
         return '$modePrefix盘点扫码';
       case QrScanType.pipeCopy:
         return '$modePrefix截管复制扫码';
+      case QrScanType.acceptance:
+        return '$modePrefix验收扫码';
       case QrScanType.identification:
         return '扫码识别';
     }

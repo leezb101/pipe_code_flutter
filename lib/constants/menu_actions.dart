@@ -20,6 +20,7 @@ class MenuActions {
   static const String qrScanTransfer = 'qr_scan_transfer';
   static const String qrScanInventory = 'qr_scan_inventory';
   static const String qrScanPipeCopy = 'qr_scan_pipe_copy';
+  static const String qrScanAcceptance = 'qr_scan_acceptance';
   static const String qrIdentify = 'qr_identify';
 
   // 委托操作
@@ -36,6 +37,7 @@ class MenuActions {
     qrScanTransfer,
     qrScanInventory,
     qrScanPipeCopy,
+    qrScanAcceptance,
     qrIdentify,
     delegateHarvest,
     delegateAccept,
@@ -61,6 +63,8 @@ class MenuActions {
         return '盘点扫码';
       case qrScanPipeCopy:
         return '截管复制扫码';
+      case qrScanAcceptance:
+        return '验收扫码';
       case qrIdentify:
         return '扫码识别';
       case delegateHarvest:

@@ -193,7 +193,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         ),
         const SizedBox(height: 20),
         const Text(
-          '智慧水务管理系统',
+          '建设一码通',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,

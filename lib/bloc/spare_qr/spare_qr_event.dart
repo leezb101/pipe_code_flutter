@@ -15,10 +15,30 @@ abstract class SpareQrEvent extends Equatable {
 }
 
 class SpareQrDownloadRequested extends SpareQrEvent {
-  const SpareQrDownloadRequested();
+  final int num;
+  
+  const SpareQrDownloadRequested({required this.num});
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [num];
 }
 
 class SpareQrReset extends SpareQrEvent {}
+
+class SpareQrResetWithFileCleanup extends SpareQrEvent {
+  final String filePath;
+  
+  const SpareQrResetWithFileCleanup({required this.filePath});
+
+  @override
+  List<Object?> get props => [filePath];
+}
+
+class SpareQrFileShared extends SpareQrEvent {
+  final String filePath;
+  
+  const SpareQrFileShared({required this.filePath});
+
+  @override
+  List<Object?> get props => [filePath];
+}

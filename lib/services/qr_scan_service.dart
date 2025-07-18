@@ -18,6 +18,7 @@ abstract class QrScanService {
   Future<QrScanProcessResult?> processPipeCopy(List<QrScanResult> results);
   Future<QrScanProcessResult?> processIdentification(List<QrScanResult> results);
   Future<QrScanProcessResult?> processReturnMaterial(List<QrScanResult> results);
+  Future<QrScanProcessResult?> processAcceptance(List<QrScanResult> results);
 }
 
 class QrScanServiceImpl implements QrScanService {
@@ -75,6 +76,12 @@ class QrScanServiceImpl implements QrScanService {
   @override
   Future<QrScanProcessResult?> processReturnMaterial(List<QrScanResult> results) {
     final strategy = ReturnMaterialStrategy();
+    return strategy.process(results);
+  }
+
+  @override
+  Future<QrScanProcessResult?> processAcceptance(List<QrScanResult> results) {
+    final strategy = AcceptanceStrategy();
     return strategy.process(results);
   }
 }

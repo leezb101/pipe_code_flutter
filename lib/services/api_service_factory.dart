@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 13:17:21
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-13 11:54:11
+ * @LastEditTime: 2025-07-17 18:16:02
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'dart:io';
@@ -43,7 +43,7 @@ class ApiServiceFactory {
     final dio = Dio();
 
     if (AppConfig.isDevelopment) {
-      final proxyAddress = '10.3.3.54:6152';
+      final proxyAddress = '10.3.2.51:6152';
       final httpClient = HttpClient();
       httpClient.findProxy = (uri) {
         return "PROXY $proxyAddress";

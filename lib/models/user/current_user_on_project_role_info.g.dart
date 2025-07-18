@@ -45,4 +45,5 @@ const _$UserRoleEnumMap = {
   UserRole.builderSub: 5,
   UserRole.laborer: 6,
   UserRole.playgoer: 7,
+  UserRole.storekeeper: 8,
 };

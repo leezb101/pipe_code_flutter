@@ -36,7 +36,10 @@ enum UserRole {
   laborer(6, "laborer", "劳务人员(允许代理收获和代理验收)"),
 
   @JsonValue(7)
-  playgoer(7, "playgoer", "热心群众,无组织,游客");
+  playgoer(7, "playgoer", "热心群众,无组织,游客"),
+
+  @JsonValue(8)
+  storekeeper(8, "storekeeper", "仓库管理员");
 
   const UserRole(this.value, this.apiValue, this.displayName);
 
@@ -98,6 +101,8 @@ enum UserRole {
         return 6;
       case UserRole.playgoer:
         return 7;
+      case UserRole.storekeeper:
+        return 8;
     }
   }
 

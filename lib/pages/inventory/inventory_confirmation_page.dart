@@ -370,6 +370,11 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
 
   void _handleConfirmAcceptance() {
     // TODO: Implement acceptance confirmation logic
+    // 这里使用上传的文件数据
+    print('验收照片数量: ${_acceptancePhotos.length}');
+    print('报验单数量: ${_inspectionReports.length}');
+    print('验收报告数量: ${_acceptanceReports.length}');
+    
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('验收确认成功')));

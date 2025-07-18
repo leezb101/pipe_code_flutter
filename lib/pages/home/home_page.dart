@@ -2,14 +2,13 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-16 14:32:58
+ * @LastEditTime: 2025-07-17 19:14:11
  * @copyright: Copyright © 2025 高新供水.
  */
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pipe_code_flutter/services/api/interfaces/api_service_interface.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_state.dart';
@@ -21,7 +20,6 @@ import '../../models/qr_scan/qr_scan_type.dart';
 import '../../models/menu/menu_config.dart';
 import '../../models/user/user_role.dart';
 import '../../models/project/project_info.dart';
-import '../../repositories/spareqr_repository.dart';
 import '../../utils/toast_utils.dart';
 import '../toast_demo_page.dart';
 import '../../constants/menu_actions.dart';
@@ -47,7 +45,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('智慧水务'),
+        title: const Text('建设一码通'),
         backgroundColor: Colors.blue[600],
         foregroundColor: Colors.white,
       ),
@@ -1066,6 +1064,8 @@ class _HomePageState extends State<HomePage> {
         return Colors.brown;
       case UserRole.playgoer:
         return Colors.grey;
+      case UserRole.storekeeper:
+        return Colors.teal;
     }
   }
 
@@ -1215,6 +1215,9 @@ class _HomePageState extends State<HomePage> {
       case MenuActions.qrScanInventory:
         _showScanModeSelection(context, QrScanType.inventory);
         break;
+      case MenuActions.qrScanAcceptance:
+        _showScanModeSelection(context, QrScanType.acceptance);
+        break;
       case MenuActions.qrScanPipeCopy:
         _navigateToScan(
           context,
@@ -1359,6 +1362,9 @@ class _HomePageState extends State<HomePage> {
       case QrScanType.inventory:
         title = scanMode == QrScanMode.single ? '单个物料盘点' : '批量物料盘点';
         break;
+      case QrScanType.acceptance:
+        title = scanMode == QrScanMode.single ? '单个物料验收' : '批量物料验收';
+        break;
       default:
         title = scanMode.toString();
     }
@@ -1388,6 +1394,11 @@ class _HomePageState extends State<HomePage> {
         subtitle = scanMode == QrScanMode.single
             ? '扫描单个物料进行盘点检查'
             : '连续扫描多个物料进行批量盘点';
+        break;
+      case QrScanType.acceptance:
+        subtitle = scanMode == QrScanMode.single
+            ? '扫描单个物料进行验收操作'
+            : '连续扫描多个物料进行批量验收';
         break;
       default:
         subtitle = '选择扫码模式';

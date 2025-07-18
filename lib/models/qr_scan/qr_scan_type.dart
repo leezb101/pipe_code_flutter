@@ -13,7 +13,8 @@ enum QrScanType {
   inventory('盘点'),
   pipeCopy('截管复制'),
   identification('扫码识别'),
-  returnMaterial('退库');
+  returnMaterial('退库'),
+  acceptance('验收');
 
   /// 扫码类型枚举
 

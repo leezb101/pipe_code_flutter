@@ -197,6 +197,9 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
         case QrScanType.returnMaterial:
           result = await _qrScanService.processReturnMaterial(state.scannedCodes);
           break;
+        case QrScanType.acceptance:
+          result = await _qrScanService.processAcceptance(state.scannedCodes);
+          break;
       }
 
       if (result != null && !result.success) {

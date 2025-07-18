@@ -16,6 +16,7 @@ import '../pages/auth/register_page.dart';
 import '../pages/main_page.dart';
 import '../pages/qr_scan/qr_scan_page.dart';
 import '../pages/inventory/inventory_confirmation_page.dart';
+import '../pages/acceptance/acceptance_page.dart';
 import '../pages/developer_settings_page.dart';
 import '../pages/project_initiation/project_initiation_form_page.dart';
 import '../pages/project_initiation/material_selection_page.dart';
@@ -74,6 +75,21 @@ final GoRouter appRouter = GoRouter(
                   QrScanBloc(qrScanService: getIt<QrScanService>()),
               child: QrScanPage(config: config),
             );
+          },
+        ),
+        GoRoute(
+          path: '/acceptance',
+          name: 'acceptance',
+          builder: (context, state) {
+            final data = state.extra as Map<String, dynamic>?;
+            if (data == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            final materials = data['materials'] as List<PipeMaterial>?;
+            if (materials == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return AcceptancePage(materials: materials);
           },
         ),
         GoRoute(

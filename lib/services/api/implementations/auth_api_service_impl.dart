@@ -2,9 +2,11 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:40:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-14 19:35:23
+ * @LastEditTime: 2025-07-17 19:04:24
  * @copyright: Copyright © 2025 高新供水.
  */
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import '../interfaces/auth_api_service.dart';
 import 'base_api_service.dart';
@@ -16,7 +18,6 @@ import '../../../models/auth/rf.dart';
 import '../../../models/auth/captcha_result.dart';
 import '../../../models/auth/sms_code_result.dart';
 import '../../../utils/logger.dart';
-import '../../../utils/network_logger.dart';
 
 /// 认证API服务实现
 /// 完全匹配API文档中的认证相关接口
@@ -49,10 +50,8 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
       Logger.info('密码登录请求完成', tag: 'LOGIN');
 
       // 完整打印响应数据用于调试
-      NetworkLogger.printFullJson(
-        response.data,
-        title: 'PASSWORD_LOGIN_RESPONSE',
-      );
+      // NetworkLogger.printFullJson(
+      // Logger.json('PASSWORD_LOGIN_RESPONSE', response.data);
 
       return Result.fromJson(
         response.data,
@@ -93,7 +92,13 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
       Logger.info('短信登录请求完成', tag: 'SMS_LOGIN');
 
       // 完整打印响应数据用于调试
-      NetworkLogger.printFullJson(response.data, title: 'SMS_LOGIN_RESPONSE');
+      // NetworkLogger.printFullJson(response.data, title: 'SMS_LOGIN_RESPONSE');
+      // FIXME: 这个转换是为了使用surge mock静态数据时不会出现类型报错
+      if (response.data is String) {
+        // 转换成Map
+        response.data = json.decode(response.data);
+      }
+      Logger.json('SMS_LOGIN_RESPONSE', response.data);
 
       return Result.fromJson(
         response.data,
@@ -171,9 +176,6 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
       Logger.info('开始请求图形验证码', tag: 'CAPTCHA');
 
       final response = await dio.get('/wx/login/getCodeImg');
-
-      // 专门检查验证码接口的响应
-      NetworkLogger.logCaptchaResponse(response);
 
       // 检查header中的img_code字段
       final imgCode = response.headers.value('img_code');
@@ -287,6 +289,13 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
   ) async {
     try {
       final response = await dio.get('/wx/select/$projectId');
+
+      // FIXME: 这个转换是为了使用surge mock静态数据时不会出现类型报错
+      if (response.data is String) {
+        // 转换成Map
+        response.data = json.decode(response.data);
+      }
+
       return Result.fromJson(
         response.data,
         (json) =>

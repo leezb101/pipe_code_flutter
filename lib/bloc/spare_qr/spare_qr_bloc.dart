@@ -11,6 +11,8 @@ class SpareQrBloc extends Bloc<SpareQrEvent, SpareQrState> {
       super(SpareQrInitial()) {
     on<SpareQrDownloadRequested>(_onStartSpareQr);
     on<SpareQrReset>(_onReset);
+    on<SpareQrResetWithFileCleanup>(_onResetWithFileCleanup);
+    on<SpareQrFileShared>(_onFileShared);
   }
 
   Future<void> _onStartSpareQr(
@@ -18,13 +20,29 @@ class SpareQrBloc extends Bloc<SpareQrEvent, SpareQrState> {
     Emitter<SpareQrState> emit,
   ) async {
     await emit.forEach<SpareQrState>(
-      _repository.downloadSpareqrZipFile(),
+      _repository.downloadSpareqrZipFile(event.num),
       onData: (state) => state,
       onError: (error, stackTrace) => SpareQrFailure(error.toString()),
     );
   }
 
   void _onReset(SpareQrReset event, Emitter<SpareQrState> emit) {
+    emit(SpareQrInitial());
+  }
+
+  Future<void> _onResetWithFileCleanup(
+    SpareQrResetWithFileCleanup event,
+    Emitter<SpareQrState> emit,
+  ) async {
+    await _repository.deleteFile(event.filePath);
+    emit(SpareQrInitial());
+  }
+
+  Future<void> _onFileShared(
+    SpareQrFileShared event,
+    Emitter<SpareQrState> emit,
+  ) async {
+    await _repository.deleteFile(event.filePath);
     emit(SpareQrInitial());
   }
 }

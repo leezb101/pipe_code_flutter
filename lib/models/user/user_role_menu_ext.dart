@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-16 14:32:35
+ * @LastEditTime: 2025-07-17 19:35:17
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/constants/menu_actions.dart';
@@ -108,12 +108,22 @@ extension UserRoleMenuExtension on UserRole {
             order: 1,
             isEnabled: !isExpired,
           ),
+          // 入库菜单暂时禁用
+          // _createMenuItem(
+          //   id: 'inbound',
+          //   title: '入库',
+          //   type: MenuItemType.action,
+          //   icon: 'input',
+          //   action: MenuActions.qrScanInbound,
+          //   order: 2,
+          //   isEnabled: !isExpired,
+          // ),
           _createMenuItem(
-            id: 'inbound',
-            title: '入库',
-            type: MenuItemType.page,
-            icon: 'input',
-            route: '/inbound',
+            id: 'acceptance',
+            title: '验收',
+            type: MenuItemType.action,
+            icon: 'check_circle',
+            action: MenuActions.qrScanAcceptance,
             order: 2,
             isEnabled: !isExpired,
           ),
@@ -202,19 +212,29 @@ extension UserRoleMenuExtension on UserRole {
             order: 1,
             isEnabled: !isExpired,
           ),
+          // 入库菜单暂时禁用
+          // _createMenuItem(
+          //   id: 'inbound',
+          //   title: '入库',
+          //   type: MenuItemType.action,
+          //   icon: 'input',
+          //   action: MenuActions.qrScanInbound,
+          //   order: 2,
+          //   isEnabled: !isExpired,
+          // ),
           _createMenuItem(
-            id: 'inbound',
-            title: '入库',
-            type: MenuItemType.page,
-            icon: 'input',
-            route: '/inbound',
+            id: 'acceptance',
+            title: '验收',
+            type: MenuItemType.action,
+            icon: 'check_circle',
+            action: MenuActions.qrScanAcceptance,
             order: 2,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
             id: 'outbound',
             title: '出库',
-            type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'output',
             route: '/outbound',
             order: 3,
@@ -296,12 +316,22 @@ extension UserRoleMenuExtension on UserRole {
             order: 1,
             isEnabled: !isExpired,
           ),
+          // 入库菜单暂时禁用
+          // _createMenuItem(
+          //   id: 'inbound',
+          //   title: '入库',
+          //   type: MenuItemType.action,
+          //   icon: 'input',
+          //   action: MenuActions.qrScanInbound,
+          //   order: 2,
+          //   isEnabled: !isExpired,
+          // ),
           _createMenuItem(
-            id: 'inbound',
-            title: '入库',
+            id: 'acceptance',
+            title: '验收',
             type: MenuItemType.action,
-            icon: 'input',
-            action: MenuActions.qrScanInbound,
+            icon: 'check_circle',
+            action: MenuActions.qrScanAcceptance,
             order: 2,
             isEnabled: !isExpired,
           ),
@@ -373,6 +403,18 @@ extension UserRoleMenuExtension on UserRole {
       case UserRole.playgoer:
       case UserRole.suppliers:
       case UserRole.check:
+        return [
+          _createMenuItem(
+            id: 'qr_identify',
+            title: '扫码识别',
+            type: MenuItemType.action,
+            icon: 'qr_code_scanner',
+            action: 'qr_identify',
+            order: 1,
+            isEnabled: true, // 扫码识别始终可用
+          ),
+        ];
+      case UserRole.storekeeper:
         return [
           _createMenuItem(
             id: 'qr_identify',
@@ -458,13 +500,13 @@ extension UserRoleMenuExtension on UserRole {
         return '监理单位：库存管理(盘点/退库)、扫码识别';
 
       case UserRole.builder:
-        return '施工单位：全库存管理、施工操作(备用码/截管/报废)、临时授权、扫码识别';
+        return '施工单位：验收管理、出库/退库/调拨、施工操作(备用码/截管/报废)、临时授权、扫码识别';
 
       case UserRole.builderSub:
-        return '施工单位二级负责人：全库存管理、施工操作(备用码/截管/报废)、临时授权、扫码识别';
+        return '施工单位二级负责人：验收管理、出库/退库/调拨、施工操作(备用码/截管/报废)、临时授权、扫码识别';
 
       case UserRole.laborer:
-        return '劳务人员：库存管理、施工操作(备用码/截管/报废，除临时授权)、扫码识别';
+        return '劳务人员：验收管理、出库/退库/调拨、施工操作(备用码/截管/报废，除临时授权)、扫码识别';
 
       case UserRole.playgoer:
         return '热心群众：扫码识别';
@@ -474,6 +516,8 @@ extension UserRoleMenuExtension on UserRole {
 
       case UserRole.check:
         return '质检部门：扫码识别';
+      case UserRole.storekeeper:
+        return '仓库管理员：扫码识别、项目外入库';
     }
   }
 }

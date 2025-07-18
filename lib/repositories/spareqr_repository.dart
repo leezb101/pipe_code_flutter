@@ -17,7 +17,7 @@ class SpareqrRepository {
   SpareqrRepository({required ApiServiceInterface apiservice})
     : _apiservice = apiservice;
 
-  Stream<SpareQrState> downloadSpareqrZipFile() async* {
+  Stream<SpareQrState> downloadSpareqrZipFile(int num) async* {
     try {
       yield const SpareQrInProgress(0.0);
 
@@ -26,7 +26,7 @@ class SpareqrRepository {
           'qrcode_for_backup${DateTime.now().toIso8601String()}.zip';
       final savePath = '${tempDir.path}/$fileName';
 
-      final response = await _apiservice.spare.downloadSpareqrZip(20);
+      final response = await _apiservice.spare.downloadSpareqrZip(num);
       final byteStream = response.stream;
       final totalBytes = response.totalBytes;
 
@@ -50,6 +50,19 @@ class SpareqrRepository {
       yield SpareQrSuccess(savePath);
     } catch (e) {
       yield SpareQrFailure(e.toString());
+    }
+  }
+
+  Future<bool> deleteFile(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (await file.exists()) {
+        await file.delete();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
     }
   }
 }

@@ -470,6 +470,127 @@ class ReturnMaterialStrategy implements QrScanStrategy {
   }
 }
 
+class AcceptanceStrategy implements QrScanStrategy {
+  @override
+  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
+    await Future.delayed(const Duration(seconds: 1));
+
+    try {
+      if (results.length == 1) {
+        return await _processSingleAcceptance(results.first);
+      } else {
+        return await _processBatchAcceptance(results);
+      }
+    } catch (e) {
+      return QrScanProcessResult(
+        success: false,
+        errorMessage: '处理验收扫码时发生错误: $e',
+      );
+    }
+  }
+
+  Future<QrScanProcessResult> _processSingleAcceptance(QrScanResult result) async {
+    Logger.qrScan('=== 单个验收处理 ===', deviceCode: result.code);
+    Logger.qrScan('扫码内容: ${result.code}', deviceCode: result.code);
+    Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
+
+    // 单个模式下，直接按照扫码内容获取对应的物料信息
+    final materials = await _getPipeMaterialsByCode(result.code);
+    
+    if (materials.isNotEmpty) {
+      return QrScanProcessResult(
+        success: true,
+        navigationData: QrScanNavigationData(
+          route: '/acceptance',
+          data: {
+            'materials': materials,
+            'scanMode': 'single',
+          },
+        ),
+      );
+    } else {
+      return const QrScanProcessResult(
+        success: false,
+        errorMessage: '未找到对应的管件信息',
+      );
+    }
+  }
+
+  Future<QrScanProcessResult> _processBatchAcceptance(List<QrScanResult> results) async {
+    Logger.qrScan('=== 批量验收处理 ===');
+    Logger.qrScan('批次大小: ${results.length}');
+
+    final codes = results.map((r) => r.code).toList();
+    for (int i = 0; i < results.length; i++) {
+      final result = results[i];
+      Logger.qrScan(
+        '第${i + 1}个货物 - 编号: ${result.code}',
+        deviceCode: result.code,
+      );
+    }
+
+    // 批量模式下，所有码都是单个物料码
+    final materials = await _getPipeMaterialsByIds(codes);
+    
+    if (materials.isNotEmpty) {
+      return QrScanProcessResult(
+        success: true,
+        navigationData: QrScanNavigationData(
+          route: '/acceptance',
+          data: {
+            'materials': materials,
+            'scanMode': 'batch',
+          },
+        ),
+      );
+    } else {
+      return const QrScanProcessResult(
+        success: false,
+        errorMessage: '未找到对应的管件信息',
+      );
+    }
+  }
+
+  // 通用方法：根据任意码获取物料信息（可能是批次码或单个物料码）
+  Future<List<PipeMaterial>> _getPipeMaterialsByCode(String code) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    // 模拟：返回验收物料信息
+    return [
+      PipeMaterial(
+        id: code,
+        materialCode: 'FDSIU-129A',
+        materialName: '材料A',
+        specification: 'DN100',
+        quantity: 1,
+        unit: '个',
+        batchCode: 'BATCH_001',
+        deliveryDate: DateTime.now().subtract(const Duration(days: 7)),
+        supplier: '供应商A',
+        remarks: '待验收',
+      ),
+    ];
+  }
+
+  // 模拟根据ID获取管件信息
+  Future<List<PipeMaterial>> _getPipeMaterialsByIds(List<String> ids) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    return ids.map((id) => PipeMaterial(
+      id: id,
+      materialCode: 'FDSIU-129A',
+      materialName: '材料A',
+      specification: 'DN100',
+      quantity: 1,
+      unit: '个',
+      batchCode: 'BATCH_001',
+      deliveryDate: DateTime.now().subtract(const Duration(days: 7)),
+      supplier: '供应商A',
+      remarks: '待验收',
+    )).toList();
+  }
+}
+
 class IdentificationStrategy implements QrScanStrategy {
   @override
   Future<QrScanProcessResult?> process(List<QrScanResult> results) async {

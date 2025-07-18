@@ -84,7 +84,7 @@ class MyApp extends StatelessWidget {
           }
         },
         child: MaterialApp.router(
-          title: '智慧水务管理系统',
+          title: '建设一码通',
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
               seedColor: const Color(0xFF1976D2),
