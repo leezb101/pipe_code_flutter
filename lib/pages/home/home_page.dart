@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-17 19:14:11
+ * @LastEditTime: 2025-07-18 12:45:52
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -23,6 +23,16 @@ import '../../models/project/project_info.dart';
 import '../../utils/toast_utils.dart';
 import '../toast_demo_page.dart';
 import '../../constants/menu_actions.dart';
+
+// 假设这是您在项目中定义的扩展
+extension ColorValues on Color {
+  Color withValues({double? alpha}) {
+    if (alpha != null) {
+      return withOpacity(alpha.clamp(0.0, 1.0));
+    }
+    return this;
+  }
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -97,7 +107,6 @@ class _HomePageState extends State<HomePage> {
                   return _buildEmptyProjectView(context, '暂无项目数据');
                 }
 
-                // return Container();
                 // 默认显示加载界面
                 return const Center(child: CircularProgressIndicator());
               },
@@ -215,7 +224,7 @@ class _HomePageState extends State<HomePage> {
                         color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.business_center,
                         color: Colors.white,
                         size: 18,
@@ -643,66 +652,23 @@ class _HomePageState extends State<HomePage> {
       return _buildEmptyMenuView(context);
     }
 
+    // 使用 GridView.builder 和响应式 delegate 来防止在不同屏幕尺寸上发生溢出。
+    // SliverGridDelegateWithMaxCrossAxisExtent 会自动调整列数。
     return Expanded(
-      child: GridView.count(
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        crossAxisCount: 4,
-        physics: const ClampingScrollPhysics(),
-        children: <Widget>[
-          for (final menuItem in sortedMenuItems)
-            _buildMenuCard(context, menuItem, state),
-        ],
-      ),
-    );
-
-    /// 暂时留用，手写试试
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '功能菜单',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
-                ),
-              ),
-              TextButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const ToastDemoPage(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.notifications, size: 16),
-                label: const Text('Toast 演示'),
-                style: TextButton.styleFrom(foregroundColor: Colors.blue[600]),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 1.0,
-              ),
-              itemCount: sortedMenuItems.length,
-              itemBuilder: (context, index) {
-                final menuItem = sortedMenuItems[index];
-                return _buildMenuCard(context, menuItem, state);
-              },
-            ),
-          ),
-        ],
+      child: GridView.builder(
+        padding: const EdgeInsets.only(top: 8), // 在网格顶部添加一些内边距
+        physics: const BouncingScrollPhysics(), // 使用更美观的滚动效果
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 100.0, // 每个项目的最大宽度
+          mainAxisSpacing: 10.0, // 行间距
+          crossAxisSpacing: 10.0, // 列间距
+          childAspectRatio: 1.0, // 确保项目为正方形以适应圆形设计
+        ),
+        itemCount: sortedMenuItems.length,
+        itemBuilder: (context, index) {
+          final menuItem = sortedMenuItems[index];
+          return _buildMenuCard(context, menuItem, state);
+        },
       ),
     );
   }
@@ -713,82 +679,60 @@ class _HomePageState extends State<HomePage> {
     MenuItem menuItem,
     ProjectRoleInfoLoaded state,
   ) {
-    return Card(
-      elevation: 4,
-      // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      shape: CircleBorder(),
-      child: InkWell(
-        // borderRadius: BorderRadius.circular(12),
-        borderRadius: BorderRadius.circular(double.infinity),
-        onTap: menuItem.isEnabled
-            ? () => _handleMenuTap(context, menuItem, state)
-            : () => _showDisabledMenuAlert(context),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            // borderRadius: BorderRadius.circular(12),
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                _getMenuColor(menuItem).withValues(alpha: 0.1),
-                _getMenuColor(menuItem).withValues(alpha: 0.05),
+    return Opacity(
+      opacity: menuItem.isEnabled ? 1.0 : 0.6,
+      child: Card(
+        elevation: 4.0, // 您喜欢的立体阴影效果
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias, // 保证圆形裁切和水波纹效果
+        child: InkWell(
+          onTap: menuItem.isEnabled
+              ? () => _handleMenuTap(context, menuItem, state)
+              : () => _showDisabledMenuAlert(context),
+          child: Container(
+            padding: const EdgeInsets.all(8.0), // 优化的内边距
+            decoration: BoxDecoration(
+              // 背景渐变
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  _getMenuColor(menuItem).withValues(alpha: 0.1),
+                  _getMenuColor(menuItem).withValues(alpha: 0.05),
+                ],
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _getMenuIcon(menuItem),
+                  size: 30, // 统一图标大小
+                  color: menuItem.isEnabled
+                      ? _getMenuColor(menuItem)
+                      : Colors.grey[700],
+                ),
+                const SizedBox(height: 8),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: Text(
+                      menuItem.title,
+                      style: TextStyle(
+                        fontSize: 13, // 统一字体大小防止溢出
+                        fontWeight: FontWeight.bold,
+                        color: menuItem.isEnabled
+                            ? Colors.black87
+                            : Colors.grey[800],
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
               ],
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                _getMenuIcon(menuItem),
-                size: 24,
-                color: menuItem.isEnabled
-                    ? _getMenuColor(menuItem)
-                    : Colors.grey,
-              ),
-              // const SizedBox(height: 4),
-              Text(
-                menuItem.title,
-                style: TextStyle(
-                  fontSize: menuItem.title.length > 2 ? 12 : 16,
-                  fontWeight: FontWeight.bold,
-                  color: menuItem.isEnabled
-                      ? _getMenuColor(menuItem).withValues(alpha: 0.8)
-                      : Colors.grey,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (menuItem.description != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  menuItem.description!,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              if (menuItem.badge != null) ...[
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    menuItem.badge!,
-                    style: const TextStyle(fontSize: 10, color: Colors.white),
-                  ),
-                ),
-              ],
-            ],
           ),
         ),
       ),
