@@ -9,6 +9,7 @@
 import '../../models/qr_scan/qr_scan_result.dart';
 import '../../models/inventory/pipe_material.dart';
 import '../../utils/logger.dart';
+import '../api_service_factory.dart';
 
 abstract class QrScanStrategy {
   Future<QrScanProcessResult?> process(List<QrScanResult> results);
@@ -594,69 +595,62 @@ class AcceptanceStrategy implements QrScanStrategy {
 class IdentificationStrategy implements QrScanStrategy {
   @override
   Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (results.length == 1) {
-      await _processSingleIdentification(results.first);
-    } else {
-      await _processBatchIdentification(results);
+    try {
+      // 扫码识别只支持单个扫码
+      if (results.length == 1) {
+        return await _processSingleIdentification(results.first);
+      } else {
+        return const QrScanProcessResult(
+          success: false,
+          errorMessage: '扫码识别功能不支持批量扫码，请一次只扫描一个二维码',
+        );
+      }
+    } catch (e) {
+      Logger.qrScan('扫码识别处理异常: $e');
+      return QrScanProcessResult(
+        success: false,
+        errorMessage: '扫码识别失败: ${e.toString()}',
+      );
     }
-    
-    return const QrScanProcessResult(success: true);
   }
 
-  Future<void> _processSingleIdentification(QrScanResult result) async {
+  Future<QrScanProcessResult> _processSingleIdentification(QrScanResult result) async {
     Logger.qrScan('=== 单个扫码识别处理 ===', deviceCode: result.code);
     Logger.qrScan('识别编号: ${result.code}', deviceCode: result.code);
     Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
 
-    // 模拟识别信息查询结果
-    final identificationInfo = _mockIdentificationInfo(result.code);
-    Logger.qrScan('识别信息: $identificationInfo', deviceCode: result.code);
-    Logger.qrScan('识别状态: 识别完成', deviceCode: result.code);
+    try {
+      // 调用扫码识别API
+      final identificationService = ApiServiceFactory.createIdentificationService();
+      final response = await identificationService.scanMaterialIdentification(result.code);
 
-    // TODO: 实现单个扫码识别的具体业务逻辑
-    // 1. 查询二维码对应的设备/管道/材料信息
-    // 2. 显示详细的属性信息
-    // 3. 记录查询历史
-    // 4. 提供相关操作选项
-    // 5. 支持信息反馈和报告
-  }
+      if (response.isSuccess) {
+        Logger.qrScan('识别成功 - 类型: ${response.data.materialType.description}, 分组: ${response.data.materialGroup.message}, 编码: ${response.data.materialCode}', deviceCode: result.code);
 
-  Future<void> _processBatchIdentification(List<QrScanResult> results) async {
-    Logger.qrScan('=== 批量扫码识别处理 ===');
-    Logger.qrScan('批次大小: ${results.length}');
-
-    for (int i = 0; i < results.length; i++) {
-      final result = results[i];
-      Logger.qrScan(
-        '第${i + 1}个项目 - 编号: ${result.code}',
-        deviceCode: result.code,
+        // 返回导航到材料详情页面
+        return QrScanProcessResult(
+          success: true,
+          navigationData: QrScanNavigationData(
+            route: '/material-detail',
+            data: {
+              'identificationData': response.data,
+            },
+          ),
+        );
+      } else {
+        Logger.qrScan('识别失败: ${response.msg}', deviceCode: result.code);
+        return QrScanProcessResult(
+          success: false,
+          errorMessage: response.msg.isNotEmpty ? response.msg : '识别失败',
+        );
+      }
+    } catch (e) {
+      Logger.qrScan('识别API调用异常: $e', deviceCode: result.code);
+      return QrScanProcessResult(
+        success: false,
+        errorMessage: e.toString().contains('网络') ? e.toString() : '识别服务异常，请稍后重试',
       );
     }
-
-    Logger.qrScan('批量识别状态: 全部完成');
-
-    // TODO: 实现批量扫码识别的具体业务逻辑
-    // 1. 批量查询所有编号信息
-    // 2. 生成识别汇总报告
-    // 3. 统计各类型设备数量
-    // 4. 记录批量查询历史
-    // 5. 提供批量操作功能
   }
 
-  Map<String, dynamic> _mockIdentificationInfo(String itemCode) {
-    return {
-      '设备编号': itemCode,
-      '设备名称': '供水管道阀门',
-      '设备类型': '控制阀',
-      '规格型号': 'DN200 PN16',
-      '安装位置': '主干道交叉口',
-      '安装日期': '2023-05-15',
-      '维护状态': '正常',
-      '责任人': '张工程师',
-      '联系方式': '13800138000',
-      '备注': '定期检查设备',
-    };
-  }
 }

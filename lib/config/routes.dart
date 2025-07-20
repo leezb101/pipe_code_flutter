@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-16 14:30:33
+ * @LastEditTime: 2025-07-20 12:26:48
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -17,6 +17,9 @@ import '../pages/main_page.dart';
 import '../pages/qr_scan/qr_scan_page.dart';
 import '../pages/inventory/inventory_confirmation_page.dart';
 import '../pages/acceptance/acceptance_page.dart';
+import '../pages/acceptance/acceptance_detail_page.dart';
+import '../bloc/acceptance/acceptance_bloc.dart';
+import '../repositories/acceptance_repository.dart';
 import '../pages/developer_settings_page.dart';
 import '../pages/project_initiation/project_initiation_form_page.dart';
 import '../pages/project_initiation/material_selection_page.dart';
@@ -31,6 +34,8 @@ import '../models/inventory/pipe_material.dart';
 import '../models/project/project_initiation.dart';
 import '../models/records/record_type.dart';
 import '../services/qr_scan_service.dart';
+import '../pages/material/material_detail_page.dart';
+import '../models/material/scan_identification_response.dart';
 import 'service_locator.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -89,7 +94,29 @@ final GoRouter appRouter = GoRouter(
             if (materials == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            return AcceptancePage(materials: materials);
+            return BlocProvider(
+              create: (context) =>
+                  AcceptanceBloc(getIt<AcceptanceRepository>()),
+              child: AcceptancePage(materials: materials),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/acceptance-detail',
+          name: 'acceptance-detail',
+          builder: (context, state) {
+            final acceptanceIdParam = state.uri.queryParameters['id'];
+            final acceptanceId = acceptanceIdParam != null
+                ? int.tryParse(acceptanceIdParam)
+                : null;
+            if (acceptanceId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return BlocProvider(
+              create: (context) =>
+                  AcceptanceBloc(getIt<AcceptanceRepository>()),
+              child: AcceptanceDetailPage(acceptanceId: acceptanceId),
+            );
           },
         ),
         GoRoute(
@@ -130,6 +157,21 @@ final GoRouter appRouter = GoRouter(
               create: (context) => RecordsBloc(getIt<RecordsRepository>()),
               child: RecordsListPage(initialTab: initialTab),
             );
+          },
+        ),
+        GoRoute(
+          path: '/material-detail',
+          name: 'material-detail',
+          builder: (context, state) {
+            final data = state.extra as Map<String, dynamic>?;
+            if (data == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            final identificationData = data['identificationData'] as ScanIdentificationData?;
+            if (identificationData == null) {
+              return const Scaffold(body: Center(child: Text('材料信息错误')));
+            }
+            return MaterialDetailPage(identificationData: identificationData);
           },
         ),
         GoRoute(

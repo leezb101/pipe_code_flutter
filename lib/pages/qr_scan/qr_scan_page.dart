@@ -2,9 +2,11 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:15:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-05 15:29:42
+ * @LastEditTime: 2025-07-20 12:37:41
  * @copyright: Copyright © 2025 高新供水.
  */
+
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -33,12 +35,12 @@ class QrScanPage extends StatefulWidget {
 class _QrScanPageState extends State<QrScanPage> {
   MobileScannerController? _controller;
   bool _hasReturned = false;
-  
+
   // 防抖相关
   String? _lastScannedCode;
   DateTime? _lastScanTime;
   static const Duration _debounceInterval = Duration(milliseconds: 1000);
-  
+
   // 批量模式扫码器控制
   bool _isTemporarilyPaused = false;
 
@@ -65,9 +67,9 @@ class _QrScanPageState extends State<QrScanPage> {
       print('扫码器控制器为空');
       return;
     }
-    
+
     print('控制扫码器状态: ${state.status}, 暂停状态: $_isTemporarilyPaused');
-    
+
     switch (state.status) {
       case QrScanStatus.scanning:
         if (!_isTemporarilyPaused) {
@@ -93,63 +95,63 @@ class _QrScanPageState extends State<QrScanPage> {
 
   void _onBarcodeDetected(BarcodeCapture capture, QrScanState state) {
     print('扫码检测到数据: ${capture.barcodes.length} codes, 当前状态: ${state.status}');
-    
+
     // 检查是否允许扫码
     if (!_canScanInCurrentState(state)) {
       print('当前状态不允许扫码: ${state.status}');
       return;
     }
-    
+
     final List<Barcode> barcodes = capture.barcodes;
     for (final barcode in barcodes) {
       if (barcode.rawValue != null) {
         final code = barcode.rawValue!;
-        
+
         // 防抖检查
         if (_isRecentlyScanned(code)) {
           print('防抖：忽略重复扫码 $code');
           return;
         }
-        
+
         print('处理扫码: $code');
-        
+
         // 立即停止扫码器，防止重复触发
         _controller?.stop();
-        
+
         // 震动反馈
         _provideScanFeedback();
-        
+
         // 更新扫码历史
         _updateScanHistory(code);
-        
+
         // 发送扫码事件
         context.read<QrScanBloc>().add(CodeScanned(code));
-        
+
         // 如果是批量模式，安排重启扫码器
         if (widget.config.supportsBatch) {
           _scheduleRestartScanner();
         }
-        
+
         break;
       }
     }
   }
 
   bool _canScanInCurrentState(QrScanState state) {
-    return state.status == QrScanStatus.scanning || 
-           state.status == QrScanStatus.initial ||
-           state.status == QrScanStatus.error;
+    return state.status == QrScanStatus.scanning ||
+        state.status == QrScanStatus.initial ||
+        state.status == QrScanStatus.error;
   }
 
   bool _isRecentlyScanned(String code) {
     final now = DateTime.now();
-    
-    if (_lastScannedCode == code && 
-        _lastScanTime != null && 
+
+    if (_lastScannedCode == code &&
+        _lastScanTime != null &&
         now.difference(_lastScanTime!) < _debounceInterval) {
       return true;
     }
-    
+
     return false;
   }
 
@@ -165,9 +167,9 @@ class _QrScanPageState extends State<QrScanPage> {
 
   void _scheduleRestartScanner() {
     if (!widget.config.supportsBatch) return;
-    
+
     _isTemporarilyPaused = true;
-    
+
     // 2.5秒后重新启动扫码器
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (mounted && !_hasReturned) {
@@ -181,30 +183,37 @@ class _QrScanPageState extends State<QrScanPage> {
   void _simulateScan() {
     // 生成适合当前扫码类型的测试代码
     String testCode;
-    switch (widget.config.scanType.name) {
-      case 'inbound':
-        // 入库：生成批次码触发入库确认页面
-        testCode = 'BATCH_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
-        break;
-      case 'outbound':
-        testCode = 'OUT_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
-        break;
-      case 'transfer':
-        testCode = 'TRF_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
-        break;
-      case 'inventory':
-        testCode = 'INV_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
-        break;
-      case 'pipeCopy':
-        testCode = 'PIPE_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
-        break;
-      case 'returnMaterial':
-        testCode = 'RET_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
-        break;
-      default:
-        testCode = 'TEST_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
-    }
-    
+    // switch (widget.config.scanType.name) {
+    //   case 'inbound':
+    //     // 入库：生成批次码触发入库确认页面
+    //     testCode = 'BATCH_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+    //     break;
+    //   case 'outbound':
+    //     testCode = 'OUT_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+    //     break;
+    //   case 'transfer':
+    //     testCode = 'TRF_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+    //     break;
+    //   case 'inventory':
+    //     testCode = 'INV_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+    //     break;
+    //   case 'pipeCopy':
+    //     testCode = 'PIPE_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+    //     break;
+    //   case 'returnMaterial':
+    //     testCode = 'RET_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+    //     break;
+    //   default:
+    //     testCode = 'TEST_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+    // }
+    const testCodePool = [
+      "ZZWATER:XT03K3312500172041",
+      "ZZWATER:729960875670110208",
+      "ZZWATER:729960879520481280",
+    ];
+
+    testCode = testCodePool[Random().nextInt(testCodePool.length)];
+
     print('模拟扫码: $testCode');
     context.read<QrScanBloc>().add(CodeScanned(testCode));
   }
@@ -251,7 +260,7 @@ class _QrScanPageState extends State<QrScanPage> {
           } else if (state.status == QrScanStatus.processComplete) {
             _handleProcessComplete(context, state);
           }
-          
+
           // 根据状态控制扫码器
           _controlScanner(state);
         },
@@ -382,15 +391,15 @@ class _QrScanPageState extends State<QrScanPage> {
     if (_hasReturned) {
       return;
     }
-    
+
     print('处理完成，检查导航数据: ${state.processResult?.navigationData?.route}');
-    
+
     // 检查是否有导航数据需要处理
     if (state.processResult?.navigationData != null) {
       _handleNavigation(context, state.processResult!.navigationData!);
       return;
     }
-    
+
     // 如果没有导航数据，则返回扫码结果
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted && context.mounted && !_hasReturned) {
@@ -399,13 +408,16 @@ class _QrScanPageState extends State<QrScanPage> {
     });
   }
 
-  void _handleNavigation(BuildContext context, QrScanNavigationData navigationData) {
+  void _handleNavigation(
+    BuildContext context,
+    QrScanNavigationData navigationData,
+  ) {
     if (_hasReturned) {
       return;
     }
-    
+
     _hasReturned = true;
-    
+
     // 使用GoRouter进行导航
     context.push(navigationData.route, extra: navigationData.data);
   }
@@ -414,9 +426,9 @@ class _QrScanPageState extends State<QrScanPage> {
     if (_hasReturned) {
       return;
     }
-    
+
     _hasReturned = true;
-    
+
     // 统一使用GoRouter返回
     if (context.canPop()) {
       context.pop(result);

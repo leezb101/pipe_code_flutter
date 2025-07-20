@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../bloc/records/records_bloc.dart';
 import '../../bloc/records/records_event.dart';
 import '../../bloc/records/records_state.dart';
@@ -56,10 +57,29 @@ class _RecordsListPageState extends State<RecordsListPage> {
   }
 
   void _onRecordTap(int recordId) {
-    // TODO: Navigate to record detail page
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('点击记录: $recordId')),
-    );
+    final bloc = context.read<RecordsBloc>();
+    final currentTab = bloc.currentTab;
+    
+    // Navigate to specific detail page based on record type
+    switch (currentTab) {
+      case RecordType.accept:
+        context.go('/acceptance-detail?id=$recordId');
+        break;
+      case RecordType.signin:
+      case RecordType.signout:
+      case RecordType.install:
+      case RecordType.returnWarehouse:
+      case RecordType.dispatch:
+      case RecordType.waste:
+      case RecordType.inventory:
+      case RecordType.pending:
+      default:
+        // For other record types, show a placeholder message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${currentTab.displayName}详情页面待开发')),
+        );
+        break;
+    }
   }
 
   @override

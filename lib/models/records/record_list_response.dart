@@ -100,3 +100,6 @@ class ProjectRecordListResponse extends Equatable {
 
   bool get isSuccess => code == 0;
 }
+
+// Type alias for general record list response
+typedef RecordListResponse = BusinessRecordListResponse;

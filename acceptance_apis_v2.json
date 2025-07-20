@@ -1,0 +1,963 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "一管一码",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "移动端"
+    },
+    {
+      "name": "移动端/验收操作"
+    }
+  ],
+  "paths": {
+    "/accept/do": {
+      "post": {
+        "summary": "施工方验收单提交",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/验收操作"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoAcceptVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/accept/do/audit": {
+      "post": {
+        "summary": "监理方、建设方、仓库验收确认",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/验收操作"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommonDoBusinessAuditVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/accept/detail": {
+      "get": {
+        "summary": "详情",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/验收操作"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultAcceptInfoVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "materiaList": [
+                      {
+                        "materialId": 0,
+                        "materialName": "",
+                        "num": 0,
+                        "installPileNo": "",
+                        "installImageUrl1": "",
+                        "installImageUrl2": ""
+                      }
+                    ],
+                    "imageList": [
+                      {
+                        "type": 0,
+                        "name": "",
+                        "url": "",
+                        "attachFormat": 0
+                      }
+                    ],
+                    "sendAcceptUrl": "",
+                    "acceptReportUrl": "",
+                    "realWarehouse": false,
+                    "warehouseId": 0,
+                    "warehouseUsers": [
+                      {
+                        "name": "",
+                        "phone": "",
+                        "messageTo": false
+                      }
+                    ],
+                    "supervisorUsers": [
+                      {
+                        "name": "",
+                        "phone": "",
+                        "messageTo": false
+                      }
+                    ],
+                    "constructionUsers": [
+                      {
+                        "name": "",
+                        "phone": "",
+                        "messageTo": false
+                      }
+                    ],
+                    "signInInfo": {
+                      "materiaList": [
+                        {
+                          "materialId": 0,
+                          "materialName": "",
+                          "num": 0,
+                          "installPileNo": "",
+                          "installImageUrl1": "",
+                          "installImageUrl2": ""
+                        }
+                      ],
+                      "imageList": [
+                        {
+                          "type": 0,
+                          "name": "",
+                          "url": "",
+                          "attachFormat": 0
+                        }
+                      ],
+                      "warehouseId": 0
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/accept/accept/users": {
+      "get": {
+        "summary": "获取验收用户",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/验收操作"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "roleType",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultAcceptUserInfoVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "supervisorUsers": [
+                      {
+                        "name": "",
+                        "phone": "",
+                        "messageTo": false
+                      }
+                    ],
+                    "constructionUsers": [
+                      {
+                        "name": "",
+                        "phone": "",
+                        "messageTo": false
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/accept/warehouse/users": {
+      "get": {
+        "summary": "获取仓库用户",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/验收操作"
+        ],
+        "parameters": [
+          {
+            "name": "warehouseId",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultWarehouseUserInfoVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "warehouseUsers": [
+                      {
+                        "name": "",
+                        "phone": "",
+                        "messageTo": false
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/accept/list": {
+      "get": {
+        "summary": "列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/验收操作"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageCommonBusinessListVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "bizType": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "materialNum": 0,
+                        "userName": "",
+                        "doTime": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/accept/after/accept/do": {
+      "post": {
+        "summary": "验收后入库",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/验收操作"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoAcceptSignInVO",
+                "description": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {},
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Result": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "type": "object",
+            "properties": {},
+            "description": "具体的内容."
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CommonDoBusinessAuditVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "验收id"
+          },
+          "pass": {
+            "type": "boolean",
+            "description": "验收是否通过"
+          }
+        }
+      },
+      "OrderItem": {
+        "type": "object",
+        "properties": {
+          "column": {
+            "type": "string",
+            "description": ""
+          },
+          "asc": {
+            "type": "boolean",
+            "description": ""
+          }
+        }
+      },
+      "MaterialVO": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "integer",
+            "description": "物料id"
+          },
+          "materialName": {
+            "type": "string",
+            "description": "物料名称"
+          },
+          "num": {
+            "type": "integer",
+            "description": "耗材数量",
+            "default": 1
+          },
+          "installPileNo": {
+            "type": "string",
+            "description": "安装桩号"
+          },
+          "installImageUrl1": {
+            "type": "string",
+            "description": "安装照片1"
+          },
+          "installImageUrl2": {
+            "type": "string",
+            "description": "安装照片2"
+          }
+        }
+      },
+      "AttachmentVO": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "integer",
+            "description": "附件类型"
+          },
+          "name": {
+            "type": "string",
+            "description": "附件名称"
+          },
+          "url": {
+            "type": "string",
+            "description": "附件url,相对地址"
+          },
+          "attachFormat": {
+            "type": "integer",
+            "description": "附件格式"
+          }
+        }
+      },
+      "CommonBusinessListVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "业务id"
+          },
+          "bizType": {
+            "type": "integer",
+            "description": "业务类型"
+          },
+          "projectName": {
+            "type": "string",
+            "description": "项目名称"
+          },
+          "projectCode": {
+            "type": "string",
+            "description": "项目编号"
+          },
+          "materialNum": {
+            "type": "integer",
+            "description": "耗材数量"
+          },
+          "userName": {
+            "type": "string",
+            "description": "负责人姓名"
+          },
+          "doTime": {
+            "type": "string",
+            "description": "操作时间"
+          }
+        }
+      },
+      "PageCommonBusinessListVO": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonBusinessListVO",
+              "description": "com.zzwater.pipeline.mobile.entity.vo.CommonBusinessListVO"
+            },
+            "description": ""
+          },
+          "total": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "size": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "current": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem",
+              "description": "com.baomidou.mybatisplus.core.metadata.OrderItem"
+            },
+            "description": ""
+          },
+          "optimizeCountSql": {
+            "type": "boolean",
+            "description": ""
+          },
+          "searchCount": {
+            "type": "boolean",
+            "description": ""
+          },
+          "optimizeJoinOfCountSql": {
+            "type": "boolean",
+            "description": ""
+          },
+          "maxLimit": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "countId": {
+            "type": "string",
+            "description": ""
+          }
+        }
+      },
+      "ResultPageCommonBusinessListVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageCommonBusinessListVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "DoAcceptVO": {
+        "type": "object",
+        "properties": {
+          "materiaList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaterialVO",
+              "description": "耗材 VO"
+            },
+            "description": "物料列表"
+          },
+          "imageList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentVO",
+              "description": "附件 VO"
+            },
+            "description": "照片附件列表"
+          },
+          "sendAcceptUrl": {
+            "type": "string",
+            "description": "报验单url"
+          },
+          "acceptReportUrl": {
+            "type": "string",
+            "description": "验收报告url"
+          },
+          "realWarehouse": {
+            "type": "boolean",
+            "description": "项目现场：0，独立仓库：1"
+          },
+          "warehouseId": {
+            "type": "integer",
+            "description": "仓库id"
+          },
+          "messageTo": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "推送列表"
+          }
+        }
+      },
+      "SignInInfoVO": {
+        "type": "object",
+        "properties": {
+          "materiaList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaterialVO",
+              "description": "耗材 VO"
+            },
+            "description": "物料列表"
+          },
+          "imageList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentVO",
+              "description": "附件 VO"
+            },
+            "description": "照片附件列表"
+          },
+          "warehouseId": {
+            "type": "integer",
+            "description": "仓库id"
+          }
+        }
+      },
+      "CommonUserVO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": ""
+          },
+          "phone": {
+            "type": "string",
+            "description": ""
+          },
+          "messageTo": {
+            "type": "boolean",
+            "description": ""
+          }
+        }
+      },
+      "AcceptInfoVO": {
+        "type": "object",
+        "properties": {
+          "materiaList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaterialVO",
+              "description": "耗材 VO"
+            },
+            "description": "物料列表"
+          },
+          "imageList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentVO",
+              "description": "附件 VO"
+            },
+            "description": "照片附件列表"
+          },
+          "sendAcceptUrl": {
+            "type": "string",
+            "description": "报验单url"
+          },
+          "acceptReportUrl": {
+            "type": "string",
+            "description": "验收报告url"
+          },
+          "realWarehouse": {
+            "type": "boolean",
+            "description": "项目现场：0，独立仓库：1"
+          },
+          "warehouseId": {
+            "type": "integer",
+            "description": "仓库id"
+          },
+          "warehouseUsers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonUserVO",
+              "description": "com.zzwater.pipeline.core.entity.vo.CommonUserVO"
+            },
+            "description": "仓库负责人列表"
+          },
+          "supervisorUsers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonUserVO",
+              "description": "com.zzwater.pipeline.core.entity.vo.CommonUserVO"
+            },
+            "description": "监理负责人列表"
+          },
+          "constructionUsers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonUserVO",
+              "description": "com.zzwater.pipeline.core.entity.vo.CommonUserVO"
+            },
+            "description": "建设方负责人列表"
+          },
+          "signInInfo": {
+            "$ref": "#/components/schemas/SignInInfoVO",
+            "description": "入库信息"
+          }
+        }
+      },
+      "ResultAcceptInfoVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AcceptInfoVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "DoAcceptSignInVO": {
+        "type": "object",
+        "properties": {
+          "acceptId": {
+            "type": "integer",
+            "description": ""
+          },
+          "materiaList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaterialVO",
+              "description": "耗材 VO"
+            },
+            "description": "物料列表"
+          },
+          "imageList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentVO",
+              "description": "附件 VO"
+            },
+            "description": "照片附件列表"
+          }
+        }
+      },
+      "AcceptUserInfoVO": {
+        "type": "object",
+        "properties": {
+          "supervisorUsers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonUserVO",
+              "description": "com.zzwater.pipeline.core.entity.vo.CommonUserVO"
+            },
+            "description": "监理负责人列表"
+          },
+          "constructionUsers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonUserVO",
+              "description": "com.zzwater.pipeline.core.entity.vo.CommonUserVO"
+            },
+            "description": "建设方负责人列表"
+          }
+        }
+      },
+      "ResultAcceptUserInfoVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AcceptUserInfoVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "WarehouseUserInfoVO": {
+        "type": "object",
+        "properties": {
+          "warehouseUsers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonUserVO",
+              "description": "com.zzwater.pipeline.core.entity.vo.CommonUserVO"
+            },
+            "description": "仓库负责人列表"
+          }
+        }
+      },
+      "ResultWarehouseUserInfoVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/WarehouseUserInfoVO",
+            "description": "具体的内容."
+          }
+        }
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}

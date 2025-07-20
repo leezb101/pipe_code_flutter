@@ -8,9 +8,15 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../models/inventory/pipe_material.dart';
+import '../../models/acceptance/common_user_vo.dart';
 import '../../widgets/file_upload/image_upload_widget.dart';
 import '../../widgets/file_upload/file_upload_widget.dart';
+import '../../bloc/acceptance/acceptance_bloc.dart';
+import '../../bloc/acceptance/acceptance_event.dart';
+import '../../bloc/acceptance/acceptance_state.dart';
 
 class AcceptancePage extends StatefulWidget {
   const AcceptancePage({super.key, required this.materials});
@@ -29,12 +35,14 @@ class _AcceptancePageState extends State<AcceptancePage> {
   // 仓库选择相关
   String _storageType = 'project'; // 'project' 或 'independent'
   String? _selectedWarehouse;
-  String? _selectedManager;
-  bool _isNewManager = false;
-
-  // 新增负责人信息
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+  
+  // 用户列表相关
+  List<CommonUserVO> _warehouseUsers = [];
+  List<CommonUserVO> _supervisorUsers = [];
+  List<CommonUserVO> _constructionUsers = [];
+  
+  // 推送选择状态
+  Map<String, bool> _userPushStates = {};
 
   // 模拟数据
   final List<String> _warehouses = [
@@ -43,61 +51,95 @@ class _AcceptancePageState extends State<AcceptancePage> {
     'ZZZZ仓库-地址ZZZZZZZZ',
   ];
 
-  final List<String> _managers = ['李明', '王强', '张华'];
-
   @override
   void initState() {
     super.initState();
     _selectedWarehouse = _warehouses.first;
-    _selectedManager = _managers.first;
+    // Load initial user data - using mock project and role IDs
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AcceptanceBloc>().add(const LoadAcceptanceUsers(
+        projectId: 1, // Use current project ID from context
+        roleType: 1,  // Use appropriate role type
+      ));
+      context.read<AcceptanceBloc>().add(const LoadWarehouseUsers(
+        warehouseId: 1000, // Use current warehouse ID
+      ));
+    });
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _phoneController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('一管一码'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: _handleViewRecords,
-            child: const Text(
-              '验收记录',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      backgroundColor: Colors.grey[50],
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildMaterialsList(),
-                  const SizedBox(height: 16),
-                  _buildAttachmentSection(),
-                  const SizedBox(height: 16),
-                  _buildWarehouseSection(),
-                ],
+    return BlocListener<AcceptanceBloc, AcceptanceState>(
+      listener: (context, state) {
+        if (state is AcceptanceUsersLoaded) {
+          setState(() {
+            _supervisorUsers = state.acceptUserInfo.supervisorUsers;
+            _constructionUsers = state.acceptUserInfo.constructionUsers;
+            // Initialize push states
+            for (var user in _supervisorUsers) {
+              _userPushStates['supervisor_${user.name}'] = user.messageTo;
+            }
+            for (var user in _constructionUsers) {
+              _userPushStates['construction_${user.name}'] = user.messageTo;
+            }
+          });
+        } else if (state is WarehouseUsersLoaded) {
+          setState(() {
+            _warehouseUsers = state.warehouseUserInfo.warehouseUsers;
+            // Initialize push states
+            for (var user in _warehouseUsers) {
+              _userPushStates['warehouse_${user.name}'] = user.messageTo;
+            }
+          });
+        } else if (state is AcceptanceError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('一管一码'),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          elevation: 0,
+          centerTitle: true,
+          actions: [
+            TextButton(
+              onPressed: _handleViewRecords,
+              child: const Text(
+                '验收记录',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
-          ),
-          _buildActionButtons(),
-        ],
+            const SizedBox(width: 8),
+          ],
+        ),
+        backgroundColor: Colors.grey[50],
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _buildMaterialsList(),
+                    const SizedBox(height: 16),
+                    _buildAttachmentSection(),
+                    const SizedBox(height: 16),
+                    _buildWarehouseSection(),
+                  ],
+                ),
+              ),
+            ),
+            _buildActionButtons(),
+          ],
+        ),
       ),
     );
   }
@@ -267,10 +309,16 @@ class _AcceptancePageState extends State<AcceptancePage> {
             ),
             const SizedBox(height: 20),
             _buildStorageTypeSelection(),
+            if (_storageType == 'independent') ...[
+              const SizedBox(height: 20),
+              _buildWarehouseSelection(),
+            ],
             const SizedBox(height: 20),
-            _buildWarehouseSelection(),
+            _buildUserSection('仓库负责人', _warehouseUsers, 'warehouse'),
             const SizedBox(height: 20),
-            _buildManagerSection(),
+            _buildUserSection('监理方负责人', _supervisorUsers, 'supervisor'),
+            const SizedBox(height: 20),
+            _buildUserSection('建设方负责人', _constructionUsers, 'construction'),
           ],
         ),
       ),
@@ -356,114 +404,93 @@ class _AcceptancePageState extends State<AcceptancePage> {
     );
   }
 
-  Widget _buildManagerSection() {
+  Widget _buildUserSection(String title, List<CommonUserVO> users, String type) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '仓库负责人：',
-          style: TextStyle(
+        Text(
+          '$title：',
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: Colors.black87,
           ),
         ),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _selectedManager,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedManager = newValue;
-                });
-              },
-              items: _managers.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(value),
-                  ),
-                );
-              }).toList(),
+        const SizedBox(height: 12),
+        if (users.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
             ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Checkbox(
-              value: _isNewManager,
-              onChanged: (bool? value) {
-                setState(() {
-                  _isNewManager = value ?? false;
-                });
-              },
+            child: const Text(
+              '暂无用户数据',
+              style: TextStyle(color: Colors.grey),
             ),
-            const Text('是否新增仓库负责人', style: TextStyle(fontSize: 16)),
-          ],
-        ),
-        if (_isNewManager) ...[
-          const SizedBox(height: 16),
-          _buildNewManagerForm(),
-        ],
+          )
+        else
+          ...users.map((user) => _buildUserItem(user, type)).toList(),
       ],
     );
   }
 
-  Widget _buildNewManagerForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '姓名：',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _nameController,
-          decoration: InputDecoration(
-            hintText: '请输入姓名',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 8,
+  Widget _buildUserItem(CommonUserVO user, String type) {
+    final key = '${type}_${user.name}';
+    final isSelected = _userPushStates[key] ?? false;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  user.phone,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          '手机号：',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+          Row(
+            children: [
+              Checkbox(
+                value: isSelected,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _userPushStates[key] = value ?? false;
+                  });
+                },
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              const Text(
+                '推送',
+                style: TextStyle(fontSize: 12),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _phoneController,
-          decoration: InputDecoration(
-            hintText: '请输入手机号',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 8,
-            ),
-          ),
-          keyboardType: TextInputType.phone,
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -603,9 +630,8 @@ class _AcceptancePageState extends State<AcceptancePage> {
   }
 
   void _handleViewRecords() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('查看验收记录')));
+    // Navigate to records page with acceptance tab selected
+    context.go('/records?tab=accept');
   }
 
   void _handleScanAcceptance() {
@@ -614,10 +640,16 @@ class _AcceptancePageState extends State<AcceptancePage> {
     print('验收报告数量: ${_acceptanceReports.length}');
     print('仓库类型: $_storageType');
     print('选择的仓库: $_selectedWarehouse');
-    print('负责人: $_selectedManager');
-    if (_isNewManager) {
-      print('新增负责人: ${_nameController.text}, ${_phoneController.text}');
-    }
+    print('推送状态: $_userPushStates');
+    
+    // Collect selected user IDs for push notifications
+    final selectedUserIds = <int>[];
+    _userPushStates.forEach((key, value) {
+      if (value) {
+        print('选中推送用户: $key');
+        // In real implementation, map user names to IDs
+      }
+    });
 
     ScaffoldMessenger.of(
       context,
@@ -642,10 +674,16 @@ class _AcceptancePageState extends State<AcceptancePage> {
     print('验收报告数量: ${_acceptanceReports.length}');
     print('仓库类型: $_storageType');
     print('选择的仓库: $_selectedWarehouse');
-    print('负责人: $_selectedManager');
-    if (_isNewManager) {
-      print('新增负责人: ${_nameController.text}, ${_phoneController.text}');
-    }
+    print('推送状态: $_userPushStates');
+    
+    // Collect selected user IDs for push notifications
+    final selectedUserIds = <int>[];
+    _userPushStates.forEach((key, value) {
+      if (value) {
+        print('选中推送用户: $key');
+        // In real implementation, map user names to IDs
+      }
+    });
 
     ScaffoldMessenger.of(
       context,

@@ -12,15 +12,18 @@ import '../interfaces/api_service_interface.dart';
 import '../interfaces/auth_api_service.dart';
 import '../interfaces/user_api_service.dart';
 import '../interfaces/list_api_service.dart';
+import '../interfaces/acceptance_api_service.dart';
 import 'mock_auth_api_service.dart';
 import 'mock_user_api_service.dart';
 import 'mock_list_api_service.dart';
+import 'mock_acceptance_api_service.dart';
 
 class MockApiService implements ApiServiceInterface {
   AuthApiService? _authService;
   UserApiService? _userService;
   ListApiService? _listService;
   SpareqrApiService? _spareqrService;
+  AcceptanceApiService? _acceptanceService;
 
   @override
   AuthApiService get auth => _authService ??= MockAuthApiService();
@@ -33,4 +36,7 @@ class MockApiService implements ApiServiceInterface {
 
   @override
   SpareqrApiService get spare => _spareqrService ??= MockSpareqrApiService();
+
+  @override
+  AcceptanceApiService get acceptance => _acceptanceService ??= MockAcceptanceApiService();
 }

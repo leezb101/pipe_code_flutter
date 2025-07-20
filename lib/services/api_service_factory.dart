@@ -19,6 +19,9 @@ import 'api/mock/mock_api_service.dart';
 import 'api/interfaces/records_api_service.dart';
 import 'api/implementations/real_records_api_service.dart';
 import 'api/mock/mock_records_api_service.dart';
+import 'api/interfaces/identification_api_service.dart';
+import 'api/implementations/identification_api_service_impl.dart';
+import 'api/mock/mock_identification_api_service.dart';
 
 class ApiServiceFactory {
   static ApiServiceInterface create() {
@@ -36,6 +39,15 @@ class ApiServiceFactory {
     } else {
       final dio = _createDio();
       return RealRecordsApiService(dio);
+    }
+  }
+
+  static IdentificationApiService createIdentificationService() {
+    if (AppConfig.isMockEnabled) {
+      return MockIdentificationApiService();
+    } else {
+      final dio = _createDio();
+      return IdentificationApiServiceImpl(dio);
     }
   }
 
