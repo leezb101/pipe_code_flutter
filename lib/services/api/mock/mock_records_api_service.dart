@@ -3,6 +3,7 @@ import '../../../models/records/record_list_response.dart';
 import '../../../models/records/record_type.dart';
 import '../../../models/records/business_record.dart';
 import '../../../models/records/project_record.dart';
+import '../../../models/common/result.dart';
 import '../interfaces/records_api_service.dart';
 
 class MockRecordsApiService implements RecordsApiService {
@@ -13,7 +14,7 @@ class MockRecordsApiService implements RecordsApiService {
   }
 
   @override
-  Future<BusinessRecordListResponse> getBusinessRecords({
+  Future<Result<BusinessRecordPageData>> getBusinessRecords({
     required RecordType recordType,
     int? projectId,
     int? userId,
@@ -39,11 +40,11 @@ class MockRecordsApiService implements RecordsApiService {
       current: pageNum,
     );
 
-    return BusinessRecordListResponse(code: 0, msg: '成功', data: pageData);
+    return Result(code: 0, msg: '成功', data: pageData);
   }
 
   @override
-  Future<ProjectRecordListResponse> getProjectInitRecords({
+  Future<Result<ProjectRecordPageData>> getProjectInitRecords({
     int pageNum = 1,
     int pageSize = 10,
     String? projectName,
@@ -69,16 +70,11 @@ class MockRecordsApiService implements RecordsApiService {
       pages: (totalRecords / pageSize).ceil(),
     );
 
-    return ProjectRecordListResponse(
-      code: 0,
-      msg: '成功',
-      data: pageData,
-      success: true,
-    );
+    return Result(code: 0, msg: '成功', data: pageData);
   }
 
   @override
-  Future<ProjectRecordListResponse> getProjectAuditRecords({
+  Future<Result<ProjectRecordPageData>> getProjectAuditRecords({
     int pageNum = 1,
     int pageSize = 10,
     String? projectName,
@@ -104,12 +100,7 @@ class MockRecordsApiService implements RecordsApiService {
       pages: (totalRecords / pageSize).ceil(),
     );
 
-    return ProjectRecordListResponse(
-      code: 0,
-      msg: '成功',
-      data: pageData,
-      success: true,
-    );
+    return Result(code: 0, msg: '成功', data: pageData);
   }
 
   BusinessRecord _generateBusinessRecord(int index, RecordType recordType) {

@@ -48,7 +48,7 @@ class AuthRepository {
 
       return result;
     } catch (e) {
-      return Result(code: -1, msg: e.toString(), data: null);
+      return Result(code: -1, msg: '登录失败，请稍后再试', data: null);
     }
   }
 
@@ -77,7 +77,7 @@ class AuthRepository {
 
       return result;
     } catch (e) {
-      return Result(code: -1, msg: e.toString(), data: null);
+      return Result(code: -1, msg: '登录失败，请稍后再试', data: null);
     }
   }
 
@@ -122,7 +122,7 @@ class AuthRepository {
 
       return result;
     } catch (e) {
-      return Result(code: -1, msg: e.toString(), data: null);
+      return Result(code: -1, msg: '登录失败，请稍后再试', data: null);
     }
   }
 
@@ -156,7 +156,7 @@ class AuthRepository {
 
       return result;
     } catch (e) {
-      return Result(code: -1, msg: e.toString(), data: null);
+      return Result(code: -1, msg: '登录失败，请稍后再试', data: null);
     }
   }
 

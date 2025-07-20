@@ -9,6 +9,7 @@
 import 'package:dio/dio.dart';
 import '../../../config/app_config.dart';
 import '../../../models/material/scan_identification_response.dart';
+import '../../../models/common/result.dart';
 import '../interfaces/identification_api_service.dart';
 import '../../../utils/logger.dart';
 
@@ -19,7 +20,7 @@ class IdentificationApiServiceImpl implements IdentificationApiService {
   IdentificationApiServiceImpl(this._dio);
 
   @override
-  Future<ScanIdentificationResponse> scanMaterialIdentification(
+  Future<Result<ScanIdentificationData>> scanMaterialIdentification(
     String code,
   ) async {
     try {
@@ -38,9 +39,17 @@ class IdentificationApiServiceImpl implements IdentificationApiService {
       Logger.api('扫码识别响应成功 - Status: ${response.statusCode}');
 
       if (response.statusCode == 200 && response.data != null) {
-        return ScanIdentificationResponse.fromJson(response.data);
+        return Result.safeFromJson(
+          response.data,
+          (json) => ScanIdentificationData.fromJson(json as Map<String, dynamic>),
+          'ScanIdentificationData',
+        );
       } else {
-        throw Exception('API响应异常: ${response.statusCode}');
+        return Result(
+          code: response.statusCode ?? -1,
+          msg: 'API响应异常: ${response.statusCode}',
+          data: null,
+        );
       }
     } on DioException catch (e) {
       Logger.api('扫码识别请求失败 - ${e.type}: ${e.message}');
@@ -62,11 +71,19 @@ class IdentificationApiServiceImpl implements IdentificationApiService {
           errorMessage = '网络请求失败';
       }
 
-      throw Exception(errorMessage);
+      return Result(
+        code: e.response?.statusCode ?? -1,
+        msg: errorMessage,
+        data: null,
+      );
     } catch (e) {
       Logger.api('扫码识别请求失败 - 其他异常: ${e.toString()}');
 
-      throw Exception('扫码识别失败: ${e.toString()}');
+      return Result(
+        code: -1,
+        msg: '扫码识别失败，请稍后再试',
+        data: null,
+      );
     }
   }
 }

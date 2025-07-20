@@ -622,10 +622,10 @@ class IdentificationStrategy implements QrScanStrategy {
     try {
       // 调用扫码识别API
       final identificationService = ApiServiceFactory.createIdentificationService();
-      final response = await identificationService.scanMaterialIdentification(result.code);
+      final apiResult = await identificationService.scanMaterialIdentification(result.code);
 
-      if (response.isSuccess) {
-        Logger.qrScan('识别成功 - 类型: ${response.data.materialType.description}, 分组: ${response.data.materialGroup.message}, 编码: ${response.data.materialCode}', deviceCode: result.code);
+      if (apiResult.isSuccess && apiResult.data != null) {
+        Logger.qrScan('识别成功 - 类型: ${apiResult.data!.materialType.description}, 分组: ${apiResult.data!.materialGroup.message}, 编码: ${apiResult.data!.materialCode}', deviceCode: result.code);
 
         // 返回导航到材料详情页面
         return QrScanProcessResult(
@@ -633,15 +633,15 @@ class IdentificationStrategy implements QrScanStrategy {
           navigationData: QrScanNavigationData(
             route: '/material-detail',
             data: {
-              'identificationData': response.data,
+              'identificationData': apiResult.data,
             },
           ),
         );
       } else {
-        Logger.qrScan('识别失败: ${response.msg}', deviceCode: result.code);
+        Logger.qrScan('识别失败: ${apiResult.msg}', deviceCode: result.code);
         return QrScanProcessResult(
           success: false,
-          errorMessage: response.msg.isNotEmpty ? response.msg : '识别失败',
+          errorMessage: apiResult.msg.isNotEmpty ? apiResult.msg : '识别失败',
         );
       }
     } catch (e) {

@@ -21,18 +21,32 @@ class RecordsRepository {
   }) async {
     try {
       if (!forceRefresh && _isCacheValid(recordType) && pageNum == 1) {
-        Logger.info('Returning cached records for $recordType', tag: 'RecordsRepository');
+        Logger.info(
+          'Returning cached records for $recordType',
+          tag: 'RecordsRepository',
+        );
         return _cache[recordType] ?? [];
       }
 
-      Logger.info('Fetching records for type: $recordType, page: $pageNum', tag: 'RecordsRepository');
+      Logger.info(
+        'Fetching records for type: $recordType, page: $pageNum',
+        tag: 'RecordsRepository',
+      );
 
       List<RecordItem> records;
 
       if (recordType == RecordType.pending) {
-        records = await _getPendingRecords(projectId: projectId, userId: userId, pageNum: pageNum, pageSize: pageSize);
+        records = await _getPendingRecords(
+          projectId: projectId,
+          userId: userId,
+          pageNum: pageNum,
+          pageSize: pageSize,
+        );
       } else if (recordType == RecordType.inventory) {
-        records = await _getProjectInitRecords(pageNum: pageNum, pageSize: pageSize);
+        records = await _getProjectInitRecords(
+          pageNum: pageNum,
+          pageSize: pageSize,
+        );
       } else {
         final response = await _apiService.getBusinessRecords(
           recordType: recordType,
@@ -46,7 +60,7 @@ class RecordsRepository {
           throw Exception(response.msg.isNotEmpty ? response.msg : '获取数据失败');
         }
 
-        records = response.data.records
+        records = response.data!.records
             .map((record) => BusinessRecordItem(record))
             .toList();
       }
@@ -56,16 +70,25 @@ class RecordsRepository {
         _cacheTimestamps[recordType] = DateTime.now();
       }
 
-      Logger.info('Successfully fetched ${records.length} records for $recordType', tag: 'RecordsRepository');
+      Logger.info(
+        'Successfully fetched ${records.length} records for $recordType',
+        tag: 'RecordsRepository',
+      );
       return records;
     } catch (e) {
-      Logger.error('Failed to fetch records for $recordType: $e', tag: 'RecordsRepository');
-      
+      Logger.error(
+        'Failed to fetch records for $recordType: $e',
+        tag: 'RecordsRepository',
+      );
+
       if (pageNum == 1 && _cache.containsKey(recordType)) {
-        Logger.info('Returning cached records due to error', tag: 'RecordsRepository');
+        Logger.info(
+          'Returning cached records due to error',
+          tag: 'RecordsRepository',
+        );
         return _cache[recordType] ?? [];
       }
-      
+
       rethrow;
     }
   }
@@ -96,13 +119,16 @@ class RecordsRepository {
         );
 
         if (response.isSuccess) {
-          final records = response.data.records
+          final records = response.data!.records
               .map((record) => BusinessRecordItem(record))
               .toList();
           allPendingRecords.addAll(records);
         }
       } catch (e) {
-        Logger.warning('Failed to fetch pending records for $recordType: $e', tag: 'RecordsRepository');
+        Logger.warning(
+          'Failed to fetch pending records for $recordType: $e',
+          tag: 'RecordsRepository',
+        );
       }
     }
 
@@ -110,7 +136,7 @@ class RecordsRepository {
 
     final startIndex = (pageNum - 1) * pageSize;
     final endIndex = (startIndex + pageSize).clamp(0, allPendingRecords.length);
-    
+
     return allPendingRecords.sublist(startIndex, endIndex);
   }
 
@@ -127,7 +153,7 @@ class RecordsRepository {
       throw Exception(response.msg.isNotEmpty ? response.msg : '获取项目列表失败');
     }
 
-    return response.data.records
+    return response.data!.records
         .map((record) => ProjectRecordItem(record))
         .toList();
   }
@@ -150,11 +176,14 @@ class RecordsRepository {
         throw Exception(response.msg.isNotEmpty ? response.msg : '获取审核列表失败');
       }
 
-      return response.data.records
+      return response.data!.records
           .map((record) => ProjectRecordItem(record))
           .toList();
     } catch (e) {
-      Logger.error('Failed to fetch audit records: $e', tag: 'RecordsRepository');
+      Logger.error(
+        'Failed to fetch audit records: $e',
+        tag: 'RecordsRepository',
+      );
       rethrow;
     }
   }
@@ -162,7 +191,7 @@ class RecordsRepository {
   bool _isCacheValid(RecordType recordType) {
     final timestamp = _cacheTimestamps[recordType];
     if (timestamp == null) return false;
-    
+
     return DateTime.now().difference(timestamp) < _cacheTimeout;
   }
 
@@ -181,7 +210,10 @@ class RecordsRepository {
   void updateCache(RecordType recordType, List<RecordItem> records) {
     _cache[recordType] = records;
     _cacheTimestamps[recordType] = DateTime.now();
-    Logger.info('Updated cache for $recordType with ${records.length} records', tag: 'RecordsRepository');
+    Logger.info(
+      'Updated cache for $recordType with ${records.length} records',
+      tag: 'RecordsRepository',
+    );
   }
 
   List<RecordItem>? getCachedRecords(RecordType recordType) {

@@ -20,7 +20,7 @@ class AcceptanceApiServiceImpl extends BaseApiService
       final response = await dio.post('/accept/do', data: request.toJson());
 
       if (response.statusCode == 200) {
-        final result = Result.fromJson(response.data, (json) => json);
+        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
         if (result.success == true) {
           return Result(code: 0, msg: 'success', data: null);
         } else {
@@ -49,7 +49,7 @@ class AcceptanceApiServiceImpl extends BaseApiService
       );
 
       if (response.statusCode == 200) {
-        final result = Result.fromJson(response.data, (json) => json);
+        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
         if (result.isSuccess) {
           return Result(code: 0, msg: 'success', data: null);
         } else {
@@ -78,7 +78,7 @@ class AcceptanceApiServiceImpl extends BaseApiService
       );
 
       if (response.statusCode == 200) {
-        final result = Result.fromJson(response.data, (json) => json);
+        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
         if (result.isSuccess && result.data != null) {
           final acceptanceInfo = AcceptanceInfoVO.fromJson(
             result.data as Map<String, dynamic>,
@@ -121,7 +121,7 @@ class AcceptanceApiServiceImpl extends BaseApiService
       );
 
       if (response.statusCode == 200) {
-        final result = Result.fromJson(response.data, (json) => json);
+        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
         if (result.isSuccess && result.data != null) {
           final recordList = RecordListResponse.fromJson(
             result.data as Map<String, dynamic>,
@@ -153,7 +153,7 @@ class AcceptanceApiServiceImpl extends BaseApiService
       );
 
       if (response.statusCode == 200) {
-        final result = Result.fromJson(response.data, (json) => json);
+        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
         if (result.isSuccess) {
           return Result(code: 0, msg: 'success', data: null);
         } else {
@@ -188,7 +188,7 @@ class AcceptanceApiServiceImpl extends BaseApiService
       );
 
       if (response.statusCode == 200) {
-        final result = Result.fromJson(response.data, (json) => json);
+        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
         if (result.isSuccess && result.data != null) {
           final acceptUserInfo = AcceptUserInfoVO.fromJson(
             result.data as Map<String, dynamic>,
@@ -224,7 +224,7 @@ class AcceptanceApiServiceImpl extends BaseApiService
       );
 
       if (response.statusCode == 200) {
-        final result = Result.fromJson(response.data, (json) => json);
+        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
         if (result.isSuccess && result.data != null) {
           final warehouseUserInfo = WarehouseUserInfoVO.fromJson(
             result.data as Map<String, dynamic>,

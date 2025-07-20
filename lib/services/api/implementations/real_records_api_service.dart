@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../../../models/records/record_list_response.dart';
 import '../../../models/records/record_type.dart';
+import '../../../models/common/result.dart';
 import '../interfaces/records_api_service.dart';
 
 class RealRecordsApiService implements RecordsApiService {
@@ -9,7 +10,7 @@ class RealRecordsApiService implements RecordsApiService {
   RealRecordsApiService(this._dio);
 
   @override
-  Future<BusinessRecordListResponse> getBusinessRecords({
+  Future<Result<BusinessRecordPageData>> getBusinessRecords({
     required RecordType recordType,
     int? projectId,
     int? userId,
@@ -27,14 +28,23 @@ class RealRecordsApiService implements RecordsApiService {
         },
       );
 
-      return BusinessRecordListResponse.fromJson(response.data);
+      return Result.safeFromJson(
+        response.data,
+        (json) => BusinessRecordPageData.fromJson(json as Map<String, dynamic>),
+        'BusinessRecordPageData',
+      );
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      final errorMsg = _getErrorMessage(e);
+      return Result(
+        code: e.response?.statusCode ?? -1,
+        msg: errorMsg,
+        data: null,
+      );
     }
   }
 
   @override
-  Future<ProjectRecordListResponse> getProjectInitRecords({
+  Future<Result<ProjectRecordPageData>> getProjectInitRecords({
     int pageNum = 1,
     int pageSize = 10,
     String? projectName,
@@ -51,14 +61,23 @@ class RealRecordsApiService implements RecordsApiService {
         },
       );
 
-      return ProjectRecordListResponse.fromJson(response.data);
+      return Result.safeFromJson(
+        response.data,
+        (json) => ProjectRecordPageData.fromJson(json as Map<String, dynamic>),
+        'ProjectRecordPageData',
+      );
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      final errorMsg = _getErrorMessage(e);
+      return Result(
+        code: e.response?.statusCode ?? -1,
+        msg: errorMsg,
+        data: null,
+      );
     }
   }
 
   @override
-  Future<ProjectRecordListResponse> getProjectAuditRecords({
+  Future<Result<ProjectRecordPageData>> getProjectAuditRecords({
     int pageNum = 1,
     int pageSize = 10,
     String? projectName,
@@ -75,40 +94,49 @@ class RealRecordsApiService implements RecordsApiService {
         },
       );
 
-      return ProjectRecordListResponse.fromJson(response.data);
+      return Result.safeFromJson(
+        response.data,
+        (json) => ProjectRecordPageData.fromJson(json as Map<String, dynamic>),
+        'ProjectRecordPageData',
+      );
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      final errorMsg = _getErrorMessage(e);
+      return Result(
+        code: e.response?.statusCode ?? -1,
+        msg: errorMsg,
+        data: null,
+      );
     }
   }
 
-  Exception _handleDioError(DioException e) {
+  String _getErrorMessage(DioException e) {
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return Exception('网络连接超时，请检查网络设置');
+        return '网络连接超时，请检查网络设置';
       case DioExceptionType.badResponse:
         final statusCode = e.response?.statusCode;
         if (statusCode == 401) {
-          return Exception('登录已过期，请重新登录');
+          return '登录已过期，请重新登录';
         } else if (statusCode == 403) {
-          return Exception('权限不足，无法访问此功能');
+          return '权限不足，无法访问此功能';
         } else if (statusCode == 404) {
-          return Exception('请求的资源不存在');
+          return '请求的资源不存在';
         } else if (statusCode == 500) {
-          return Exception('服务器内部错误，请稍后重试');
+          return '服务器内部错误，请稍后重试';
         } else {
-          return Exception('网络请求失败(${statusCode})');
+          return '网络请求失败(${statusCode})';
         }
       case DioExceptionType.cancel:
-        return Exception('请求已取消');
+        return '请求已取消';
       case DioExceptionType.connectionError:
-        return Exception('网络连接失败，请检查网络设置');
+        return '网络连接失败，请检查网络设置';
       case DioExceptionType.badCertificate:
-        return Exception('证书验证失败');
+        return '证书验证失败';
       case DioExceptionType.unknown:
       default:
-        return Exception('网络请求失败: ${e.message}');
+        return '网络请求失败: ${e.message}';
     }
   }
 }

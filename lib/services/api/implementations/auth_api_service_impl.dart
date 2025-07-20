@@ -53,9 +53,10 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
       // NetworkLogger.printFullJson(
       // Logger.json('PASSWORD_LOGIN_RESPONSE', response.data);
 
-      return Result.fromJson(
+      return Result.safeFromJson(
         response.data,
         (json) => WxLoginVO.fromJson(json as Map<String, dynamic>),
+        'WxLoginVO',
       );
     } on DioException catch (e) {
       Logger.error('密码登录网络错误: ${e.type}', tag: 'LOGIN', error: e);
@@ -100,9 +101,10 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
       }
       Logger.json('SMS_LOGIN_RESPONSE', response.data);
 
-      return Result.fromJson(
+      return Result.safeFromJson(
         response.data,
         (json) => WxLoginVO.fromJson(json as Map<String, dynamic>),
+        'WxLoginVO',
       );
     } on DioException catch (e) {
       Logger.error('短信登录网络错误: ${e.type}', tag: 'SMS_LOGIN', error: e);
@@ -141,7 +143,7 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
       );
 
       // 检查响应体中的数据
-      final apiResult = Result.fromJson(response.data, (json) => json);
+      final apiResult = Result.safeFromJson(response.data, (json) => json, 'SmsCodeResponse');
       if (apiResult.isSuccess) {
         // 创建SmsCodeResult对象
         final smsCodeResult = SmsCodeResult.create(
@@ -195,9 +197,10 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
       Logger.captcha('验证码header字段已找到', imgCode: imgCode);
 
       // 检查响应体中的数据
-      final apiResult = Result.fromJson(
+      final apiResult = Result.safeFromJson(
         response.data,
         (json) => json as String,
+        'CaptchaResponse',
       );
       if (apiResult.isSuccess && apiResult.data != null) {
         final base64Data = apiResult.data!;
@@ -241,9 +244,10 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
     try {
       final queryParams = tk != null ? {'tk': tk} : <String, dynamic>{};
       final response = await dio.get('/wx/check', queryParameters: queryParams);
-      return Result.fromJson(
+      return Result.safeFromJson(
         response.data,
         (json) => WxLoginVO.fromJson(json as Map<String, dynamic>),
+        'WxLoginVO',
       );
     } on DioException catch (e) {
       throw handleError(e);
@@ -254,9 +258,10 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
   Future<Result<WxLoginVO>> refreshToken(RF refreshRequest) async {
     try {
       final response = await dio.post('/wx/rf', data: refreshRequest.toJson());
-      return Result.fromJson(
+      return Result.safeFromJson(
         response.data,
         (json) => WxLoginVO.fromJson(json as Map<String, dynamic>),
+        'WxLoginVO',
       );
     } on DioException catch (e) {
       throw handleError(e);
@@ -296,10 +301,11 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
         response.data = json.decode(response.data);
       }
 
-      return Result.fromJson(
+      return Result.safeFromJson(
         response.data,
         (json) =>
             CurrentUserOnProjectRoleInfo.fromJson(json as Map<String, dynamic>),
+        'CurrentUserOnProjectRoleInfo',
       );
     } on DioException catch (e) {
       throw handleError(e);

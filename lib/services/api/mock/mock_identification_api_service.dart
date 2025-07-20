@@ -8,23 +8,29 @@
 
 import '../../../models/material/scan_identification_response.dart';
 import '../../../models/material/material_info_base.dart';
+import '../../../models/common/result.dart';
 import '../interfaces/identification_api_service.dart';
 
 /// Mock扫码识别API服务实现
 class MockIdentificationApiService implements IdentificationApiService {
   @override
-  Future<ScanIdentificationResponse> scanMaterialIdentification(String code) async {
+  Future<Result<ScanIdentificationData>> scanMaterialIdentification(String code) async {
     // 模拟网络延迟
     await Future.delayed(const Duration(milliseconds: 800));
 
     // 根据不同的扫码内容返回不同的模拟数据
-    return _getMockDataByCode(code);
+    final data = _getMockDataByCode(code);
+    return Result(
+      code: 0,
+      msg: '成功',
+      data: data,
+    );
   }
 
-  ScanIdentificationResponse _getMockDataByCode(String code) {
+  ScanIdentificationData _getMockDataByCode(String code) {
     // 根据扫码内容返回不同类型的材料数据
     if (code.contains('729960879520481280')) {
-      return _createMockResponse(
+      return _createMockData(
         code: code,
         type: 0, // 球墨铸铁
         group: 0, // 管材
@@ -50,7 +56,7 @@ class MockIdentificationApiService implements IdentificationApiService {
         },
       );
     } else if (code.contains('729960875670110208')) {
-      return _createMockResponse(
+      return _createMockData(
         code: code,
         type: 1, // 钢管
         group: 0, // 管材
@@ -67,7 +73,7 @@ class MockIdentificationApiService implements IdentificationApiService {
         },
       );
     } else if (code.contains('XT03K3312500172041')) {
-      return _createMockResponse(
+      return _createMockData(
         code: code,
         type: 6, // 阀门
         group: 1, // 管件
@@ -86,7 +92,7 @@ class MockIdentificationApiService implements IdentificationApiService {
       );
     } else {
       // 默认返回通用材料信息
-      return _createMockResponse(
+      return _createMockData(
         code: code,
         type: 0,
         group: 0,
@@ -99,7 +105,7 @@ class MockIdentificationApiService implements IdentificationApiService {
     }
   }
 
-  ScanIdentificationResponse _createMockResponse({
+  ScanIdentificationData _createMockData({
     required String code,
     required int type,
     required int group,
@@ -142,12 +148,6 @@ class MockIdentificationApiService implements IdentificationApiService {
       installs: null,
     );
 
-    return ScanIdentificationResponse(
-      code: 0,
-      msg: '成功',
-      tc: null,
-      data: data,
-      success: true,
-    );
+    return data;
   }
 }

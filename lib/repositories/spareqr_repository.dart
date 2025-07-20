@@ -49,7 +49,7 @@ class SpareqrRepository {
 
       yield SpareQrSuccess(savePath);
     } catch (e) {
-      yield SpareQrFailure(e.toString());
+      yield const SpareQrFailure('下载失败，请稍后再试');
     }
   }
 
