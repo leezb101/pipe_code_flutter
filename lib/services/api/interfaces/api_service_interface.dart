@@ -11,6 +11,7 @@ import 'auth_api_service.dart';
 import 'user_api_service.dart';
 import 'list_api_service.dart';
 import 'acceptance_api_service.dart';
+import 'common_query_api_service.dart';
 
 abstract class ApiServiceInterface {
   AuthApiService get auth;
@@ -18,4 +19,5 @@ abstract class ApiServiceInterface {
   ListApiService get list;
   SpareqrApiService get spare;
   AcceptanceApiService get acceptance;
+  CommonQueryApiService get commonQuery;
 }

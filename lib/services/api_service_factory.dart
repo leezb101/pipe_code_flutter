@@ -54,7 +54,7 @@ class ApiServiceFactory {
     }
   }
 
-  static ICommonQueryApiService createCommonQueryService() {
+  static CommonQueryApiService createCommonQueryService() {
     if (AppConfig.isMockEnabled) {
       return MockCommonQueryApiService();
     } else {

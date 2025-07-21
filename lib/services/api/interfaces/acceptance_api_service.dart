@@ -1,3 +1,10 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-20 11:24:10
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-21 15:33:07
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:pipe_code_flutter/models/common/result.dart';
 import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/do_accept_vo.dart';

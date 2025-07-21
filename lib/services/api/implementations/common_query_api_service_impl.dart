@@ -1,3 +1,10 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-21 14:54:15
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-21 15:39:45
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:dio/dio.dart';
 import '../../../models/common/accept_user_info_vo.dart';
 import '../../../models/common/warehouse_user_info_vo.dart';
@@ -6,7 +13,7 @@ import '../../../models/common/result.dart';
 import '../interfaces/common_query_api_service.dart';
 import '../../../config/app_config.dart';
 
-class CommonQueryApiServiceImpl implements ICommonQueryApiService {
+class CommonQueryApiServiceImpl implements CommonQueryApiService {
   final Dio _dio;
 
   CommonQueryApiServiceImpl(this._dio);
@@ -68,6 +75,25 @@ class CommonQueryApiServiceImpl implements ICommonQueryApiService {
       throw Exception('获取仓库信息失败: ${e.message}');
     } catch (e) {
       throw Exception('获取仓库信息失败: $e');
+    }
+  }
+
+  @override
+  Future<Result<List<WarehouseVO>>> getWarehouseList() async {
+    try {
+      final response = await _dio.get(
+        '${AppConfig.apiBaseUrl}/mobile/common/warehouse/list',
+      );
+
+      return Result.safeFromJson<List<WarehouseVO>>(
+        response.data,
+        (data) => (data as List<Map<String, dynamic>>)
+            .map((d) => WarehouseVO.fromJson(d))
+            .toList(),
+        'WarehouseVO',
+      );
+    } catch (e) {
+      throw Exception('获取仓库列表失败: $e');
     }
   }
 }

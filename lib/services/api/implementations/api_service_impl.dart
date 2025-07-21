@@ -1,8 +1,17 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-18 17:42:00
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-21 15:40:58
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:dio/dio.dart';
+import 'package:pipe_code_flutter/services/api/implementations/common_query_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/spareqr_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/spareqr_api_service.dart';
 import '../interfaces/api_service_interface.dart';
 import '../interfaces/auth_api_service.dart';
+import '../interfaces/common_query_api_service.dart';
 import '../interfaces/user_api_service.dart';
 import '../interfaces/list_api_service.dart';
 import '../interfaces/acceptance_api_service.dart';
@@ -19,6 +28,7 @@ class ApiServiceImpl implements ApiServiceInterface {
   ListApiService? _listService;
   SpareqrApiService? _spareService;
   AcceptanceApiService? _acceptanceService;
+  CommonQueryApiService? _commonQueryService;
 
   ApiServiceImpl(this._dio);
 
@@ -35,5 +45,10 @@ class ApiServiceImpl implements ApiServiceInterface {
   SpareqrApiService get spare => _spareService ??= SpareqrServiceImpl(_dio);
 
   @override
-  AcceptanceApiService get acceptance => _acceptanceService ??= AcceptanceApiServiceImpl(_dio);
+  AcceptanceApiService get acceptance =>
+      _acceptanceService ??= AcceptanceApiServiceImpl(_dio);
+
+  @override
+  CommonQueryApiService get commonQuery =>
+      _commonQueryService ??= CommonQueryApiServiceImpl(_dio);
 }

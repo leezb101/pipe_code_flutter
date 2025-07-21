@@ -5,11 +5,11 @@ import '../../../models/common/common_user_vo.dart';
 import '../../../models/common/result.dart';
 import '../interfaces/common_query_api_service.dart';
 
-class MockCommonQueryApiService implements ICommonQueryApiService {
+class MockCommonQueryApiService implements CommonQueryApiService {
   @override
   Future<Result<AcceptUserInfoVO>> getAcceptUsers(int projectId) async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     final acceptUserInfo = AcceptUserInfoVO(
       supervisorUsers: [
         const CommonUserVO(
@@ -45,17 +45,13 @@ class MockCommonQueryApiService implements ICommonQueryApiService {
       ],
     );
 
-    return Result<AcceptUserInfoVO>(
-      code: 0,
-      msg: '',
-      data: acceptUserInfo,
-    );
+    return Result<AcceptUserInfoVO>(code: 0, msg: '', data: acceptUserInfo);
   }
 
   @override
   Future<Result<WarehouseUserInfoVO>> getWarehouseUsers(int warehouseId) async {
     await Future.delayed(const Duration(milliseconds: 300));
-    
+
     final warehouseUserInfo = WarehouseUserInfoVO(
       warehouseUsers: [
         const CommonUserVO(
@@ -85,7 +81,7 @@ class MockCommonQueryApiService implements ICommonQueryApiService {
   @override
   Future<Result<WarehouseVO>> getWarehouseByMaterial(int materialId) async {
     await Future.delayed(const Duration(milliseconds: 400));
-    
+
     final warehouse = WarehouseVO(
       id: materialId % 10 + 1, // 基于materialId生成仓库ID
       name: '中心仓库${materialId % 5 + 1}号',
@@ -93,10 +89,23 @@ class MockCommonQueryApiService implements ICommonQueryApiService {
       isRealWarehouse: materialId % 2 == 0,
     );
 
-    return Result<WarehouseVO>(
-      code: 0,
-      msg: '',
-      data: warehouse,
+    return Result<WarehouseVO>(code: 0, msg: '', data: warehouse);
+  }
+
+  @override
+  Future<Result<List<WarehouseVO>>> getWarehouseList() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    final warehouses = List.generate(
+      5,
+      (index) => WarehouseVO(
+        id: index + 1,
+        name: '仓库${index + 1}',
+        address: '地址${index + 1}',
+        isRealWarehouse: index % 2 == 0,
+      ),
     );
+
+    return Result<List<WarehouseVO>>(code: 0, msg: '', data: warehouses);
   }
 }

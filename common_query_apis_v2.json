@@ -1,0 +1,396 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "一管一码",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "移动端"
+    },
+    {
+      "name": "移动端/移动端 公共业务"
+    }
+  ],
+  "paths": {
+    "/mobile/common/accept/users": {
+      "get": {
+        "summary": "获取验收用户",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/移动端 公共业务"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultAcceptUserInfoVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "supervisorUsers": [
+                      {
+                        "userId": 0,
+                        "name": "",
+                        "phone": "",
+                        "messageTo": false,
+                        "realHandler": false
+                      }
+                    ],
+                    "constructionUsers": [
+                      {
+                        "userId": 0,
+                        "name": "",
+                        "phone": "",
+                        "messageTo": false,
+                        "realHandler": false
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/mobile/common/warehouse/users": {
+      "get": {
+        "summary": "获取仓库用户",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/移动端 公共业务"
+        ],
+        "parameters": [
+          {
+            "name": "warehouseId",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultWarehouseUserInfoVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "warehouseUsers": [
+                      {
+                        "userId": 0,
+                        "name": "",
+                        "phone": "",
+                        "messageTo": false,
+                        "realHandler": false
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/mobile/common/warehouse/material": {
+      "get": {
+        "summary": "根据物料id 获取仓库信息",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/移动端 公共业务"
+        ],
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultWarehouseVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "id": 0,
+                    "name": "",
+                    "address": "",
+                    "isRealWarehouse": false
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/mobile/common/warehouse/list": {
+      "get": {
+        "summary": "获取仓库列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/移动端 公共业务"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListWarehouseVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "id": 0,
+                      "name": "",
+                      "address": "",
+                      "isRealWarehouse": false
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ResultListWarehouseVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WarehouseVO",
+              "description": "仓库vo"
+            },
+            "description": "具体的内容."
+          }
+        }
+      },
+      "CommonUserVO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "description": "人员id"
+          },
+          "name": {
+            "type": "string",
+            "description": "人员姓名"
+          },
+          "phone": {
+            "type": "string",
+            "description": "人员电话"
+          },
+          "messageTo": {
+            "type": "boolean",
+            "description": "是否推送通知"
+          },
+          "realHandler": {
+            "type": "boolean",
+            "description": "实际操作人（只有详情时展示具体操作人标识）"
+          }
+        }
+      },
+      "AcceptUserInfoVO": {
+        "type": "object",
+        "properties": {
+          "supervisorUsers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonUserVO",
+              "description": "com.zzwater.pipeline.core.entity.vo.CommonUserVO"
+            },
+            "description": "监理负责人列表"
+          },
+          "constructionUsers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonUserVO",
+              "description": "com.zzwater.pipeline.core.entity.vo.CommonUserVO"
+            },
+            "description": "建设方负责人列表"
+          }
+        }
+      },
+      "ResultAcceptUserInfoVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AcceptUserInfoVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "WarehouseUserInfoVO": {
+        "type": "object",
+        "properties": {
+          "warehouseUsers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonUserVO",
+              "description": "com.zzwater.pipeline.core.entity.vo.CommonUserVO"
+            },
+            "description": "仓库负责人列表"
+          }
+        }
+      },
+      "ResultWarehouseUserInfoVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/WarehouseUserInfoVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "WarehouseVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": ""
+          },
+          "name": {
+            "type": "string",
+            "description": ""
+          },
+          "address": {
+            "type": "string",
+            "description": ""
+          },
+          "isRealWarehouse": {
+            "type": "boolean",
+            "description": ""
+          }
+        }
+      },
+      "ResultWarehouseVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/WarehouseVO",
+            "description": "具体的内容."
+          }
+        }
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}
