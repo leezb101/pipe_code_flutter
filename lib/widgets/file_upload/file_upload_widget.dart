@@ -53,7 +53,7 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
             .where((path) => path != null)
             .map((path) => File(path!))
             .toList();
-        
+
         setState(() {
           _files.addAll(newFiles);
           if (_files.length > widget.maxFiles) {
@@ -63,9 +63,9 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
         widget.onFilesChanged(_files);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('选择文件失败: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('选择文件失败: $e')));
     }
   }
 
@@ -122,10 +122,7 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
             const SizedBox(width: 8),
             Text(
               '(${_files.length}/${widget.maxFiles})',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -167,11 +164,7 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
       ),
       child: Row(
         children: [
-          Icon(
-            fileIcon,
-            size: 24,
-            color: fileColor,
-          ),
+          Icon(fileIcon, size: 24, color: fileColor),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -190,21 +183,14 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
                 const SizedBox(height: 2),
                 Text(
                   '${extension.toUpperCase()} 文件',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),
           ),
           IconButton(
             onPressed: () => _removeFile(index),
-            icon: const Icon(
-              Icons.close,
-              size: 18,
-              color: Colors.red,
-            ),
+            icon: const Icon(Icons.close, size: 18, color: Colors.red),
           ),
         ],
       ),
@@ -224,17 +210,13 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
           width: double.infinity,
           height: 60,
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.05),
+            color: Colors.blue.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.cloud_upload,
-                size: 24,
-                color: Colors.blue[600],
-              ),
+              Icon(Icons.cloud_upload, size: 24, color: Colors.blue[600]),
               const SizedBox(width: 8),
               Text(
                 '点击上传文件',
@@ -247,10 +229,7 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
               const SizedBox(width: 8),
               Text(
                 '(${widget.allowedExtensions.join(', ')})',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
           ),

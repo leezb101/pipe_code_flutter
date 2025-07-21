@@ -57,27 +57,27 @@ class _SpareQrPageState extends State<SpareQrPage> {
       child: Scaffold(
         appBar: AppBar(title: const Text('备用二维码下载')),
         body: BlocConsumer<SpareQrBloc, SpareQrState>(
-        // 使用 listener 来显示 Toast 等一次性提示
-        listener: (context, state) {
-          if (state is SpareQrFailure) {
-            context.showErrorToast('下载失败: ${state.error}');
-          } else if (state is SpareQrSuccess) {
-            _currentFilePath = state.filePath;
-          } else if (state is SpareQrInitial) {
-            _currentFilePath = null;
-          }
-        },
-        // 使用 builder 来构建 UI
-        builder: (context, state) {
-          if (state is SpareQrInProgress) {
-            return _buildProgressIndicator(state);
-          }
-          if (state is SpareQrSuccess) {
-            return _buildSuccessView(context, state);
-          }
-          // 初始状态和失败状态都显示下载按钮
-          return _buildInitialView(context);
-        },
+          // 使用 listener 来显示 Toast 等一次性提示
+          listener: (context, state) {
+            if (state is SpareQrFailure) {
+              context.showErrorToast('下载失败: ${state.error}');
+            } else if (state is SpareQrSuccess) {
+              _currentFilePath = state.filePath;
+            } else if (state is SpareQrInitial) {
+              _currentFilePath = null;
+            }
+          },
+          // 使用 builder 来构建 UI
+          builder: (context, state) {
+            if (state is SpareQrInProgress) {
+              return _buildProgressIndicator(state);
+            }
+            if (state is SpareQrSuccess) {
+              return _buildSuccessView(context, state);
+            }
+            // 初始状态和失败状态都显示下载按钮
+            return _buildInitialView(context);
+          },
         ),
       ),
     );
@@ -260,7 +260,7 @@ class _SpareQrPageState extends State<SpareQrPage> {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: Colors.green.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -297,13 +297,19 @@ class _SpareQrPageState extends State<SpareQrPage> {
                         ),
                         onPressed: () async {
                           try {
-                            final shareResult = await Share.shareXFiles([XFile(state.filePath)]);
-                            if (shareResult.status == ShareResultStatus.success) {
+                            final shareResult = await Share.shareXFiles([
+                              XFile(state.filePath),
+                            ]);
+                            if (shareResult.status ==
+                                ShareResultStatus.success) {
                               if (context.mounted) {
                                 context.showSuccessToast('文件已分享，临时文件已清理');
-                                context.read<SpareQrBloc>().add(SpareQrFileShared(filePath: state.filePath));
+                                context.read<SpareQrBloc>().add(
+                                  SpareQrFileShared(filePath: state.filePath),
+                                );
                               }
-                            } else if (shareResult.status == ShareResultStatus.dismissed) {
+                            } else if (shareResult.status ==
+                                ShareResultStatus.dismissed) {
                               if (context.mounted) {
                                 context.showInfoToast('分享已取消，文件保留');
                               }
@@ -337,7 +343,7 @@ class _SpareQrPageState extends State<SpareQrPage> {
   Future<void> _cleanupTempFile() async {
     if (_currentFilePath != null && mounted) {
       context.read<SpareQrBloc>().add(
-        SpareQrFileShared(filePath: _currentFilePath!)
+        SpareQrFileShared(filePath: _currentFilePath!),
       );
       _currentFilePath = null;
     }
@@ -360,7 +366,9 @@ class _SpareQrPageState extends State<SpareQrPage> {
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-                context.read<SpareQrBloc>().add(SpareQrResetWithFileCleanup(filePath: filePath));
+                context.read<SpareQrBloc>().add(
+                  SpareQrResetWithFileCleanup(filePath: filePath),
+                );
               },
               child: const Text('确定'),
             ),

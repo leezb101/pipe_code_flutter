@@ -34,6 +34,7 @@ class WxLoginVO extends Equatable {
     required this.own,
     required this.boss,
     required this.admin,
+    this.storekeeper = false,
     required this.projectInfos,
     this.currentProject,
   });
@@ -92,6 +93,10 @@ class WxLoginVO extends Equatable {
   /// 是否管理员
   final bool admin;
 
+  /// 是否仓管员
+  @JsonKey(defaultValue: false)
+  final bool storekeeper;
+
   /// 参与的项目信息
   final List<ProjectInfo> projectInfos;
 
@@ -122,6 +127,7 @@ class WxLoginVO extends Equatable {
     bool? own,
     bool? boss,
     bool? admin,
+    bool? storekeeper,
     List<ProjectInfo>? projectInfos,
     ProjectInfo? currentProject,
   }) {
@@ -144,6 +150,7 @@ class WxLoginVO extends Equatable {
       own: own ?? this.own,
       boss: boss ?? this.boss,
       admin: admin ?? this.admin,
+      storekeeper: storekeeper ?? this.storekeeper,
       projectInfos: projectInfos ?? this.projectInfos,
       currentProject: currentProject ?? this.currentProject,
     );
@@ -169,6 +176,7 @@ class WxLoginVO extends Equatable {
     own,
     boss,
     admin,
+    storekeeper,
     projectInfos,
     currentProject,
   ];

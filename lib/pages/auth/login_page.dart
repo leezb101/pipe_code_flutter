@@ -124,6 +124,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               if (state is AuthLoginSuccess) {
                 context.showSuccessToast('登录成功');
                 context.go('/');
+              } else if (state is AuthIdentitySelectionRequired) {
+                // 仓管员需要选择身份，由 MainPage 处理跳转
+                context.go('/');
+              } else if (state is AuthStorekeeperAuthenticated) {
+                // 仓管员认证完成，由 MainPage 处理跳转
+                context.go('/');
               } else if (state is AuthSmsCodeSent) {
                 context.showSuccessToast('验证码已发送到 ${state.phone}');
                 _startCountdown();
@@ -179,7 +185,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 5),
               ),
@@ -212,7 +218,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           '一管一码 · 智能管理',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             fontWeight: FontWeight.w300,
           ),
         ),
@@ -252,7 +258,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -413,7 +419,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -606,18 +612,22 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         // 其他登录方式提示
         Row(
           children: [
-            Expanded(child: Divider(color: Colors.white.withOpacity(0.5))),
+            Expanded(
+              child: Divider(color: Colors.white.withValues(alpha: 0.5)),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 '其他登录方式',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withValues(alpha: 0.8),
                   fontSize: 14,
                 ),
               ),
             ),
-            Expanded(child: Divider(color: Colors.white.withOpacity(0.5))),
+            Expanded(
+              child: Divider(color: Colors.white.withValues(alpha: 0.5)),
+            ),
           ],
         ),
         const SizedBox(height: 20),
@@ -647,7 +657,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         // 版权信息
         Text(
           '© 2025 郑州水务科技有限公司',
-          style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12),
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 12,
+          ),
         ),
       ],
     );

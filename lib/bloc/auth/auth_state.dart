@@ -155,3 +155,23 @@ class AuthTokenRefreshed extends AuthState {
   @override
   List<Object> get props => [wxLoginVO];
 }
+
+/// 需要选择身份（仓管员用户专用）
+class AuthIdentitySelectionRequired extends AuthState {
+  const AuthIdentitySelectionRequired({required this.wxLoginVO});
+
+  final WxLoginVO wxLoginVO;
+
+  @override
+  List<Object> get props => [wxLoginVO];
+}
+
+/// 仓管员模式认证完成
+class AuthStorekeeperAuthenticated extends AuthState {
+  const AuthStorekeeperAuthenticated({required this.wxLoginVO});
+
+  final WxLoginVO wxLoginVO;
+
+  @override
+  List<Object> get props => [wxLoginVO];
+}

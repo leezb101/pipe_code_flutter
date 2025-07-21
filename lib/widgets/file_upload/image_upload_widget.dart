@@ -209,15 +209,12 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.file(
-                image, 
+                image,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     color: Colors.grey[200],
-                    child: const Icon(
-                      Icons.broken_image,
-                      color: Colors.grey,
-                    ),
+                    child: const Icon(Icons.broken_image, color: Colors.grey),
                   );
                 },
               ),
@@ -237,7 +234,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -264,7 +261,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
           width: 100,
           height: 100,
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.05),
+            color: Colors.blue.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(

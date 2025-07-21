@@ -35,12 +35,12 @@ class _AcceptancePageState extends State<AcceptancePage> {
   // 仓库选择相关
   String _storageType = 'project'; // 'project' 或 'independent'
   String? _selectedWarehouse;
-  
+
   // 用户列表相关
   List<CommonUserVO> _warehouseUsers = [];
   List<CommonUserVO> _supervisorUsers = [];
   List<CommonUserVO> _constructionUsers = [];
-  
+
   // 推送选择状态
   Map<String, bool> _userPushStates = {};
 
@@ -57,13 +57,17 @@ class _AcceptancePageState extends State<AcceptancePage> {
     _selectedWarehouse = _warehouses.first;
     // Load initial user data - using mock project and role IDs
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AcceptanceBloc>().add(const LoadAcceptanceUsers(
-        projectId: 1, // Use current project ID from context
-        roleType: 1,  // Use appropriate role type
-      ));
-      context.read<AcceptanceBloc>().add(const LoadWarehouseUsers(
-        warehouseId: 1000, // Use current warehouse ID
-      ));
+      context.read<AcceptanceBloc>().add(
+        const LoadAcceptanceUsers(
+          projectId: 1, // Use current project ID from context
+          roleType: 1, // Use appropriate role type
+        ),
+      );
+      context.read<AcceptanceBloc>().add(
+        const LoadWarehouseUsers(
+          warehouseId: 1000, // Use current warehouse ID
+        ),
+      );
     });
   }
 
@@ -97,9 +101,9 @@ class _AcceptancePageState extends State<AcceptancePage> {
             }
           });
         } else if (state is AcceptanceError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Scaffold(
@@ -404,7 +408,11 @@ class _AcceptancePageState extends State<AcceptancePage> {
     );
   }
 
-  Widget _buildUserSection(String title, List<CommonUserVO> users, String type) {
+  Widget _buildUserSection(
+    String title,
+    List<CommonUserVO> users,
+    String type,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -425,10 +433,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.grey[300]!),
             ),
-            child: const Text(
-              '暂无用户数据',
-              style: TextStyle(color: Colors.grey),
-            ),
+            child: const Text('暂无用户数据', style: TextStyle(color: Colors.grey)),
           )
         else
           ...users.map((user) => _buildUserItem(user, type)).toList(),
@@ -439,7 +444,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
   Widget _buildUserItem(CommonUserVO user, String type) {
     final key = '${type}_${user.name}';
     final isSelected = _userPushStates[key] ?? false;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -464,10 +469,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
                 const SizedBox(height: 2),
                 Text(
                   user.phone,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -483,10 +485,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
                 },
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              const Text(
-                '推送',
-                style: TextStyle(fontSize: 12),
-              ),
+              const Text('推送', style: TextStyle(fontSize: 12)),
             ],
           ),
         ],
@@ -501,7 +500,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -641,7 +640,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
     print('仓库类型: $_storageType');
     print('选择的仓库: $_selectedWarehouse');
     print('推送状态: $_userPushStates');
-    
+
     // Collect selected user IDs for push notifications
     final selectedUserIds = <int>[];
     _userPushStates.forEach((key, value) {
@@ -675,7 +674,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
     print('仓库类型: $_storageType');
     print('选择的仓库: $_selectedWarehouse');
     print('推送状态: $_userPushStates');
-    
+
     // Collect selected user IDs for push notifications
     final selectedUserIds = <int>[];
     _userPushStates.forEach((key, value) {

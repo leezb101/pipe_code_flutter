@@ -25,6 +25,7 @@ WxLoginVO _$WxLoginVOFromJson(Map<String, dynamic> json) => WxLoginVO(
   own: json['own'] as bool,
   boss: json['boss'] as bool,
   admin: json['admin'] as bool,
+  storekeeper: json['storekeeper'] as bool? ?? false,
   projectInfos: (json['projectInfos'] as List<dynamic>)
       .map((e) => ProjectInfo.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -52,6 +53,7 @@ Map<String, dynamic> _$WxLoginVOToJson(WxLoginVO instance) => <String, dynamic>{
   'own': instance.own,
   'boss': instance.boss,
   'admin': instance.admin,
+  'storekeeper': instance.storekeeper,
   'projectInfos': instance.projectInfos,
   'currentProject': instance.currentProject,
 };

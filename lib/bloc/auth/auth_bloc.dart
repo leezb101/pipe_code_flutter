@@ -25,6 +25,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLogoutRequested>(_onLogoutRequested);
     on<AuthCheckRequested>(_onCheckRequested);
     on<AuthTokenRefreshRequested>(_onTokenRefreshRequested);
+    on<AuthProjectModeRequested>(_onProjectModeRequested);
+    on<AuthStorekeeperModeRequested>(_onStorekeeperModeRequested);
   }
 
   Future<void> _onLoginWithPasswordRequested(
@@ -38,7 +40,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         imgCode: event.imgCode,
       );
       if (result.isSuccess) {
-        emit(AuthLoginSuccess(wxLoginVO: result.data!));
+        _handleLoginSuccess(result.data!, emit);
       } else {
         emit(AuthLoginFailure(error: result.msg));
       }
@@ -59,7 +61,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         smsCode: event.smsCode,
       );
       if (result.isSuccess) {
-        emit(AuthLoginSuccess(wxLoginVO: result.data!));
+        _handleLoginSuccess(result.data!, emit);
       } else {
         emit(AuthLoginFailure(error: result.msg));
       }
@@ -156,7 +158,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final result = await _authRepository.checkToken();
       if (result.isSuccess) {
-        emit(AuthLoginSuccess(wxLoginVO: result.data!));
+        _handleLoginSuccess(result.data!, emit);
       } else {
         emit(AuthUnauthenticated());
       }
@@ -179,6 +181,45 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     } catch (e) {
       emit(AuthFailure(error: e.toString()));
+    }
+  }
+
+  /// 处理登录成功，检查是否需要身份选择
+  void _handleLoginSuccess(
+    dynamic wxLoginVO,
+    Emitter<AuthState> emit,
+  ) {
+    // 检查用户是否为仓管员
+    if (wxLoginVO.storekeeper == true) {
+      // 仓管员需要选择身份
+      emit(AuthIdentitySelectionRequired(wxLoginVO: wxLoginVO));
+    } else {
+      // 普通用户继续原有流程
+      emit(AuthLoginSuccess(wxLoginVO: wxLoginVO));
+    }
+  }
+
+  /// 处理选择项目参与方模式
+  void _onProjectModeRequested(
+    AuthProjectModeRequested event,
+    Emitter<AuthState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is AuthIdentitySelectionRequired) {
+      // 继续原有的项目选择流程
+      emit(AuthLoginSuccess(wxLoginVO: currentState.wxLoginVO));
+    }
+  }
+
+  /// 处理选择独立仓管员模式
+  void _onStorekeeperModeRequested(
+    AuthStorekeeperModeRequested event,
+    Emitter<AuthState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is AuthIdentitySelectionRequired) {
+      // 直接进入仓管员认证完成状态
+      emit(AuthStorekeeperAuthenticated(wxLoginVO: currentState.wxLoginVO));
     }
   }
 }

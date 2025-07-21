@@ -22,6 +22,9 @@ import 'api/mock/mock_records_api_service.dart';
 import 'api/interfaces/identification_api_service.dart';
 import 'api/implementations/identification_api_service_impl.dart';
 import 'api/mock/mock_identification_api_service.dart';
+import 'api/interfaces/common_query_api_service.dart';
+import 'api/implementations/common_query_api_service_impl.dart';
+import 'api/mock/mock_common_query_api_service.dart';
 
 class ApiServiceFactory {
   static ApiServiceInterface create() {
@@ -48,6 +51,15 @@ class ApiServiceFactory {
     } else {
       final dio = _createDio();
       return IdentificationApiServiceImpl(dio);
+    }
+  }
+
+  static ICommonQueryApiService createCommonQueryService() {
+    if (AppConfig.isMockEnabled) {
+      return MockCommonQueryApiService();
+    } else {
+      final dio = _createDio();
+      return CommonQueryApiServiceImpl(dio);
     }
   }
 

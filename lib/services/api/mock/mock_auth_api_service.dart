@@ -302,6 +302,7 @@ class MockAuthApiService implements AuthApiService {
       own: true,
       boss: identifier.hashCode % 3 == 0,
       admin: identifier.hashCode % 5 == 0,
+      storekeeper: identifier.hashCode % 7 == 0,
       projectInfos: projectInfos,
       currentProject: projectInfos.first,
     );

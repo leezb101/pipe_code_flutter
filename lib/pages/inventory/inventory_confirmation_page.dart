@@ -260,7 +260,7 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -374,7 +374,7 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
     print('验收照片数量: ${_acceptancePhotos.length}');
     print('报验单数量: ${_inspectionReports.length}');
     print('验收报告数量: ${_acceptanceReports.length}');
-    
+
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('验收确认成功')));

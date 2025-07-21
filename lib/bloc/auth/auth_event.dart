@@ -96,3 +96,13 @@ class AuthTokenRefreshRequested extends AuthEvent {
   @override
   List<Object> get props => [uid];
 }
+
+/// 选择项目参与方模式（仓管员用户的选择）
+class AuthProjectModeRequested extends AuthEvent {
+  const AuthProjectModeRequested();
+}
+
+/// 选择独立仓管员模式
+class AuthStorekeeperModeRequested extends AuthEvent {
+  const AuthStorekeeperModeRequested();
+}

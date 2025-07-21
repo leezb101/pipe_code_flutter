@@ -74,19 +74,19 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
       setState(() {
         _images.removeAt(_currentIndex);
       });
-      
+
       widget.onDelete?.call(_currentIndex);
       widget.onImagesChanged?.call(_images);
-      
+
       if (_images.isEmpty) {
         Navigator.pop(context);
         return;
       }
-      
+
       if (_currentIndex >= _images.length) {
         _currentIndex = _images.length - 1;
       }
-      
+
       _pageController.animateToPage(
         _currentIndex,
         duration: const Duration(milliseconds: 300),
@@ -149,7 +149,7 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.7),
+                    Colors.black.withValues(alpha: 0.7),
                     Colors.transparent,
                   ],
                 ),
@@ -196,7 +196,7 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      Colors.black.withOpacity(0.7),
+                      Colors.black.withValues(alpha: 0.7),
                       Colors.transparent,
                     ],
                   ),
@@ -225,7 +225,9 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: isSelected ? Colors.white : Colors.transparent,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.transparent,
                                 width: 2,
                               ),
                             ),
