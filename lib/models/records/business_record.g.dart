@@ -14,7 +14,7 @@ BusinessRecord _$BusinessRecordFromJson(Map<String, dynamic> json) =>
       projectCode: json['projectCode'] as String,
       materialNum: (json['materialNum'] as num?)?.toInt(),
       userName: json['userName'] as String,
-      doTime: json['doTime'] as String,
+      doTime: BusinessRecord._timestampToDateTime(json['doTime']),
     );
 
 Map<String, dynamic> _$BusinessRecordToJson(BusinessRecord instance) =>
@@ -25,5 +25,5 @@ Map<String, dynamic> _$BusinessRecordToJson(BusinessRecord instance) =>
       'projectCode': instance.projectCode,
       'materialNum': instance.materialNum,
       'userName': instance.userName,
-      'doTime': instance.doTime,
+      'doTime': BusinessRecord._dateTimeToTimestamp(instance.doTime),
     };

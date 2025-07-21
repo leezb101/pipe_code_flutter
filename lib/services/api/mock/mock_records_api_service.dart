@@ -131,8 +131,7 @@ class MockRecordsApiService implements RecordsApiService {
       projectCode: 'FDSFS${433289 + index}',
       materialNum: _random.nextInt(1000) + 1,
       userName: userNames[_random.nextInt(userNames.length)],
-      doTime:
-          '${doTime.year}年${doTime.month}月${doTime.day}日 ${doTime.hour}点${doTime.minute}分',
+      doTime: doTime,
     );
   }
 

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-17 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-17 19:36:23
+ * @LastEditTime: 2025-07-21 19:24:52
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -10,13 +10,18 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/bloc/project/project_state.dart';
+import '../../bloc/project/project_bloc.dart';
 import '../../models/inventory/pipe_material.dart';
-import '../../models/acceptance/common_user_vo.dart';
+import '../../models/common/common_user_vo.dart';
+import '../../models/common/warehouse_vo.dart';
 import '../../widgets/file_upload/image_upload_widget.dart';
 import '../../widgets/file_upload/file_upload_widget.dart';
 import '../../bloc/acceptance/acceptance_bloc.dart';
 import '../../bloc/acceptance/acceptance_event.dart';
 import '../../bloc/acceptance/acceptance_state.dart';
+import '../../models/acceptance/do_accept_vo.dart';
+import '../../models/acceptance/material_vo.dart';
 
 class AcceptancePage extends StatefulWidget {
   const AcceptancePage({super.key, required this.materials});
@@ -35,6 +40,9 @@ class _AcceptancePageState extends State<AcceptancePage> {
   // 仓库选择相关
   String _storageType = 'project'; // 'project' 或 'independent'
   String? _selectedWarehouse;
+  int? _selectedWarehouseId;
+
+  List<WarehouseVO> _warehouseList = [];
 
   // 用户列表相关
   List<CommonUserVO> _warehouseUsers = [];
@@ -42,25 +50,24 @@ class _AcceptancePageState extends State<AcceptancePage> {
   List<CommonUserVO> _constructionUsers = [];
 
   // 推送选择状态
-  Map<String, bool> _userPushStates = {};
-
-  // 模拟数据
-  final List<String> _warehouses = [
-    'XXXX仓库-地址XXXXXXXX',
-    'YYYY仓库-地址YYYYYYYY',
-    'ZZZZ仓库-地址ZZZZZZZZ',
-  ];
+  Map<String, bool?> _userPushStates = {};
 
   @override
   void initState() {
     super.initState();
-    _selectedWarehouse = _warehouses.first;
     // Load initial user data - using mock project and role IDs
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Load warehouse list first
+      context.read<AcceptanceBloc>().add(const LoadWarehouseList());
+
+      final projectId =
+          (context.read<ProjectBloc>().state as ProjectRoleInfoLoaded)
+              .currentProject
+              .projectId;
       context.read<AcceptanceBloc>().add(
-        const LoadAcceptanceUsers(
-          projectId: 1, // Use current project ID from context
-          roleType: 1, // Use appropriate role type
+        LoadAcceptanceUsers(
+          projectId: projectId,
+          roleType: 1, // Example role type
         ),
       );
       context.read<AcceptanceBloc>().add(
@@ -98,6 +105,22 @@ class _AcceptancePageState extends State<AcceptancePage> {
             // Initialize push states
             for (var user in _warehouseUsers) {
               _userPushStates['warehouse_${user.name}'] = user.messageTo;
+            }
+          });
+        } else if (state is WarehouseListLoaded) {
+          setState(() {
+            _warehouseList = state.warehouseList;
+            // Set default selection to first warehouse if available
+            if (_warehouseList.isNotEmpty) {
+              _selectedWarehouse = _warehouseList.first.name;
+              _selectedWarehouseId = _warehouseList.first.id;
+
+              // 如果当前是独立仓库模式，自动获取默认仓库的人员
+              if (_storageType == 'independent') {
+                context.read<AcceptanceBloc>().add(
+                  LoadWarehouseUsers(warehouseId: _warehouseList.first.id),
+                );
+              }
             }
           });
         } else if (state is AcceptanceError) {
@@ -318,8 +341,9 @@ class _AcceptancePageState extends State<AcceptancePage> {
               _buildWarehouseSelection(),
             ],
             const SizedBox(height: 20),
-            _buildUserSection('仓库负责人', _warehouseUsers, 'warehouse'),
-            const SizedBox(height: 20),
+            if (_storageType == 'independent')
+              _buildUserSection('仓库负责人', _warehouseUsers, 'warehouse'),
+            if (_storageType == 'independent') const SizedBox(height: 20),
             _buildUserSection('监理方负责人', _supervisorUsers, 'supervisor'),
             const SizedBox(height: 20),
             _buildUserSection('建设方负责人', _constructionUsers, 'construction'),
@@ -340,6 +364,12 @@ class _AcceptancePageState extends State<AcceptancePage> {
               onChanged: (value) {
                 setState(() {
                   _storageType = value!;
+                  // 切换回项目现场时清空仓库负责人列表
+                  _warehouseUsers.clear();
+                  // 清除相关的推送状态
+                  _userPushStates.removeWhere(
+                    (key, value) => key.startsWith('warehouse_'),
+                  );
                 });
               },
             ),
@@ -355,7 +385,20 @@ class _AcceptancePageState extends State<AcceptancePage> {
               onChanged: (value) {
                 setState(() {
                   _storageType = value!;
+                  // 切换到独立仓库时也清空仓库负责人列表（用户需要重新选择仓库）
+                  _warehouseUsers.clear();
+                  // 清除相关的推送状态
+                  _userPushStates.removeWhere(
+                    (key, value) => key.startsWith('warehouse_'),
+                  );
                 });
+
+                // 如果已有选中的仓库，自动获取仓库人员
+                if (_selectedWarehouseId != null) {
+                  context.read<AcceptanceBloc>().add(
+                    LoadWarehouseUsers(warehouseId: _selectedWarehouseId!),
+                  );
+                }
               },
             ),
             const Text('独立仓库', style: TextStyle(fontSize: 16)),
@@ -385,19 +428,31 @@ class _AcceptancePageState extends State<AcceptancePage> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _selectedWarehouse,
-              onChanged: (String? newValue) {
+            child: DropdownButton<int>(
+              value: _selectedWarehouseId,
+              onChanged: (int? newValue) {
                 setState(() {
-                  _selectedWarehouse = newValue;
+                  _selectedWarehouse = _warehouseList
+                      .firstWhere((w) => w.id == newValue)
+                      .name;
+                  _selectedWarehouseId = newValue!;
                 });
+
+                // 获取仓库用户
+                if (newValue != null) {
+                  context.read<AcceptanceBloc>().add(
+                    LoadWarehouseUsers(warehouseId: newValue),
+                  );
+                }
               },
-              items: _warehouses.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
+              items: _warehouseList.map<DropdownMenuItem<int>>((
+                WarehouseVO warehouse,
+              ) {
+                return DropdownMenuItem<int>(
+                  value: warehouse.id,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(value),
+                    child: Text('${warehouse.name} - ${warehouse.address}'),
                   ),
                 );
               }).toList(),
@@ -634,25 +689,47 @@ class _AcceptancePageState extends State<AcceptancePage> {
   }
 
   void _handleScanAcceptance() {
-    print('验收照片数量: ${_acceptancePhotos.length}');
-    print('报验单数量: ${_inspectionReports.length}');
-    print('验收报告数量: ${_acceptanceReports.length}');
-    print('仓库类型: $_storageType');
-    print('选择的仓库: $_selectedWarehouse');
-    print('推送状态: $_userPushStates');
+    // 转换材料列表
+    final materialVOList = _convertPipeMaterialsToMaterialVOs(widget.materials);
 
-    // Collect selected user IDs for push notifications
-    final selectedUserIds = <int>[];
-    _userPushStates.forEach((key, value) {
-      if (value) {
-        print('选中推送用户: $key');
-        // In real implementation, map user names to IDs
-      }
-    });
+    // 获取选中的用户ID列表
+    final selectedUserIds = _getSelectedUserIds();
+
+    // 确定仓库类型：项目现场为false，独立仓库为true
+    final realWarehouse = _storageType == 'independent';
+
+    // 获取仓库ID，如果未选择则默认为0
+    final warehouseId = _selectedWarehouseId ?? 0;
+
+    // FIXME: 这里是测试用的假的materialVOList
+
+    final materialVOListForTest = [
+      MaterialVO(materialId: 1, materialName: "管材1"),
+      MaterialVO(materialId: 2, materialName: "管材2"),
+    ];
+    // 创建DoAcceptVO对象
+    final doAcceptVO = DoAcceptVO(
+      // materialList: materialVOList,
+      materialList: materialVOListForTest,
+      imageList: const [], // 暂时为空，后续处理文件上传
+      realWarehouse: realWarehouse,
+      warehouseId: warehouseId,
+      messageTo: selectedUserIds,
+    );
+
+    // 打印调试信息
+    print('DoAcceptVO 数据:');
+    print('  材料数量: ${doAcceptVO.materialList.length}');
+    print('  仓库类型: ${realWarehouse ? "独立仓库" : "项目现场"}');
+    print('  仓库ID: $warehouseId');
+    print('  通知用户ID: $selectedUserIds');
+
+    // 通过BLoC提交验收数据
+    context.read<AcceptanceBloc>().add(SubmitAcceptance(request: doAcceptVO));
 
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('扫码验收功能')));
+    ).showSnackBar(const SnackBar(content: Text('正在提交验收数据...')));
   }
 
   void _handleSupplementReport() {
@@ -678,7 +755,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
     // Collect selected user IDs for push notifications
     final selectedUserIds = <int>[];
     _userPushStates.forEach((key, value) {
-      if (value) {
+      if (value != null && value) {
         print('选中推送用户: $key');
         // In real implementation, map user names to IDs
       }
@@ -692,5 +769,66 @@ class _AcceptancePageState extends State<AcceptancePage> {
 
   void _handleReturn() {
     Navigator.of(context).pop();
+  }
+
+  List<MaterialVO> _convertPipeMaterialsToMaterialVOs(
+    List<PipeMaterial> materials,
+  ) {
+    return materials.map((material) {
+      return MaterialVO(
+        materialId: int.tryParse(material.id) ?? 0,
+        materialName: material.materialName,
+        num: material.quantity,
+      );
+    }).toList();
+  }
+
+  List<int> _getSelectedUserIds() {
+    final selectedUserIds = <int>[];
+
+    // 遍历推送状态，找到选中的用户
+    _userPushStates.forEach((key, isSelected) {
+      if (isSelected == true) {
+        // 从key中解析出用户类型和用户名
+        final parts = key.split('_');
+        if (parts.length >= 2) {
+          final userType =
+              parts[0]; // 'supervisor', 'construction', 'warehouse'
+          final userName = parts.sublist(1).join('_'); // 支持用户名包含下划线的情况
+
+          // 根据用户类型在对应列表中查找用户ID
+          CommonUserVO? user;
+          switch (userType) {
+            case 'supervisor':
+              user = _supervisorUsers.firstWhere(
+                (u) => u.name == userName,
+                orElse: () =>
+                    const CommonUserVO(userId: -1, name: '', phone: ''),
+              );
+              break;
+            case 'construction':
+              user = _constructionUsers.firstWhere(
+                (u) => u.name == userName,
+                orElse: () =>
+                    const CommonUserVO(userId: -1, name: '', phone: ''),
+              );
+              break;
+            case 'warehouse':
+              user = _warehouseUsers.firstWhere(
+                (u) => u.name == userName,
+                orElse: () =>
+                    const CommonUserVO(userId: -1, name: '', phone: ''),
+              );
+              break;
+          }
+
+          if (user != null && user.userId > 0) {
+            selectedUserIds.add(user.userId);
+          }
+        }
+      }
+    });
+
+    return selectedUserIds;
   }
 }

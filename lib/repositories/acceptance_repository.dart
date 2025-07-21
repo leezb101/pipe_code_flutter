@@ -2,20 +2,23 @@ import '../models/acceptance/acceptance_info_vo.dart';
 import '../models/acceptance/do_accept_vo.dart';
 import '../models/acceptance/do_accept_sign_in_vo.dart';
 import '../models/acceptance/common_do_business_audit_vo.dart';
-import '../models/acceptance/accept_user_info_vo.dart';
-import '../models/acceptance/warehouse_user_info_vo.dart';
+import '../models/common/accept_user_info_vo.dart';
+import '../models/common/warehouse_user_info_vo.dart';
 import '../models/records/record_list_response.dart';
 import '../models/common/result.dart';
+import '../models/common/warehouse_vo.dart';
 import '../services/api/interfaces/acceptance_api_service.dart';
+import '../services/api/interfaces/common_query_api_service.dart';
 import '../utils/logger.dart';
 
 class AcceptanceRepository {
   final AcceptanceApiService _apiService;
+  final CommonQueryApiService _commonQueryApiService;
   final Map<int, AcceptanceInfoVO> _detailCache = {};
   final Map<int, DateTime> _detailCacheTimestamps = {};
   final Duration _cacheTimeout = const Duration(minutes: 5);
 
-  AcceptanceRepository(this._apiService);
+  AcceptanceRepository(this._apiService, this._commonQueryApiService);
 
   /// 提交验收单
   Future<Result<void>> submitAcceptance(DoAcceptVO request) async {
@@ -220,17 +223,13 @@ class AcceptanceRepository {
   /// 获取验收用户
   Future<Result<AcceptUserInfoVO>> getAcceptanceUsers({
     required int projectId,
-    required int roleType,
   }) async {
     try {
       Logger.info(
-        'Fetching acceptance users for project: $projectId, role: $roleType',
+        'Fetching acceptance users for project: $projectId',
         tag: 'AcceptanceRepository',
       );
-      final result = await _apiService.getAcceptanceUsers(
-        projectId: projectId,
-        roleType: roleType,
-      );
+      final result = await _commonQueryApiService.getAcceptUsers(projectId);
 
       if (result.isSuccess) {
         Logger.info(
@@ -263,8 +262,8 @@ class AcceptanceRepository {
         'Fetching warehouse users for warehouse: $warehouseId',
         tag: 'AcceptanceRepository',
       );
-      final result = await _apiService.getWarehouseUsers(
-        warehouseId: warehouseId,
+      final result = await _commonQueryApiService.getWarehouseUsers(
+        warehouseId,
       );
 
       if (result.isSuccess) {
@@ -286,6 +285,34 @@ class AcceptanceRepository {
         tag: 'AcceptanceRepository',
       );
       return Result(code: -1, msg: '获取仓库用户失败，请重试', data: null);
+    }
+  }
+
+  /// 获取仓库列表
+  Future<Result<List<WarehouseVO>>> getWarehouseList() async {
+    try {
+      Logger.info('Fetching warehouse list', tag: 'AcceptanceRepository');
+      final result = await _commonQueryApiService.getWarehouseList();
+
+      if (result.isSuccess) {
+        Logger.info(
+          'Warehouse list fetched successfully',
+          tag: 'AcceptanceRepository',
+        );
+      } else {
+        Logger.error(
+          'Failed to fetch warehouse list: ${result.msg}',
+          tag: 'AcceptanceRepository',
+        );
+      }
+
+      return result;
+    } catch (e) {
+      Logger.error(
+        'Error fetching warehouse list: $e',
+        tag: 'AcceptanceRepository',
+      );
+      return Result(code: -1, msg: '获取仓库列表失败，请重试', data: null);
     }
   }
 

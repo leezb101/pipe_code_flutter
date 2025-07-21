@@ -8,7 +8,7 @@ part of 'acceptance_info_vo.dart';
 
 AcceptanceInfoVO _$AcceptanceInfoVOFromJson(Map<String, dynamic> json) =>
     AcceptanceInfoVO(
-      materiaList: (json['materiaList'] as List<dynamic>)
+      materialList: (json['materialList'] as List<dynamic>)
           .map((e) => MaterialVO.fromJson(e as Map<String, dynamic>))
           .toList(),
       imageList: (json['imageList'] as List<dynamic>)
@@ -34,7 +34,7 @@ AcceptanceInfoVO _$AcceptanceInfoVOFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$AcceptanceInfoVOToJson(AcceptanceInfoVO instance) =>
     <String, dynamic>{
-      'materiaList': instance.materiaList,
+      'materialList': instance.materialList,
       'imageList': instance.imageList,
       'sendAcceptUrl': instance.sendAcceptUrl,
       'acceptReportUrl': instance.acceptReportUrl,

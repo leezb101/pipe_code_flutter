@@ -16,6 +16,7 @@ ProjectRecord _$ProjectRecordFromJson(Map<String, dynamic> json) =>
       createdName: json['createdName'] as String?,
       createdId: (json['createdId'] as num?)?.toInt(),
       status: (json['status'] as num).toInt(),
+      doTime: ProjectRecord._timestampToDateTime(json['doTime']),
     );
 
 Map<String, dynamic> _$ProjectRecordToJson(ProjectRecord instance) =>
@@ -28,4 +29,5 @@ Map<String, dynamic> _$ProjectRecordToJson(ProjectRecord instance) =>
       'createdName': instance.createdName,
       'createdId': instance.createdId,
       'status': instance.status,
+      'doTime': ProjectRecord._dateTimeToTimestamp(instance.doTime),
     };

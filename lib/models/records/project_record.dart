@@ -13,6 +13,8 @@ class ProjectRecord extends Equatable {
   final String? createdName;
   final int? createdId;
   final int status;
+  @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
+  final DateTime? doTime;
 
   const ProjectRecord({
     required this.id,
@@ -23,6 +25,7 @@ class ProjectRecord extends Equatable {
     this.createdName,
     this.createdId,
     required this.status,
+    this.doTime,
   });
 
   factory ProjectRecord.fromJson(Map<String, dynamic> json) =>
@@ -40,6 +43,7 @@ class ProjectRecord extends Equatable {
         createdName,
         createdId,
         status,
+        doTime,
       ];
 
   ProjectRecord copyWith({
@@ -51,6 +55,7 @@ class ProjectRecord extends Equatable {
     String? createdName,
     int? createdId,
     int? status,
+    DateTime? doTime,
   }) {
     return ProjectRecord(
       id: id ?? this.id,
@@ -61,6 +66,7 @@ class ProjectRecord extends Equatable {
       createdName: createdName ?? this.createdName,
       createdId: createdId ?? this.createdId,
       status: status ?? this.status,
+      doTime: doTime ?? this.doTime,
     );
   }
 
@@ -86,6 +92,16 @@ class ProjectRecord extends Equatable {
   }
 
   String get userName => createdName ?? '未知用户';
-  
-  String get doTime => projectStart ?? '';
+
+  static DateTime? _timestampToDateTime(dynamic timestamp) {
+    if (timestamp == null) return null;
+    if (timestamp is int) {
+      return DateTime.fromMillisecondsSinceEpoch(timestamp);
+    }
+    return null;
+  }
+
+  static int? _dateTimeToTimestamp(DateTime? dateTime) {
+    return dateTime?.millisecondsSinceEpoch;
+  }
 }

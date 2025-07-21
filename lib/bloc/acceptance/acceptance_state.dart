@@ -1,8 +1,9 @@
 import 'package:equatable/equatable.dart';
 import '../../models/acceptance/acceptance_info_vo.dart';
-import '../../models/acceptance/accept_user_info_vo.dart';
-import '../../models/acceptance/warehouse_user_info_vo.dart';
+import '../../models/common/accept_user_info_vo.dart';
+import '../../models/common/warehouse_user_info_vo.dart';
 import '../../models/records/record_list_response.dart';
+import '../../models/common/warehouse_vo.dart';
 
 abstract class AcceptanceState extends Equatable {
   const AcceptanceState();
@@ -98,4 +99,17 @@ class WarehouseUsersLoaded extends AcceptanceState {
 
   @override
   List<Object?> get props => [warehouseUserInfo];
+}
+
+class WarehouseListLoading extends AcceptanceState {
+  const WarehouseListLoading();
+}
+
+class WarehouseListLoaded extends AcceptanceState {
+  final List<WarehouseVO> warehouseList;
+
+  const WarehouseListLoaded({required this.warehouseList});
+
+  @override
+  List<Object?> get props => [warehouseList];
 }

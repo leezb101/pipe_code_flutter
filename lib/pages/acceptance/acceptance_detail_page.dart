@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
-import 'package:pipe_code_flutter/models/acceptance/common_user_vo.dart';
+import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_bloc.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_state.dart';
@@ -129,7 +129,7 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            ...acceptanceInfo.materiaList.map(
+            ...acceptanceInfo.materialList.map(
               (material) => _buildMaterialItem(material),
             ),
           ],
@@ -287,7 +287,7 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
-            ...signInInfo.materiaList.map(
+            ...signInInfo.materialList.map(
               (material) => _buildSimpleMaterialItem(material),
             ),
             if (signInInfo.imageList.isNotEmpty) ...[
@@ -411,57 +411,71 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
               ),
             )
           else
-            ...users.map((user) => Container(
-              margin: const EdgeInsets.only(bottom: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade100),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.person, size: 16, color: Colors.blue.shade600),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            ...users
+                .map(
+                  (user) => Container(
+                    margin: const EdgeInsets.only(bottom: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade100),
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          user.name,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                        Icon(
+                          Icons.person,
+                          size: 16,
+                          color: Colors.blue.shade600,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.name,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                user.phone,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        Text(
-                          user.phone,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey.shade600,
+                        if (user.messageTo != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade100,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '推送',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.green.shade700,
+                              ),
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
-                  if (user.messageTo)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade100,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '推送',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.green.shade700,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            )).toList(),
+                )
+                .toList(),
         ],
       ),
     );

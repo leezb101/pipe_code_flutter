@@ -21,4 +21,14 @@ class AcceptUserInfoVO extends Equatable {
 
   @override
   List<Object?> get props => [supervisorUsers, constructionUsers];
+
+  AcceptUserInfoVO copyWith({
+    List<CommonUserVO>? supervisorUsers,
+    List<CommonUserVO>? constructionUsers,
+  }) {
+    return AcceptUserInfoVO(
+      supervisorUsers: supervisorUsers ?? this.supervisorUsers,
+      constructionUsers: constructionUsers ?? this.constructionUsers,
+    );
+  }
 }

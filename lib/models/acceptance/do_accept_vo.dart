@@ -1,3 +1,10 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-20 11:23:25
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-21 19:23:14
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'material_vo.dart';
@@ -7,7 +14,7 @@ part 'do_accept_vo.g.dart';
 
 @JsonSerializable()
 class DoAcceptVO extends Equatable {
-  final List<MaterialVO> materiaList;
+  final List<MaterialVO> materialList;
   final List<AttachmentVO> imageList;
   final String? sendAcceptUrl;
   final String? acceptReportUrl;
@@ -16,7 +23,7 @@ class DoAcceptVO extends Equatable {
   final List<int> messageTo;
 
   const DoAcceptVO({
-    required this.materiaList,
+    required this.materialList,
     required this.imageList,
     this.sendAcceptUrl,
     this.acceptReportUrl,
@@ -32,17 +39,17 @@ class DoAcceptVO extends Equatable {
 
   @override
   List<Object?> get props => [
-        materiaList,
-        imageList,
-        sendAcceptUrl,
-        acceptReportUrl,
-        realWarehouse,
-        warehouseId,
-        messageTo,
-      ];
+    materialList,
+    imageList,
+    sendAcceptUrl,
+    acceptReportUrl,
+    realWarehouse,
+    warehouseId,
+    messageTo,
+  ];
 
   DoAcceptVO copyWith({
-    List<MaterialVO>? materiaList,
+    List<MaterialVO>? materialList,
     List<AttachmentVO>? imageList,
     String? sendAcceptUrl,
     String? acceptReportUrl,
@@ -51,7 +58,7 @@ class DoAcceptVO extends Equatable {
     List<int>? messageTo,
   }) {
     return DoAcceptVO(
-      materiaList: materiaList ?? this.materiaList,
+      materialList: this.materialList,
       imageList: imageList ?? this.imageList,
       sendAcceptUrl: sendAcceptUrl ?? this.sendAcceptUrl,
       acceptReportUrl: acceptReportUrl ?? this.acceptReportUrl,

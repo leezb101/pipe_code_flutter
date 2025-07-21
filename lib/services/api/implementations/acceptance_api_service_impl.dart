@@ -4,8 +4,6 @@ import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/do_accept_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/do_accept_sign_in_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
-import 'package:pipe_code_flutter/models/acceptance/accept_user_info_vo.dart';
-import 'package:pipe_code_flutter/models/acceptance/warehouse_user_info_vo.dart';
 import 'package:pipe_code_flutter/models/records/record_list_response.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/acceptance_api_service.dart';
 import 'base_api_service.dart';
@@ -20,7 +18,11 @@ class AcceptanceApiServiceImpl extends BaseApiService
       final response = await dio.post('/accept/do', data: request.toJson());
 
       if (response.statusCode == 200) {
-        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
+        final result = Result.safeFromJson(
+          response.data,
+          (json) => json,
+          'AcceptanceResponse',
+        );
         if (result.success == true) {
           return Result(code: 0, msg: 'success', data: null);
         } else {
@@ -49,7 +51,11 @@ class AcceptanceApiServiceImpl extends BaseApiService
       );
 
       if (response.statusCode == 200) {
-        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
+        final result = Result.safeFromJson(
+          response.data,
+          (json) => json,
+          'AcceptanceResponse',
+        );
         if (result.isSuccess) {
           return Result(code: 0, msg: 'success', data: null);
         } else {
@@ -78,7 +84,11 @@ class AcceptanceApiServiceImpl extends BaseApiService
       );
 
       if (response.statusCode == 200) {
-        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
+        final result = Result.safeFromJson(
+          response.data,
+          (json) => json,
+          'AcceptanceResponse',
+        );
         if (result.isSuccess && result.data != null) {
           final acceptanceInfo = AcceptanceInfoVO.fromJson(
             result.data as Map<String, dynamic>,
@@ -121,7 +131,11 @@ class AcceptanceApiServiceImpl extends BaseApiService
       );
 
       if (response.statusCode == 200) {
-        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
+        final result = Result.safeFromJson(
+          response.data,
+          (json) => json,
+          'AcceptanceResponse',
+        );
         if (result.isSuccess && result.data != null) {
           final recordList = RecordListResponse.fromJson(
             result.data as Map<String, dynamic>,
@@ -153,7 +167,11 @@ class AcceptanceApiServiceImpl extends BaseApiService
       );
 
       if (response.statusCode == 200) {
-        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
+        final result = Result.safeFromJson(
+          response.data,
+          (json) => json,
+          'AcceptanceResponse',
+        );
         if (result.isSuccess) {
           return Result(code: 0, msg: 'success', data: null);
         } else {
@@ -173,77 +191,4 @@ class AcceptanceApiServiceImpl extends BaseApiService
     }
   }
 
-  @override
-  Future<Result<AcceptUserInfoVO>> getAcceptanceUsers({
-    required int projectId,
-    required int roleType,
-  }) async {
-    try {
-      final response = await dio.get(
-        '/accept/accept/users',
-        queryParameters: {
-          'projectId': projectId,
-          'roleType': roleType,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
-        if (result.isSuccess && result.data != null) {
-          final acceptUserInfo = AcceptUserInfoVO.fromJson(
-            result.data as Map<String, dynamic>,
-          );
-          return Result(code: 0, msg: 'success', data: acceptUserInfo);
-        } else {
-          return Result(code: -1, msg: result.msg ?? '获取验收用户失败', data: null);
-        }
-      } else {
-        return Result(code: -1, msg: '获取验收用户失败，请重试', data: null);
-      }
-    } on DioException catch (e) {
-      return Result(
-        code: -1,
-        msg: handleErrorForEndpoint(e, '/accept/accept/users'),
-        data: null,
-      );
-    } catch (e) {
-      return Result(code: -1, msg: '获取验收用户失败，请检查网络连接', data: null);
-    }
-  }
-
-  @override
-  Future<Result<WarehouseUserInfoVO>> getWarehouseUsers({
-    required int warehouseId,
-  }) async {
-    try {
-      final response = await dio.get(
-        '/accept/warehouse/users',
-        queryParameters: {
-          'warehouseId': warehouseId,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final result = Result.safeFromJson(response.data, (json) => json, 'AcceptanceResponse');
-        if (result.isSuccess && result.data != null) {
-          final warehouseUserInfo = WarehouseUserInfoVO.fromJson(
-            result.data as Map<String, dynamic>,
-          );
-          return Result(code: 0, msg: 'success', data: warehouseUserInfo);
-        } else {
-          return Result(code: -1, msg: result.msg ?? '获取仓库用户失败', data: null);
-        }
-      } else {
-        return Result(code: -1, msg: '获取仓库用户失败，请重试', data: null);
-      }
-    } on DioException catch (e) {
-      return Result(
-        code: -1,
-        msg: handleErrorForEndpoint(e, '/accept/warehouse/users'),
-        data: null,
-      );
-    } catch (e) {
-      return Result(code: -1, msg: '获取仓库用户失败，请检查网络连接', data: null);
-    }
-  }
 }

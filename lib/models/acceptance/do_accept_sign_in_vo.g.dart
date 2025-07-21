@@ -9,7 +9,7 @@ part of 'do_accept_sign_in_vo.dart';
 DoAcceptSignInVO _$DoAcceptSignInVOFromJson(Map<String, dynamic> json) =>
     DoAcceptSignInVO(
       acceptId: (json['acceptId'] as num).toInt(),
-      materiaList: (json['materiaList'] as List<dynamic>)
+      materialList: (json['materialList'] as List<dynamic>)
           .map((e) => MaterialVO.fromJson(e as Map<String, dynamic>))
           .toList(),
       imageList: (json['imageList'] as List<dynamic>)
@@ -20,6 +20,6 @@ DoAcceptSignInVO _$DoAcceptSignInVOFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$DoAcceptSignInVOToJson(DoAcceptSignInVO instance) =>
     <String, dynamic>{
       'acceptId': instance.acceptId,
-      'materiaList': instance.materiaList,
+      'materialList': instance.materialList,
       'imageList': instance.imageList,
     };

@@ -1,3 +1,10 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-21 14:31:56
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-21 16:51:39
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 

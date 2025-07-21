@@ -101,3 +101,7 @@ class LoadWarehouseUsers extends AcceptanceEvent {
   @override
   List<Object?> get props => [warehouseId];
 }
+
+class LoadWarehouseList extends AcceptanceEvent {
+  const LoadWarehouseList();
+}

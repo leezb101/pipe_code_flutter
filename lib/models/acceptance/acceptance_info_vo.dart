@@ -1,15 +1,22 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-21 16:24:48
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-21 19:22:05
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'material_vo.dart';
 import 'attachment_vo.dart';
 import 'sign_in_info_vo.dart';
-import 'common_user_vo.dart';
+import '../common/common_user_vo.dart';
 
 part 'acceptance_info_vo.g.dart';
 
 @JsonSerializable()
 class AcceptanceInfoVO extends Equatable {
-  final List<MaterialVO> materiaList;
+  final List<MaterialVO> materialList;
   final List<AttachmentVO> imageList;
   final String? sendAcceptUrl;
   final String? acceptReportUrl;
@@ -21,7 +28,7 @@ class AcceptanceInfoVO extends Equatable {
   final SignInInfoVO? signInInfo;
 
   const AcceptanceInfoVO({
-    required this.materiaList,
+    required this.materialList,
     required this.imageList,
     this.sendAcceptUrl,
     this.acceptReportUrl,
@@ -40,20 +47,20 @@ class AcceptanceInfoVO extends Equatable {
 
   @override
   List<Object?> get props => [
-        materiaList,
-        imageList,
-        sendAcceptUrl,
-        acceptReportUrl,
-        realWarehouse,
-        warehouseId,
-        warehouseUsers,
-        supervisorUsers,
-        constructionUsers,
-        signInInfo,
-      ];
+    materialList,
+    imageList,
+    sendAcceptUrl,
+    acceptReportUrl,
+    realWarehouse,
+    warehouseId,
+    warehouseUsers,
+    supervisorUsers,
+    constructionUsers,
+    signInInfo,
+  ];
 
   AcceptanceInfoVO copyWith({
-    List<MaterialVO>? materiaList,
+    List<MaterialVO>? materialList,
     List<AttachmentVO>? imageList,
     String? sendAcceptUrl,
     String? acceptReportUrl,
@@ -65,7 +72,7 @@ class AcceptanceInfoVO extends Equatable {
     SignInInfoVO? signInInfo,
   }) {
     return AcceptanceInfoVO(
-      materiaList: materiaList ?? this.materiaList,
+      materialList: materialList ?? this.materialList,
       imageList: imageList ?? this.imageList,
       sendAcceptUrl: sendAcceptUrl ?? this.sendAcceptUrl,
       acceptReportUrl: acceptReportUrl ?? this.acceptReportUrl,

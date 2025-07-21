@@ -8,41 +8,43 @@ import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/sign_in_info_vo.dart';
-import 'package:pipe_code_flutter/models/acceptance/common_user_vo.dart';
-import 'package:pipe_code_flutter/models/acceptance/accept_user_info_vo.dart';
-import 'package:pipe_code_flutter/models/acceptance/warehouse_user_info_vo.dart';
+import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/models/records/record_list_response.dart';
 import 'package:pipe_code_flutter/models/records/business_record.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/acceptance_api_service.dart';
 
 class MockAcceptanceApiService implements AcceptanceApiService {
   final Random _random = Random();
-  
+
   static const List<String> _materialNames = [
-    'PE管材 DN110', 'PE管材 DN160', 'PE管材 DN200', 'PE管材 DN250',
-    '球墨铸铁管 DN100', '球墨铸铁管 DN150', '钢管 DN80', '钢管 DN100',
-    '阀门 DN50', '阀门 DN100', '三通 DN110', '弯头 DN160'
+    'PE管材 DN110',
+    'PE管材 DN160',
+    'PE管材 DN200',
+    'PE管材 DN250',
+    '球墨铸铁管 DN100',
+    '球墨铸铁管 DN150',
+    '钢管 DN80',
+    '钢管 DN100',
+    '阀门 DN50',
+    '阀门 DN100',
+    '三通 DN110',
+    '弯头 DN160',
   ];
 
   static const List<String> _projectNames = [
-    '高新区供水改造项目', '工业园区管网建设', '老城区管网更新', '新区供水工程'
+    '高新区供水改造项目',
+    '工业园区管网建设',
+    '老城区管网更新',
+    '新区供水工程',
   ];
 
-  static const List<String> _userNames = [
-    '张三', '李四', '王五', '赵六', '孙七', '周八'
-  ];
+  static const List<String> _userNames = ['张三', '李四', '王五', '赵六', '孙七', '周八'];
 
-  static const List<String> _supervisorNames = [
-    '李明', '赵磊', '黄华'
-  ];
+  static const List<String> _supervisorNames = ['李明', '赵磊', '黄华'];
 
-  static const List<String> _constructionNames = [
-    '孙建国', '刘强', '陈伟'
-  ];
+  static const List<String> _constructionNames = ['孙建国', '刘强', '陈伟'];
 
-  static const List<String> _warehouseNames = [
-    '王仓管', '李库管', '张管理'
-  ];
+  static const List<String> _warehouseNames = ['王仓管', '李库管', '张管理'];
 
   Future<void> _simulateNetworkDelay() async {
     await Future.delayed(Duration(milliseconds: 800 + _random.nextInt(1200)));
@@ -92,48 +94,55 @@ class MockAcceptanceApiService implements AcceptanceApiService {
   }
 
   List<CommonUserVO> _generateMockUsers(List<String> names) {
-    return names.map((name) => CommonUserVO(
-      name: name,
-      phone: '138${_random.nextInt(100000000).toString().padLeft(8, '0')}',
-      messageTo: _random.nextBool(),
-    )).toList();
+    return names
+        .map(
+          (name) => CommonUserVO(
+            userId: 1000 + _random.nextInt(100),
+            realHandler: _random.nextBool(),
+            name: name,
+            phone:
+                '138${_random.nextInt(100000000).toString().padLeft(8, '0')}',
+            messageTo: _random.nextBool(),
+          ),
+        )
+        .toList();
   }
 
   @override
   Future<Result<void>> submitAcceptance(DoAcceptVO request) async {
     await _simulateNetworkDelay();
-    
+
     if (_random.nextDouble() < 0.1) {
       return Result(code: -1, msg: '提交失败，请检查网络连接', data: null);
     }
-    
+
     return Result(code: 0, msg: 'success', data: null);
   }
 
   @override
   Future<Result<void>> auditAcceptance(CommonDoBusinessAuditVO request) async {
     await _simulateNetworkDelay();
-    
+
     if (_random.nextDouble() < 0.05) {
       return Result(code: -1, msg: '审核失败，请重试', data: null);
     }
-    
+
     return Result(code: 0, msg: 'success', data: null);
   }
 
   @override
   Future<Result<AcceptanceInfoVO>> getAcceptanceDetail(int id) async {
     await _simulateNetworkDelay();
-    
+
     if (_random.nextDouble() < 0.05) {
       return Result(code: -1, msg: '获取详情失败，请重试', data: null);
     }
-    
+
     final materials = _generateMockMaterials();
     final attachments = _generateMockAttachments();
-    
+
     final acceptanceInfo = AcceptanceInfoVO(
-      materiaList: materials,
+      materialList: materials,
       imageList: attachments,
       sendAcceptUrl: '/uploads/docs/send_accept_${id}.pdf',
       acceptReportUrl: '/uploads/docs/accept_report_${id}.pdf',
@@ -143,12 +152,12 @@ class MockAcceptanceApiService implements AcceptanceApiService {
       supervisorUsers: _generateMockUsers(_supervisorNames),
       constructionUsers: _generateMockUsers(_constructionNames),
       signInInfo: SignInInfoVO(
-        materiaList: materials,
+        materialList: materials,
         imageList: attachments.where((a) => a.type == 3).toList(),
         warehouseId: 1000 + _random.nextInt(10),
       ),
     );
-    
+
     return Result(code: 0, msg: 'success', data: acceptanceInfo);
   }
 
@@ -160,15 +169,15 @@ class MockAcceptanceApiService implements AcceptanceApiService {
     int? pageSize,
   }) async {
     await _simulateNetworkDelay();
-    
+
     if (_random.nextDouble() < 0.05) {
       return Result(code: -1, msg: '获取列表失败，请重试', data: null);
     }
-    
+
     final currentPage = pageNum ?? 1;
     final size = pageSize ?? 10;
     final total = 25 + _random.nextInt(50);
-    
+
     final records = List.generate(
       size,
       (index) => BusinessRecord(
@@ -178,72 +187,34 @@ class MockAcceptanceApiService implements AcceptanceApiService {
         projectCode: 'PRJ${_random.nextInt(1000).toString().padLeft(4, '0')}',
         materialNum: 1 + _random.nextInt(10),
         userName: _userNames[_random.nextInt(_userNames.length)],
-        doTime: DateTime.now()
-            .subtract(Duration(days: _random.nextInt(30)))
-            .toIso8601String(),
+        doTime: DateTime.now().subtract(Duration(days: _random.nextInt(30))),
       ),
     );
-    
+
     final pageData = BusinessRecordPageData(
       records: records,
       total: total,
       size: size,
       current: currentPage,
     );
-    
+
     final response = RecordListResponse(
       code: 0,
       msg: 'success',
       data: pageData,
     );
-    
+
     return Result(code: 0, msg: 'success', data: response);
   }
 
   @override
   Future<Result<void>> doAcceptanceSignIn(DoAcceptSignInVO request) async {
     await _simulateNetworkDelay();
-    
+
     if (_random.nextDouble() < 0.05) {
       return Result(code: -1, msg: '入库失败，请重试', data: null);
     }
-    
+
     return Result(code: 0, msg: 'success', data: null);
-  }
-
-  @override
-  Future<Result<AcceptUserInfoVO>> getAcceptanceUsers({
-    required int projectId,
-    required int roleType,
-  }) async {
-    await _simulateNetworkDelay();
-    
-    if (_random.nextDouble() < 0.05) {
-      return Result(code: -1, msg: '获取验收用户失败，请重试', data: null);
-    }
-    
-    final acceptUserInfo = AcceptUserInfoVO(
-      supervisorUsers: _generateMockUsers(_supervisorNames),
-      constructionUsers: _generateMockUsers(_constructionNames),
-    );
-    
-    return Result(code: 0, msg: 'success', data: acceptUserInfo);
-  }
-
-  @override
-  Future<Result<WarehouseUserInfoVO>> getWarehouseUsers({
-    required int warehouseId,
-  }) async {
-    await _simulateNetworkDelay();
-    
-    if (_random.nextDouble() < 0.05) {
-      return Result(code: -1, msg: '获取仓库用户失败，请重试', data: null);
-    }
-    
-    final warehouseUserInfo = WarehouseUserInfoVO(
-      warehouseUsers: _generateMockUsers(_warehouseNames),
-    );
-    
-    return Result(code: 0, msg: 'success', data: warehouseUserInfo);
   }
 }

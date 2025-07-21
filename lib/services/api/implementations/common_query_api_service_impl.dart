@@ -87,10 +87,16 @@ class CommonQueryApiServiceImpl implements CommonQueryApiService {
 
       return Result.safeFromJson<List<WarehouseVO>>(
         response.data,
-        (data) => (data as List<Map<String, dynamic>>)
-            .map((d) => WarehouseVO.fromJson(d))
-            .toList(),
-        'WarehouseVO',
+        (data) {
+          if (data is List) {
+            return data
+                .map((item) => WarehouseVO.fromJson(item as Map<String, dynamic>))
+                .toList();
+          } else {
+            throw FormatException('Expected List but got ${data.runtimeType}');
+          }
+        },
+        'List<WarehouseVO>',
       );
     } catch (e) {
       throw Exception('获取仓库列表失败: $e');

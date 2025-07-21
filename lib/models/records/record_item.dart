@@ -1,3 +1,10 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-13 16:00:38
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-21 19:47:48
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'business_record.dart';
 import 'project_record.dart';
 
@@ -6,7 +13,7 @@ abstract class RecordItem {
   String get projectName;
   String get projectCode;
   String get userName;
-  String get doTime;
+  DateTime? get doTime;
   String get businessTypeDescription;
 }
 
@@ -28,7 +35,7 @@ class BusinessRecordItem implements RecordItem {
   String get userName => _record.userName;
 
   @override
-  String get doTime => _record.doTime;
+  DateTime? get doTime => _record.doTime;
 
   @override
   String get businessTypeDescription => _record.businessTypeDescription;
@@ -54,7 +61,7 @@ class ProjectRecordItem implements RecordItem {
   String get userName => _record.userName;
 
   @override
-  String get doTime => _record.doTime;
+  DateTime? get doTime => _record.doTime;
 
   @override
   String get businessTypeDescription => _record.businessTypeDescription;

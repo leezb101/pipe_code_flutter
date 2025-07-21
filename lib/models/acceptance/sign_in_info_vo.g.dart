@@ -7,7 +7,7 @@ part of 'sign_in_info_vo.dart';
 // **************************************************************************
 
 SignInInfoVO _$SignInInfoVOFromJson(Map<String, dynamic> json) => SignInInfoVO(
-  materiaList: (json['materiaList'] as List<dynamic>)
+  materialList: (json['materialList'] as List<dynamic>)
       .map((e) => MaterialVO.fromJson(e as Map<String, dynamic>))
       .toList(),
   imageList: (json['imageList'] as List<dynamic>)
@@ -18,7 +18,7 @@ SignInInfoVO _$SignInInfoVOFromJson(Map<String, dynamic> json) => SignInInfoVO(
 
 Map<String, dynamic> _$SignInInfoVOToJson(SignInInfoVO instance) =>
     <String, dynamic>{
-      'materiaList': instance.materiaList,
+      'materialList': instance.materialList,
       'imageList': instance.imageList,
       'warehouseId': instance.warehouseId,
     };

@@ -132,7 +132,7 @@ class RecordsRepository {
       }
     }
 
-    allPendingRecords.sort((a, b) => b.doTime.compareTo(a.doTime));
+    // allPendingRecords.sort((a, b) => b.doTime.compareTo(a.doTime));
 
     final startIndex = (pageNum - 1) * pageSize;
     final endIndex = (startIndex + pageSize).clamp(0, allPendingRecords.length);
