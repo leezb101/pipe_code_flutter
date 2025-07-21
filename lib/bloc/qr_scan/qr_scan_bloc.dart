@@ -159,6 +159,8 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
         currentCode: null,
         errorMessage: null,
         isValidCode: false,
+        // 对于非批量模式，重置时清空已扫描代码，避免重复扫码检查问题
+        scannedCodes: state.config?.supportsBatch == true ? state.scannedCodes : [],
       ),
     );
   }
@@ -210,6 +212,13 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
             isProcessing: false,
           ),
         );
+
+        // 5秒后自动恢复扫码状态
+        Future.delayed(const Duration(seconds: 5), () {
+          if (!isClosed) {
+            add(const ResetScan());
+          }
+        });
       } else {
         // 处理完成，设置为 processComplete 状态
         emit(
@@ -228,6 +237,13 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
           isProcessing: false,
         ),
       );
+
+      // 5秒后自动恢复扫码状态
+      Future.delayed(const Duration(seconds: 5), () {
+        if (!isClosed) {
+          add(const ResetScan());
+        }
+      });
     }
   }
 
