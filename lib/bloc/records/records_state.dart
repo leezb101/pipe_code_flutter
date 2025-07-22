@@ -12,7 +12,7 @@ abstract class RecordsState extends Equatable {
 class RecordsInitial extends RecordsState {
   final RecordType currentTab;
 
-  const RecordsInitial({this.currentTab = RecordType.pending});
+  const RecordsInitial({this.currentTab = RecordType.todo});
 
   @override
   List<Object> get props => [currentTab];

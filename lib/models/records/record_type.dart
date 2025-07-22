@@ -1,8 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
 
 enum RecordType {
-  @JsonValue('pending')
-  pending,
+  @JsonValue('todo')
+  todo,
   
   @JsonValue('signin')
   signin,
@@ -32,7 +32,7 @@ enum RecordType {
 extension RecordTypeExtension on RecordType {
   String get displayName {
     switch (this) {
-      case RecordType.pending:
+      case RecordType.todo:
         return '待办';
       case RecordType.signin:
         return '入库记录';
@@ -55,8 +55,8 @@ extension RecordTypeExtension on RecordType {
 
   String get apiEndpoint {
     switch (this) {
-      case RecordType.pending:
-        return '/pending/list';
+      case RecordType.todo:
+        return '/todo/list';
       case RecordType.signin:
         return '/signin/list';
       case RecordType.accept:
@@ -78,7 +78,7 @@ extension RecordTypeExtension on RecordType {
 
   bool get isMainTab {
     switch (this) {
-      case RecordType.pending:
+      case RecordType.todo:
       case RecordType.signin:
       case RecordType.accept:
       case RecordType.signout:

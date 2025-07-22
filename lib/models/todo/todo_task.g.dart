@@ -9,8 +9,8 @@ part of 'todo_task.dart';
 TodoTask _$TodoTaskFromJson(Map<String, dynamic> json) => TodoTask(
   id: (json['id'] as num).toInt(),
   name: json['name'] as String,
-  businessType: (json['businessType'] as num).toInt(),
-  businessName: json['businessName'] as String,
+  todoType: (json['todoType'] as num).toInt(),
+  todoName: json['todoName'] as String,
   businessId: (json['businessId'] as num).toInt(),
   projectId: (json['projectId'] as num).toInt(),
   projectName: json['projectName'] as String,
@@ -25,8 +25,8 @@ TodoTask _$TodoTaskFromJson(Map<String, dynamic> json) => TodoTask(
 Map<String, dynamic> _$TodoTaskToJson(TodoTask instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
-  'businessType': instance.businessType,
-  'businessName': instance.businessName,
+  'todoType': instance.todoType,
+  'todoName': instance.todoName,
   'businessId': instance.businessId,
   'projectId': instance.projectId,
   'projectName': instance.projectName,

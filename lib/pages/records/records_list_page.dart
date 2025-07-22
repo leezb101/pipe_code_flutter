@@ -72,7 +72,7 @@ class _RecordsListPageState extends State<RecordsListPage> {
       case RecordType.dispatch:
       case RecordType.waste:
       case RecordType.inventory:
-      case RecordType.pending:
+      case RecordType.todo:
       default:
         // For other record types, show a placeholder message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -89,7 +89,7 @@ class _RecordsListPageState extends State<RecordsListPage> {
       final bloc = context.read<RecordsBloc>();
       if (bloc.state is RecordsInitial) {
         bloc.add(LoadRecords(
-          recordType: widget.initialTab ?? RecordType.pending,
+          recordType: widget.initialTab ?? RecordType.todo,
         ));
       }
     });
@@ -113,7 +113,7 @@ class _RecordsListPageState extends State<RecordsListPage> {
           children: [
             BlocBuilder<RecordsBloc, RecordsState>(
               builder: (context, state) {
-                RecordType currentTab = RecordType.pending;
+                RecordType currentTab = RecordType.todo;
                 if (state is RecordsInitial) {
                   currentTab = state.currentTab;
                 } else if (state is RecordsLoading) {

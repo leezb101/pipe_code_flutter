@@ -1,3 +1,10 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-22 10:43:58
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-22 12:22:37
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -8,8 +15,8 @@ class TodoTask extends Equatable {
   const TodoTask({
     required this.id,
     required this.name,
-    required this.businessType,
-    required this.businessName,
+    required this.todoType,
+    required this.todoName,
     required this.businessId,
     required this.projectId,
     required this.projectName,
@@ -22,71 +29,91 @@ class TodoTask extends Equatable {
   });
 
   final int id;
-  
+
   @JsonKey(name: 'name')
   final String name;
-  
-  @JsonKey(name: 'businessType')
-  final int businessType;
-  
-  @JsonKey(name: 'businessName')
-  final String businessName;
-  
+
+  @JsonKey(name: 'todoType')
+  final int todoType;
+
+  @JsonKey(name: 'todoName')
+  final String todoName;
+
   @JsonKey(name: 'businessId')
   final int businessId;
-  
+
   @JsonKey(name: 'projectId')
   final int projectId;
-  
+
   @JsonKey(name: 'projectName')
   final String projectName;
-  
+
   @JsonKey(name: 'projectCode')
   final String projectCode;
-  
-  @JsonKey(name: 'launchTime', fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
+
+  @JsonKey(
+    name: 'launchTime',
+    fromJson: _timestampToDateTime,
+    toJson: _dateTimeToTimestamp,
+  )
   final DateTime? launchTime;
-  
-  @JsonKey(name: 'finishTime', fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
+
+  @JsonKey(
+    name: 'finishTime',
+    fromJson: _timestampToDateTime,
+    toJson: _dateTimeToTimestamp,
+  )
   final DateTime? finishTime;
-  
+
   @JsonKey(name: 'finishStatus')
   final int finishStatus;
-  
+
   @JsonKey(name: 'launchUser')
   final String launchUser;
-  
+
   @JsonKey(name: 'launchName')
   final String launchName;
 
   bool get isCompleted => finishStatus == 1;
 
-  factory TodoTask.fromJson(Map<String, dynamic> json) => _$TodoTaskFromJson(json);
-  
+  factory TodoTask.fromJson(Map<String, dynamic> json) =>
+      _$TodoTaskFromJson(json);
+
   Map<String, dynamic> toJson() => _$TodoTaskToJson(this);
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        businessType,
-        businessName,
-        businessId,
-        projectId,
-        projectName,
-        projectCode,
-        launchTime,
-        finishTime,
-        finishStatus,
-        launchUser,
-        launchName,
-      ];
+    id,
+    name,
+    todoType,
+    todoName,
+    businessId,
+    projectId,
+    projectName,
+    projectCode,
+    launchTime,
+    finishTime,
+    finishStatus,
+    launchUser,
+    launchName,
+  ];
 
   static DateTime? _timestampToDateTime(dynamic timestamp) {
     if (timestamp == null) return null;
-    if (timestamp is int) {
-      return DateTime.fromMillisecondsSinceEpoch(timestamp);
+    
+    // 处理数字类型（int、double）
+    if (timestamp is num) {
+      return DateTime.fromMillisecondsSinceEpoch(timestamp.toInt());
     }
+    
+    // 处理字符串类型的时间戳
+    if (timestamp is String) {
+      final parsed = int.tryParse(timestamp);
+      if (parsed != null) {
+        return DateTime.fromMillisecondsSinceEpoch(parsed);
+      }
+    }
+    
     return null;
   }
 

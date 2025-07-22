@@ -179,7 +179,7 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     } else if (state is RecordsEmpty) {
       return (state as RecordsEmpty).currentTab;
     }
-    return RecordType.pending;
+    return RecordType.todo;
   }
 
   bool get hasData {

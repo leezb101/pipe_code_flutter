@@ -7,6 +7,7 @@
  */
 import 'business_record.dart';
 import 'project_record.dart';
+import '../todo/todo_task.dart';
 
 abstract class RecordItem {
   int get id;
@@ -67,4 +68,30 @@ class ProjectRecordItem implements RecordItem {
   String get businessTypeDescription => _record.businessTypeDescription;
 
   ProjectRecord get record => _record;
+}
+
+class TodoRecordItem implements RecordItem {
+  final TodoTask _todo;
+
+  TodoRecordItem(this._todo);
+
+  @override
+  int get id => _todo.id;
+
+  @override
+  String get projectName => _todo.projectName;
+
+  @override
+  String get projectCode => _todo.projectCode;
+
+  @override
+  String get userName => _todo.launchName;
+
+  @override
+  DateTime? get doTime => _todo.launchTime;
+
+  @override
+  String get businessTypeDescription => _todo.todoName;
+
+  TodoTask get todo => _todo;
 }

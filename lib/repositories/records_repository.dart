@@ -1,15 +1,17 @@
 import '../models/records/record_item.dart';
 import '../models/records/record_type.dart';
 import '../services/api/interfaces/records_api_service.dart';
+import '../services/api/interfaces/todo_api_service.dart';
 import '../utils/logger.dart';
 
 class RecordsRepository {
   final RecordsApiService _apiService;
+  final TodoApiService _todoApiService;
   final Map<RecordType, List<RecordItem>> _cache = {};
   final Map<RecordType, DateTime> _cacheTimestamps = {};
   final Duration _cacheTimeout = const Duration(minutes: 5);
 
-  RecordsRepository(this._apiService);
+  RecordsRepository(this._apiService, this._todoApiService);
 
   Future<List<RecordItem>> getRecords({
     required RecordType recordType,
@@ -35,8 +37,8 @@ class RecordsRepository {
 
       List<RecordItem> records;
 
-      if (recordType == RecordType.pending) {
-        records = await _getPendingRecords(
+      if (recordType == RecordType.todo) {
+        records = await _getTodoRecords(
           projectId: projectId,
           userId: userId,
           pageNum: pageNum,
@@ -93,51 +95,23 @@ class RecordsRepository {
     }
   }
 
-  Future<List<RecordItem>> _getPendingRecords({
+  Future<List<RecordItem>> _getTodoRecords({
     int? projectId,
     int? userId,
     int pageNum = 1,
     int pageSize = 10,
   }) async {
-    final allPendingRecords = <RecordItem>[];
+    final response = await _todoApiService.getTodoList(
+      pageNum: pageNum,
+      pageSize: pageSize,
+    );
 
-    final recordTypes = [
-      RecordType.accept,
-      RecordType.install,
-      RecordType.signin,
-      RecordType.signout,
-    ];
-
-    for (final recordType in recordTypes) {
-      try {
-        final response = await _apiService.getBusinessRecords(
-          recordType: recordType,
-          projectId: projectId,
-          userId: userId,
-          pageNum: 1,
-          pageSize: 5,
-        );
-
-        if (response.isSuccess) {
-          final records = response.data!.records
-              .map((record) => BusinessRecordItem(record))
-              .toList();
-          allPendingRecords.addAll(records);
-        }
-      } catch (e) {
-        Logger.warning(
-          'Failed to fetch pending records for $recordType: $e',
-          tag: 'RecordsRepository',
-        );
-      }
+    if (!response.isSuccess) {
+      throw Exception(response.msg.isNotEmpty ? response.msg : '获取待办任务失败');
     }
 
-    // allPendingRecords.sort((a, b) => b.doTime.compareTo(a.doTime));
-
-    final startIndex = (pageNum - 1) * pageSize;
-    final endIndex = (startIndex + pageSize).clamp(0, allPendingRecords.length);
-
-    return allPendingRecords.sublist(startIndex, endIndex);
+    final todoTasks = response.data!.records;
+    return todoTasks.map((todo) => TodoRecordItem(todo)).toList();
   }
 
   Future<List<RecordItem>> _getProjectInitRecords({

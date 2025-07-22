@@ -13,12 +13,12 @@ class MockTodoApiService implements TodoApiService {
 
     final currentPage = pageNum ?? 1;
     final size = pageSize ?? 10;
-    
+
     final mockTasks = _generateMockTodos();
     final startIndex = (currentPage - 1) * size;
     final endIndex = (startIndex + size).clamp(0, mockTasks.length);
-    
-    final paginatedTasks = startIndex < mockTasks.length 
+
+    final paginatedTasks = startIndex < mockTasks.length
         ? mockTasks.sublist(startIndex, endIndex)
         : <TodoTask>[];
 
@@ -29,7 +29,7 @@ class MockTodoApiService implements TodoApiService {
       current: currentPage,
     );
 
-    return Result.success(pageData);
+    return Result<PageTodoTask>(code: 0, msg: 'success', data: pageData);
   }
 
   List<TodoTask> _generateMockTodos() {
@@ -38,8 +38,8 @@ class MockTodoApiService implements TodoApiService {
       TodoTask(
         id: 1,
         name: '管道验收任务',
-        businessType: 1,
-        businessName: '验收',
+        todoType: 1,
+        todoName: '验收',
         businessId: 1001,
         projectId: 2001,
         projectName: '智慧水务项目一期',
@@ -53,14 +53,18 @@ class MockTodoApiService implements TodoApiService {
       TodoTask(
         id: 2,
         name: '管道安装核销',
-        businessType: 2,
-        businessName: '安装',
+        todoType: 2,
+        todoName: '安装',
         businessId: 1002,
         projectId: 2001,
         projectName: '智慧水务项目一期',
         projectCode: 'ZS2024001',
-        launchTime: now.subtract(const Duration(days: 3, hours: 10, minutes: 30)),
-        finishTime: now.subtract(const Duration(days: 2, hours: 7, minutes: 15)),
+        launchTime: now.subtract(
+          const Duration(days: 3, hours: 10, minutes: 30),
+        ),
+        finishTime: now.subtract(
+          const Duration(days: 2, hours: 7, minutes: 15),
+        ),
         finishStatus: 1,
         launchUser: 'user002',
         launchName: '李主管',
@@ -68,8 +72,8 @@ class MockTodoApiService implements TodoApiService {
       TodoTask(
         id: 3,
         name: '管道巡检任务',
-        businessType: 3,
-        businessName: '巡检',
+        todoType: 3,
+        todoName: '巡检',
         businessId: 1003,
         projectId: 2002,
         projectName: '智慧水务项目二期',
@@ -83,14 +87,18 @@ class MockTodoApiService implements TodoApiService {
       TodoTask(
         id: 4,
         name: '质量检查任务',
-        businessType: 4,
-        businessName: '质检',
+        todoType: 4,
+        todoName: '质检',
         businessId: 1004,
         projectId: 2001,
         projectName: '智慧水务项目一期',
         projectCode: 'ZS2024001',
-        launchTime: now.subtract(const Duration(days: 4, hours: 13, minutes: 45)),
-        finishTime: now.subtract(const Duration(days: 3, hours: 12, minutes: 30)),
+        launchTime: now.subtract(
+          const Duration(days: 4, hours: 13, minutes: 45),
+        ),
+        finishTime: now.subtract(
+          const Duration(days: 3, hours: 12, minutes: 30),
+        ),
         finishStatus: 1,
         launchUser: 'user004',
         launchName: '赵质检员',
@@ -98,8 +106,8 @@ class MockTodoApiService implements TodoApiService {
       TodoTask(
         id: 5,
         name: '设备维护任务',
-        businessType: 5,
-        businessName: '维护',
+        todoType: 5,
+        todoName: '维护',
         businessId: 1005,
         projectId: 2003,
         projectName: '设备维护项目',

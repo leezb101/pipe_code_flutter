@@ -11,6 +11,7 @@ import '../services/api/interfaces/api_service_interface.dart';
 import '../services/api/interfaces/records_api_service.dart';
 import '../services/api/interfaces/identification_api_service.dart';
 import '../services/api/interfaces/common_query_api_service.dart';
+import '../services/api/interfaces/todo_api_service.dart';
 import '../services/api_service_factory.dart';
 import '../services/storage_service.dart';
 import '../services/qr_scan_service.dart';
@@ -64,6 +65,11 @@ Future<void> setupServiceLocator({
     () => ApiServiceFactory.createCommonQueryService(),
   );
 
+  // Todo API Service - automatically chooses Mock or Real based on config
+  getIt.registerLazySingleton<TodoApiService>(
+    () => ApiServiceFactory.createTodoService(),
+  );
+
   // QR Scan Service
   getIt.registerLazySingleton<QrScanService>(() => QrScanServiceImpl());
 
@@ -98,7 +104,10 @@ Future<void> setupServiceLocator({
   );
 
   getIt.registerLazySingleton<RecordsRepository>(
-    () => RecordsRepository(getIt<RecordsApiService>()),
+    () => RecordsRepository(
+      getIt<RecordsApiService>(),
+      getIt<TodoApiService>(),
+    ),
   );
 
   getIt.registerLazySingleton<AcceptanceRepository>(

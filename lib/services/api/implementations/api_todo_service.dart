@@ -30,14 +30,14 @@ class ApiTodoService implements TodoApiService {
 
       return result;
     } on DioException catch (e) {
-      return Result.failure(
+      return Result<PageTodoTask>(
         code: e.response?.statusCode ?? -1,
-        message: e.message ?? '网络请求失败',
+        msg: e.message ?? '网络请求失败',
       );
     } catch (e) {
-      return Result.failure(
+      return Result<PageTodoTask>(
         code: -1,
-        message: '获取待办列表失败: ${e.toString()}',
+        msg: '获取待办列表失败: ${e.toString()}',
       );
     }
   }
