@@ -1,0 +1,516 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "一管一码",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "公共"
+    },
+    {
+      "name": "公共/EnumController"
+    },
+    {
+      "name": "enum"
+    }
+  ],
+  "paths": {
+    "/enum/todo/type": {
+      "get": {
+        "summary": "待办任务类型",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "公共/EnumController"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "code": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/orgs": {
+      "get": {
+        "summary": "公司列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "公共/EnumController"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListSimpleOrgVO",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "code": "",
+                      "name": "",
+                      "type": 0,
+                      "typeName": ""
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/material/type": {
+      "get": {
+        "summary": "耗材类型",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "公共/EnumController"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "type": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/org/type": {
+      "get": {
+        "summary": "公司类型",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "公共/EnumController"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": ""
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "type": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/accept/status": {
+      "get": {
+        "summary": "验收状态",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "公共/EnumController",
+          "enum"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "code": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/business/type": {
+      "get": {
+        "summary": "业务类型",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "公共/EnumController",
+          "enum"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "code": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/project/status": {
+      "get": {
+        "summary": "项目状态",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "公共/EnumController",
+          "enum"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "code": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/projectsupply/type": {
+      "get": {
+        "summary": "项目甲乙供材类型",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "公共/EnumController",
+          "enum"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "code": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/project/type": {
+      "get": {
+        "summary": "项目类型",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "公共/EnumController",
+          "enum"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "code": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/enum/return/type": {
+      "get": {
+        "summary": "退库",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "公共/EnumController",
+          "enum"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result",
+                  "description": "------------------------------------------------------------------\nmario\n------------------------------------------------------------------\n类 名:Result\n功 能: 统一返回对象\n创建者: sunx(sunx)\n创建时间: 2019-09-07 14:29:35\n备 注:\n------------------------------------------------------------------\n修改历史\n------------------------------------------------------------------\n时间                      姓名                  备注\n------------------------------------------------------------------\n<p>\n------------------------------------------------------------------"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "成功",
+                  "tc": 0,
+                  "data": [
+                    {
+                      "": null,
+                      "msg": "",
+                      "code": 0
+                    }
+                  ],
+                  "success": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Result": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "type": "object",
+            "properties": {},
+            "description": "具体的内容."
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SimpleOrgVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "公司编码"
+          },
+          "name": {
+            "type": "string",
+            "description": "公司名称"
+          },
+          "type": {
+            "type": "integer",
+            "description": "公司类型"
+          },
+          "typeName": {
+            "type": "string",
+            "description": "公司类型名称"
+          }
+        }
+      },
+      "ResultListSimpleOrgVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SimpleOrgVO",
+              "description": "简化公司VO"
+            },
+            "description": "具体的内容."
+          }
+        }
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}
