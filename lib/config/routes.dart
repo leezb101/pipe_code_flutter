@@ -18,6 +18,7 @@ import '../pages/qr_scan/qr_scan_page.dart';
 import '../pages/inventory/inventory_confirmation_page.dart';
 import '../pages/acceptance/acceptance_page.dart';
 import '../pages/acceptance/acceptance_detail_page.dart';
+import '../pages/acceptance/acceptance_confirmation_page.dart';
 import '../bloc/acceptance/acceptance_bloc.dart';
 import '../repositories/acceptance_repository.dart';
 import '../pages/developer_settings_page.dart';
@@ -116,6 +117,24 @@ final GoRouter appRouter = GoRouter(
               create: (context) =>
                   AcceptanceBloc(getIt<AcceptanceRepository>()),
               child: AcceptanceDetailPage(acceptanceId: acceptanceId),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/acceptance-confirmation',
+          name: 'acceptance-confirmation',
+          builder: (context, state) {
+            final acceptanceIdParam = state.uri.queryParameters['id'];
+            final acceptanceId = acceptanceIdParam != null
+                ? int.tryParse(acceptanceIdParam)
+                : null;
+            if (acceptanceId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return BlocProvider(
+              create: (context) =>
+                  AcceptanceBloc(getIt<AcceptanceRepository>()),
+              child: AcceptanceConfirmationPage(acceptanceId: acceptanceId),
             );
           },
         ),

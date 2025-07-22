@@ -1,0 +1,258 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "一管一码",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "移动端"
+    },
+    {
+      "name": "移动端/待办操作"
+    }
+  ],
+  "paths": {
+    "/todo/list": {
+      "get": {
+        "summary": "待办列表",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "移动端/待办操作"
+        ],
+        "parameters": [
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 1,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": 10,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageTodoTaskVO"
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "tc": 0,
+                  "data": {
+                    "records": [
+                      {
+                        "id": 0,
+                        "name": "",
+                        "businessType": 0,
+                        "businessName": "",
+                        "businessId": 0,
+                        "projectId": 0,
+                        "projectName": "",
+                        "projectCode": "",
+                        "launchTime": "",
+                        "finishTime": "",
+                        "finishStatus": 0,
+                        "launchUser": "",
+                        "launchName": ""
+                      }
+                    ],
+                    "total": 0,
+                    "size": 0,
+                    "current": 0,
+                    "orders": [
+                      {
+                        "column": "",
+                        "asc": false
+                      }
+                    ],
+                    "optimizeCountSql": false,
+                    "searchCount": false,
+                    "optimizeJoinOfCountSql": false,
+                    "maxLimit": 0,
+                    "countId": ""
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TodoTaskVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": ""
+          },
+          "name": {
+            "type": "string",
+            "description": "任务名称"
+          },
+          "businessType": {
+            "type": "integer",
+            "description": "业务类型"
+          },
+          "businessName": {
+            "type": "string",
+            "description": "业务名称"
+          },
+          "businessId": {
+            "type": "integer",
+            "description": "业务关联id"
+          },
+          "projectId": {
+            "type": "integer",
+            "description": "工程id"
+          },
+          "projectName": {
+            "type": "string",
+            "description": "工程名称"
+          },
+          "projectCode": {
+            "type": "string",
+            "description": "工程编号"
+          },
+          "launchTime": {
+            "type": "string",
+            "description": "发起时间"
+          },
+          "finishTime": {
+            "type": "string",
+            "description": "完成时间"
+          },
+          "finishStatus": {
+            "type": "integer",
+            "description": "完成状态，0：未完成，1：已完成"
+          },
+          "launchUser": {
+            "type": "string",
+            "description": "发起人id"
+          },
+          "launchName": {
+            "type": "string",
+            "description": "发起人姓名"
+          }
+        }
+      },
+      "PageTodoTaskVO": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TodoTaskVO",
+              "description": "待办任务"
+            },
+            "description": ""
+          },
+          "total": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "size": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "current": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem",
+              "description": "com.baomidou.mybatisplus.core.metadata.OrderItem"
+            },
+            "description": ""
+          },
+          "optimizeCountSql": {
+            "type": "boolean",
+            "description": ""
+          },
+          "searchCount": {
+            "type": "boolean",
+            "description": ""
+          },
+          "optimizeJoinOfCountSql": {
+            "type": "boolean",
+            "description": ""
+          },
+          "maxLimit": {
+            "type": "integer",
+            "description": "",
+            "format": "int64"
+          },
+          "countId": {
+            "type": "string",
+            "description": ""
+          }
+        }
+      },
+      "ResultPageTodoTaskVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码."
+          },
+          "msg": {
+            "type": "string",
+            "description": "提示信息."
+          },
+          "tc": {
+            "type": "integer",
+            "description": "接口耗时time consuming",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageTodoTaskVO",
+            "description": "具体的内容."
+          }
+        }
+      },
+      "OrderItem": {
+        "type": "object",
+        "properties": {
+          "column": {
+            "type": "string",
+            "description": ""
+          },
+          "asc": {
+            "type": "boolean",
+            "description": ""
+          }
+        }
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}
