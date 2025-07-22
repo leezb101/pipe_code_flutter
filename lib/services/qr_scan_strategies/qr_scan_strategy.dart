@@ -658,3 +658,35 @@ class IdentificationStrategy implements QrScanStrategy {
     }
   }
 }
+
+class MaterialInboundStrategy implements QrScanStrategy {
+  @override
+  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
+    try {
+      // 这个策略只负责返回扫码结果，不做任何业务处理
+      // 物料匹配和验证逻辑由AcceptanceBloc处理
+      if (results.length == 1) {
+        final result = results.first;
+        Logger.qrScan('=== 物料入库扫码 ===', deviceCode: result.code);
+        Logger.qrScan('扫码内容: ${result.code}', deviceCode: result.code);
+        Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
+        
+        return const QrScanProcessResult(
+          success: true,
+          // 不设置 navigationData，让调用页面处理扫码结果
+        );
+      } else {
+        return const QrScanProcessResult(
+          success: false,
+          errorMessage: '物料入库扫码只支持单个扫码',
+        );
+      }
+    } catch (e) {
+      Logger.qrScan('物料入库扫码处理异常: $e');
+      return QrScanProcessResult(
+        success: false,
+        errorMessage: '扫码处理失败: ${e.toString()}',
+      );
+    }
+  }
+}

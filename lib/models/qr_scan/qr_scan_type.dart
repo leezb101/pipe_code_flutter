@@ -14,7 +14,8 @@ enum QrScanType {
   pipeCopy('截管复制'),
   identification('扫码识别'),
   returnMaterial('退库'),
-  acceptance('验收');
+  acceptance('验收'),
+  materialInbound('物料入库');
 
   /// 扫码类型枚举
 

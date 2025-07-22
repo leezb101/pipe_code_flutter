@@ -105,3 +105,12 @@ class LoadWarehouseUsers extends AcceptanceEvent {
 class LoadWarehouseList extends AcceptanceEvent {
   const LoadWarehouseList();
 }
+
+class ScanMaterialForSignin extends AcceptanceEvent {
+  final String scannedCode;
+
+  const ScanMaterialForSignin({required this.scannedCode});
+
+  @override
+  List<Object?> get props => [scannedCode];
+}

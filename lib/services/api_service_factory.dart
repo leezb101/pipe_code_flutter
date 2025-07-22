@@ -31,6 +31,9 @@ import 'api/mock/mock_common_query_api_service.dart';
 import 'api/interfaces/todo_api_service.dart';
 import 'api/implementations/api_todo_service.dart';
 import 'api/mock/mock_todo_api_service.dart';
+import 'api/interfaces/material_handle_api_service.dart';
+import 'api/implementations/material_handle_api_service_impl.dart';
+import 'api/mock/mock_material_handle_api_service.dart';
 
 class ApiServiceFactory {
   static ApiServiceInterface create() {
@@ -84,6 +87,15 @@ class ApiServiceFactory {
     } else {
       final dio = _createDio();
       return EnumApiServiceImpl(dio);
+    }
+  }
+
+  static MaterialHandleApiService createMaterialHandleService() {
+    if (AppConfig.isMockEnabled) {
+      return MockMaterialHandleApiService();
+    } else {
+      final dio = _createDio();
+      return MaterialHandleApiServiceImpl(dio);
     }
   }
 

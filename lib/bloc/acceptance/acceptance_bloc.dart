@@ -1,13 +1,16 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../models/acceptance/acceptance_info_vo.dart';
 import '../../repositories/acceptance_repository.dart';
+import '../../services/api/interfaces/material_handle_api_service.dart';
 import '../../utils/logger.dart';
 import 'acceptance_event.dart';
 import 'acceptance_state.dart';
 
 class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
   final AcceptanceRepository _repository;
+  final MaterialHandleApiService _materialHandleService;
 
-  AcceptanceBloc(this._repository) : super(const AcceptanceInitial()) {
+  AcceptanceBloc(this._repository, this._materialHandleService) : super(const AcceptanceInitial()) {
     on<LoadAcceptanceDetail>(_onLoadAcceptanceDetail);
     on<SubmitAcceptance>(_onSubmitAcceptance);
     on<AuditAcceptance>(_onAuditAcceptance);
@@ -18,6 +21,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     on<LoadAcceptanceUsers>(_onLoadAcceptanceUsers);
     on<LoadWarehouseUsers>(_onLoadWarehouseUsers);
     on<LoadWarehouseList>(_onLoadWarehouseList);
+    on<ScanMaterialForSignin>(_onScanMaterialForSignin);
   }
 
   Future<void> _onLoadAcceptanceDetail(
@@ -299,6 +303,76 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     } catch (e) {
       emit(AcceptanceError(message: '获取仓库列表失败，请重试'));
       Logger.error('Error loading warehouse list: $e', tag: 'AcceptanceBloc');
+    }
+  }
+
+  Future<void> _onScanMaterialForSignin(
+    ScanMaterialForSignin event,
+    Emitter<AcceptanceState> emit,
+  ) async {
+    // Get current acceptance info BEFORE emitting MaterialScanInProgress
+    final currentState = state;
+    AcceptanceInfoVO? acceptanceInfo;
+    if (currentState is AcceptanceDetailLoaded) {
+      acceptanceInfo = currentState.acceptanceInfo;
+    }
+
+    try {
+      emit(const MaterialScanInProgress());
+      Logger.info(
+        'Scanning material for signin with code: ${event.scannedCode}',
+        tag: 'AcceptanceBloc',
+      );
+
+      // Use scanBatchToQueryAll with single-element array as requested
+      final result = await _materialHandleService.scanBatchToQueryAll([event.scannedCode]);
+
+      if (result.isSuccess && result.data != null && result.data!.isNotEmpty) {
+        final scannedMaterial = result.data!.first;
+        Logger.info(
+          'Material scanned successfully: ${scannedMaterial.materialCode}',
+          tag: 'AcceptanceBloc',
+        );
+
+        // Check if this material exists in current acceptance detail
+        if (acceptanceInfo != null) {
+          try {
+            final matchingMaterial = acceptanceInfo.materialList
+                .firstWhere(
+                  (material) => material.materialId.toString() == scannedMaterial.materialCode,
+                );
+
+            emit(MaterialScanned(
+              materialId: matchingMaterial.materialId,
+              message: '物料匹配成功: ${matchingMaterial.materialName}',
+              acceptanceInfo: acceptanceInfo,
+            ));
+          } catch (e) {
+            emit(MaterialScanError(
+              message: '该物料不在当前验收清单中',
+              acceptanceInfo: acceptanceInfo,
+            ));
+          }
+        } else {
+          emit(const MaterialScanError(message: '请先加载验收详情'));
+        }
+      } else {
+        emit(MaterialScanError(
+          message: result.msg ?? '扫码查询失败，请重试',
+          acceptanceInfo: acceptanceInfo,
+        ));
+        Logger.error(
+          'Failed to scan material: ${result.msg}',
+          tag: 'AcceptanceBloc',
+        );
+      }
+    } catch (e) {
+      // Use the acceptanceInfo captured at the beginning
+      emit(MaterialScanError(
+        message: '扫码识别失败: $e',
+        acceptanceInfo: acceptanceInfo,
+      ));
+      Logger.error('Error scanning material: $e', tag: 'AcceptanceBloc');
     }
   }
 }

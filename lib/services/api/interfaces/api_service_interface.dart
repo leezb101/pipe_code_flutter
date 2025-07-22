@@ -13,6 +13,7 @@ import 'user_api_service.dart';
 import 'list_api_service.dart';
 import 'acceptance_api_service.dart';
 import 'common_query_api_service.dart';
+import 'material_handle_api_service.dart';
 
 abstract class ApiServiceInterface {
   AuthApiService get auth;
@@ -22,4 +23,5 @@ abstract class ApiServiceInterface {
   AcceptanceApiService get acceptance;
   CommonQueryApiService get commonQuery;
   EnumApiService get enums;
+  MaterialHandleApiService get materialHandle;
 }

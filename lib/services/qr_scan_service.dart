@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:10:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-05 15:22:01
+ * @LastEditTime: 2025-07-22 19:34:15
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -16,9 +16,14 @@ abstract class QrScanService {
   Future<QrScanProcessResult?> processTransfer(List<QrScanResult> results);
   Future<QrScanProcessResult?> processInventory(List<QrScanResult> results);
   Future<QrScanProcessResult?> processPipeCopy(List<QrScanResult> results);
-  Future<QrScanProcessResult?> processIdentification(List<QrScanResult> results);
-  Future<QrScanProcessResult?> processReturnMaterial(List<QrScanResult> results);
+  Future<QrScanProcessResult?> processIdentification(
+    List<QrScanResult> results,
+  );
+  Future<QrScanProcessResult?> processReturnMaterial(
+    List<QrScanResult> results,
+  );
   Future<QrScanProcessResult?> processAcceptance(List<QrScanResult> results);
+  Future<QrScanProcessResult?> processMaterialInbound(List<QrScanResult> results);
 }
 
 class QrScanServiceImpl implements QrScanService {
@@ -28,7 +33,7 @@ class QrScanServiceImpl implements QrScanService {
   Future<bool> validateCode(String code) async {
     await Future.delayed(const Duration(milliseconds: 500));
 
-    if (code.isEmpty || code.length < 6) {
+    if (code.isEmpty) {
       return false;
     }
 
@@ -38,43 +43,57 @@ class QrScanServiceImpl implements QrScanService {
   }
 
   @override
-  Future<QrScanProcessResult?> processInbound(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> processInbound(
+    List<QrScanResult> results,
+  ) async {
     final strategy = InboundStrategy();
     return strategy.process(results);
   }
 
   @override
-  Future<QrScanProcessResult?> processOutbound(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> processOutbound(
+    List<QrScanResult> results,
+  ) async {
     final strategy = OutboundStrategy();
     return strategy.process(results);
   }
 
   @override
-  Future<QrScanProcessResult?> processTransfer(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> processTransfer(
+    List<QrScanResult> results,
+  ) async {
     final strategy = TransferStrategy();
     return strategy.process(results);
   }
 
   @override
-  Future<QrScanProcessResult?> processInventory(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> processInventory(
+    List<QrScanResult> results,
+  ) async {
     final strategy = InventoryStrategy();
     return strategy.process(results);
   }
 
   @override
-  Future<QrScanProcessResult?> processPipeCopy(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> processPipeCopy(
+    List<QrScanResult> results,
+  ) async {
     final strategy = PipeCopyStrategy();
     return strategy.process(results);
   }
 
   @override
-  Future<QrScanProcessResult?> processIdentification(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> processIdentification(
+    List<QrScanResult> results,
+  ) async {
     final strategy = IdentificationStrategy();
     return strategy.process(results);
   }
 
   @override
-  Future<QrScanProcessResult?> processReturnMaterial(List<QrScanResult> results) {
+  Future<QrScanProcessResult?> processReturnMaterial(
+    List<QrScanResult> results,
+  ) {
     final strategy = ReturnMaterialStrategy();
     return strategy.process(results);
   }
@@ -82,6 +101,12 @@ class QrScanServiceImpl implements QrScanService {
   @override
   Future<QrScanProcessResult?> processAcceptance(List<QrScanResult> results) {
     final strategy = AcceptanceStrategy();
+    return strategy.process(results);
+  }
+
+  @override
+  Future<QrScanProcessResult?> processMaterialInbound(List<QrScanResult> results) {
+    final strategy = MaterialInboundStrategy();
     return strategy.process(results);
   }
 }

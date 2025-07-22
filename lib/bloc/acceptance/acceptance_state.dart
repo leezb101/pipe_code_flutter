@@ -113,3 +113,28 @@ class WarehouseListLoaded extends AcceptanceState {
   @override
   List<Object?> get props => [warehouseList];
 }
+
+class MaterialScanInProgress extends AcceptanceState {
+  const MaterialScanInProgress();
+}
+
+class MaterialScanned extends AcceptanceState {
+  final int? materialId;
+  final String? message;
+  final AcceptanceInfoVO? acceptanceInfo;
+
+  const MaterialScanned({this.materialId, this.message, this.acceptanceInfo});
+
+  @override
+  List<Object?> get props => [materialId, message, acceptanceInfo];
+}
+
+class MaterialScanError extends AcceptanceState {
+  final String message;
+  final AcceptanceInfoVO? acceptanceInfo;
+
+  const MaterialScanError({required this.message, this.acceptanceInfo});
+
+  @override
+  List<Object?> get props => [message, acceptanceInfo];
+}

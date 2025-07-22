@@ -1,5 +1,12 @@
 /*
  * @Author: LeeZB
+ * @Date: 2025-07-22 08:53:08
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-22 18:09:22
+ * @copyright: Copyright © 2025 高新供水.
+ */
+/*
+ * @Author: LeeZB
  * @Date: 2025-07-20 15:30:00
  * @LastEditors: Leezb101 leezb101@126.com
  * @LastEditTime: 2025-07-20 15:30:00
@@ -14,17 +21,15 @@ import '../interfaces/identification_api_service.dart';
 /// Mock扫码识别API服务实现
 class MockIdentificationApiService implements IdentificationApiService {
   @override
-  Future<Result<ScanIdentificationData>> scanMaterialIdentification(String code) async {
+  Future<Result<ScanIdentificationData>> scanMaterialIdentification(
+    String code,
+  ) async {
     // 模拟网络延迟
     await Future.delayed(const Duration(milliseconds: 800));
 
     // 根据不同的扫码内容返回不同的模拟数据
     final data = _getMockDataByCode(code);
-    return Result(
-      code: 0,
-      msg: '成功',
-      data: data,
-    );
+    return Result(code: 0, msg: '成功', data: data);
   }
 
   ScanIdentificationData _getMockDataByCode(String code) {
@@ -98,9 +103,7 @@ class MockIdentificationApiService implements IdentificationApiService {
         group: 0,
         materialCode: 'DEFAULT001',
         productName: '通用材料',
-        extendedFields: {
-          'remark': '通用材料信息',
-        },
+        extendedFields: {'remark': '通用材料信息'},
       );
     }
   }

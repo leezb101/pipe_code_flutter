@@ -14,6 +14,7 @@ import '../services/api/interfaces/records_api_service.dart';
 import '../services/api/interfaces/identification_api_service.dart';
 import '../services/api/interfaces/common_query_api_service.dart';
 import '../services/api/interfaces/todo_api_service.dart';
+import '../services/api/interfaces/material_handle_api_service.dart';
 import '../services/api_service_factory.dart';
 import '../services/storage_service.dart';
 import '../services/qr_scan_service.dart';
@@ -73,6 +74,10 @@ Future<void> setupServiceLocator({
 
   getIt.registerLazySingleton<EnumApiService>(
     () => ApiServiceFactory.createEnumService(),
+  );
+
+  getIt.registerLazySingleton<MaterialHandleApiService>(
+    () => ApiServiceFactory.createMaterialHandleService(),
   );
 
   getIt.registerSingleton<EnumRepository>(

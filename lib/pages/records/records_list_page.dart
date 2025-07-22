@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/models/common/common_enum_vo.dart';
+import 'package:pipe_code_flutter/models/records/record_item.dart';
 import '../../bloc/records/records_bloc.dart';
 import '../../bloc/records/records_event.dart';
 import '../../bloc/records/records_state.dart';
@@ -56,14 +58,17 @@ class _RecordsListPageState extends State<RecordsListPage> {
     bloc.add(RefreshRecords(recordType: bloc.currentTab));
   }
 
-  void _onRecordTap(int recordId) {
+  void _onRecordTap(RecordItem record) {
     final bloc = context.read<RecordsBloc>();
     final currentTab = bloc.currentTab;
-    
+
     // Navigate to specific detail page based on record type
     switch (currentTab) {
       case RecordType.accept:
-        context.go('/acceptance-detail?id=$recordId');
+        context.goNamed(
+          'acceptance-detail',
+          queryParameters: {'id': record.id.toString()},
+        );
         break;
       case RecordType.signin:
       case RecordType.signout:
@@ -73,6 +78,15 @@ class _RecordsListPageState extends State<RecordsListPage> {
       case RecordType.waste:
       case RecordType.inventory:
       case RecordType.todo:
+        // 这里需要继续判断，当前item的todoType是什么
+        if ((record as TodoRecordItem).todo.todoType == 2 ||
+            record.todo.todoType == 1) {
+          context.goNamed(
+            'acceptance-after-signin',
+            queryParameters: {'id': record.todo.businessId.toString()},
+          );
+        }
+        break;
       default:
         // For other record types, show a placeholder message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -88,57 +102,50 @@ class _RecordsListPageState extends State<RecordsListPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final bloc = context.read<RecordsBloc>();
       if (bloc.state is RecordsInitial) {
-        bloc.add(LoadRecords(
-          recordType: widget.initialTab ?? RecordType.todo,
-        ));
+        bloc.add(LoadRecords(recordType: widget.initialTab ?? RecordType.todo));
       }
     });
 
     return Scaffold(
-        backgroundColor: Colors.grey[50],
-        appBar: AppBar(
-          title: const Text('工作记录'),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black87,
-          elevation: 0,
-          bottom: PreferredSize(
-            preferredSize: Size.zero,
-            child: Container(
-              height: 1,
-              color: Colors.grey[200],
-            ),
-          ),
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: const Text('工作记录'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: Size.zero,
+          child: Container(height: 1, color: Colors.grey[200]),
         ),
-        body: Column(
-          children: [
-            BlocBuilder<RecordsBloc, RecordsState>(
-              builder: (context, state) {
-                RecordType currentTab = RecordType.todo;
-                if (state is RecordsInitial) {
-                  currentTab = state.currentTab;
-                } else if (state is RecordsLoading) {
-                  currentTab = state.currentTab;
-                } else if (state is RecordsLoaded) {
-                  currentTab = state.currentTab;
-                } else if (state is RecordsError) {
-                  currentTab = state.currentTab;
-                } else if (state is RecordsEmpty) {
-                  currentTab = state.currentTab;
-                }
+      ),
+      body: Column(
+        children: [
+          BlocBuilder<RecordsBloc, RecordsState>(
+            builder: (context, state) {
+              RecordType currentTab = RecordType.todo;
+              if (state is RecordsInitial) {
+                currentTab = state.currentTab;
+              } else if (state is RecordsLoading) {
+                currentTab = state.currentTab;
+              } else if (state is RecordsLoaded) {
+                currentTab = state.currentTab;
+              } else if (state is RecordsError) {
+                currentTab = state.currentTab;
+              } else if (state is RecordsEmpty) {
+                currentTab = state.currentTab;
+              }
 
-                return ExpandableTabBar(
-                  selectedTab: currentTab,
-                  onTabSelected: _onTabSelected,
-                  allTabs: _allTabs,
-                );
-              },
-            ),
-            Expanded(
-              child: _buildContent(),
-            ),
-          ],
-        ),
-      );
+              return ExpandableTabBar(
+                selectedTab: currentTab,
+                onTabSelected: _onTabSelected,
+                allTabs: _allTabs,
+              );
+            },
+          ),
+          Expanded(child: _buildContent()),
+        ],
+      ),
+    );
   }
 
   Widget _buildContent() {
@@ -188,10 +195,7 @@ class _RecordsListPageState extends State<RecordsListPage> {
       child: Column(
         children: [
           if (isLoading)
-            const SizedBox(
-              height: 2,
-              child: LinearProgressIndicator(),
-            ),
+            const SizedBox(height: 2, child: LinearProgressIndicator()),
           if (hasError)
             Container(
               width: double.infinity,
@@ -199,7 +203,11 @@ class _RecordsListPageState extends State<RecordsListPage> {
               padding: const EdgeInsets.all(8),
               child: Row(
                 children: [
-                  Icon(Icons.warning_amber, color: Colors.orange[600], size: 16),
+                  Icon(
+                    Icons.warning_amber,
+                    color: Colors.orange[600],
+                    size: 16,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     '数据可能不是最新的，请下拉刷新',
@@ -224,7 +232,7 @@ class _RecordsListPageState extends State<RecordsListPage> {
                 final record = records[index];
                 return RecordListItem(
                   record: record,
-                  onTap: () => _onRecordTap(record.id),
+                  onTap: () => _onRecordTap(record),
                 );
               },
             ),

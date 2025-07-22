@@ -46,14 +46,14 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
     if (state.status == QrScanStatus.processing) {
       return;
     }
-    
+
     // 防止扫描相同的二维码（在当前处理中）
     if (state.currentCode == event.code) {
       return;
     }
-    
+
     // 对于批量扫描，允许重复扫描不同的码；对于单个扫描，检查是否已扫描过
-    if (state.config?.supportsBatch != true && 
+    if (state.config?.supportsBatch != true &&
         state.scannedCodes.any((result) => result.code == event.code)) {
       return;
     }
@@ -160,7 +160,9 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
         errorMessage: null,
         isValidCode: false,
         // 对于非批量模式，重置时清空已扫描代码，避免重复扫码检查问题
-        scannedCodes: state.config?.supportsBatch == true ? state.scannedCodes : [],
+        scannedCodes: state.config?.supportsBatch == true
+            ? state.scannedCodes
+            : [],
       ),
     );
   }
@@ -169,7 +171,9 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
     ProcessScannedCodes event,
     Emitter<QrScanState> emit,
   ) async {
-    if (state.config == null || state.scannedCodes.isEmpty || state.isProcessing) {
+    if (state.config == null ||
+        state.scannedCodes.isEmpty ||
+        state.isProcessing) {
       return;
     }
 
@@ -194,13 +198,20 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
           result = await _qrScanService.processPipeCopy(state.scannedCodes);
           break;
         case QrScanType.identification:
-          result = await _qrScanService.processIdentification(state.scannedCodes);
+          result = await _qrScanService.processIdentification(
+            state.scannedCodes,
+          );
           break;
         case QrScanType.returnMaterial:
-          result = await _qrScanService.processReturnMaterial(state.scannedCodes);
+          result = await _qrScanService.processReturnMaterial(
+            state.scannedCodes,
+          );
           break;
         case QrScanType.acceptance:
           result = await _qrScanService.processAcceptance(state.scannedCodes);
+          break;
+        case QrScanType.materialInbound:
+          result = await _qrScanService.processMaterialInbound(state.scannedCodes);
           break;
       }
 

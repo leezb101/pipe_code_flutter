@@ -7,9 +7,11 @@
  */
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/material_handle_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/spareqr_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_enum_api_service.dart';
+import 'package:pipe_code_flutter/services/api/mock/mock_material_handle_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_spareqr_api_service.dart';
 
 import '../interfaces/api_service_interface.dart';
@@ -30,6 +32,7 @@ class MockApiService implements ApiServiceInterface {
   AcceptanceApiService? _acceptanceService;
   CommonQueryApiService? _commonQueryService;
   EnumApiService? _enumService;
+  MaterialHandleApiService? _materialHandleService;
 
   @override
   AuthApiService get auth => _authService ??= MockAuthApiService();
@@ -53,4 +56,8 @@ class MockApiService implements ApiServiceInterface {
 
   @override
   EnumApiService get enums => _enumService ??= MockEnumApiService();
+
+  @override
+  MaterialHandleApiService get materialHandle =>
+      _materialHandleService ??= MockMaterialHandleApiService();
 }

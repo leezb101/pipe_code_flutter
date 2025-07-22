@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-20 12:26:48
+ * @LastEditTime: 2025-07-22 19:05:38
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
 import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
 import 'package:pipe_code_flutter/repositories/spareqr_repository.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/material_handle_api_service.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/register_page.dart';
 import '../pages/main_page.dart';
@@ -19,6 +20,7 @@ import '../pages/inventory/inventory_confirmation_page.dart';
 import '../pages/acceptance/acceptance_page.dart';
 import '../pages/acceptance/acceptance_detail_page.dart';
 import '../pages/acceptance/acceptance_confirmation_page.dart';
+import '../pages/acceptance/acceptance_after_signin_page.dart';
 import '../bloc/acceptance/acceptance_bloc.dart';
 import '../repositories/acceptance_repository.dart';
 import '../pages/developer_settings_page.dart';
@@ -96,8 +98,10 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) =>
-                  AcceptanceBloc(getIt<AcceptanceRepository>()),
+              create: (context) => AcceptanceBloc(
+                getIt<AcceptanceRepository>(),
+                getIt<MaterialHandleApiService>(),
+              ),
               child: AcceptancePage(materials: materials),
             );
           },
@@ -114,8 +118,10 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) =>
-                  AcceptanceBloc(getIt<AcceptanceRepository>()),
+              create: (context) => AcceptanceBloc(
+                getIt<AcceptanceRepository>(),
+                getIt<MaterialHandleApiService>(),
+              ),
               child: AcceptanceDetailPage(acceptanceId: acceptanceId),
             );
           },
@@ -132,9 +138,31 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) =>
-                  AcceptanceBloc(getIt<AcceptanceRepository>()),
+              create: (context) => AcceptanceBloc(
+                getIt<AcceptanceRepository>(),
+                getIt<MaterialHandleApiService>(),
+              ),
               child: AcceptanceConfirmationPage(acceptanceId: acceptanceId),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/acceptance-after-signin',
+          name: 'acceptance-after-signin',
+          builder: (context, state) {
+            final acceptanceIdParam = state.uri.queryParameters['id'];
+            final acceptanceId = acceptanceIdParam != null
+                ? int.tryParse(acceptanceIdParam)
+                : null;
+            if (acceptanceId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return BlocProvider(
+              create: (context) => AcceptanceBloc(
+                getIt<AcceptanceRepository>(),
+                getIt<MaterialHandleApiService>(),
+              ),
+              child: AcceptanceAfterSigninPage(acceptanceId: acceptanceId),
             );
           },
         ),
@@ -186,7 +214,8 @@ final GoRouter appRouter = GoRouter(
             if (data == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            final identificationData = data['identificationData'] as ScanIdentificationData?;
+            final identificationData =
+                data['identificationData'] as ScanIdentificationData?;
             if (identificationData == null) {
               return const Scaffold(body: Center(child: Text('材料信息错误')));
             }

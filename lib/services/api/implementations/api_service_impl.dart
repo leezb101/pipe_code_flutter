@@ -2,14 +2,16 @@
  * @Author: LeeZB
  * @Date: 2025-07-18 17:42:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-22 16:38:35
+ * @LastEditTime: 2025-07-22 18:08:35
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
 import 'package:pipe_code_flutter/services/api/implementations/common_query_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/enum_api_service_impl.dart';
+import 'package:pipe_code_flutter/services/api/implementations/material_handle_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/spareqr_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/material_handle_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/spareqr_api_service.dart';
 import '../interfaces/api_service_interface.dart';
 import '../interfaces/auth_api_service.dart';
@@ -31,6 +33,7 @@ class ApiServiceImpl implements ApiServiceInterface {
   SpareqrApiService? _spareService;
   AcceptanceApiService? _acceptanceService;
   CommonQueryApiService? _commonQueryService;
+  MaterialHandleApiService? _materialHandleService;
 
   ApiServiceImpl(this._dio);
 
@@ -56,4 +59,8 @@ class ApiServiceImpl implements ApiServiceInterface {
 
   @override
   EnumApiService get enums => EnumApiServiceImpl(_dio);
+
+  @override
+  MaterialHandleApiService get materialHandle =>
+      _materialHandleService ??= MaterialHandleApiServiceImpl(_dio);
 }
