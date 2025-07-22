@@ -9,6 +9,9 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:pipe_code_flutter/services/api/implementations/enum_api_service_impl.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
+import 'package:pipe_code_flutter/services/api/mock/mock_enum_api_service.dart';
 import '../config/app_config.dart';
 import '../utils/logger.dart';
 import '../utils/network_logger.dart';
@@ -72,6 +75,15 @@ class ApiServiceFactory {
     } else {
       final dio = _createDio();
       return ApiTodoService(dio);
+    }
+  }
+
+  static EnumApiService createEnumService() {
+    if (AppConfig.isMockEnabled) {
+      return MockEnumApiService();
+    } else {
+      final dio = _createDio();
+      return EnumApiServiceImpl(dio);
     }
   }
 

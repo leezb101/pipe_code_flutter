@@ -6,8 +6,10 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/spareqr_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_common_query_api_service.dart';
+import 'package:pipe_code_flutter/services/api/mock/mock_enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_spareqr_api_service.dart';
 
 import '../interfaces/api_service_interface.dart';
@@ -27,6 +29,7 @@ class MockApiService implements ApiServiceInterface {
   SpareqrApiService? _spareqrService;
   AcceptanceApiService? _acceptanceService;
   CommonQueryApiService? _commonQueryService;
+  EnumApiService? _enumService;
 
   @override
   AuthApiService get auth => _authService ??= MockAuthApiService();
@@ -47,4 +50,7 @@ class MockApiService implements ApiServiceInterface {
   @override
   CommonQueryApiService get commonQuery =>
       _commonQueryService ??= MockCommonQueryApiService();
+
+  @override
+  EnumApiService get enums => _enumService ??= MockEnumApiService();
 }

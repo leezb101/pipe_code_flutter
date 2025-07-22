@@ -2,11 +2,13 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 13:17:21
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-12 11:49:26
+ * @LastEditTime: 2025-07-22 16:24:51
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/bloc/enum/enum_cubit.dart';
+import 'package:pipe_code_flutter/repositories/enum_repository.dart';
 import 'config/routes.dart';
 import 'config/service_locator.dart';
 import 'config/app_config.dart';
@@ -51,6 +53,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider<EnumCubit>(
+          create: (context) => EnumCubit(getIt<EnumRepository>()),
+        ),
         BlocProvider<AuthBloc>(
           create: (context) =>
               AuthBloc(authRepository: getIt<AuthRepository>()),

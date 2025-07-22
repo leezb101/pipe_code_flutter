@@ -2,14 +2,13 @@
  * @Author: LeeZB
  * @Date: 2025-07-20 15:20:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-20 15:20:00
+ * @LastEditTime: 2025-07-22 17:16:21
  * @copyright: Copyright © 2025 高新供水.
  */
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:equatable/equatable.dart';
-import '../common/material_type_enum.dart';
-import '../common/material_group_enum.dart';
+import 'package:pipe_code_flutter/models/common/common_enum_vo.dart';
 import 'material_info_base.dart';
 
 part 'scan_identification_response.g.dart';
@@ -79,20 +78,12 @@ class ScanIdentificationData extends Equatable {
   final dynamic installs;
 
   /// 获取材料类型枚举
-  MaterialTypeEnum get materialType {
-    try {
-      return MaterialTypeEnum.values.firstWhere(
-        (e) => e.index == type,
-      );
-    } catch (e) {
-      return MaterialTypeEnum.qiuMoZhuTie; // 默认值
-    }
-  }
+  MaterialType get materialType =>
+      MaterialType.fromInt(type) ?? MaterialType(type, '未知类型');
 
   /// 获取材料分组枚举
-  MaterialGroupEnum get materialGroup {
-    return MaterialGroupEnum.fromCode(group);
-  }
+  MaterialGroup get materialGroup =>
+      MaterialGroup.fromInt(group) ?? MaterialGroup(group, '未知类型');
 
   factory ScanIdentificationData.fromJson(Map<String, dynamic> json) =>
       _$ScanIdentificationDataFromJson(json);

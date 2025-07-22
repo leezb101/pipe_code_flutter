@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-05 11:46:50
+ * @LastEditTime: 2025-07-22 17:16:56
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -28,10 +28,7 @@ class QrScanProcessResult {
 }
 
 class QrScanNavigationData {
-  const QrScanNavigationData({
-    required this.route,
-    this.data,
-  });
+  const QrScanNavigationData({required this.route, this.data});
 
   final String route;
   final Map<String, dynamic>? data;
@@ -56,7 +53,6 @@ class InboundStrategy implements QrScanStrategy {
     }
   }
 
-
   Future<QrScanProcessResult> _processSingleInbound(QrScanResult result) async {
     Logger.qrScan('=== 单个入库处理 ===', deviceCode: result.code);
     Logger.qrScan('扫码内容: ${result.code}', deviceCode: result.code);
@@ -65,16 +61,13 @@ class InboundStrategy implements QrScanStrategy {
     // 单个模式下，直接按照扫码内容获取对应的物料信息
     // 这里可能是交付批次码，也可能是单个物料码，由API后端判断
     final materials = await _getPipeMaterialsByCode(result.code);
-    
+
     if (materials.isNotEmpty) {
       return QrScanProcessResult(
         success: true,
         navigationData: QrScanNavigationData(
           route: '/inventory-confirmation',
-          data: {
-            'materials': materials,
-            'scanMode': 'single',
-          },
+          data: {'materials': materials, 'scanMode': 'single'},
         ),
       );
     } else {
@@ -85,7 +78,9 @@ class InboundStrategy implements QrScanStrategy {
     }
   }
 
-  Future<QrScanProcessResult> _processBatchInbound(List<QrScanResult> results) async {
+  Future<QrScanProcessResult> _processBatchInbound(
+    List<QrScanResult> results,
+  ) async {
     Logger.qrScan('=== 批量入库处理 ===');
     Logger.qrScan('批次大小: ${results.length}');
 
@@ -100,16 +95,13 @@ class InboundStrategy implements QrScanStrategy {
 
     // 批量模式下，所有码都是单个物料码
     final materials = await _getPipeMaterialsByIds(codes);
-    
+
     if (materials.isNotEmpty) {
       return QrScanProcessResult(
         success: true,
         navigationData: QrScanNavigationData(
           route: '/inventory-confirmation',
-          data: {
-            'materials': materials,
-            'scanMode': 'batch',
-          },
+          data: {'materials': materials, 'scanMode': 'batch'},
         ),
       );
     } else {
@@ -123,10 +115,10 @@ class InboundStrategy implements QrScanStrategy {
   // 通用方法：根据任意码获取物料信息（可能是批次码或单个物料码）
   Future<List<PipeMaterial>> _getPipeMaterialsByCode(String code) async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     // 这里应该调用后端API，后端根据码的内容返回对应的物料信息
     // 后端会自动判断这是批次码还是单个物料码，并返回相应的物料列表
-    
+
     // 模拟：这里简单返回单个物料，实际项目中应该由后端API处理
     return [
       PipeMaterial(
@@ -147,21 +139,24 @@ class InboundStrategy implements QrScanStrategy {
   // 模拟根据ID获取管件信息
   Future<List<PipeMaterial>> _getPipeMaterialsByIds(List<String> ids) async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
-    return ids.map((id) => PipeMaterial(
-      id: id,
-      materialCode: 'FDSIU-129A',
-      materialName: '材料A',
-      specification: 'DN100',
-      quantity: 1,
-      unit: '个',
-      batchCode: 'BATCH_001',
-      deliveryDate: DateTime.now().subtract(const Duration(days: 7)),
-      supplier: '供应商A',
-      remarks: '质量良好',
-    )).toList();
-  }
 
+    return ids
+        .map(
+          (id) => PipeMaterial(
+            id: id,
+            materialCode: 'FDSIU-129A',
+            materialName: '材料A',
+            specification: 'DN100',
+            quantity: 1,
+            unit: '个',
+            batchCode: 'BATCH_001',
+            deliveryDate: DateTime.now().subtract(const Duration(days: 7)),
+            supplier: '供应商A',
+            remarks: '质量良好',
+          ),
+        )
+        .toList();
+  }
 }
 
 class OutboundStrategy implements QrScanStrategy {
@@ -174,7 +169,7 @@ class OutboundStrategy implements QrScanStrategy {
     } else {
       await _processBatchOutbound(results);
     }
-    
+
     return const QrScanProcessResult(success: true);
   }
 
@@ -225,7 +220,7 @@ class TransferStrategy implements QrScanStrategy {
     } else {
       await _processBatchTransfer(results);
     }
-    
+
     return const QrScanProcessResult(success: true);
   }
 
@@ -276,7 +271,7 @@ class InventoryStrategy implements QrScanStrategy {
     } else {
       await _processBatchInventory(results);
     }
-    
+
     return const QrScanProcessResult(success: true);
   }
 
@@ -344,7 +339,7 @@ class PipeCopyStrategy implements QrScanStrategy {
     } else {
       await _processBatchPipeCopy(results);
     }
-    
+
     return const QrScanProcessResult(success: true);
   }
 
@@ -412,7 +407,7 @@ class ReturnMaterialStrategy implements QrScanStrategy {
     } else {
       await _processBatchReturnMaterial(results);
     }
-    
+
     return const QrScanProcessResult(success: true);
   }
 
@@ -490,23 +485,22 @@ class AcceptanceStrategy implements QrScanStrategy {
     }
   }
 
-  Future<QrScanProcessResult> _processSingleAcceptance(QrScanResult result) async {
+  Future<QrScanProcessResult> _processSingleAcceptance(
+    QrScanResult result,
+  ) async {
     Logger.qrScan('=== 单个验收处理 ===', deviceCode: result.code);
     Logger.qrScan('扫码内容: ${result.code}', deviceCode: result.code);
     Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
 
     // 单个模式下，直接按照扫码内容获取对应的物料信息
     final materials = await _getPipeMaterialsByCode(result.code);
-    
+
     if (materials.isNotEmpty) {
       return QrScanProcessResult(
         success: true,
         navigationData: QrScanNavigationData(
           route: '/acceptance',
-          data: {
-            'materials': materials,
-            'scanMode': 'single',
-          },
+          data: {'materials': materials, 'scanMode': 'single'},
         ),
       );
     } else {
@@ -517,7 +511,9 @@ class AcceptanceStrategy implements QrScanStrategy {
     }
   }
 
-  Future<QrScanProcessResult> _processBatchAcceptance(List<QrScanResult> results) async {
+  Future<QrScanProcessResult> _processBatchAcceptance(
+    List<QrScanResult> results,
+  ) async {
     Logger.qrScan('=== 批量验收处理 ===');
     Logger.qrScan('批次大小: ${results.length}');
 
@@ -532,16 +528,13 @@ class AcceptanceStrategy implements QrScanStrategy {
 
     // 批量模式下，所有码都是单个物料码
     final materials = await _getPipeMaterialsByIds(codes);
-    
+
     if (materials.isNotEmpty) {
       return QrScanProcessResult(
         success: true,
         navigationData: QrScanNavigationData(
           route: '/acceptance',
-          data: {
-            'materials': materials,
-            'scanMode': 'batch',
-          },
+          data: {'materials': materials, 'scanMode': 'batch'},
         ),
       );
     } else {
@@ -555,7 +548,7 @@ class AcceptanceStrategy implements QrScanStrategy {
   // 通用方法：根据任意码获取物料信息（可能是批次码或单个物料码）
   Future<List<PipeMaterial>> _getPipeMaterialsByCode(String code) async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     // 模拟：返回验收物料信息
     return [
       PipeMaterial(
@@ -576,19 +569,23 @@ class AcceptanceStrategy implements QrScanStrategy {
   // 模拟根据ID获取管件信息
   Future<List<PipeMaterial>> _getPipeMaterialsByIds(List<String> ids) async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
-    return ids.map((id) => PipeMaterial(
-      id: id,
-      materialCode: 'FDSIU-129A',
-      materialName: '材料A',
-      specification: 'DN100',
-      quantity: 1,
-      unit: '个',
-      batchCode: 'BATCH_001',
-      deliveryDate: DateTime.now().subtract(const Duration(days: 7)),
-      supplier: '供应商A',
-      remarks: '待验收',
-    )).toList();
+
+    return ids
+        .map(
+          (id) => PipeMaterial(
+            id: id,
+            materialCode: 'FDSIU-129A',
+            materialName: '材料A',
+            specification: 'DN100',
+            quantity: 1,
+            unit: '个',
+            batchCode: 'BATCH_001',
+            deliveryDate: DateTime.now().subtract(const Duration(days: 7)),
+            supplier: '供应商A',
+            remarks: '待验收',
+          ),
+        )
+        .toList();
   }
 }
 
@@ -614,27 +611,33 @@ class IdentificationStrategy implements QrScanStrategy {
     }
   }
 
-  Future<QrScanProcessResult> _processSingleIdentification(QrScanResult result) async {
+  Future<QrScanProcessResult> _processSingleIdentification(
+    QrScanResult result,
+  ) async {
     Logger.qrScan('=== 单个扫码识别处理 ===', deviceCode: result.code);
     Logger.qrScan('识别编号: ${result.code}', deviceCode: result.code);
     Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
 
     try {
       // 调用扫码识别API
-      final identificationService = ApiServiceFactory.createIdentificationService();
-      final apiResult = await identificationService.scanMaterialIdentification(result.code);
+      final identificationService =
+          ApiServiceFactory.createIdentificationService();
+      final apiResult = await identificationService.scanMaterialIdentification(
+        result.code,
+      );
 
       if (apiResult.isSuccess && apiResult.data != null) {
-        Logger.qrScan('识别成功 - 类型: ${apiResult.data!.materialType.description}, 分组: ${apiResult.data!.materialGroup.message}, 编码: ${apiResult.data!.materialCode}', deviceCode: result.code);
+        Logger.qrScan(
+          '识别成功 - 类型: ${apiResult.data!.materialType.name}, 分组: ${apiResult.data!.materialGroup.name}, 编码: ${apiResult.data!.materialCode}',
+          deviceCode: result.code,
+        );
 
         // 返回导航到材料详情页面
         return QrScanProcessResult(
           success: true,
           navigationData: QrScanNavigationData(
             route: '/material-detail',
-            data: {
-              'identificationData': apiResult.data,
-            },
+            data: {'identificationData': apiResult.data},
           ),
         );
       } else {
@@ -648,9 +651,10 @@ class IdentificationStrategy implements QrScanStrategy {
       Logger.qrScan('识别API调用异常: $e', deviceCode: result.code);
       return QrScanProcessResult(
         success: false,
-        errorMessage: e.toString().contains('网络') ? e.toString() : '识别服务异常，请稍后重试',
+        errorMessage: e.toString().contains('网络')
+            ? e.toString()
+            : '识别服务异常，请稍后重试',
       );
     }
   }
-
 }

@@ -25,7 +25,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
   @override
   Widget build(BuildContext context) {
     final data = widget.identificationData;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('材料详情'),
@@ -69,7 +69,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
             Row(
               children: [
                 Icon(
-                  _getTypeIcon(data.materialType.description),
+                  _getTypeIcon(data.materialType.name),
                   size: 32,
                   color: Theme.of(context).primaryColor,
                 ),
@@ -80,13 +80,12 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
                     children: [
                       Text(
                         data.info.baseInfo.prodNm ?? '未知材料',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${data.materialType.description} • ${data.materialGroup.message}',
+                        '${data.materialType.name} • ${data.materialGroup.name}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.secondary,
                         ),
@@ -121,9 +120,9 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
           children: [
             Text(
               '项目信息',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             _buildInfoRow('项目ID', data.projectId.toString()),
@@ -151,7 +150,9 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
       ('重量', baseInfo.weight),
     ];
 
-    final nonEmptyFields = basicFields.where((field) => field.$2 != null && field.$2!.isNotEmpty).toList();
+    final nonEmptyFields = basicFields
+        .where((field) => field.$2 != null && field.$2!.isNotEmpty)
+        .toList();
 
     if (nonEmptyFields.isEmpty) return const SizedBox.shrink();
 
@@ -163,12 +164,14 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
           children: [
             Text(
               '基础信息',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            ...nonEmptyFields.map((field) => _buildInfoRow(field.$1, field.$2!)),
+            ...nonEmptyFields.map(
+              (field) => _buildInfoRow(field.$1, field.$2!),
+            ),
           ],
         ),
       ),
@@ -177,7 +180,9 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
 
   Widget _buildExtendedInfo(Map<String, dynamic> extendedFields) {
     final nonEmptyFields = extendedFields.entries
-        .where((entry) => entry.value != null && entry.value.toString().isNotEmpty)
+        .where(
+          (entry) => entry.value != null && entry.value.toString().isNotEmpty,
+        )
         .toList();
 
     if (nonEmptyFields.isEmpty) return const SizedBox.shrink();
@@ -190,13 +195,17 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
           children: [
             Text(
               '技术参数',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            ...nonEmptyFields.map((entry) => 
-              _buildInfoRow(_formatFieldName(entry.key), entry.value.toString())),
+            ...nonEmptyFields.map(
+              (entry) => _buildInfoRow(
+                _formatFieldName(entry.key),
+                entry.value.toString(),
+              ),
+            ),
           ],
         ),
       ),
@@ -216,17 +225,16 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
           children: [
             Text(
               '位置信息',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             if (data.lat != null && data.lng != null) ...[
               _buildInfoRow('纬度', data.lat!.toStringAsFixed(6)),
               _buildInfoRow('经度', data.lng!.toStringAsFixed(6)),
             ],
-            if (data.img != null)
-              _buildInfoRow('图片', data.img!),
+            if (data.img != null) _buildInfoRow('图片', data.img!),
           ],
         ),
       ),
@@ -251,10 +259,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
           Expanded(
             child: GestureDetector(
               onLongPress: () => _copyToClipboard(value),
-              child: Text(
-                value,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
             ),
           ),
         ],
@@ -322,42 +327,48 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
   void _copyAllInfo() {
     final data = widget.identificationData;
     final buffer = StringBuffer();
-    
+
     // 基本信息
     buffer.writeln('=== 材料详情 ===');
     buffer.writeln('产品名称: ${data.info.baseInfo.prodNm ?? '未知'}');
-    buffer.writeln('材料类型: ${data.materialType.description}');
-    buffer.writeln('材料分组: ${data.materialGroup.message}');
+    buffer.writeln('材料类型: ${data.materialType.name}');
+    buffer.writeln('材料分组: ${data.materialGroup.name}');
     buffer.writeln('材料编码: ${data.materialCode}');
     buffer.writeln();
-    
+
     // 项目信息
     buffer.writeln('=== 项目信息 ===');
     buffer.writeln('项目ID: ${data.projectId}');
     if (data.projectName != null) buffer.writeln('项目名称: ${data.projectName}');
-    if (data.projectAddress != null) buffer.writeln('项目地址: ${data.projectAddress}');
+    if (data.projectAddress != null)
+      buffer.writeln('项目地址: ${data.projectAddress}');
     buffer.writeln();
-    
+
     // 基础信息
     final baseInfo = data.info.baseInfo;
-    if (baseInfo.materialCode != null || 
-        baseInfo.deliveryNumber != null || 
+    if (baseInfo.materialCode != null ||
+        baseInfo.deliveryNumber != null ||
         baseInfo.batchCode != null ||
         baseInfo.mfgNm != null ||
         baseInfo.purNm != null) {
       buffer.writeln('=== 基础信息 ===');
-      if (baseInfo.materialCode != null) buffer.writeln('材料编码: ${baseInfo.materialCode}');
-      if (baseInfo.deliveryNumber != null) buffer.writeln('发货单号: ${baseInfo.deliveryNumber}');
-      if (baseInfo.batchCode != null) buffer.writeln('批次号: ${baseInfo.batchCode}');
+      if (baseInfo.materialCode != null)
+        buffer.writeln('材料编码: ${baseInfo.materialCode}');
+      if (baseInfo.deliveryNumber != null)
+        buffer.writeln('发货单号: ${baseInfo.deliveryNumber}');
+      if (baseInfo.batchCode != null)
+        buffer.writeln('批次号: ${baseInfo.batchCode}');
       if (baseInfo.mfgNm != null) buffer.writeln('制造商: ${baseInfo.mfgNm}');
       if (baseInfo.purNm != null) buffer.writeln('采购方: ${baseInfo.purNm}');
-      if (baseInfo.prodStdNo != null) buffer.writeln('产品标准号: ${baseInfo.prodStdNo}');
+      if (baseInfo.prodStdNo != null)
+        buffer.writeln('产品标准号: ${baseInfo.prodStdNo}');
       if (baseInfo.spec != null) buffer.writeln('规格: ${baseInfo.spec}');
-      if (baseInfo.pressLvl != null) buffer.writeln('压力等级: ${baseInfo.pressLvl}');
+      if (baseInfo.pressLvl != null)
+        buffer.writeln('压力等级: ${baseInfo.pressLvl}');
       if (baseInfo.weight != null) buffer.writeln('重量: ${baseInfo.weight}');
       buffer.writeln();
     }
-    
+
     // 技术参数
     if (data.info.extendedFields.isNotEmpty) {
       buffer.writeln('=== 技术参数 ===');
@@ -368,14 +379,16 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
       });
       buffer.writeln();
     }
-    
+
     // 位置信息
     if (data.lat != null || data.lng != null) {
       buffer.writeln('=== 位置信息 ===');
-      if (data.lat != null) buffer.writeln('纬度: ${data.lat!.toStringAsFixed(6)}');
-      if (data.lng != null) buffer.writeln('经度: ${data.lng!.toStringAsFixed(6)}');
+      if (data.lat != null)
+        buffer.writeln('纬度: ${data.lat!.toStringAsFixed(6)}');
+      if (data.lng != null)
+        buffer.writeln('经度: ${data.lng!.toStringAsFixed(6)}');
     }
-    
+
     Clipboard.setData(ClipboardData(text: buffer.toString()));
     context.showSuccessToast('材料详情已复制到剪贴板');
   }
