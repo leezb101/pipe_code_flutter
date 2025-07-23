@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-22 17:57:18
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-23 11:41:21
+ * @LastEditTime: 2025-07-23 17:43:07
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
@@ -23,14 +23,15 @@ class MaterialHandleApiServiceImpl implements MaterialHandleApiService {
   ) async {
     try {
       Logger.api('扫码识别请求开始 - code: $code');
-      final response = await _dio.get(
-        '${AppConfig.apiBaseUrl}/scan/d/$code',
+      final response = await _dio.post(
+        '${AppConfig.apiBaseUrl}/scan/d',
         options: Options(
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
           },
         ),
+        data: {'deliveryCode': code},
       );
 
       Logger.api('扫码识别响应成功 - Status: ${response.statusCode}');

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pipe_code_flutter/models/common/common_enum_vo.dart';
 import 'package:pipe_code_flutter/models/records/record_item.dart';
+import 'package:pipe_code_flutter/repositories/enum_repository.dart';
 import '../../bloc/records/records_bloc.dart';
 import '../../bloc/records/records_event.dart';
 import '../../bloc/records/records_state.dart';
@@ -62,6 +62,8 @@ class _RecordsListPageState extends State<RecordsListPage> {
     final bloc = context.read<RecordsBloc>();
     final currentTab = bloc.currentTab;
 
+    final _enumRepository = context.read<EnumRepository>();
+
     // Navigate to specific detail page based on record type
     switch (currentTab) {
       case RecordType.accept:
@@ -78,9 +80,15 @@ class _RecordsListPageState extends State<RecordsListPage> {
       case RecordType.waste:
       case RecordType.inventory:
       case RecordType.todo:
+        final rec = record as TodoRecordItem;
+        if (rec.todo.type.name == '验收确认') {
+          context.goNamed(
+            'acceptance-confirm',
+            queryParameters: {'id': record.todo.businessId.toString()},
+          );
+        }
         // 这里需要继续判断，当前item的todoType是什么
-        if ((record as TodoRecordItem).todo.todoType == 2 ||
-            record.todo.todoType == 1) {
+        if (rec.todo.type.name == '验收后入库') {
           context.goNamed(
             'acceptance-after-signin',
             queryParameters: {'id': record.todo.businessId.toString()},

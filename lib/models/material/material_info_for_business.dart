@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-23 11:27:54
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-23 11:33:51
+ * @LastEditTime: 2025-07-23 17:52:41
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:json_annotation/json_annotation.dart';
@@ -14,11 +14,11 @@ part 'material_info_for_business.g.dart';
 
 @JsonSerializable()
 class MaterialInfoForBusiness extends Equatable {
-  final List<MaterialInfoBase> normal;
+  final List<MaterialInfoBase> normals;
 
-  final List<SyncVendorDataError> error;
+  final List<SyncVendorDataError> errors;
 
-  const MaterialInfoForBusiness({required this.normal, required this.error});
+  const MaterialInfoForBusiness({required this.normals, required this.errors});
 
   factory MaterialInfoForBusiness.fromJson(Map<String, dynamic> json) =>
       _$MaterialInfoForBusinessFromJson(json);
@@ -26,5 +26,5 @@ class MaterialInfoForBusiness extends Equatable {
   Map<String, dynamic> toJson() => _$MaterialInfoForBusinessToJson(this);
 
   @override
-  List<Object?> get props => [normal, error];
+  List<Object?> get props => [normals, errors];
 }

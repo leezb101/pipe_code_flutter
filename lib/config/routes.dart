@@ -9,9 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
+import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
 import 'package:pipe_code_flutter/repositories/spareqr_repository.dart';
-import 'package:pipe_code_flutter/services/api/interfaces/material_handle_api_service.dart';
+import 'package:pipe_code_flutter/repositories/material_handle_repository.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/register_page.dart';
 import '../pages/main_page.dart';
@@ -93,14 +94,14 @@ final GoRouter appRouter = GoRouter(
             if (data == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            final materials = data['materials'] as List<PipeMaterial>?;
+            final materials = data['materialInfo'] as MaterialInfoForBusiness?;
             if (materials == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
               create: (context) => AcceptanceBloc(
                 getIt<AcceptanceRepository>(),
-                getIt<MaterialHandleApiService>(),
+                getIt<MaterialHandleRepository>(),
               ),
               child: AcceptancePage(materials: materials),
             );
@@ -120,7 +121,7 @@ final GoRouter appRouter = GoRouter(
             return BlocProvider(
               create: (context) => AcceptanceBloc(
                 getIt<AcceptanceRepository>(),
-                getIt<MaterialHandleApiService>(),
+                getIt<MaterialHandleRepository>(),
               ),
               child: AcceptanceDetailPage(acceptanceId: acceptanceId),
             );
@@ -140,7 +141,7 @@ final GoRouter appRouter = GoRouter(
             return BlocProvider(
               create: (context) => AcceptanceBloc(
                 getIt<AcceptanceRepository>(),
-                getIt<MaterialHandleApiService>(),
+                getIt<MaterialHandleRepository>(),
               ),
               child: AcceptanceConfirmationPage(acceptanceId: acceptanceId),
             );
@@ -160,7 +161,7 @@ final GoRouter appRouter = GoRouter(
             return BlocProvider(
               create: (context) => AcceptanceBloc(
                 getIt<AcceptanceRepository>(),
-                getIt<MaterialHandleApiService>(),
+                getIt<MaterialHandleRepository>(),
               ),
               child: AcceptanceAfterSigninPage(acceptanceId: acceptanceId),
             );

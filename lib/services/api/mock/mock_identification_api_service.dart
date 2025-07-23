@@ -117,6 +117,7 @@ class MockIdentificationApiService implements IdentificationApiService {
     Map<String, dynamic> extendedFields = const {},
   }) {
     final baseInfo = MaterialInfoBase(
+      materialId: DateTime.now().millisecondsSinceEpoch, // 使用时间戳作为唯一ID
       materialCode: materialCode,
       deliveryNumber: 'DN-2025-001',
       batchCode: 'BATCH-${DateTime.now().millisecondsSinceEpoch}',

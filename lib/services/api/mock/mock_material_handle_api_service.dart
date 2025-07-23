@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-22 18:09:13
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-23 11:45:11
+ * @LastEditTime: 2025-07-23 18:19:49
  * @copyright: Copyright © 2025 高新供水.
  */
 import '../../../models/material/material_info_base.dart';
@@ -40,8 +40,9 @@ class MockMaterialHandleApiService implements MaterialHandleApiService {
 
   MaterialInfoForBusiness _generateMaterialInfoBaseList(int? count) {
     return MaterialInfoForBusiness(
-      normal: List.generate(count ?? 10, (index) {
+      normals: List.generate(count ?? 10, (index) {
         return MaterialInfoBase(
+          materialId: DateTime.now().millisecondsSinceEpoch, // 使用时间戳作为唯一ID
           materialCode: "35$index",
           deliveryNumber: "84$index",
           batchCode: "11$index",
@@ -54,7 +55,7 @@ class MockMaterialHandleApiService implements MaterialHandleApiService {
           weight: "adipisicing magna ut$index",
         );
       }),
-      error: List.generate(2, (index) {
+      errors: List.generate(2, (index) {
         return SyncVendorDataError(
           qrCode: "35$index",
           code: "XXZG",

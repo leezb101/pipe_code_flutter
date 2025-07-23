@@ -8,6 +8,7 @@ part of 'material_info_base.dart';
 
 MaterialInfoBase _$MaterialInfoBaseFromJson(Map<String, dynamic> json) =>
     MaterialInfoBase(
+      materialId: (json['materialId'] as num).toInt(),
       materialCode: json['materialCode'] as String?,
       deliveryNumber: json['deliveryNumber'] as String?,
       batchCode: json['batchCode'] as String?,
@@ -22,6 +23,7 @@ MaterialInfoBase _$MaterialInfoBaseFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$MaterialInfoBaseToJson(MaterialInfoBase instance) =>
     <String, dynamic>{
+      'materialId': instance.materialId,
       'materialCode': instance.materialCode,
       'deliveryNumber': instance.deliveryNumber,
       'batchCode': instance.batchCode,

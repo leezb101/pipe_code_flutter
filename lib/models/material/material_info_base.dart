@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-20 15:15:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-20 15:15:00
+ * @LastEditTime: 2025-07-23 18:18:32
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -16,6 +16,7 @@ part 'material_info_base.g.dart';
 @JsonSerializable()
 class MaterialInfoBase extends Equatable {
   const MaterialInfoBase({
+    required this.materialId,
     this.materialCode,
     this.deliveryNumber,
     this.batchCode,
@@ -27,6 +28,9 @@ class MaterialInfoBase extends Equatable {
     this.pressLvl,
     this.weight,
   });
+
+  /// 产品Id
+  final int materialId;
 
   /// 产品唯一编号
   final String? materialCode;
@@ -65,6 +69,7 @@ class MaterialInfoBase extends Equatable {
 
   @override
   List<Object?> get props => [
+    materialId,
     materialCode,
     deliveryNumber,
     batchCode,
@@ -82,10 +87,7 @@ class MaterialInfoBase extends Equatable {
 /// 支持动态字段，包含基础字段和扩展字段
 @JsonSerializable()
 class MaterialInfo extends Equatable {
-  const MaterialInfo({
-    required this.baseInfo,
-    this.extendedFields = const {},
-  });
+  const MaterialInfo({required this.baseInfo, this.extendedFields = const {}});
 
   /// 基础信息
   final MaterialInfoBase baseInfo;
@@ -96,26 +98,25 @@ class MaterialInfo extends Equatable {
   factory MaterialInfo.fromJson(Map<String, dynamic> json) {
     // 提取基础字段
     final baseInfo = MaterialInfoBase.fromJson(json);
-    
+
     // 提取扩展字段（排除基础字段）
     final extendedFields = Map<String, dynamic>.from(json);
-    extendedFields.removeWhere((key, value) => [
-      'materialCode',
-      'deliveryNumber',
-      'batchCode',
-      'mfgNm',
-      'purNm',
-      'prodStdNo',
-      'prodNm',
-      'spec',
-      'pressLvl',
-      'weight',
-    ].contains(key));
-
-    return MaterialInfo(
-      baseInfo: baseInfo,
-      extendedFields: extendedFields,
+    extendedFields.removeWhere(
+      (key, value) => [
+        'materialCode',
+        'deliveryNumber',
+        'batchCode',
+        'mfgNm',
+        'purNm',
+        'prodStdNo',
+        'prodNm',
+        'spec',
+        'pressLvl',
+        'weight',
+      ].contains(key),
     );
+
+    return MaterialInfo(baseInfo: baseInfo, extendedFields: extendedFields);
   }
 
   Map<String, dynamic> toJson() {

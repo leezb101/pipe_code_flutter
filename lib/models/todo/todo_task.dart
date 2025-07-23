@@ -2,11 +2,12 @@
  * @Author: LeeZB
  * @Date: 2025-07-22 10:43:58
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-22 12:22:37
+ * @LastEditTime: 2025-07-23 15:02:39
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pipe_code_flutter/models/common/common_enum_vo.dart';
 
 part 'todo_task.g.dart';
 
@@ -76,6 +77,9 @@ class TodoTask extends Equatable {
 
   bool get isCompleted => finishStatus == 1;
 
+  /// 获取材料类型枚举
+  TodoType get type => TodoType.fromInt(todoType) ?? TodoType(todoType, '未知类型');
+
   factory TodoTask.fromJson(Map<String, dynamic> json) =>
       _$TodoTaskFromJson(json);
 
@@ -100,12 +104,12 @@ class TodoTask extends Equatable {
 
   static DateTime? _timestampToDateTime(dynamic timestamp) {
     if (timestamp == null) return null;
-    
+
     // 处理数字类型（int、double）
     if (timestamp is num) {
       return DateTime.fromMillisecondsSinceEpoch(timestamp.toInt());
     }
-    
+
     // 处理字符串类型的时间戳
     if (timestamp is String) {
       final parsed = int.tryParse(timestamp);
@@ -113,7 +117,7 @@ class TodoTask extends Equatable {
         return DateTime.fromMillisecondsSinceEpoch(parsed);
       }
     }
-    
+
     return null;
   }
 

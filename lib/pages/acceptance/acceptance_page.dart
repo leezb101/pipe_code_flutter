@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-17 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-21 19:24:52
+ * @LastEditTime: 2025-07-23 18:19:18
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -11,10 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/project/project_state.dart';
+import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import '../../bloc/project/project_bloc.dart';
 import '../../models/inventory/pipe_material.dart';
 import '../../models/common/common_user_vo.dart';
 import '../../models/common/warehouse_vo.dart';
+import '../../models/material/material_info_base.dart';
 import '../../widgets/file_upload/image_upload_widget.dart';
 import '../../widgets/file_upload/file_upload_widget.dart';
 import '../../bloc/acceptance/acceptance_bloc.dart';
@@ -26,7 +28,7 @@ import '../../models/acceptance/material_vo.dart';
 class AcceptancePage extends StatefulWidget {
   const AcceptancePage({super.key, required this.materials});
 
-  final List<PipeMaterial> materials;
+  final MaterialInfoForBusiness materials;
 
   @override
   State<AcceptancePage> createState() => _AcceptancePageState();
@@ -195,7 +197,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
               ],
             ),
             const SizedBox(height: 16),
-            ...widget.materials
+            ...widget.materials.normals
                 .map((material) => _buildMaterialItem(material))
                 .toList(),
           ],
@@ -204,7 +206,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
     );
   }
 
-  Widget _buildMaterialItem(PipeMaterial material) {
+  Widget _buildMaterialItem(MaterialInfoBase material) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -229,7 +231,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  material.materialName,
+                  material.prodNm ?? '无',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -238,7 +240,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  material.specification,
+                  material.materialCode ?? '无',
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
@@ -251,7 +253,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
-              '${material.quantity}${material.unit}',
+              '1个',
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -690,7 +692,16 @@ class _AcceptancePageState extends State<AcceptancePage> {
 
   void _handleScanAcceptance() {
     // 转换材料列表
-    final materialVOList = _convertPipeMaterialsToMaterialVOs(widget.materials);
+    // final materialVOList = _convertPipeMaterialsToMaterialVOs(widget.materials);
+
+    final materialVOList = widget.materials.normals
+        .map(
+          (e) => MaterialVO(
+            materialId: e.materialId,
+            materialName: e.prodNm ?? '',
+          ),
+        )
+        .toList();
 
     // 获取选中的用户ID列表
     final selectedUserIds = _getSelectedUserIds();
@@ -709,8 +720,8 @@ class _AcceptancePageState extends State<AcceptancePage> {
     ];
     // 创建DoAcceptVO对象
     final doAcceptVO = DoAcceptVO(
-      // materialList: materialVOList,
-      materialList: materialVOListForTest,
+      materialList: materialVOList,
+      // materialList: materialVOListForTest,
       imageList: const [], // 暂时为空，后续处理文件上传
       realWarehouse: realWarehouse,
       warehouseId: warehouseId,

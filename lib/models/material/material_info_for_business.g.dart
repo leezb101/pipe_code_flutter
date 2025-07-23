@@ -9,14 +9,14 @@ part of 'material_info_for_business.dart';
 MaterialInfoForBusiness _$MaterialInfoForBusinessFromJson(
   Map<String, dynamic> json,
 ) => MaterialInfoForBusiness(
-  normal: (json['normal'] as List<dynamic>)
+  normals: (json['normals'] as List<dynamic>)
       .map((e) => MaterialInfoBase.fromJson(e as Map<String, dynamic>))
       .toList(),
-  error: (json['error'] as List<dynamic>)
+  errors: (json['errors'] as List<dynamic>)
       .map((e) => SyncVendorDataError.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
 
 Map<String, dynamic> _$MaterialInfoForBusinessToJson(
   MaterialInfoForBusiness instance,
-) => <String, dynamic>{'normal': instance.normal, 'error': instance.error};
+) => <String, dynamic>{'normals': instance.normals, 'errors': instance.errors};

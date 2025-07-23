@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:pipe_code_flutter/repositories/enum_repository.dart';
 import 'package:pipe_code_flutter/repositories/spareqr_repository.dart';
+import 'package:pipe_code_flutter/repositories/material_handle_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../repositories/auth_repository.dart';
@@ -129,6 +130,10 @@ Future<void> setupServiceLocator({
       getIt<ApiServiceInterface>().acceptance,
       getIt<CommonQueryApiService>(),
     ),
+  );
+
+  getIt.registerLazySingleton<MaterialHandleRepository>(
+    () => MaterialHandleRepository(getIt<MaterialHandleApiService>()),
   );
 }
 

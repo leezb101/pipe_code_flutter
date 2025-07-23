@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-22 15:31:03
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-22 16:46:18
+ * @LastEditTime: 2025-07-23 15:07:27
  * @copyright: Copyright © 2025 高新供水.
  */
 /// 通用的枚举基类（为后续扩展 MaterialType、ProjectType 等做准备）
