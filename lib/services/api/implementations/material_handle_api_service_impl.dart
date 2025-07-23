@@ -2,15 +2,15 @@
  * @Author: LeeZB
  * @Date: 2025-07-22 17:57:18
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-22 20:04:58
+ * @LastEditTime: 2025-07-23 11:41:21
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
 import 'package:pipe_code_flutter/models/common/result.dart';
 import '../../../config/app_config.dart';
-import '../../../models/material/material_info_base.dart';
 import '../interfaces/material_handle_api_service.dart';
 import '../../../utils/logger.dart';
+import '../../../models/material/material_info_for_business.dart';
 
 class MaterialHandleApiServiceImpl implements MaterialHandleApiService {
   final Dio _dio;
@@ -18,7 +18,7 @@ class MaterialHandleApiServiceImpl implements MaterialHandleApiService {
   MaterialHandleApiServiceImpl(this._dio);
 
   @override
-  Future<Result<List<MaterialInfoBase>>> scanSingleToQueryAll(
+  Future<Result<MaterialInfoForBusiness>> scanSingleToQueryAll(
     String code,
   ) async {
     try {
@@ -37,10 +37,11 @@ class MaterialHandleApiServiceImpl implements MaterialHandleApiService {
 
       if (response.statusCode == 200 && response.data != null) {
         return Result.safeFromJson(response.data, (json) {
-          return (json as List<dynamic>)
-              .map((e) => MaterialInfoBase.fromJson(e))
-              .toList();
-        }, 'MaterialInfoBase');
+          return MaterialInfoForBusiness.fromJson(json as Map<String, dynamic>);
+          // return (json as List<dynamic>)
+          //     .map((e) => MaterialInfoBase.fromJson(e))
+          //     .toList();
+        }, 'MaterialInfoForBusiness');
       } else {
         return Result(code: response.statusCode ?? -1, msg: '扫码识别响应失败');
       }
@@ -76,7 +77,7 @@ class MaterialHandleApiServiceImpl implements MaterialHandleApiService {
   }
 
   @override
-  Future<Result<List<MaterialInfoBase>>> scanBatchToQueryAll(
+  Future<Result<MaterialInfoForBusiness>> scanBatchToQueryAll(
     List<String> codes,
   ) async {
     try {
@@ -96,9 +97,10 @@ class MaterialHandleApiServiceImpl implements MaterialHandleApiService {
 
       if (response.statusCode == 200 && response.data != null) {
         return Result.safeFromJson(response.data, (json) {
-          return (json as List<dynamic>)
-              .map((e) => MaterialInfoBase.fromJson(e))
-              .toList();
+          return MaterialInfoForBusiness.fromJson(json as Map<String, dynamic>);
+          // return (json as List<dynamic>)
+          //     .map((e) => MaterialInfoBase.fromJson(e))
+          //     .toList();
         }, 'MaterialInfoBase');
       } else {
         return Result(code: response.statusCode ?? -1, msg: '扫码识别响应失败');
