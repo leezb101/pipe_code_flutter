@@ -62,8 +62,6 @@ class _RecordsListPageState extends State<RecordsListPage> {
     final bloc = context.read<RecordsBloc>();
     final currentTab = bloc.currentTab;
 
-    final _enumRepository = context.read<EnumRepository>();
-
     // Navigate to specific detail page based on record type
     switch (currentTab) {
       case RecordType.accept:
@@ -83,7 +81,7 @@ class _RecordsListPageState extends State<RecordsListPage> {
         final rec = record as TodoRecordItem;
         if (rec.todo.type.name == '验收确认') {
           context.goNamed(
-            'acceptance-confirm',
+            'acceptance-confirmation',
             queryParameters: {'id': record.todo.businessId.toString()},
           );
         }

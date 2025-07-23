@@ -62,6 +62,35 @@ class EnumRepository {
     _projectSupplyTypes = (results[8] as Result<List<ProjectSupplyType>>).data;
     _projectTypes = (results[9] as Result<List<ProjectType>>).data;
     _returnTypes = (results[10] as Result<List<ReturnType>>).data;
+
+    // 初始化各枚举类的静态值列表
+    if (_todoTypes != null) {
+      TodoType.initFromList(_todoTypes!.map((e) => {'code': e.value, 'msg': e.name}).toList());
+    }
+    if (_materialGroups != null) {
+      MaterialGroup.initFromList(_materialGroups!.map((e) => {'code': e.value, 'msg': e.name}).toList());
+    }
+    if (_materialTypes != null) {
+      MaterialType.initFromList(_materialTypes!.map((e) => {'code': e.value, 'msg': e.name}).toList());
+    }
+    if (_acceptStatuses != null) {
+      AcceptStatus.initFromList(_acceptStatuses!.map((e) => {'code': e.value, 'msg': e.name}).toList());
+    }
+    if (_businessTypes != null) {
+      BusinessType.initFromList(_businessTypes!.map((e) => {'code': e.value, 'msg': e.name}).toList());
+    }
+    if (_projectStatuses != null) {
+      ProjectStatus.initFromList(_projectStatuses!.map((e) => {'code': e.value, 'msg': e.name}).toList());
+    }
+    if (_projectSupplyTypes != null) {
+      ProjectSupplyType.initFromList(_projectSupplyTypes!.map((e) => {'code': e.value, 'msg': e.name}).toList());
+    }
+    if (_projectTypes != null) {
+      ProjectType.initFromList(_projectTypes!.map((e) => {'code': e.value, 'msg': e.name}).toList());
+    }
+    if (_returnTypes != null) {
+      ReturnType.initFromList(_returnTypes!.map((e) => {'code': e.value, 'msg': e.name}).toList());
+    }
   }
 
   List<TodoType>? get todoTypes => _todoTypes;

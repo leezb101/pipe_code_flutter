@@ -85,7 +85,7 @@ Future<void> setupServiceLocator({
     EnumRepository(getIt<EnumApiService>()),
   );
 
-  getIt<EnumRepository>().initializeEnums();
+  await getIt<EnumRepository>().initializeEnums();
 
   // QR Scan Service
   getIt.registerLazySingleton<QrScanService>(() => QrScanServiceImpl());
