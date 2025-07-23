@@ -327,8 +327,8 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       // Use scanBatchToQueryAll with single-element array as requested
       final result = await _materialHandleService.scanBatchToQueryAll([event.scannedCode]);
 
-      if (result.isSuccess && result.data != null && result.data!.isNotEmpty) {
-        final scannedMaterial = result.data!.first;
+      if (result.isSuccess && result.data != null && result.data!.normal.isNotEmpty) {
+        final scannedMaterial = result.data!.normal.first;
         Logger.info(
           'Material scanned successfully: ${scannedMaterial.materialCode}',
           tag: 'AcceptanceBloc',
