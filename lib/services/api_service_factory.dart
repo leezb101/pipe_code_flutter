@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 13:17:21
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-17 18:16:02
+ * @LastEditTime: 2025-07-24 16:30:39
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'dart:io';
@@ -102,18 +102,18 @@ class ApiServiceFactory {
   static Dio _createDio() {
     final dio = Dio();
 
-    if (AppConfig.isDevelopment) {
-      final proxyAddress = '10.3.2.51:6152';
-      final httpClient = HttpClient();
-      httpClient.findProxy = (uri) {
-        return "PROXY $proxyAddress";
-      };
-      httpClient.badCertificateCallback = (cert, host, port) => true;
+    // if (AppConfig.isDevelopment) {
+    //   final proxyAddress = '10.3.2.51:6152';
+    //   final httpClient = HttpClient();
+    //   httpClient.findProxy = (uri) {
+    //     return "PROXY $proxyAddress";
+    //   };
+    //   httpClient.badCertificateCallback = (cert, host, port) => true;
 
-      dio.httpClientAdapter = IOHttpClientAdapter(
-        createHttpClient: () => httpClient,
-      );
-    }
+    //   dio.httpClientAdapter = IOHttpClientAdapter(
+    //     createHttpClient: () => httpClient,
+    //   );
+    // }
 
     // Base configuration
     dio.options.baseUrl = AppConfig.apiBaseUrl;

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import '../../models/acceptance/acceptance_info_vo.dart';
 import '../../models/common/accept_user_info_vo.dart';
 import '../../models/common/warehouse_user_info_vo.dart';
@@ -22,11 +23,25 @@ class AcceptanceLoading extends AcceptanceState {
 
 class AcceptanceDetailLoaded extends AcceptanceState {
   final AcceptanceInfoVO acceptanceInfo;
+  final Set<MaterialVO> matchedMaterials;
 
-  const AcceptanceDetailLoaded({required this.acceptanceInfo});
+  const AcceptanceDetailLoaded({
+    required this.acceptanceInfo,
+    this.matchedMaterials = const {},
+  });
 
   @override
-  List<Object?> get props => [acceptanceInfo];
+  List<Object?> get props => [acceptanceInfo, matchedMaterials];
+
+  AcceptanceDetailLoaded copyWith({
+    AcceptanceInfoVO? acceptanceInfo,
+    Set<MaterialVO>? matchedMaterials,
+  }) {
+    return AcceptanceDetailLoaded(
+      acceptanceInfo: acceptanceInfo ?? this.acceptanceInfo,
+      matchedMaterials: matchedMaterials ?? this.matchedMaterials,
+    );
+  }
 }
 
 class AcceptanceListLoaded extends AcceptanceState {
@@ -112,29 +127,4 @@ class WarehouseListLoaded extends AcceptanceState {
 
   @override
   List<Object?> get props => [warehouseList];
-}
-
-class MaterialScanInProgress extends AcceptanceState {
-  const MaterialScanInProgress();
-}
-
-class MaterialScanned extends AcceptanceState {
-  final int? materialId;
-  final String? message;
-  final AcceptanceInfoVO? acceptanceInfo;
-
-  const MaterialScanned({this.materialId, this.message, this.acceptanceInfo});
-
-  @override
-  List<Object?> get props => [materialId, message, acceptanceInfo];
-}
-
-class MaterialScanError extends AcceptanceState {
-  final String message;
-  final AcceptanceInfoVO? acceptanceInfo;
-
-  const MaterialScanError({required this.message, this.acceptanceInfo});
-
-  @override
-  List<Object?> get props => [message, acceptanceInfo];
 }

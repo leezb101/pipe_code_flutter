@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import '../../models/acceptance/do_accept_vo.dart';
 import '../../models/acceptance/do_accept_sign_in_vo.dart';
 import '../../models/acceptance/common_do_business_audit_vo.dart';
@@ -84,10 +85,7 @@ class LoadAcceptanceUsers extends AcceptanceEvent {
   final int projectId;
   final int roleType;
 
-  const LoadAcceptanceUsers({
-    required this.projectId,
-    required this.roleType,
-  });
+  const LoadAcceptanceUsers({required this.projectId, required this.roleType});
 
   @override
   List<Object?> get props => [projectId, roleType];
@@ -106,11 +104,10 @@ class LoadWarehouseList extends AcceptanceEvent {
   const LoadWarehouseList();
 }
 
-class ScanMaterialForSignin extends AcceptanceEvent {
-  final String scannedCode;
-
-  const ScanMaterialForSignin({required this.scannedCode});
+class MatchScannedMaterial extends AcceptanceEvent {
+  final MaterialInfoForBusiness scannedMaterial;
+  const MatchScannedMaterial({required this.scannedMaterial});
 
   @override
-  List<Object?> get props => [scannedCode];
+  List<Object?> get props => [scannedMaterial];
 }

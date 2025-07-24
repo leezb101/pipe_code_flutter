@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../models/acceptance/acceptance_info_vo.dart';
+import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import '../../repositories/acceptance_repository.dart';
 import '../../repositories/material_handle_repository.dart';
 import '../../utils/logger.dart';
@@ -22,7 +22,8 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     on<LoadAcceptanceUsers>(_onLoadAcceptanceUsers);
     on<LoadWarehouseUsers>(_onLoadWarehouseUsers);
     on<LoadWarehouseList>(_onLoadWarehouseList);
-    on<ScanMaterialForSignin>(_onScanMaterialForSignin);
+    // on<ScanMaterialForSignin>(_onScanMaterialForSignin);
+    on<MatchScannedMaterial>(_onMatchScannedMaterial);
   }
 
   Future<void> _onLoadAcceptanceDetail(
@@ -138,7 +139,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           tag: 'AcceptanceBloc',
         );
       } else {
-        emit(AcceptanceError(message: result.msg ?? '验收入库失败'));
+        // 验收入库失败后，需要恢复之前的详情页状态态，不是简单的error状态
+        final currentState = state;
+        if (currentState is AcceptanceDetailLoaded) {
+          emit(currentState);
+          emit(AcceptanceError(message: result.msg ?? '验收入库失败'));
+        } else {
+          emit(AcceptanceError(message: result.msg ?? '验收入库失败'));
+        }
         Logger.error(
           'Failed to process acceptance sign-in: ${result.msg}',
           tag: 'AcceptanceBloc',
@@ -307,86 +315,48 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     }
   }
 
-  Future<void> _onScanMaterialForSignin(
-    ScanMaterialForSignin event,
+  void _onMatchScannedMaterial(
+    MatchScannedMaterial event,
     Emitter<AcceptanceState> emit,
-  ) async {
-    // Get current acceptance info BEFORE emitting MaterialScanInProgress
+  ) {
+    // 确保当前状态是AcceptanceDetailLoaded
     final currentState = state;
-    AcceptanceInfoVO? acceptanceInfo;
     if (currentState is AcceptanceDetailLoaded) {
-      acceptanceInfo = currentState.acceptanceInfo;
-    }
-
-    try {
-      emit(const MaterialScanInProgress());
-      Logger.info(
-        'Scanning material for signin with code: ${event.scannedCode}',
-        tag: 'AcceptanceBloc',
-      );
-
-      // Use scanBatchToQueryAll with single-element array as requested
-      final result = await _materialHandleRepository.scanBatchToQueryAll([
-        event.scannedCode,
-      ]);
-
-      if (result.isSuccess &&
-          result.data != null &&
-          result.data!.normals.isNotEmpty) {
-        final scannedMaterial = result.data!.normals.first;
-        Logger.info(
-          'Material scanned successfully: ${scannedMaterial.materialCode}',
-          tag: 'AcceptanceBloc',
-        );
-
-        // Check if this material exists in current acceptance detail
-        if (acceptanceInfo != null) {
-          try {
-            final matchingMaterial = acceptanceInfo.materialList.firstWhere(
-              (material) =>
-                  material.materialId.toString() ==
-                  scannedMaterial.materialId.toString(),
+      try {
+        // 在当前验收单的无聊列表中查找匹配项
+        final matchingMaterial = currentState.acceptanceInfo.materialList
+            .firstWhere(
+              (m) =>
+                  m.materialId.toString() ==
+                  event.scannedMaterial.normals.first.materialId.toString(),
             );
 
-            emit(
-              MaterialScanned(
-                materialId: matchingMaterial.materialId,
-                message: '物料匹配成功: ${matchingMaterial.materialName}',
-                acceptanceInfo: acceptanceInfo,
-              ),
-            );
-          } catch (e) {
-            emit(
-              MaterialScanError(
-                message: '该物料不在当前验收清单中',
-                acceptanceInfo: acceptanceInfo,
-              ),
-            );
-          }
+        // 检查是否已经匹配
+        if (currentState.matchedMaterials.contains(matchingMaterial)) {
+          // 如果需要，可以发出一个特定的状态或事件来通知UI“重复扫描”
+          // 为了简化，暂不处理，UI可通过比对前后状态的set长度判断
+          // 或者，我们可以专门添加一个state
+          emit(
+            AcceptanceError(message: "物料${matchingMaterial.materialName}已扫描"),
+          );
         } else {
-          emit(const MaterialScanError(message: '请先加载验收详情'));
+          // 使用copywith创建一个新的状态实例，只更新matchedMaterials
+          final newMatchedMaterials = Set<MaterialVO>.from(
+            currentState.matchedMaterials,
+          )..add(matchingMaterial);
+          emit(currentState.copyWith(matchedMaterials: newMatchedMaterials));
         }
-      } else {
+      } catch (e) {
+        // 如果在列表中找不到匹配项，（firstwhere抛出异常）
         emit(
-          MaterialScanError(
-            message: result.msg ?? '扫码查询失败，请重试',
-            acceptanceInfo: acceptanceInfo,
+          AcceptanceError(
+            message: "物料${event.scannedMaterial.normals.first.prodNm}不存在",
           ),
         );
-        Logger.error(
-          'Failed to scan material: ${result.msg}',
-          tag: 'AcceptanceBloc',
-        );
       }
-    } catch (e) {
-      // Use the acceptanceInfo captured at the beginning
-      emit(
-        MaterialScanError(
-          message: '扫码识别失败: $e',
-          acceptanceInfo: acceptanceInfo,
-        ),
-      );
-      Logger.error('Error scanning material: $e', tag: 'AcceptanceBloc');
+    } else {
+      // 如果当前状态不是AcceptanceDetailLoaded，发出错误状态
+      emit(AcceptanceError(message: "无法匹配材料，当前状态不正确"));
     }
   }
 }

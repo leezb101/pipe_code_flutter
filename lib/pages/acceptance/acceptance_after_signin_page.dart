@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
+import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
+import 'package:pipe_code_flutter/repositories/acceptance_repository.dart';
+import 'package:pipe_code_flutter/repositories/material_handle_repository.dart';
 import '../../bloc/acceptance/acceptance_bloc.dart';
 import '../../bloc/acceptance/acceptance_event.dart';
 import '../../bloc/acceptance/acceptance_state.dart';
@@ -18,121 +22,152 @@ import '../../models/qr_scan/qr_scan_type.dart';
 import '../../models/records/record_type.dart';
 import '../../widgets/common_state_widgets.dart' as common;
 import '../../utils/toast_utils.dart';
+import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
+import 'package:pipe_code_flutter/bloc/material_handle/material_handle_state.dart';
 
-class AcceptanceAfterSigninPage extends StatefulWidget {
+class AcceptanceAfterSigninPage extends StatelessWidget {
   final int acceptanceId;
-
   const AcceptanceAfterSigninPage({super.key, required this.acceptanceId});
 
+  // Map<int, bool> _scannedMaterials = {};
+  // final List<XFile> _warehousePhotos = [];
+  // final ImagePicker _picker = ImagePicker();
+  // bool _isSubmitting = false;
+
+  // void _initializeScannedMaterials(List<MaterialVO> materials) {
+  //   _scannedMaterials = {
+  //     for (var material in materials) material.materialId: false,
+  //   };
+  // }
+
   @override
-  State<AcceptanceAfterSigninPage> createState() =>
-      _AcceptanceAfterSigninPageState();
+  Widget build(BuildContext context) {
+    // return MultiBlocProvider(
+    //   providers: [
+    //     BlocProvider(
+    //       create: (context) => AcceptanceBloc(
+    //         context.read<AcceptanceRepository>(),
+    //         context.read<MaterialHandleRepository>(),
+    //       )..add(LoadAcceptanceDetail(acceptanceId: acceptanceId)),
+    //     ),
+    //     BlocProvider(create: (context) => MaterialHandleCubit()),
+    //   ],
+    // 新增使用BlocListener监听MaterialHandleCubit的结果，并触发业务bloc事件,
+    // child:
+    return BlocListener<MaterialHandleCubit, MaterialHandleState>(
+      listener: (context, materialHandleState) {
+        if (materialHandleState is MaterialHandleScanSuccess) {
+          // 扫描成功，物料信息交给AcceptanceBloc进行匹配
+          context.read<AcceptanceBloc>().add(
+            MatchScannedMaterial(
+              scannedMaterial: materialHandleState.materialInfo,
+            ),
+          );
+          // 给出一个即时反馈
+          context.showSuccessToast('扫到二维码信息，正在匹配...');
+        } else if (materialHandleState is MaterialHandleScanFailure) {
+          context.showErrorToast(materialHandleState.error);
+        }
+      },
+      child: AcceptanceAfterSigninView(acceptanceId: acceptanceId),
+    );
+  }
 }
 
-class _AcceptanceAfterSigninPageState extends State<AcceptanceAfterSigninPage> {
-  Map<int, bool> _scannedMaterials = {};
+class AcceptanceAfterSigninView extends StatefulWidget {
+  final int acceptanceId;
+  const AcceptanceAfterSigninView({super.key, required this.acceptanceId});
+
+  @override
+  State<AcceptanceAfterSigninView> createState() =>
+      _AcceptanceAfterSigninViewState();
+}
+
+class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
   final List<XFile> _warehousePhotos = [];
   final ImagePicker _picker = ImagePicker();
   bool _isSubmitting = false;
 
   @override
-  void initState() {
-    super.initState();
-    _loadAcceptanceDetail();
-  }
-
-  void _loadAcceptanceDetail() {
-    context.read<AcceptanceBloc>().add(
-      LoadAcceptanceDetail(acceptanceId: widget.acceptanceId),
-    );
-  }
-
-  void _initializeScannedMaterials(List<MaterialVO> materials) {
-    _scannedMaterials = {
-      for (var material in materials) material.materialId: false,
-    };
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('验收后入库'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-      ),
+      appBar: AppBar(title: Text('验收后入库')),
       body: BlocConsumer<AcceptanceBloc, AcceptanceState>(
         listener: (context, state) {
+          if (state is AcceptanceSignedIn) {
+            context.showSuccessToast('验收后入库成功');
+            context.pop();
+            // 触发记录列表刷新
+            context.read<RecordsBloc>().add(
+              RefreshRecords(recordType: RecordType.todo),
+            );
+            context.read<RecordsBloc>().add(
+              RefreshRecords(recordType: RecordType.accept),
+            );
+          }
+          // 将扫码的错误处理统一放在listener中，而不是在UI中到处判断
           if (state is AcceptanceError) {
             context.showErrorToast(state.message);
-          } else if (state is MaterialScanError) {
-            context.showErrorToast(state.message);
-          } else if (state is AcceptanceSignedIn) {
-            context.showSuccessToast('入库成功');
-            
-            // 刷新记录列表
-            try {
-              context.read<RecordsBloc>().add(RefreshRecords(recordType: RecordType.todo));
-              context.read<RecordsBloc>().add(RefreshRecords(recordType: RecordType.signin));
-            } catch (e) {
-              // 忽略刷新错误，不影响主流程
+
+            if (_isSubmitting) {
+              setState(() {
+                _isSubmitting = false;
+              });
             }
-            
-            context.pop();
-          } else if (state is MaterialScanned && state.materialId != null) {
-            setState(() {
-              _scannedMaterials[state.materialId!] = true;
-            });
-            context.showSuccessToast('物料匹配成功');
           }
         },
         builder: (context, state) {
-          if (state is AcceptanceLoading) {
-            return const common.LoadingWidget();
+          // builder现在只关心UI的构建
+          if (state is AcceptanceInitial ||
+              (state is AcceptanceLoading &&
+                  state is! AcceptanceDetailLoaded)) {
+            return const common.LoadingWidget(message: "加载中...");
           }
-
+          if (state is AcceptanceDetailLoaded) {
+            return _buildContent(
+              context,
+              state.acceptanceInfo,
+              state.matchedMaterials,
+            );
+          }
+          // 如果是错误状态，但不是从AcceptanceDetailLoaded派生的，显示一个通用的错误页
           if (state is AcceptanceError) {
             return common.ErrorWidget(
               message: state.message,
-              onRetry: _loadAcceptanceDetail,
+              onRetry: () {
+                context.read<AcceptanceBloc>().add(
+                  LoadAcceptanceDetail(acceptanceId: widget.acceptanceId),
+                );
+              },
             );
           }
 
-          // Handle states that contain AcceptanceDetail data
-          AcceptanceInfoVO? acceptanceInfo;
-          
-          if (state is AcceptanceDetailLoaded) {
-            acceptanceInfo = state.acceptanceInfo;
-          } else if (state is MaterialScanned && state.acceptanceInfo != null) {
-            acceptanceInfo = state.acceptanceInfo;
-          } else if (state is MaterialScanError && state.acceptanceInfo != null) {
-            acceptanceInfo = state.acceptanceInfo;
-          }
-
-          if (acceptanceInfo != null) {
-            if (_scannedMaterials.isEmpty) {
-              _initializeScannedMaterials(acceptanceInfo.materialList);
-            }
-            return _buildContent(acceptanceInfo);
-          }
-
-          return const Center(child: Text('暂无数据'));
+          return const Center(child: Text('未知状态'));
         },
       ),
     );
   }
 
-  Widget _buildContent(AcceptanceInfoVO acceptanceInfo) {
+  Widget _buildContent(
+    BuildContext context,
+    AcceptanceInfoVO acceptanceInfo,
+    Set<MaterialVO> matchedMaterials,
+  ) {
+    final allMaterials = acceptanceInfo.materialList;
+    final allMatched = matchedMaterials.length == allMaterials.length;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildMaterialsList(acceptanceInfo.materialList),
+          _buildMaterialsList(
+            context,
+            acceptanceInfo.materialList,
+            matchedMaterials,
+          ),
           const SizedBox(height: 16),
-          _buildScanButton(),
+          _buildScanButton(context),
           const SizedBox(height: 16),
           _buildWarehousePhotos(),
           const SizedBox(height: 16),
@@ -140,13 +175,17 @@ class _AcceptanceAfterSigninPageState extends State<AcceptanceAfterSigninPage> {
           const SizedBox(height: 16),
           _buildUserInfo(acceptanceInfo),
           const SizedBox(height: 32),
-          _buildActionButtons(),
+          _buildActionButtons(context, acceptanceInfo, matchedMaterials),
         ],
       ),
     );
   }
 
-  Widget _buildMaterialsList(List<MaterialVO> materials) {
+  Widget _buildMaterialsList(
+    BuildContext context,
+    List<MaterialVO> materials,
+    Set<MaterialVO> matchedMaterials,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -158,15 +197,20 @@ class _AcceptanceAfterSigninPageState extends State<AcceptanceAfterSigninPage> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            ...materials.map((material) => _buildMaterialItem(material)),
+            ...materials.map(
+              (material) => _buildMaterialItem(material, matchedMaterials),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMaterialItem(MaterialVO material) {
-    final isScanned = _scannedMaterials[material.materialId] ?? false;
+  Widget _buildMaterialItem(
+    MaterialVO material,
+    Set<MaterialVO> matchedMaterials,
+  ) {
+    final isScanned = matchedMaterials.contains(material);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -214,11 +258,11 @@ class _AcceptanceAfterSigninPageState extends State<AcceptanceAfterSigninPage> {
     );
   }
 
-  Widget _buildScanButton() {
+  Widget _buildScanButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _navigateToQrScan,
+        onPressed: () => _navigateToQrScan(context),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
@@ -378,7 +422,11 @@ class _AcceptanceAfterSigninPageState extends State<AcceptanceAfterSigninPage> {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(
+    BuildContext context,
+    AcceptanceInfoVO acceptanceInfo,
+    Set<MaterialVO> matchedMaterials,
+  ) {
     return Row(
       children: [
         Expanded(
@@ -393,7 +441,9 @@ class _AcceptanceAfterSigninPageState extends State<AcceptanceAfterSigninPage> {
         const SizedBox(width: 16),
         Expanded(
           child: ElevatedButton(
-            onPressed: _canSubmit() ? _submitSignin : null,
+            onPressed: _canSubmit(acceptanceInfo, matchedMaterials)
+                ? () => _submitSignin(context, acceptanceInfo, matchedMaterials)
+                : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
@@ -415,33 +465,31 @@ class _AcceptanceAfterSigninPageState extends State<AcceptanceAfterSigninPage> {
     );
   }
 
-  bool _canSubmit() {
-    final allMaterialsScanned = _scannedMaterials.values.every(
-      (scanned) => scanned,
-    );
-    final hasEnoughPhotos = _warehousePhotos.length >= 2;
-    return allMaterialsScanned && hasEnoughPhotos && !_isSubmitting;
-  }
-
-  void _navigateToQrScan() {
+  void _navigateToQrScan(BuildContext context) {
+    // 导航到扫码逻辑保持不变，但返回结果后处理方式不同
     final config = QrScanConfig(
       scanType: QrScanType.materialInbound,
-      scanMode: QrScanMode.single,
-      title: '扫码识别物料',
+      title: '扫码入库',
     );
 
-    context.push('/qr-scan', extra: config).then((result) {
-      if (result != null && result is List && result.isNotEmpty) {
-        final scannedCode = result.first.code;
-        _processScanResult(scannedCode);
+    context.pushNamed('qr-scan', extra: config).then((result) {
+      if (result != null &&
+          result is List<QrScanResult> &&
+          result.first.code.isNotEmpty) {
+        final qrCode = result.first.code;
+        context.read<MaterialHandleCubit>().getMaterialInfoFromQr(qrCode);
       }
     });
   }
 
-  void _processScanResult(String scannedCode) {
-    context.read<AcceptanceBloc>().add(
-      ScanMaterialForSignin(scannedCode: scannedCode),
-    );
+  bool _canSubmit(
+    AcceptanceInfoVO acceptanceInfo,
+    Set<MaterialVO> matchedMaterials,
+  ) {
+    final allMaterialScanned =
+        matchedMaterials.length == acceptanceInfo.materialList.length;
+    final hasEnoughPhotos = _warehousePhotos.length >= 2;
+    return allMaterialScanned && hasEnoughPhotos && !_isSubmitting;
   }
 
   Future<void> _takePhoto() async {
@@ -469,40 +517,27 @@ class _AcceptanceAfterSigninPageState extends State<AcceptanceAfterSigninPage> {
     });
   }
 
-  void _submitSignin() {
-    final state = context.read<AcceptanceBloc>().state;
-    
-    // Get acceptance info from various state types
-    AcceptanceInfoVO? acceptanceInfo;
-    if (state is AcceptanceDetailLoaded) {
-      acceptanceInfo = state.acceptanceInfo;
-    } else if (state is MaterialScanned && state.acceptanceInfo != null) {
-      acceptanceInfo = state.acceptanceInfo;
-    } else if (state is MaterialScanError && state.acceptanceInfo != null) {
-      acceptanceInfo = state.acceptanceInfo;
-    }
-    
-    if (acceptanceInfo == null) return;
+  void _submitSignin(
+    BuildContext context,
+    AcceptanceInfoVO acceptanceInfo,
+    Set<MaterialVO> matchedMaterials,
+  ) {
+    if (!_canSubmit(acceptanceInfo, matchedMaterials)) return;
 
-    setState(() {
-      _isSubmitting = true;
-    });
+    setState(() => _isSubmitting = true);
 
-    // Convert photos to AttachmentVO format
     final photoAttachments = _warehousePhotos.asMap().entries.map((entry) {
-      final index = entry.key;
-      final photo = entry.value;
       return AttachmentVO(
         type: 1,
-        name: 'warehouse_photo_${index + 1}.jpg',
-        url: photo.path,
+        name: 'warehouse_photo_${entry.key + 1}.jpg',
+        url: entry.value.path,
         attachFormat: 1, // Image type
       );
     }).toList();
 
     final request = DoAcceptSignInVO(
       acceptId: widget.acceptanceId,
-      materialList: acceptanceInfo.materialList,
+      materialList: matchedMaterials.toList(),
       imageList: photoAttachments,
     );
 

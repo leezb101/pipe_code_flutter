@@ -2,12 +2,14 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-22 19:05:38
+ * @LastEditTime: 2025-07-24 16:32:58
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
+import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
@@ -158,11 +160,25 @@ final GoRouter appRouter = GoRouter(
             if (acceptanceId == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            return BlocProvider(
-              create: (context) => AcceptanceBloc(
-                getIt<AcceptanceRepository>(),
-                getIt<MaterialHandleRepository>(),
-              ),
+            // return BlocProvider(
+            //   create: (context) => AcceptanceBloc(
+            //     getIt<AcceptanceRepository>(),
+            //     getIt<MaterialHandleRepository>(),
+            //   ),
+            // child: AcceptanceAfterSigninPage(acceptanceId: acceptanceId),
+            // return AcceptanceAfterSigninPage(acceptanceId: acceptanceId);
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider<AcceptanceBloc>(
+                  create: (context) => AcceptanceBloc(
+                    getIt<AcceptanceRepository>(),
+                    getIt<MaterialHandleRepository>(),
+                  )..add(LoadAcceptanceDetail(acceptanceId: acceptanceId)),
+                ),
+                BlocProvider<MaterialHandleCubit>(
+                  create: (context) => MaterialHandleCubit(),
+                ),
+              ],
               child: AcceptanceAfterSigninPage(acceptanceId: acceptanceId),
             );
           },
