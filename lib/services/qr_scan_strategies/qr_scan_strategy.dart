@@ -36,127 +36,127 @@ class QrScanNavigationData {
   final Map<String, dynamic>? data;
 }
 
-class InboundStrategy implements QrScanStrategy {
-  late final MaterialHandleRepository _materialHandleRepository;
+// class InboundStrategy implements QrScanStrategy {
+//   late final MaterialHandleRepository _materialHandleRepository;
 
-  InboundStrategy() {
-    _materialHandleRepository = getIt<MaterialHandleRepository>();
-  }
-  @override
-  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
-    await Future.delayed(const Duration(seconds: 1));
+//   InboundStrategy() {
+//     _materialHandleRepository = getIt<MaterialHandleRepository>();
+//   }
+//   @override
+//   Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
+//     await Future.delayed(const Duration(seconds: 1));
 
-    try {
-      if (results.length == 1) {
-        return await _processSingleInbound(results.first);
-      } else {
-        return await _processBatchInbound(results);
-      }
-    } catch (e) {
-      return QrScanProcessResult(
-        success: false,
-        errorMessage: '处理入库扫码时发生错误: $e',
-      );
-    }
-  }
+//     try {
+//       if (results.length == 1) {
+//         return await _processSingleInbound(results.first);
+//       } else {
+//         return await _processBatchInbound(results);
+//       }
+//     } catch (e) {
+//       return QrScanProcessResult(
+//         success: false,
+//         errorMessage: '处理入库扫码时发生错误: $e',
+//       );
+//     }
+//   }
 
-  Future<QrScanProcessResult> _processSingleInbound(QrScanResult result) async {
-    Logger.qrScan('=== 单个入库处理 ===', deviceCode: result.code);
-    Logger.qrScan('扫码内容: ${result.code}', deviceCode: result.code);
-    Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
+//   Future<QrScanProcessResult> _processSingleInbound(QrScanResult result) async {
+//     Logger.qrScan('=== 单个入库处理 ===', deviceCode: result.code);
+//     Logger.qrScan('扫码内容: ${result.code}', deviceCode: result.code);
+//     Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
 
-    // 单个模式下，直接按照扫码内容获取对应的物料信息
-    // 这里可能是交付批次码，也可能是单个物料码，由API后端判断
-    final materialResult = await _getMaterialInfoByCode(result.code);
+//     // 单个模式下，直接按照扫码内容获取对应的物料信息
+//     // 这里可能是交付批次码，也可能是单个物料码，由API后端判断
+//     final materialResult = await _getMaterialInfoByCode(result.code);
 
-    if (materialResult != null &&
-        (materialResult.normals.isNotEmpty ||
-            materialResult.errors.isNotEmpty)) {
-      return QrScanProcessResult(
-        success: true,
-        navigationData: QrScanNavigationData(
-          route: '/inventory-confirmation',
-          data: {'materialInfo': materialResult, 'scanMode': 'single'},
-        ),
-      );
-    } else {
-      return const QrScanProcessResult(
-        success: false,
-        errorMessage: '未找到对应的管件信息',
-      );
-    }
-  }
+//     if (materialResult != null &&
+//         (materialResult.normals.isNotEmpty ||
+//             materialResult.errors.isNotEmpty)) {
+//       return QrScanProcessResult(
+//         success: true,
+//         navigationData: QrScanNavigationData(
+//           route: '/inventory-confirmation',
+//           data: {'materialInfo': materialResult, 'scanMode': 'single'},
+//         ),
+//       );
+//     } else {
+//       return const QrScanProcessResult(
+//         success: false,
+//         errorMessage: '未找到对应的管件信息',
+//       );
+//     }
+//   }
 
-  Future<QrScanProcessResult> _processBatchInbound(
-    List<QrScanResult> results,
-  ) async {
-    Logger.qrScan('=== 批量入库处理 ===');
-    Logger.qrScan('批次大小: ${results.length}');
+//   Future<QrScanProcessResult> _processBatchInbound(
+//     List<QrScanResult> results,
+//   ) async {
+//     Logger.qrScan('=== 批量入库处理 ===');
+//     Logger.qrScan('批次大小: ${results.length}');
 
-    final codes = results.map((r) => r.code).toList();
-    for (int i = 0; i < results.length; i++) {
-      final result = results[i];
-      Logger.qrScan(
-        '第${i + 1}个货物 - 编号: ${result.code}',
-        deviceCode: result.code,
-      );
-    }
+//     final codes = results.map((r) => r.code).toList();
+//     for (int i = 0; i < results.length; i++) {
+//       final result = results[i];
+//       Logger.qrScan(
+//         '第${i + 1}个货物 - 编号: ${result.code}',
+//         deviceCode: result.code,
+//       );
+//     }
 
-    // 批量模式下，所有码都是单个物料码
-    final materialResult = await _getMaterialInfoByBatchCodes(codes);
+//     // 批量模式下，所有码都是单个物料码
+//     final materialResult = await _getMaterialInfoByBatchCodes(codes);
 
-    if (materialResult != null &&
-        (materialResult.normals.isNotEmpty ||
-            materialResult.errors.isNotEmpty)) {
-      return QrScanProcessResult(
-        success: true,
-        navigationData: QrScanNavigationData(
-          route: '/inventory-confirmation',
-          data: {'materialInfo': materialResult, 'scanMode': 'batch'},
-        ),
-      );
-    } else {
-      return const QrScanProcessResult(
-        success: false,
-        errorMessage: '未找到对应的管件信息',
-      );
-    }
-  }
+//     if (materialResult != null &&
+//         (materialResult.normals.isNotEmpty ||
+//             materialResult.errors.isNotEmpty)) {
+//       return QrScanProcessResult(
+//         success: true,
+//         navigationData: QrScanNavigationData(
+//           route: '/inventory-confirmation',
+//           data: {'materialInfo': materialResult, 'scanMode': 'batch'},
+//         ),
+//       );
+//     } else {
+//       return const QrScanProcessResult(
+//         success: false,
+//         errorMessage: '未找到对应的管件信息',
+//       );
+//     }
+//   }
 
-  // 通用方法：根据任意码获取物料信息（可能是批次码或单个物料码）
-  Future<MaterialInfoForBusiness?> _getMaterialInfoByCode(String code) async {
-    try {
-      final result = await _materialHandleRepository.scanSingleToQueryAll(code);
-      if (result.isSuccess && result.data != null) {
-        return result.data!;
-      } else {
-        Logger.qrScan('获取物料信息失败: ${result.msg}', deviceCode: code);
-        return null;
-      }
-    } catch (e) {
-      Logger.qrScan('获取物料信息异常: $e', deviceCode: code);
-      return null;
-    }
-  }
+//   // 通用方法：根据任意码获取物料信息（可能是批次码或单个物料码）
+//   Future<MaterialInfoForBusiness?> _getMaterialInfoByCode(String code) async {
+//     try {
+//       final result = await _materialHandleRepository.scanSingleToQueryAll(code);
+//       if (result.isSuccess && result.data != null) {
+//         return result.data!;
+//       } else {
+//         Logger.qrScan('获取物料信息失败: ${result.msg}', deviceCode: code);
+//         return null;
+//       }
+//     } catch (e) {
+//       Logger.qrScan('获取物料信息异常: $e', deviceCode: code);
+//       return null;
+//     }
+//   }
 
-  // 批量获取物料信息
-  Future<MaterialInfoForBusiness?> _getMaterialInfoByBatchCodes(
-    List<String> codes,
-  ) async {
-    try {
-      final result = await _materialHandleRepository.scanBatchToQueryAll(codes);
-      if (result.isSuccess && result.data != null) {
-        return result.data!;
-      } else {
-        Logger.qrScan('批量获取物料信息失败: ${result.msg}');
-        return null;
-      }
-    } catch (e) {
-      Logger.qrScan('批量获取物料信息异常: $e');
-      return null;
-    }
-  }
-}
+//   // 批量获取物料信息
+//   Future<MaterialInfoForBusiness?> _getMaterialInfoByBatchCodes(
+//     List<String> codes,
+//   ) async {
+//     try {
+//       final result = await _materialHandleRepository.scanBatchToQueryAll(codes);
+//       if (result.isSuccess && result.data != null) {
+//         return result.data!;
+//       } else {
+//         Logger.qrScan('批量获取物料信息失败: ${result.msg}');
+//         return null;
+//       }
+//     } catch (e) {
+//       Logger.qrScan('批量获取物料信息异常: $e');
+//       return null;
+//     }
+//   }
+// }
 
 class OutboundStrategy implements QrScanStrategy {
   @override

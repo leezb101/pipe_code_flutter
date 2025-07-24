@@ -2,12 +2,12 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-05 10:19:52
+ * @LastEditTime: 2025-07-24 18:31:05
  * @copyright: Copyright © 2025 高新供水.
  */
 
 enum QrScanType {
-  inbound('入库'),
+  // inbound('入库'),
   outbound('出库'),
   transfer('调拨'),
   inventory('盘点'),

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-22 19:59:36
+ * @LastEditTime: 2025-07-24 18:31:12
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -25,8 +25,8 @@ class QrScanConfig extends Equatable {
 
     final modePrefix = scanMode == QrScanMode.batch ? '连续' : '单个';
     switch (scanType) {
-      case QrScanType.inbound:
-        return '$modePrefix入库扫码';
+      // case QrScanType.inbound:
+      //   return '$modePrefix入库扫码';
       case QrScanType.outbound:
         return '$modePrefix出库扫码';
       case QrScanType.returnMaterial:

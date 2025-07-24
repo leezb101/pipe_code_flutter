@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-05 16:45:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-16 14:31:19
+ * @LastEditTime: 2025-07-24 18:32:21
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -14,7 +14,7 @@ class MenuActions {
   MenuActions._();
 
   // QR扫码相关操作
-  static const String qrScanInbound = 'qr_scan_inbound';
+  // static const String qrScanInbound = 'qr_scan_inbound';
   static const String qrScanOutbound = 'qr_scan_outbound';
   static const String qrScanReturnMaterial = 'qr_scan_return_material';
   static const String qrScanTransfer = 'qr_scan_transfer';
@@ -31,7 +31,7 @@ class MenuActions {
 
   // 所有可用的操作列表（用于验证）
   static const List<String> allActions = [
-    qrScanInbound,
+    // qrScanInbound,
     qrScanOutbound,
     qrScanReturnMaterial,
     qrScanTransfer,
@@ -51,8 +51,8 @@ class MenuActions {
   /// 获取action的显示名称
   static String getDisplayName(String action) {
     switch (action) {
-      case qrScanInbound:
-        return '入库扫码';
+      // case qrScanInbound:
+      //   return '入库扫码';
       case qrScanOutbound:
         return '出库扫码';
       case qrScanReturnMaterial:

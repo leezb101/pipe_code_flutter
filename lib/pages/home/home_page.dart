@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-21 14:55:58
+ * @LastEditTime: 2025-07-24 18:32:01
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -1163,9 +1163,9 @@ class _HomePageState extends State<HomePage> {
     }
 
     switch (action) {
-      case MenuActions.qrScanInbound:
-        _showScanModeSelection(context, QrScanType.inbound);
-        break;
+      // case MenuActions.qrScanInbound:
+      //   _showScanModeSelection(context, QrScanType.inbound);
+      //   break;
       case MenuActions.qrScanOutbound:
         _showScanModeSelection(context, QrScanType.outbound);
         break;
@@ -1310,9 +1310,9 @@ class _HomePageState extends State<HomePage> {
   Widget _getScanModeTitle(QrScanType scanType, QrScanMode scanMode) {
     String title;
     switch (scanType) {
-      case QrScanType.inbound:
-        title = scanMode == QrScanMode.single ? '单码入库' : '批量入库';
-        break;
+      // case QrScanType.inbound:
+      //   title = scanMode == QrScanMode.single ? '单码入库' : '批量入库';
+      //   break;
       case QrScanType.outbound:
         title = scanMode == QrScanMode.single ? '单个物料出库' : '批量物料出库';
         break;
@@ -1335,11 +1335,11 @@ class _HomePageState extends State<HomePage> {
   Widget _getScanModeSubtitle(QrScanType scanType, QrScanMode scanMode) {
     String subtitle;
     switch (scanType) {
-      case QrScanType.inbound:
-        subtitle = scanMode == QrScanMode.single
-            ? '扫描单个二维码进行入库操作'
-            : '连续扫描多个物料码，手动结束后统一处理';
-        break;
+      // case QrScanType.inbound:
+      //   subtitle = scanMode == QrScanMode.single
+      //       ? '扫描单个二维码进行入库操作'
+      //       : '连续扫描多个物料码，手动结束后统一处理';
+      //   break;
       case QrScanType.outbound:
         subtitle = scanMode == QrScanMode.single
             ? '扫描单个物料进行出库操作'

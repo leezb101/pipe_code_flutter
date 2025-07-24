@@ -182,9 +182,9 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
 
       QrScanProcessResult? result;
       switch (state.config!.scanType) {
-        case QrScanType.inbound:
-          result = await _qrScanService.processInbound(state.scannedCodes);
-          break;
+        // case QrScanType.inbound:
+        //   result = await _qrScanService.processInbound(state.scannedCodes);
+        //   break;
         case QrScanType.outbound:
           result = await _qrScanService.processOutbound(state.scannedCodes);
           break;
@@ -211,7 +211,9 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
           result = await _qrScanService.processAcceptance(state.scannedCodes);
           break;
         case QrScanType.materialInbound:
-          result = await _qrScanService.processMaterialInbound(state.scannedCodes);
+          result = await _qrScanService.processMaterialInbound(
+            state.scannedCodes,
+          );
           break;
       }
 

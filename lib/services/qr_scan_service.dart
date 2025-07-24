@@ -11,7 +11,7 @@ import 'qr_scan_strategies/qr_scan_strategy.dart';
 
 abstract class QrScanService {
   Future<bool> validateCode(String code);
-  Future<QrScanProcessResult?> processInbound(List<QrScanResult> results);
+  // Future<QrScanProcessResult?> processInbound(List<QrScanResult> results);
   Future<QrScanProcessResult?> processOutbound(List<QrScanResult> results);
   Future<QrScanProcessResult?> processTransfer(List<QrScanResult> results);
   Future<QrScanProcessResult?> processInventory(List<QrScanResult> results);
@@ -23,7 +23,9 @@ abstract class QrScanService {
     List<QrScanResult> results,
   );
   Future<QrScanProcessResult?> processAcceptance(List<QrScanResult> results);
-  Future<QrScanProcessResult?> processMaterialInbound(List<QrScanResult> results);
+  Future<QrScanProcessResult?> processMaterialInbound(
+    List<QrScanResult> results,
+  );
 }
 
 class QrScanServiceImpl implements QrScanService {
@@ -42,13 +44,13 @@ class QrScanServiceImpl implements QrScanService {
     return true;
   }
 
-  @override
-  Future<QrScanProcessResult?> processInbound(
-    List<QrScanResult> results,
-  ) async {
-    final strategy = InboundStrategy();
-    return strategy.process(results);
-  }
+  // @override
+  // Future<QrScanProcessResult?> processInbound(
+  //   List<QrScanResult> results,
+  // ) async {
+  //   final strategy = InboundStrategy();
+  //   return strategy.process(results);
+  // }
 
   @override
   Future<QrScanProcessResult?> processOutbound(
@@ -105,7 +107,9 @@ class QrScanServiceImpl implements QrScanService {
   }
 
   @override
-  Future<QrScanProcessResult?> processMaterialInbound(List<QrScanResult> results) {
+  Future<QrScanProcessResult?> processMaterialInbound(
+    List<QrScanResult> results,
+  ) {
     final strategy = MaterialInboundStrategy();
     return strategy.process(results);
   }

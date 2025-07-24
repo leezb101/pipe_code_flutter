@@ -70,7 +70,7 @@ class _RecordsListPageState extends State<RecordsListPage> {
           queryParameters: {'id': record.id.toString()},
         );
         break;
-      case RecordType.signin:
+      // case RecordType.signin:
       case RecordType.signout:
       case RecordType.install:
       case RecordType.returnWarehouse:

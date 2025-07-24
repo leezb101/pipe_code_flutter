@@ -1,30 +1,36 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-22 11:01:13
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-24 18:33:34
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:json_annotation/json_annotation.dart';
 
 enum RecordType {
   @JsonValue('todo')
   todo,
-  
-  @JsonValue('signin')
-  signin,
-  
+
+  // @JsonValue('signin')
+  // signin,
   @JsonValue('accept')
   accept,
-  
+
   @JsonValue('signout')
   signout,
-  
+
   @JsonValue('install')
   install,
-  
+
   @JsonValue('return')
   returnWarehouse,
-  
+
   @JsonValue('dispatch')
   dispatch,
-  
+
   @JsonValue('waste')
   waste,
-  
+
   @JsonValue('inventory')
   inventory,
 }
@@ -34,8 +40,8 @@ extension RecordTypeExtension on RecordType {
     switch (this) {
       case RecordType.todo:
         return '待办';
-      case RecordType.signin:
-        return '入库记录';
+      // case RecordType.signin:
+      //   return '入库记录';
       case RecordType.accept:
         return '验收记录';
       case RecordType.signout:
@@ -57,8 +63,8 @@ extension RecordTypeExtension on RecordType {
     switch (this) {
       case RecordType.todo:
         return '/todo/list';
-      case RecordType.signin:
-        return '/signin/list';
+      // case RecordType.signin:
+      //   return '/signin/list';
       case RecordType.accept:
         return '/accept/list';
       case RecordType.signout:
@@ -79,10 +85,11 @@ extension RecordTypeExtension on RecordType {
   bool get isMainTab {
     switch (this) {
       case RecordType.todo:
-      case RecordType.signin:
+      // case RecordType.signin:
       case RecordType.accept:
       case RecordType.signout:
       case RecordType.install:
+      case RecordType.dispatch:
         return true;
       default:
         return false;
