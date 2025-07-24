@@ -65,8 +65,6 @@ class AcceptanceAfterSigninPage extends StatelessWidget {
           );
           // 给出一个即时反馈
           context.showSuccessToast('扫到二维码信息，正在匹配...');
-        } else if (materialHandleState is MaterialHandleScanFailure) {
-          context.showErrorToast(materialHandleState.error);
         }
       },
       child: AcceptanceAfterSigninView(acceptanceId: acceptanceId),
@@ -93,6 +91,25 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     return Scaffold(
       appBar: AppBar(title: Text('验收后入库')),
       body: BlocConsumer<AcceptanceBloc, AcceptanceState>(
+        // 当状态是AcceptanceSignedIn时，不用重建UI，因为listener会处理pop，避免未知状态闪烁
+        buildWhen: (previous, current) => current is! AcceptanceSignedIn,
+        listenWhen: (previous, current) {
+          // 提交成功时触发
+          if (current is AcceptanceSignedIn) return true;
+          // 出现提示用户错误时出发
+          if (current is AcceptanceError) return true;
+          // 有新的匹配消息触发
+          if (current is AcceptanceDetailLoaded &&
+              current.matchMessage != null) {
+            // 避免重复弹出相同的消息
+            if (previous is AcceptanceDetailLoaded &&
+                previous.matchMessage == current.matchMessage) {
+              return false;
+            }
+            return true;
+          }
+          return false;
+        },
         listener: (context, state) {
           if (state is AcceptanceSignedIn) {
             context.showSuccessToast('验收后入库成功');
@@ -106,7 +123,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
             );
           }
           // 将扫码的错误处理统一放在listener中，而不是在UI中到处判断
-          if (state is AcceptanceError) {
+          else if (state is AcceptanceError) {
             context.showErrorToast(state.message);
 
             if (_isSubmitting) {
@@ -114,21 +131,22 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
                 _isSubmitting = false;
               });
             }
+          } else if (state is AcceptanceDetailLoaded &&
+              state.matchMessage != null) {
+            context.showInfoToast(state.matchMessage!);
           }
         },
         builder: (context, state) {
           // builder现在只关心UI的构建
-          if (state is AcceptanceInitial ||
-              (state is AcceptanceLoading &&
-                  state is! AcceptanceDetailLoaded)) {
-            return const common.LoadingWidget(message: "加载中...");
-          }
           if (state is AcceptanceDetailLoaded) {
             return _buildContent(
               context,
               state.acceptanceInfo,
               state.matchedMaterials,
             );
+          }
+          if (state is AcceptanceLoading) {
+            return const common.LoadingWidget(message: "加载中...");
           }
           // 如果是错误状态，但不是从AcceptanceDetailLoaded派生的，显示一个通用的错误页
           if (state is AcceptanceError) {

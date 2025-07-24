@@ -123,42 +123,59 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     DoAcceptanceSignIn event,
     Emitter<AcceptanceState> emit,
   ) async {
-    try {
-      emit(const AcceptanceSigningIn());
-      Logger.info(
-        'Processing acceptance sign-in for id: ${event.request.acceptId}',
-        tag: 'AcceptanceBloc',
-      );
-
-      final result = await _repository.doAcceptanceSignIn(event.request);
-
-      if (result.isSuccess) {
-        emit(const AcceptanceSignedIn());
-        Logger.info(
-          'Acceptance sign-in processed successfully',
-          tag: 'AcceptanceBloc',
-        );
-      } else {
-        // 验收入库失败后，需要恢复之前的详情页状态态，不是简单的error状态
-        final currentState = state;
-        if (currentState is AcceptanceDetailLoaded) {
-          emit(currentState);
-          emit(AcceptanceError(message: result.msg ?? '验收入库失败'));
-        } else {
-          emit(AcceptanceError(message: result.msg ?? '验收入库失败'));
-        }
-        Logger.error(
-          'Failed to process acceptance sign-in: ${result.msg}',
-          tag: 'AcceptanceBloc',
-        );
-      }
-    } catch (e) {
-      emit(AcceptanceError(message: '验收入库失败，请重试'));
-      Logger.error(
-        'Error processing acceptance sign-in: $e',
-        tag: 'AcceptanceBloc',
-      );
+    final currentState = state;
+    // 开始提交之前，发出一个加载状态，同时保留当前数据
+    if (currentState is AcceptanceDetailLoaded) {
+      // UI层通过判断state is acceptanceLoading && state is! AcceptanceDetailLoaded 来判断是否显示加载中
+      emit(AcceptanceLoading());
     }
+
+    final result = await _repository.doAcceptanceSignIn(event.request);
+
+    if (result.isSuccess) {
+      emit(AcceptanceSignedIn());
+    } else {
+      if (currentState is AcceptanceDetailLoaded) {
+        emit(currentState);
+      }
+      emit(AcceptanceError(message: result.msg ?? '验收入库失败'));
+    }
+    // try {
+    //   emit(const AcceptanceSigningIn());
+    //   Logger.info(
+    //     'Processing acceptance sign-in for id: ${event.request.acceptId}',
+    //     tag: 'AcceptanceBloc',
+    //   );
+
+    //   final result = await _repository.doAcceptanceSignIn(event.request);
+
+    //   if (result.isSuccess) {
+    //     emit(const AcceptanceSignedIn());
+    //     Logger.info(
+    //       'Acceptance sign-in processed successfully',
+    //       tag: 'AcceptanceBloc',
+    //     );
+    //   } else {
+    //     // 验收入库失败后，需要恢复之前的详情页状态态，不是简单的error状态
+    //     final currentState = state;
+    //     if (currentState is AcceptanceDetailLoaded) {
+    //       emit(currentState);
+    //       emit(AcceptanceError(message: result.msg ?? '验收入库失败'));
+    //     } else {
+    //       emit(AcceptanceError(message: result.msg ?? '验收入库失败'));
+    //     }
+    //     Logger.error(
+    //       'Failed to process acceptance sign-in: ${result.msg}',
+    //       tag: 'AcceptanceBloc',
+    //     );
+    //   }
+    // } catch (e) {
+    //   emit(AcceptanceError(message: '验收入库失败，请重试'));
+    //   Logger.error(
+    //     'Error processing acceptance sign-in: $e',
+    //     tag: 'AcceptanceBloc',
+    //   );
+    // }
   }
 
   Future<void> _onLoadAcceptanceList(
@@ -331,26 +348,41 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
                   event.scannedMaterial.normals.first.materialId.toString(),
             );
 
+        // 如果找到匹配项，检查是否已经匹配过
+        final isAlreadyMatched = currentState.matchedMaterials.any(
+          (m) => m.materialId == matchingMaterial.materialId,
+        );
+
         // 检查是否已经匹配
-        if (currentState.matchedMaterials.contains(matchingMaterial)) {
+        if (isAlreadyMatched) {
           // 如果需要，可以发出一个特定的状态或事件来通知UI“重复扫描”
           // 为了简化，暂不处理，UI可通过比对前后状态的set长度判断
           // 或者，我们可以专门添加一个state
+          // emit(
+          //   AcceptanceError(message: "物料${matchingMaterial.materialName}已扫描"),
+          // );
           emit(
-            AcceptanceError(message: "物料${matchingMaterial.materialName}已扫描"),
+            currentState.copyWith(
+              matchMessage: '物料${matchingMaterial.materialName} 已被扫描，请勿重复扫码',
+            ),
           );
         } else {
           // 使用copywith创建一个新的状态实例，只更新matchedMaterials
           final newMatchedMaterials = Set<MaterialVO>.from(
             currentState.matchedMaterials,
           )..add(matchingMaterial);
-          emit(currentState.copyWith(matchedMaterials: newMatchedMaterials));
+          emit(
+            currentState.copyWith(
+              matchedMaterials: newMatchedMaterials,
+              matchMessage: '物料${matchingMaterial.materialName} 匹配成功',
+            ),
+          );
         }
       } catch (e) {
         // 如果在列表中找不到匹配项，（firstwhere抛出异常）
         emit(
-          AcceptanceError(
-            message: "物料${event.scannedMaterial.normals.first.prodNm}不存在",
+          currentState.copyWith(
+            matchMessage: '物料${event.scannedMaterial.normals.first.prodNm}不存在',
           ),
         );
       }

@@ -25,21 +25,30 @@ class AcceptanceDetailLoaded extends AcceptanceState {
   final AcceptanceInfoVO acceptanceInfo;
   final Set<MaterialVO> matchedMaterials;
 
+  final String? matchMessage;
+
   const AcceptanceDetailLoaded({
     required this.acceptanceInfo,
     this.matchedMaterials = const {},
+    this.matchMessage,
   });
 
   @override
-  List<Object?> get props => [acceptanceInfo, matchedMaterials];
+  List<Object?> get props => [acceptanceInfo, matchedMaterials, matchMessage];
 
   AcceptanceDetailLoaded copyWith({
     AcceptanceInfoVO? acceptanceInfo,
     Set<MaterialVO>? matchedMaterials,
+    String? matchMessage,
+    // 允许传递null来清除信息
+    bool clearMatchMessage = false,
   }) {
     return AcceptanceDetailLoaded(
       acceptanceInfo: acceptanceInfo ?? this.acceptanceInfo,
       matchedMaterials: matchedMaterials ?? this.matchedMaterials,
+      matchMessage: clearMatchMessage
+          ? null
+          : matchMessage ?? this.matchMessage,
     );
   }
 }
