@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-17 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-23 18:19:18
+ * @LastEditTime: 2025-07-24 09:00:54
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -12,6 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/project/project_state.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
+import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import '../../bloc/project/project_bloc.dart';
 import '../../models/inventory/pipe_material.dart';
 import '../../models/common/common_user_vo.dart';
@@ -24,6 +25,7 @@ import '../../bloc/acceptance/acceptance_event.dart';
 import '../../bloc/acceptance/acceptance_state.dart';
 import '../../models/acceptance/do_accept_vo.dart';
 import '../../models/acceptance/material_vo.dart';
+import '../../utils/go_router_popuntil.dart';
 
 class AcceptancePage extends StatefulWidget {
   const AcceptancePage({super.key, required this.materials});
@@ -129,6 +131,21 @@ class _AcceptancePageState extends State<AcceptancePage> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(state.message)));
+        } else if (state is AcceptanceSubmitted) {
+          // 通过GoRouter返回MainPage
+          context.showSuccessToast(
+            '提交成功，即将返回',
+            duration: const Duration(seconds: 2),
+          );
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              GoRouter.of(context).popUntil(
+                predicate: (route) {
+                  return route.name == '/';
+                },
+              );
+            }
+          });
         }
       },
       child: Scaffold(
@@ -581,7 +598,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
                       elevation: 2,
                     ),
                     child: const Text(
-                      '扫码验收',
+                      '提交报验',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
