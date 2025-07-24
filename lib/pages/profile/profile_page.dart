@@ -42,7 +42,7 @@ class _ProfilePageState extends State<ProfilePage> {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthUnauthenticated) {
-            context.go('/login');
+            context.pushReplacementNamed('login');
           }
         },
         child: BlocBuilder<UserBloc, UserState>(

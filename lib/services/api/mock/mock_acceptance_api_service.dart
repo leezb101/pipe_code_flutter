@@ -156,6 +156,8 @@ class MockAcceptanceApiService implements AcceptanceApiService {
         imageList: attachments.where((a) => a.type == 3).toList(),
         warehouseId: 1000 + _random.nextInt(10),
       ),
+      acceptStatus: _random.nextInt(5), // 模拟状态
+      acceptStatusName: ['待审核', '已审核', '已入库', '已完成', '已取消'][_random.nextInt(5)],
     );
 
     return Result(code: 0, msg: 'success', data: acceptanceInfo);

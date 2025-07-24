@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
@@ -8,6 +9,7 @@ import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_bloc.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_state.dart';
+import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 
 class AcceptanceConfirmationPage extends StatefulWidget {
@@ -66,23 +68,26 @@ class _AcceptanceConfirmationPageState
           setState(() {
             _isSubmitting = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('验收确认成功'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          Navigator.of(context).pop(true);
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   const SnackBar(
+          //     content: Text('验收确认成功'),
+          //     backgroundColor: Colors.green,
+          //   ),
+          // );
+          // Navigator.of(context).pop(true);
+          context.showSuccessToast('验收确认成功');
+          context.pop();
         } else if (state is AcceptanceError) {
           setState(() {
             _isSubmitting = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('验收确认失败: ${state.message}'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          context.showErrorToast('验收确认失败: ${state.message}');
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   SnackBar(
+          //     content: Text('验收确认失败: ${state.message}'),
+          //     backgroundColor: Colors.red,
+          //   ),
+          // );
         }
       },
       child: BlocBuilder<AcceptanceBloc, AcceptanceState>(
@@ -148,14 +153,12 @@ class _AcceptanceConfirmationPageState
           ),
           const SizedBox(height: 8),
           const Divider(),
-          if (acceptanceInfo != null && acceptanceInfo.materialList.isNotEmpty) ...[
+          if (acceptanceInfo != null &&
+              acceptanceInfo.materialList.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
               '代表性材料: ${acceptanceInfo.materialList.first.materialName}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
           ],
         ],
@@ -194,9 +197,15 @@ class _AcceptanceConfirmationPageState
 
   Widget _buildAttachmentsSection(AcceptanceInfoVO acceptanceInfo) {
     // 筛选不同类型的附件
-    final acceptancePhotos = acceptanceInfo.imageList.where((item) => item.type == 3).toList();
-    final reportDocuments = acceptanceInfo.imageList.where((item) => item.type == 1).toList();
-    final acceptanceReports = acceptanceInfo.imageList.where((item) => item.type == 2).toList();
+    final acceptancePhotos = acceptanceInfo.imageList
+        .where((item) => item.type == 3)
+        .toList();
+    final reportDocuments = acceptanceInfo.imageList
+        .where((item) => item.type == 1)
+        .toList();
+    final acceptanceReports = acceptanceInfo.imageList
+        .where((item) => item.type == 2)
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,9 +239,9 @@ class _AcceptanceConfirmationPageState
       children: [
         if (photos.isNotEmpty) _buildPhotoWidget(photos[0]),
         const SizedBox(width: 16),
-        if (photos.length > 1) 
+        if (photos.length > 1)
           _buildPhotoWidget(photos[1])
-        else 
+        else
           _buildAttachmentPlaceholder(),
       ],
     );
@@ -269,7 +278,7 @@ class _AcceptanceConfirmationPageState
                   child: CircularProgressIndicator(
                     value: loadingProgress.expectedTotalBytes != null
                         ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
+                              loadingProgress.expectedTotalBytes!
                         : null,
                     strokeWidth: 2,
                   ),
@@ -305,9 +314,7 @@ class _AcceptanceConfirmationPageState
         const SizedBox(width: 12),
         Expanded(
           child: Text(
-            documents.isNotEmpty 
-                ? documents.first.name 
-                : '暂无$label',
+            documents.isNotEmpty ? documents.first.name : '暂无$label',
             style: TextStyle(
               fontSize: 16,
               color: documents.isNotEmpty ? Colors.black : Colors.grey.shade600,

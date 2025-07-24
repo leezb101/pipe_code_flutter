@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-21 16:24:48
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-21 19:22:05
+ * @LastEditTime: 2025-07-24 10:38:11
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:equatable/equatable.dart';
@@ -26,6 +26,8 @@ class AcceptanceInfoVO extends Equatable {
   final List<CommonUserVO> supervisorUsers;
   final List<CommonUserVO> constructionUsers;
   final SignInInfoVO? signInInfo;
+  final int acceptStatus;
+  final String acceptStatusName;
 
   const AcceptanceInfoVO({
     required this.materialList,
@@ -38,6 +40,8 @@ class AcceptanceInfoVO extends Equatable {
     required this.supervisorUsers,
     required this.constructionUsers,
     this.signInInfo,
+    required this.acceptStatus,
+    required this.acceptStatusName,
   });
 
   factory AcceptanceInfoVO.fromJson(Map<String, dynamic> json) =>
@@ -70,6 +74,8 @@ class AcceptanceInfoVO extends Equatable {
     List<CommonUserVO>? supervisorUsers,
     List<CommonUserVO>? constructionUsers,
     SignInInfoVO? signInInfo,
+    int? acceptStatus,
+    String? acceptStatusName,
   }) {
     return AcceptanceInfoVO(
       materialList: materialList ?? this.materialList,
@@ -82,6 +88,8 @@ class AcceptanceInfoVO extends Equatable {
       supervisorUsers: supervisorUsers ?? this.supervisorUsers,
       constructionUsers: constructionUsers ?? this.constructionUsers,
       signInInfo: signInInfo ?? this.signInInfo,
+      acceptStatus: acceptStatus ?? this.acceptStatus,
+      acceptStatusName: acceptStatusName ?? this.acceptStatusName,
     );
   }
 

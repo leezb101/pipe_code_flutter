@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-17 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-24 09:00:54
+ * @LastEditTime: 2025-07-24 10:51:46
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -128,9 +128,10 @@ class _AcceptancePageState extends State<AcceptancePage> {
             }
           });
         } else if (state is AcceptanceError) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          context.showErrorToast(state.message);
+          // ScaffoldMessenger.of(
+          //   context,
+          // ).showSnackBar(SnackBar(content: Text(state.message)));
         } else if (state is AcceptanceSubmitted) {
           // 通过GoRouter返回MainPage
           context.showSuccessToast(
@@ -729,12 +730,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
     // 获取仓库ID，如果未选择则默认为0
     final warehouseId = _selectedWarehouseId ?? 0;
 
-    // FIXME: 这里是测试用的假的materialVOList
-
-    final materialVOListForTest = [
-      MaterialVO(materialId: 1, materialName: "管材1"),
-      MaterialVO(materialId: 2, materialName: "管材2"),
-    ];
     // 创建DoAcceptVO对象
     final doAcceptVO = DoAcceptVO(
       materialList: materialVOList,
@@ -789,14 +784,19 @@ class _AcceptancePageState extends State<AcceptancePage> {
       }
     });
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('验收确认成功')));
-    Navigator.of(context).pop();
+    // ScaffoldMessenger.of(
+    //   context,
+    // ).showSnackBar(const SnackBar(content: Text('验收确认成功')));
+    context.showSuccessToast('验收确认成功');
+    // Navigator.of(context).pop();
+    // 使用GoRouter返回到主页面
+    // context.pop();
+    _handleReturn();
   }
 
   void _handleReturn() {
-    Navigator.of(context).pop();
+    context.pop();
+    // Navigator.of(context).pop();
   }
 
   List<MaterialVO> _convertPipeMaterialsToMaterialVOs(

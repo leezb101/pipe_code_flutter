@@ -30,6 +30,8 @@ AcceptanceInfoVO _$AcceptanceInfoVOFromJson(Map<String, dynamic> json) =>
       signInInfo: json['signInInfo'] == null
           ? null
           : SignInInfoVO.fromJson(json['signInInfo'] as Map<String, dynamic>),
+      acceptStatus: (json['acceptStatus'] as num).toInt(),
+      acceptStatusName: json['acceptStatusName'] as String,
     );
 
 Map<String, dynamic> _$AcceptanceInfoVOToJson(AcceptanceInfoVO instance) =>
@@ -44,4 +46,6 @@ Map<String, dynamic> _$AcceptanceInfoVOToJson(AcceptanceInfoVO instance) =>
       'supervisorUsers': instance.supervisorUsers,
       'constructionUsers': instance.constructionUsers,
       'signInInfo': instance.signInInfo,
+      'acceptStatus': instance.acceptStatus,
+      'acceptStatusName': instance.acceptStatusName,
     };
