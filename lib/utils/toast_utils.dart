@@ -2,22 +2,25 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 15:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-06-28 15:30:00
+ * @LastEditTime: 2025-07-24 18:15:29
  * @copyright: Copyright © 2025 高新供水.
  */
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pipe_code_flutter/config/routes.dart';
 import '../widgets/toast/ios_toast.dart';
 import '../widgets/toast/toast_type.dart';
 
 class ToastUtils {
   static final List<OverlayEntry> _activeToasts = [];
   static const int _maxConcurrentToasts = 3;
-  
+
   // 防重复显示的消息缓存
   static final Map<String, DateTime> _recentMessages = {};
-  static const Duration _duplicateWindow = Duration(milliseconds: 1000); // 1秒内不重复显示相同消息
+  static const Duration _duplicateWindow = Duration(
+    milliseconds: 1000,
+  ); // 1秒内不重复显示相同消息
 
   /// 显示成功提示
   static void showSuccess(
@@ -25,6 +28,7 @@ class ToastUtils {
     String message, {
     Duration duration = const Duration(seconds: 3),
     bool showIcon = true,
+    bool isGlobal = false,
   }) {
     _showToast(
       context,
@@ -32,6 +36,7 @@ class ToastUtils {
       type: ToastType.success,
       duration: duration,
       showIcon: showIcon,
+      isGlobal: isGlobal,
     );
   }
 
@@ -41,6 +46,7 @@ class ToastUtils {
     String message, {
     Duration duration = const Duration(seconds: 4),
     bool showIcon = true,
+    bool isGlobal = false,
   }) {
     _showToast(
       context,
@@ -48,6 +54,7 @@ class ToastUtils {
       type: ToastType.error,
       duration: duration,
       showIcon: showIcon,
+      isGlobal: isGlobal,
     );
   }
 
@@ -57,6 +64,7 @@ class ToastUtils {
     String message, {
     Duration duration = const Duration(seconds: 3),
     bool showIcon = true,
+    bool isGlobal = false,
   }) {
     _showToast(
       context,
@@ -64,6 +72,7 @@ class ToastUtils {
       type: ToastType.warning,
       duration: duration,
       showIcon: showIcon,
+      isGlobal: isGlobal,
     );
   }
 
@@ -73,6 +82,7 @@ class ToastUtils {
     String message, {
     Duration duration = const Duration(seconds: 3),
     bool showIcon = true,
+    bool isGlobal = false,
   }) {
     _showToast(
       context,
@@ -80,6 +90,7 @@ class ToastUtils {
       type: ToastType.info,
       duration: duration,
       showIcon: showIcon,
+      isGlobal: isGlobal,
     );
   }
 
@@ -90,11 +101,18 @@ class ToastUtils {
     required ToastType type,
     Duration duration = const Duration(seconds: 3),
     bool showIcon = true,
+    bool isGlobal = false,
   }) {
+    final overlayContext = (isGlobal && navigatorKey.currentContext != null)
+        ? navigatorKey.currentContext!
+        : context;
+
+    if (!overlayContext.mounted) return;
+
     // 检查是否为重复消息
     final now = DateTime.now();
     final messageKey = '${type.name}_$message';
-    
+
     if (_recentMessages.containsKey(messageKey)) {
       final lastShown = _recentMessages[messageKey]!;
       if (now.difference(lastShown) < _duplicateWindow) {
@@ -102,14 +120,15 @@ class ToastUtils {
         return;
       }
     }
-    
+
     // 记录当前消息
     _recentMessages[messageKey] = now;
-    
+
     // 清理过期的消息记录
-    _recentMessages.removeWhere((key, time) => 
-        now.difference(time) > _duplicateWindow);
-    
+    _recentMessages.removeWhere(
+      (key, time) => now.difference(time) > _duplicateWindow,
+    );
+
     // 如果超过最大数量，移除最老的 toast
     if (_activeToasts.length >= _maxConcurrentToasts) {
       final oldestToast = _activeToasts.removeAt(0);
@@ -127,35 +146,35 @@ class ToastUtils {
       HapticFeedback.lightImpact();
     }
 
-    final overlay = Overlay.of(context);
-    
-    // 计算垂直偏移量，让多个 toast 错开显示
-    final double topOffset = 60.0 + (_activeToasts.length * 80.0);
-    
-    final overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: topOffset,
-        left: 20,
-        right: 20,
-        child: IOSToast(
-          message: message,
-          type: type,
-          duration: duration,
-          showIcon: showIcon,
-        ),
-      ),
+    final overlay = Overlay.of(overlayContext);
+    OverlayEntry? entry;
+
+    entry = OverlayEntry(
+      builder: (context) {
+        // 计算垂直偏移量，让多个 toast 错开显示
+        final double topOffset = 60.0 + (_activeToasts.length * 80.0);
+        return Positioned(
+          top: topOffset,
+          left: 20,
+          right: 20,
+          child: IOSToast(
+            message: message,
+            type: type,
+            duration: duration,
+            showIcon: showIcon,
+            onDismissed: () {
+              if (entry != null && entry.mounted) {
+                entry.remove();
+                _activeToasts.remove(entry);
+              }
+            },
+          ),
+        );
+      },
     );
 
-    _activeToasts.add(overlayEntry);
-    overlay.insert(overlayEntry);
-
-    // 自动清理
-    Future.delayed(duration + const Duration(milliseconds: 500), () {
-      if (overlayEntry.mounted) {
-        overlayEntry.remove();
-        _activeToasts.remove(overlayEntry);
-      }
-    });
+    _activeToasts.add(entry);
+    overlay.insert(entry);
   }
 
   /// 手动移除所有显示的 toast
@@ -191,12 +210,7 @@ class ToastUtils {
     Duration duration = const Duration(seconds: 3),
   }) {
     for (final message in messages) {
-      _showToast(
-        context,
-        message: message,
-        type: type,
-        duration: duration,
-      );
+      _showToast(context, message: message, type: type, duration: duration);
     }
   }
 
@@ -226,19 +240,63 @@ class ToastUtils {
 
 /// 扩展方法，让 BuildContext 可以直接调用 toast 方法
 extension ToastExtension on BuildContext {
-  void showSuccessToast(String message, {Duration? duration, bool showIcon = true}) {
-    ToastUtils.showSuccess(this, message, duration: duration ?? const Duration(seconds: 3), showIcon: showIcon);
+  void showSuccessToast(
+    String message, {
+    Duration? duration,
+    bool showIcon = true,
+    bool isGlobal = false,
+  }) {
+    ToastUtils.showSuccess(
+      this,
+      message,
+      duration: duration ?? const Duration(seconds: 3),
+      showIcon: showIcon,
+      isGlobal: isGlobal,
+    );
   }
 
-  void showErrorToast(String message, {Duration? duration, bool showIcon = true}) {
-    ToastUtils.showError(this, message, duration: duration ?? const Duration(seconds: 4), showIcon: showIcon);
+  void showErrorToast(
+    String message, {
+    Duration? duration,
+    bool showIcon = true,
+    bool isGlobal = false,
+  }) {
+    ToastUtils.showError(
+      this,
+      message,
+      duration: duration ?? const Duration(seconds: 4),
+      showIcon: showIcon,
+      isGlobal: isGlobal,
+    );
   }
 
-  void showWarningToast(String message, {Duration? duration, bool showIcon = true}) {
-    ToastUtils.showWarning(this, message, duration: duration ?? const Duration(seconds: 3), showIcon: showIcon);
+  void showWarningToast(
+    String message, {
+    Duration? duration,
+    bool showIcon = true,
+    bool isGlobal = false,
+  }) {
+    ToastUtils.showWarning(
+      this,
+      message,
+      duration: duration ?? const Duration(seconds: 3),
+      showIcon: showIcon,
+      isGlobal: isGlobal,
+    );
   }
 
-  void showInfoToast(String message, {Duration? duration, bool showIcon = true}) {
-    ToastUtils.showInfo(this, message, duration: duration ?? const Duration(seconds: 3), showIcon: showIcon);
+  void showInfoToast(
+    String message, {
+    Duration? duration,
+    bool showIcon = true,
+    bool isGlobal = false,
+  }) {
+    ToastUtils.showInfo(
+      this,
+      message,
+      duration: duration ?? const Duration(seconds: 3),
+      showIcon: showIcon,
+      isGlobal: isGlobal,
+    );
   }
 }

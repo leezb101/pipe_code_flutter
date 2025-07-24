@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-17 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-24 10:51:46
+ * @LastEditTime: 2025-07-24 18:16:33
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -134,10 +134,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
           // ).showSnackBar(SnackBar(content: Text(state.message)));
         } else if (state is AcceptanceSubmitted) {
           // 通过GoRouter返回MainPage
-          context.showSuccessToast(
-            '提交成功，即将返回',
-            duration: const Duration(seconds: 2),
-          );
+          context.showSuccessToast('提交成功，即将返回', isGlobal: true);
           Future.delayed(const Duration(seconds: 2), () {
             if (mounted) {
               GoRouter.of(context).popUntil(

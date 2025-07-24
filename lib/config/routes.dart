@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-24 16:32:58
+ * @LastEditTime: 2025-07-24 18:26:28
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -44,7 +44,10 @@ import '../pages/material/material_detail_page.dart';
 import '../models/material/scan_identification_response.dart';
 import 'service_locator.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 final GoRouter appRouter = GoRouter(
+  navigatorKey: navigatorKey,
   initialLocation: '/login',
   routes: [
     GoRoute(

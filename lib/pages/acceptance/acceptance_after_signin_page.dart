@@ -112,7 +112,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
         },
         listener: (context, state) {
           if (state is AcceptanceSignedIn) {
-            context.showSuccessToast('验收后入库成功');
+            context.showSuccessToast('验收后入库成功', isGlobal: true);
             context.pop();
             // 触发记录列表刷新
             context.read<RecordsBloc>().add(
