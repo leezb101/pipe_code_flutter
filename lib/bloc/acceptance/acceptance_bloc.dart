@@ -345,7 +345,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
             final matchingMaterial = acceptanceInfo.materialList.firstWhere(
               (material) =>
                   material.materialId.toString() ==
-                  scannedMaterial.materialCode,
+                  scannedMaterial.materialId.toString(),
             );
 
             emit(

@@ -9,6 +9,9 @@ import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_bloc.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_state.dart';
+import 'package:pipe_code_flutter/bloc/records/records_bloc.dart';
+import 'package:pipe_code_flutter/bloc/records/records_event.dart';
+import 'package:pipe_code_flutter/models/records/record_type.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 
@@ -76,6 +79,15 @@ class _AcceptanceConfirmationPageState
           // );
           // Navigator.of(context).pop(true);
           context.showSuccessToast('验收确认成功');
+          
+          // 刷新记录列表
+          try {
+            context.read<RecordsBloc>().add(RefreshRecords(recordType: RecordType.todo));
+            context.read<RecordsBloc>().add(RefreshRecords(recordType: RecordType.accept));
+          } catch (e) {
+            // 忽略刷新错误，不影响主流程
+          }
+          
           context.pop();
         } else if (state is AcceptanceError) {
           setState(() {

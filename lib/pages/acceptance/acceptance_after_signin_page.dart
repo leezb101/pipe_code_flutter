@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../bloc/acceptance/acceptance_bloc.dart';
 import '../../bloc/acceptance/acceptance_event.dart';
 import '../../bloc/acceptance/acceptance_state.dart';
+import '../../bloc/records/records_bloc.dart';
+import '../../bloc/records/records_event.dart';
 import '../../models/acceptance/acceptance_info_vo.dart';
 import '../../models/acceptance/material_vo.dart';
 import '../../models/acceptance/attachment_vo.dart';
@@ -13,6 +15,7 @@ import '../../models/acceptance/do_accept_sign_in_vo.dart';
 import '../../models/common/common_user_vo.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
 import '../../models/qr_scan/qr_scan_type.dart';
+import '../../models/records/record_type.dart';
 import '../../widgets/common_state_widgets.dart' as common;
 import '../../utils/toast_utils.dart';
 
@@ -68,6 +71,15 @@ class _AcceptanceAfterSigninPageState extends State<AcceptanceAfterSigninPage> {
             context.showErrorToast(state.message);
           } else if (state is AcceptanceSignedIn) {
             context.showSuccessToast('入库成功');
+            
+            // 刷新记录列表
+            try {
+              context.read<RecordsBloc>().add(RefreshRecords(recordType: RecordType.todo));
+              context.read<RecordsBloc>().add(RefreshRecords(recordType: RecordType.signin));
+            } catch (e) {
+              // 忽略刷新错误，不影响主流程
+            }
+            
             context.pop();
           } else if (state is MaterialScanned && state.materialId != null) {
             setState(() {
