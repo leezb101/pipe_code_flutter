@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/bloc/project/project_bloc.dart';
+import 'package:pipe_code_flutter/bloc/project/project_event.dart';
+import 'package:pipe_code_flutter/bloc/project/project_state.dart';
 import 'package:pipe_code_flutter/models/records/record_item.dart';
 import 'package:pipe_code_flutter/repositories/enum_repository.dart';
 import '../../bloc/records/records_bloc.dart';
@@ -58,7 +61,7 @@ class _RecordsListPageState extends State<RecordsListPage> {
     bloc.add(RefreshRecords(recordType: bloc.currentTab));
   }
 
-  void _onRecordTap(RecordItem record) {
+  void _onRecordTap(BuildContext context, RecordItem record) {
     final bloc = context.read<RecordsBloc>();
     final currentTab = bloc.currentTab;
 
@@ -78,21 +81,12 @@ class _RecordsListPageState extends State<RecordsListPage> {
       case RecordType.waste:
       case RecordType.inventory:
       case RecordType.todo:
+        final rec = record as TodoRecordItem;
+        _handleSelectProject(context, rec.todo.projectId, rec);
+        break;
       case RecordType.warehouseTodo:
         final rec = record as TodoRecordItem;
-        if (rec.todo.type.name == '验收确认') {
-          context.goNamed(
-            'acceptance-confirmation',
-            queryParameters: {'id': record.todo.businessId.toString()},
-          );
-        }
-        // 这里需要继续判断，当前item的todoType是什么
-        if (rec.todo.type.name == '验收后入库') {
-          context.goNamed(
-            'acceptance-after-signin',
-            queryParameters: {'id': record.todo.businessId.toString()},
-          );
-        }
+        handleGoTodoDetail(context, rec);
         break;
       default:
         // For other record types, show a placeholder message
@@ -100,6 +94,28 @@ class _RecordsListPageState extends State<RecordsListPage> {
           SnackBar(content: Text('${currentTab.displayName}详情页面待开发')),
         );
         break;
+    }
+  }
+
+  void handleGoTodoDetail(BuildContext context, TodoRecordItem rec) {
+    if (rec.todo.type.name == '验收确认') {
+      context.goNamed(
+        'acceptance-confirmation',
+        queryParameters: {'id': rec.todo.businessId.toString()},
+      );
+    }
+    // 这里需要继续判断，当前item的todoType是什么
+    if (rec.todo.type.name == '验收后入库') {
+      context.goNamed(
+        'acceptance-after-signin',
+        queryParameters: {'id': rec.todo.businessId.toString()},
+      );
+    }
+    if (rec.todo.todoName == 'sign_out') {
+      context.goNamed(
+        'signout-audit',
+        queryParameters: {'id': rec.todo.businessId.toString()},
+      );
     }
   }
 
@@ -238,7 +254,7 @@ class _RecordsListPageState extends State<RecordsListPage> {
                 final record = records[index];
                 return RecordListItem(
                   record: record,
-                  onTap: () => _onRecordTap(record),
+                  onTap: () => _onRecordTap(context, record),
                 );
               },
             ),
@@ -246,5 +262,43 @@ class _RecordsListPageState extends State<RecordsListPage> {
         ],
       ),
     );
+  }
+
+  void _handleSelectProject(
+    BuildContext context,
+    int projectId,
+    TodoRecordItem record,
+  ) {
+    final currentProject =
+        context.read<ProjectBloc>().state as ProjectRoleInfoLoaded;
+    final currentProjectId = currentProject.currentProject.projectId;
+    if (currentProjectId != projectId) {
+      // 弹出确认框提示用户
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('该操作需要切换项目'),
+            content: const Text('该待办不属于当前项目，若确认查看详情，将自动切换到目标项目'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('取消'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  context.read<ProjectBloc>().add(
+                    ProjectSelectProject(projectId: projectId),
+                  );
+                  handleGoTodoDetail(context, record);
+                },
+                child: const Text('确认'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 }

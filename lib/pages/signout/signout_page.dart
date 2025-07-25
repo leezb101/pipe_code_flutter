@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-24 19:50:22
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 13:20:54
+ * @LastEditTime: 2025-07-25 17:59:27
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'dart:io';
@@ -377,8 +377,9 @@ class _SignoutPageState extends State<SignoutPage> {
     String? userName;
     if (userstate is UserLoaded) {
       userName = userstate.wxLoginVO.name;
+    } else {
+      userName = '未知';
     }
-    userName = '未知';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
