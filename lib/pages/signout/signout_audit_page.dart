@@ -1,11 +1,10 @@
 /*
  * @Author: LeeZB
- * @Date: 2025-07-24 19:50:22
+ * @Date: 2025-07-25 18:45:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 17:59:27
+ * @LastEditTime: 2025-07-25 18:37:37
  * @copyright: Copyright © 2025 高新供水.
  */
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -14,33 +13,25 @@ import 'package:pipe_code_flutter/bloc/signout/signout_event.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_state.dart';
 import 'package:pipe_code_flutter/bloc/user/user_bloc.dart';
 import 'package:pipe_code_flutter/bloc/user/user_state.dart';
+import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
-import 'package:pipe_code_flutter/models/common/warehouse_user_info_vo.dart';
-import 'package:pipe_code_flutter/models/material/material_info_base.dart';
-import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
-import 'package:pipe_code_flutter/models/signout/do_signout_request_vo.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
-import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
-import 'package:pipe_code_flutter/utils/go_router_popuntil.dart';
 
-class SignoutPage extends StatefulWidget {
-  final MaterialInfoForBusiness materials;
+class SignoutAuditPage extends StatefulWidget {
+  final int signoutId;
 
-  const SignoutPage({super.key, required this.materials});
+  const SignoutAuditPage({super.key, required this.signoutId});
 
   @override
-  State<SignoutPage> createState() => _SignoutPageState();
+  State<SignoutAuditPage> createState() => _SignoutAuditPageState();
 }
 
-class _SignoutPageState extends State<SignoutPage> {
-  List<File> _signoutPhotos = [];
-  Map<String, bool?> _userPushStates = {};
-
+class _SignoutAuditPageState extends State<SignoutAuditPage> {
   @override
   void initState() {
     context.read<SignoutBloc>().add(
-      LoadWarehouseInfo(materialId: widget.materials.normals.first.materialId),
+      LoadSignoutDetail(signinId: widget.signoutId),
     );
     super.initState();
   }
@@ -50,7 +41,6 @@ class _SignoutPageState extends State<SignoutPage> {
     return BlocListener<SignoutBloc, SignoutState>(
       listener: (context, state) {
         if (state is SignoutReady) {
-          // _initializePushStates(state);
           if (state.warehouseInfoError != null) {
             context.showErrorToast(state.warehouseInfoError!);
           }
@@ -59,15 +49,11 @@ class _SignoutPageState extends State<SignoutPage> {
           }
         } else if (state is SignoutDetailError) {
           context.showErrorToast(state.message);
-        } else if (state is SignoutSubmitted) {
-          context.showSuccessToast('提交成功，即将返回', isGlobal: true);
+        } else if (state is SignoutAudited) {
+          context.showSuccessToast('审核完成，即将返回', isGlobal: true);
           Future.delayed(const Duration(seconds: 2), () {
             if (mounted) {
-              GoRouter.of(context).popUntil(
-                predicate: (route) {
-                  return route.name == '/';
-                },
-              );
+              context.pop();
             }
           });
         }
@@ -104,7 +90,7 @@ class _SignoutPageState extends State<SignoutPage> {
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         children: [
-                          _buildMaterialsList(),
+                          _buildMaterialsList(context, state),
                           const SizedBox(height: 16),
                           _buildPhotoSection(),
                           const SizedBox(height: 16),
@@ -113,7 +99,7 @@ class _SignoutPageState extends State<SignoutPage> {
                       ),
                     ),
                   ),
-                  _buildActionButtons(state),
+                  _buildActionButtons(),
                 ],
               );
             }
@@ -124,8 +110,7 @@ class _SignoutPageState extends State<SignoutPage> {
     );
   }
 
-  Widget _buildMaterialsList() {
-    // final allMaterials = widget.materials.normals + widget.materials.errors;
+  Widget _buildMaterialsList(BuildContext context, SignoutReady state) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -149,7 +134,7 @@ class _SignoutPageState extends State<SignoutPage> {
               ],
             ),
             const SizedBox(height: 16),
-            ...widget.materials.normals.map(
+            ...state.signoutDetail!.materialList.map(
               (material) => _buildMaterialItem(material),
             ),
           ],
@@ -158,7 +143,7 @@ class _SignoutPageState extends State<SignoutPage> {
     );
   }
 
-  Widget _buildMaterialItem(MaterialInfoBase material) {
+  Widget _buildMaterialItem(MaterialVO material) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -183,7 +168,7 @@ class _SignoutPageState extends State<SignoutPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  material.prodNm ?? '',
+                  material.materialName ?? '',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -232,7 +217,7 @@ class _SignoutPageState extends State<SignoutPage> {
                 Icon(Icons.camera_alt, size: 24, color: Colors.green[600]),
                 const SizedBox(width: 8),
                 const Text(
-                  '照片',
+                  '照片：',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -242,23 +227,51 @@ class _SignoutPageState extends State<SignoutPage> {
               ],
             ),
             const SizedBox(height: 16),
-            ImageUploadWidget(
-              title: '',
-              onImagesChanged: (images) {
-                setState(() {
-                  _signoutPhotos = images;
-                });
-              },
-              maxImages: 6,
-            ),
+            _buildPhotoGrid(),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildPhotoGrid() {
+    return Row(
+      children: [
+        _buildPhotoPlaceholder(),
+        const SizedBox(width: 16),
+        _buildPhotoPlaceholder(),
+      ],
+    );
+  }
+
+  Widget _buildPhotoPlaceholder() {
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.image, size: 32, color: Colors.blue[400]),
+          const SizedBox(height: 4),
+          Container(
+            width: 20,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[400],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildWarehouseSection(SignoutReady state) {
-    final signoutDetail = state.signoutDetail;
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -302,8 +315,7 @@ class _SignoutPageState extends State<SignoutPage> {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.orange[200]!),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
           Text(
             '发出仓库：',
@@ -313,13 +325,15 @@ class _SignoutPageState extends State<SignoutPage> {
               color: Colors.grey[700],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            state.warehouseInfo?.name ?? 'XXXX仓库--地址XXXXXXX',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              state.signoutDetail?.warehouseName ?? 'XXXX仓库--地址XXXXXXX',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
             ),
           ),
         ],
@@ -331,147 +345,87 @@ class _SignoutPageState extends State<SignoutPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '仓库负责人：',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (users != null && users.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[300]!),
+        Row(
+          children: [
+            Text(
+              '仓库负责人：',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
             ),
-            child: const Text(
-              '暂无仓库负责人数据',
-              style: TextStyle(color: Colors.grey),
-            ),
-          )
-        else if (users != null)
-          ...users.map((user) => _buildUserItem(user, 'warehouse')).toList()
-        else
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: const Text(
-              '暂无仓库负责人数据',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildInstallationUser(BuildContext context) {
-    final userstate = context.read<UserBloc>().state;
-    String? userName;
-    if (userstate is UserLoaded) {
-      userName = userstate.wxLoginVO.name;
-    } else {
-      userName = '未知';
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '出库安装负责人：',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey[200]!),
-          ),
-          child: Row(
-            children: [
+            const SizedBox(width: 8),
+            if (users != null && users.isNotEmpty)
               Expanded(
                 child: Text(
-                  userName,
+                  '${users.first.name} - ${users.first.phone}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: Colors.black87,
                   ),
                 ),
+              )
+            else
+              const Expanded(
+                child: Text(
+                  '李明 - 18999990000',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
               ),
-            ],
-          ),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildUserItem(CommonUserVO user, String type) {
-    final key = '${type}_${user.name}';
-    final isSelected = _userPushStates[key] ?? false;
+  Widget _buildInstallationUser(BuildContext context) {
+    final userstate = context.read<UserBloc>().state;
+    String? userName, userPhone;
+    if (userstate is UserLoaded) {
+      userName = userstate.wxLoginVO.name;
+      userPhone = userstate.wxLoginVO.phone;
+    } else {
+      userName = '未知';
+      userPhone = '未知';
+    }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user.name,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  user.phone,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          ),
-          Row(
-            children: [
-              Checkbox(
-                value: isSelected,
-                onChanged: (bool? value) {
-                  setState(() {
-                    _userPushStates[key] = value ?? false;
-                  });
-                },
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              '出库安装负责人：',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
               ),
-              const Text('推送', style: TextStyle(fontSize: 12)),
-            ],
-          ),
-        ],
-      ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '$userName - $userPhone',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _buildActionButtons(SignoutReady state) {
+  Widget _buildActionButtons() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -485,14 +439,13 @@ class _SignoutPageState extends State<SignoutPage> {
         ],
       ),
       child: SafeArea(
-        child: Column(
+        child: Row(
           children: [
-            SizedBox(
-              width: double.infinity,
+            Expanded(
               child: ElevatedButton(
-                onPressed: () => _handleScanOutbound(state),
+                onPressed: _handleConfirm,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -501,57 +454,47 @@ class _SignoutPageState extends State<SignoutPage> {
                   elevation: 2,
                 ),
                 child: const Text(
-                  '扫码出库',
+                  '确认',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _handleSubmit(state),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                    ),
-                    child: const Text(
-                      '提交',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _handleReject,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: const Text(
+                  '驳回',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _handleReturn,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.grey[600],
+                  side: BorderSide(color: Colors.grey[400]!),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _handleReturn,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.grey[600],
-                      side: BorderSide(color: Colors.grey[400]!),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      '返回',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                child: const Text(
+                  '返回',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
-              ],
+              ),
             ),
           ],
         ),
@@ -563,62 +506,19 @@ class _SignoutPageState extends State<SignoutPage> {
     context.go('/records?tab=signout');
   }
 
-  void _handleScanOutbound(SignoutReady state) {
-    context.showInfoToast('扫码出库功能');
+  void _handleConfirm() {
+    context.read<SignoutBloc>().add(
+      AuditSignout(
+        request: CommonDoBusinessAuditVO(id: widget.signoutId, pass: true),
+      ),
+    );
   }
 
-  void _handleSubmit(SignoutReady state) {
-    final selectedUserIds = _getSelectedUserIds(state);
-
-    final materialList = widget.materials.normals
-        .map(
-          (m) => MaterialVO(
-            materialId: m.materialId,
-            materialName: m.prodNm!,
-            num: 1,
-          ),
-        )
-        .toList();
-
-    final request = DoSignoutRequestVo(
-      materialList: materialList,
-      imageList: const [], // TODO: Handle image upload
-      messageTo: selectedUserIds,
-    );
-
-    context.read<SignoutBloc>().add(SubmitSignout(request: request));
-    context.showInfoToast('正在提交出库数据...');
+  void _handleReject() {
+    context.showInfoToast('驳回审核功能待实现');
   }
 
   void _handleReturn() {
     context.pop();
-  }
-
-  List<int> _getSelectedUserIds(SignoutReady state) {
-    final selectedUserIds = <int>[];
-
-    _userPushStates.forEach((key, isSelected) {
-      if (isSelected == true) {
-        final parts = key.split('_');
-        if (parts.length >= 2) {
-          final userType = parts[0];
-          final userName = parts.sublist(1).join('_');
-
-          CommonUserVO? user;
-          if (userType == 'warehouse') {
-            user = state.warehouseUsers!.warehouseUsers.firstWhere(
-              (u) => u.name == userName,
-              orElse: () => const CommonUserVO(userId: -1, name: '', phone: ''),
-            );
-          }
-
-          if (user != null && user.userId > 0) {
-            selectedUserIds.add(user.userId);
-          }
-        }
-      }
-    });
-
-    return selectedUserIds;
   }
 }

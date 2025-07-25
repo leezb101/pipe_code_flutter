@@ -14,9 +14,11 @@ SignoutInfoVo _$SignoutInfoVoFromJson(Map<String, dynamic> json) =>
       imageList: (json['imageList'] as List<dynamic>)
           .map((e) => AttachmentVO.fromJson(e as Map<String, dynamic>))
           .toList(),
-      messageTo: (json['messageTo'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
+      messageTo:
+          (json['messageTo'] as List<dynamic>?)
+              ?.map((e) => (e as num).toInt())
+              .toList() ??
+          const [],
       warehouseId: (json['warehouseId'] as num?)?.toInt(),
       warehouseName: json['warehouseName'] as String?,
       warehouseUsers: (json['warehouseUsers'] as List<dynamic>)

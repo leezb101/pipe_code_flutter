@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-24 18:55:39
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-24 19:04:46
+ * @LastEditTime: 2025-07-25 18:27:53
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:equatable/equatable.dart';
@@ -30,7 +30,7 @@ class SignoutInfoVo extends Equatable {
   const SignoutInfoVo({
     required this.materialList,
     required this.imageList,
-    required this.messageTo,
+    this.messageTo = const [],
     this.warehouseId,
     this.warehouseName,
     required this.warehouseUsers,

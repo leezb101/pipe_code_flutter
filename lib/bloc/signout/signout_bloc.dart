@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/repositories/signout_repository.dart';
 
-import 'signin_event.dart';
-import 'signin_state.dart';
+import 'signout_event.dart';
+import 'signout_state.dart';
 
 class SignoutBloc extends Bloc<SignoutEvent, SignoutState> {
   final SignoutRepository _repository;
