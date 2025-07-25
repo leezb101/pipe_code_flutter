@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-24 22:42:59
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 12:40:42
+ * @LastEditTime: 2025-07-25 19:39:30
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:equatable/equatable.dart';

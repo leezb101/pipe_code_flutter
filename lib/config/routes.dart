@@ -2,13 +2,14 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 18:17:03
+ * @LastEditTime: 2025-07-25 20:07:32
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
+import 'package:pipe_code_flutter/bloc/install/install_bloc.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
@@ -16,6 +17,7 @@ import 'package:pipe_code_flutter/models/material/material_info_for_business.dar
 import 'package:pipe_code_flutter/pages/signout/signout_audit_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_page.dart';
 import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
+import 'package:pipe_code_flutter/repositories/install_repository.dart';
 import 'package:pipe_code_flutter/repositories/signout_repository.dart';
 import 'package:pipe_code_flutter/repositories/spareqr_repository.dart';
 import 'package:pipe_code_flutter/repositories/material_handle_repository.dart';
@@ -223,6 +225,16 @@ final GoRouter appRouter = GoRouter(
             return BlocProvider(
               create: (context) => SignoutBloc(getIt<SignoutRepository>()),
               child: SignoutAuditPage(signoutId: signoutId),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/install',
+          name: 'install',
+          builder: (context, state) {
+            return BlocProvider(
+              create: (context) =>
+                  InstallBloc(installRepository: getIt<InstallRepository>()),
             );
           },
         ),

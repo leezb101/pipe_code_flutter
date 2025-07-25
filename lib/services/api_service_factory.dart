@@ -2,18 +2,19 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 13:17:21
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 13:12:04
+ * @LastEditTime: 2025-07-25 20:04:58
  * @copyright: Copyright © 2025 高新供水.
  */
-import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import 'package:pipe_code_flutter/services/api/implementations/enum_api_service_impl.dart';
+import 'package:pipe_code_flutter/services/api/implementations/install_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/signout_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_enum_api_service.dart';
+import 'package:pipe_code_flutter/services/api/mock/mock_install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_signout_api_service.dart';
 import '../config/app_config.dart';
 import '../utils/logger.dart';
@@ -108,6 +109,15 @@ class ApiServiceFactory {
     } else {
       final dio = _createDio();
       return SignoutApiServiceImpl(dio);
+    }
+  }
+
+  static InstallApiService createInstallApiService() {
+    if (AppConfig.isMockEnabled) {
+      return MockInstallApiService();
+    } else {
+      final dio = _createDio();
+      return InstallApiServiceImpl(dio);
     }
   }
 
