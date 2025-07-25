@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-25 18:55:34
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 18:57:45
+ * @LastEditTime: 2025-07-25 19:04:12
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/models/install/do_install_vo.dart';
@@ -16,4 +16,8 @@ class InstallDetailVo extends DoInstallVo {
     super.onlyInstall,
     required super.signOutId,
   });
+
+  // fromjson继承父类的fromjson
+  factory InstallDetailVo.fromJson(Map<String, dynamic> json) =>
+      DoInstallVo.fromJson(json) as InstallDetailVo;
 }

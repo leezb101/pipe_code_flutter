@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-18 17:42:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-22 18:08:35
+ * @LastEditTime: 2025-07-25 18:59:09
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
@@ -16,11 +16,13 @@ import 'package:pipe_code_flutter/services/api/interfaces/spareqr_api_service.da
 import '../interfaces/api_service_interface.dart';
 import '../interfaces/auth_api_service.dart';
 import '../interfaces/common_query_api_service.dart';
+import '../interfaces/install_api_service.dart';
 import '../interfaces/user_api_service.dart';
 import '../interfaces/list_api_service.dart';
 import '../interfaces/acceptance_api_service.dart';
 import '../interfaces/signout_api_service.dart';
 import 'auth_api_service_impl.dart';
+import 'install_api_service_impl.dart';
 import 'user_api_service_impl.dart';
 import 'list_api_service_impl.dart';
 import 'acceptance_api_service_impl.dart';
@@ -37,6 +39,7 @@ class ApiServiceImpl implements ApiServiceInterface {
   CommonQueryApiService? _commonQueryService;
   MaterialHandleApiService? _materialHandleService;
   SignoutApiService? _signoutApiService;
+  InstallApiService? _installApiService;
 
   ApiServiceImpl(this._dio);
 
@@ -70,4 +73,8 @@ class ApiServiceImpl implements ApiServiceInterface {
   @override
   SignoutApiService get signout =>
       _signoutApiService ?? SignoutApiServiceImpl(_dio);
+
+  @override
+  InstallApiService get install =>
+      _installApiService ??= InstallApiServiceImpl(_dio);
 }
