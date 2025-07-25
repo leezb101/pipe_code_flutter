@@ -19,9 +19,7 @@
         "summary": "获取验收用户",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "移动端/移动端 公共业务"
-        ],
+        "tags": ["移动端/移动端 公共业务"],
         "parameters": [
           {
             "name": "projectId",
@@ -80,9 +78,7 @@
         "summary": "获取仓库用户",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "移动端/移动端 公共业务"
-        ],
+        "tags": ["移动端/移动端 公共业务"],
         "parameters": [
           {
             "name": "warehouseId",
@@ -127,14 +123,12 @@
         "security": []
       }
     },
-    "/mobile/common/Warehouse/material": {
+    "/mobile/common/warehouse/material": {
       "get": {
         "summary": "根据物料id 获取仓库信息",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "移动端/移动端 公共业务"
-        ],
+        "tags": ["移动端/移动端 公共业务"],
         "parameters": [
           {
             "name": "materialId",

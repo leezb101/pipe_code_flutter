@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-21 14:54:15
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-21 15:39:45
+ * @LastEditTime: 2025-07-25 13:24:19
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
@@ -62,7 +62,7 @@ class CommonQueryApiServiceImpl implements CommonQueryApiService {
   Future<Result<WarehouseVO>> getWarehouseByMaterial(int materialId) async {
     try {
       final response = await _dio.get(
-        '${AppConfig.apiBaseUrl}/mobile/common/Warehouse/material',
+        '${AppConfig.apiBaseUrl}/mobile/common/warehouse/material',
         queryParameters: {'materialId': materialId},
       );
 
@@ -85,19 +85,15 @@ class CommonQueryApiServiceImpl implements CommonQueryApiService {
         '${AppConfig.apiBaseUrl}/mobile/common/warehouse/list',
       );
 
-      return Result.safeFromJson<List<WarehouseVO>>(
-        response.data,
-        (data) {
-          if (data is List) {
-            return data
-                .map((item) => WarehouseVO.fromJson(item as Map<String, dynamic>))
-                .toList();
-          } else {
-            throw FormatException('Expected List but got ${data.runtimeType}');
-          }
-        },
-        'List<WarehouseVO>',
-      );
+      return Result.safeFromJson<List<WarehouseVO>>(response.data, (data) {
+        if (data is List) {
+          return data
+              .map((item) => WarehouseVO.fromJson(item as Map<String, dynamic>))
+              .toList();
+        } else {
+          throw FormatException('Expected List but got ${data.runtimeType}');
+        }
+      }, 'List<WarehouseVO>');
     } catch (e) {
       throw Exception('获取仓库列表失败: $e');
     }

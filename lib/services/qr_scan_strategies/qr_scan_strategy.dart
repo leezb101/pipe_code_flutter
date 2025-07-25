@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-23 17:54:25
+ * @LastEditTime: 2025-07-25 13:07:58
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -158,54 +158,62 @@ class QrScanNavigationData {
 //   }
 // }
 
-class OutboundStrategy implements QrScanStrategy {
+class SignoutStrategy implements QrScanStrategy {
+  late final MaterialHandleRepository _materialHandleRepository;
+
+  SignoutStrategy() {
+    _materialHandleRepository = getIt<MaterialHandleRepository>();
+  }
+
   @override
   Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
     await Future.delayed(const Duration(seconds: 1));
 
-    if (results.length == 1) {
-      await _processSingleOutbound(results.first);
-    } else {
-      await _processBatchOutbound(results);
-    }
+    final result = await _processBatchSignout(results);
 
-    return const QrScanProcessResult(success: true);
+    return result;
   }
 
-  Future<void> _processSingleOutbound(QrScanResult result) async {
-    Logger.qrScan('=== 单个出库处理 ===', deviceCode: result.code);
-    Logger.qrScan('货物编号: ${result.code}', deviceCode: result.code);
-    Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
-    Logger.qrScan('出库状态: 出库完成', deviceCode: result.code);
-
-    // TODO: 实现单个出库的具体业务逻辑
-    // 1. 验证货物编号和库存状态
-    // 2. 检查可用库存数量
-    // 3. 更新库存数量和状态
-    // 4. 生成出库单据
-    // 5. 记录出库操作日志
-  }
-
-  Future<void> _processBatchOutbound(List<QrScanResult> results) async {
+  Future<QrScanProcessResult> _processBatchSignout(
+    List<QrScanResult> results,
+  ) async {
     Logger.qrScan('=== 批量出库处理 ===');
     Logger.qrScan('批次大小: ${results.length}');
+    final codes = results.map((r) => r.code).toList();
 
-    for (int i = 0; i < results.length; i++) {
-      final result = results[i];
-      Logger.qrScan(
-        '第${i + 1}个货物 - 编号: ${result.code}',
-        deviceCode: result.code,
+    final materialResult = await _getMaterialInfoByBatchCodes(codes);
+    if (materialResult != null) {
+      return QrScanProcessResult(
+        success: true,
+        navigationData: QrScanNavigationData(
+          route: '/signout',
+          data: {'materialInfo': materialResult, 'scanMode': 'batch'},
+        ),
+      );
+    } else {
+      return const QrScanProcessResult(
+        success: false,
+        errorMessage: "未找到对应的管件信息",
       );
     }
+  }
 
-    Logger.qrScan('批量出库状态: 全部完成');
-
-    // TODO: 实现批量出库的具体业务逻辑
-    // 1. 批量验证所有货物编号
-    // 2. 批量检查库存数量
-    // 3. 批量更新库存状态
-    // 4. 生成批量出库报告
-    // 5. 发送出库完成通知
+  // 批量获取物料信息
+  Future<MaterialInfoForBusiness?> _getMaterialInfoByBatchCodes(
+    List<String> codes,
+  ) async {
+    try {
+      final result = await _materialHandleRepository.scanBatchToQueryAll(codes);
+      if (result.isSuccess && result.data != null) {
+        return result.data!;
+      } else {
+        Logger.qrScan('批量获取物料信息失败: ${result.msg}');
+        return null;
+      }
+    } catch (e) {
+      Logger.qrScan('批量获取物料信息异常: $e');
+      return null;
+    }
   }
 }
 

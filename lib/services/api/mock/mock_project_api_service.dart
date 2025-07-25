@@ -1,5 +1,12 @@
 /*
  * @Author: LeeZB
+ * @Date: 2025-07-22 08:53:08
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-24 19:37:48
+ * @copyright: Copyright © 2025 高新供水.
+ */
+/*
+ * @Author: LeeZB
  * @Date: 2025-07-09 22:05:00
  * @LastEditors: Leezb101 leezb101@126.com
  * @LastEditTime: 2025-07-09 22:05:00
@@ -22,16 +29,22 @@ class MockProjectApiService implements ProjectApiService {
     if (_mockProjects.isEmpty) {
       // 生成模拟项目列表
       for (int i = 1; i <= 20; i++) {
-        _mockProjects.add(ProjectListItem(
-          id: i,
-          projectName: '智慧水务项目_${i.toString().padLeft(2, '0')}',
-          projectCode: 'WM${i.toString().padLeft(3, '0')}',
-          projectStart: DateTime.now().subtract(Duration(days: i * 30)).toIso8601String(),
-          projectEnd: DateTime.now().add(Duration(days: i * 60)).toIso8601String(),
-          createdName: '创建者_$i',
-          createdId: i,
-          status: i % 3,
-        ));
+        _mockProjects.add(
+          ProjectListItem(
+            id: i,
+            projectName: '智慧水务项目_${i.toString().padLeft(2, '0')}',
+            projectCode: 'WM${i.toString().padLeft(3, '0')}',
+            projectStart: DateTime.now()
+                .subtract(Duration(days: i * 30))
+                .toIso8601String(),
+            projectEnd: DateTime.now()
+                .add(Duration(days: i * 60))
+                .toIso8601String(),
+            createdName: '创建者_$i',
+            createdId: i,
+            status: i % 3,
+          ),
+        );
       }
       _nextId = _mockProjects.length + 1;
     }
@@ -43,37 +56,21 @@ class MockProjectApiService implements ProjectApiService {
     _initializeMockData();
 
     if (MockDataGenerator.shouldFail(failureRate: 0.1)) {
-      return const Result(
-        code: 400,
-        msg: '项目创建失败',
-                data: null,
-      );
+      return const Result(code: 400, msg: '项目创建失败', data: null);
     }
 
     // 验证必填字段
     if (project.projectName.isEmpty) {
-      return const Result(
-        code: 400,
-        msg: '项目名称不能为空',
-                data: null,
-      );
+      return const Result(code: 400, msg: '项目名称不能为空', data: null);
     }
 
     if (project.projectCode.isEmpty) {
-      return const Result(
-        code: 400,
-        msg: '项目编号不能为空',
-                data: null,
-      );
+      return const Result(code: 400, msg: '项目编号不能为空', data: null);
     }
 
     // 检查项目编号是否重复
     if (_mockProjects.any((p) => p.projectCode == project.projectCode)) {
-      return const Result(
-        code: 400,
-        msg: '项目编号已存在',
-                data: null,
-      );
+      return const Result(code: 400, msg: '项目编号已存在', data: null);
     }
 
     // 添加到列表
@@ -89,11 +86,7 @@ class MockProjectApiService implements ProjectApiService {
     );
     _mockProjects.insert(0, newProject);
 
-    return const Result(
-      code: 0,
-      msg: '项目创建成功',
-            data: null,
-    );
+    return const Result(code: 0, msg: '项目创建成功', data: null);
   }
 
   @override
@@ -102,28 +95,16 @@ class MockProjectApiService implements ProjectApiService {
     _initializeMockData();
 
     if (MockDataGenerator.shouldFail(failureRate: 0.1)) {
-      return const Result(
-        code: 400,
-        msg: '项目更新失败',
-                data: null,
-      );
+      return const Result(code: 400, msg: '项目更新失败', data: null);
     }
 
     if (project.id == null) {
-      return const Result(
-        code: 400,
-        msg: '项目ID不能为空',
-                data: null,
-      );
+      return const Result(code: 400, msg: '项目ID不能为空', data: null);
     }
 
     final index = _mockProjects.indexWhere((p) => p.id == project.id);
     if (index == -1) {
-      return const Result(
-        code: 404,
-        msg: '项目不存在',
-                data: null,
-      );
+      return const Result(code: 404, msg: '项目不存在', data: null);
     }
 
     // 更新项目信息
@@ -135,11 +116,7 @@ class MockProjectApiService implements ProjectApiService {
     );
     _mockProjects[index] = updatedProject;
 
-    return const Result(
-      code: 0,
-      msg: '项目更新成功',
-            data: null,
-    );
+    return const Result(code: 0, msg: '项目更新成功', data: null);
   }
 
   @override
@@ -148,28 +125,16 @@ class MockProjectApiService implements ProjectApiService {
     _initializeMockData();
 
     if (MockDataGenerator.shouldFail(failureRate: 0.1)) {
-      return const Result(
-        code: 400,
-        msg: '项目提交失败',
-                data: null,
-      );
+      return const Result(code: 400, msg: '项目提交失败', data: null);
     }
 
     if (project.id == null) {
-      return const Result(
-        code: 400,
-        msg: '项目ID不能为空',
-                data: null,
-      );
+      return const Result(code: 400, msg: '项目ID不能为空', data: null);
     }
 
     final index = _mockProjects.indexWhere((p) => p.id == project.id);
     if (index == -1) {
-      return const Result(
-        code: 404,
-        msg: '项目不存在',
-                data: null,
-      );
+      return const Result(code: 404, msg: '项目不存在', data: null);
     }
 
     // 更新项目状态为已提交
@@ -178,11 +143,7 @@ class MockProjectApiService implements ProjectApiService {
     );
     _mockProjects[index] = updatedProject;
 
-    return const Result(
-      code: 0,
-      msg: '项目提交成功',
-            data: null,
-    );
+    return const Result(code: 0, msg: '项目提交成功', data: null);
   }
 
   @override
@@ -191,29 +152,17 @@ class MockProjectApiService implements ProjectApiService {
     _initializeMockData();
 
     if (MockDataGenerator.shouldFail(failureRate: 0.05)) {
-      return const Result(
-        code: 400,
-        msg: '项目删除失败',
-                data: null,
-      );
+      return const Result(code: 400, msg: '项目删除失败', data: null);
     }
 
     final index = _mockProjects.indexWhere((p) => p.id == id);
     if (index == -1) {
-      return const Result(
-        code: 404,
-        msg: '项目不存在',
-                data: null,
-      );
+      return const Result(code: 404, msg: '项目不存在', data: null);
     }
 
     _mockProjects.removeAt(index);
 
-    return const Result(
-      code: 0,
-      msg: '项目删除成功',
-            data: null,
-    );
+    return const Result(code: 0, msg: '项目删除成功', data: null);
   }
 
   @override
@@ -227,19 +176,15 @@ class MockProjectApiService implements ProjectApiService {
     _initializeMockData();
 
     if (MockDataGenerator.shouldFail(failureRate: 0.05)) {
-      return const Result(
-        code: 400,
-        msg: '获取项目列表失败',
-                data: null,
-      );
+      return const Result(code: 400, msg: '获取项目列表失败', data: null);
     }
 
     // 过滤项目
     var filteredProjects = _mockProjects.where((project) {
-      bool nameMatch = projectName == null || 
-                      project.projectName.contains(projectName);
-      bool codeMatch = projectCode == null || 
-                      project.projectCode.contains(projectCode);
+      bool nameMatch =
+          projectName == null || project.projectName.contains(projectName);
+      bool codeMatch =
+          projectCode == null || project.projectCode.contains(projectCode);
       return nameMatch && codeMatch;
     }).toList();
 
@@ -251,11 +196,7 @@ class MockProjectApiService implements ProjectApiService {
       endIndex > filteredProjects.length ? filteredProjects.length : endIndex,
     );
 
-    return Result(
-      code: 0,
-      msg: '成功',
-            data: pagedProjects,
-    );
+    return Result(code: 0, msg: '成功', data: pagedProjects);
   }
 
   @override
@@ -264,11 +205,7 @@ class MockProjectApiService implements ProjectApiService {
     _initializeMockData();
 
     if (MockDataGenerator.shouldFail(failureRate: 0.05)) {
-      return const Result(
-        code: 400,
-        msg: '获取项目详情失败',
-                data: null,
-      );
+      return const Result(code: 400, msg: '获取项目详情失败', data: null);
     }
 
     final project = _mockProjects.firstWhere(
@@ -298,23 +235,17 @@ class MockProjectApiService implements ProjectApiService {
       builderUserList: _generateMockUsers(id, 'builder'),
     );
 
-    return Result(
-      code: 0,
-      msg: '成功',
-            data: detail,
-    );
+    return Result(code: 0, msg: '成功', data: detail);
   }
 
   @override
   Future<Result<List<ProjectSupplier>>> getSupplierList() async {
-    await MockDataGenerator.simulateNetworkDelay(delay: Duration(milliseconds: 500));
+    await MockDataGenerator.simulateNetworkDelay(
+      delay: Duration(milliseconds: 500),
+    );
 
     if (MockDataGenerator.shouldFail(failureRate: 0.05)) {
-      return const Result(
-        code: 400,
-        msg: '获取供应商列表失败',
-                data: null,
-      );
+      return const Result(code: 400, msg: '获取供应商列表失败', data: null);
     }
 
     final suppliers = [
@@ -325,30 +256,20 @@ class MockProjectApiService implements ProjectApiService {
       const ProjectSupplier(orgCode: 'SUP005', orgName: '伟星管件供应商'),
     ];
 
-    return Result(
-      code: 0,
-      msg: '成功',
-            data: suppliers,
-    );
+    return Result(code: 0, msg: '成功', data: suppliers);
   }
 
   @override
   Future<Result<List<MaterialType>>> getMaterialTypes() async {
-    await MockDataGenerator.simulateNetworkDelay(delay: Duration(milliseconds: 300));
+    await MockDataGenerator.simulateNetworkDelay(
+      delay: Duration(milliseconds: 300),
+    );
 
     if (MockDataGenerator.shouldFail(failureRate: 0.05)) {
-      return const Result(
-        code: 400,
-        msg: '获取物料类型失败',
-                data: null,
-      );
+      return const Result(code: 400, msg: '获取物料类型失败', data: null);
     }
 
-    return const Result(
-      code: 0,
-      msg: '成功',
-            data: MaterialType.values,
-    );
+    return const Result(code: 0, msg: '成功', data: MaterialType.values);
   }
 
   @override
@@ -356,23 +277,17 @@ class MockProjectApiService implements ProjectApiService {
     String? roleType,
     String? orgCode,
   }) async {
-    await MockDataGenerator.simulateNetworkDelay(delay: Duration(milliseconds: 600));
+    await MockDataGenerator.simulateNetworkDelay(
+      delay: Duration(milliseconds: 600),
+    );
 
     if (MockDataGenerator.shouldFail(failureRate: 0.05)) {
-      return const Result(
-        code: 400,
-        msg: '获取用户列表失败',
-                data: null,
-      );
+      return const Result(code: 400, msg: '获取用户列表失败', data: null);
     }
 
     final users = _generateMockUsers(1, roleType ?? 'construction');
 
-    return Result(
-      code: 0,
-      msg: '成功',
-            data: users,
-    );
+    return Result(code: 0, msg: '成功', data: users);
   }
 
   // 生成模拟物料列表

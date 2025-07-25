@@ -78,6 +78,7 @@ class _RecordsListPageState extends State<RecordsListPage> {
       case RecordType.waste:
       case RecordType.inventory:
       case RecordType.todo:
+      case RecordType.warehouseTodo:
         final rec = record as TodoRecordItem;
         if (rec.todo.type.name == '验收确认') {
           context.goNamed(
@@ -140,7 +141,6 @@ class _RecordsListPageState extends State<RecordsListPage> {
               } else if (state is RecordsEmpty) {
                 currentTab = state.currentTab;
               }
-
               return ExpandableTabBar(
                 selectedTab: currentTab,
                 onTabSelected: _onTabSelected,

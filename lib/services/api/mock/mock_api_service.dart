@@ -2,16 +2,18 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 10:15:25
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-16 10:38:47
+ * @LastEditTime: 2025-07-24 19:38:46
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/material_handle_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/spareqr_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_material_handle_api_service.dart';
+import 'package:pipe_code_flutter/services/api/mock/mock_signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_spareqr_api_service.dart';
 
 import '../interfaces/api_service_interface.dart';
@@ -33,6 +35,7 @@ class MockApiService implements ApiServiceInterface {
   CommonQueryApiService? _commonQueryService;
   EnumApiService? _enumService;
   MaterialHandleApiService? _materialHandleService;
+  SignoutApiService? _signoutApiService;
 
   @override
   AuthApiService get auth => _authService ??= MockAuthApiService();
@@ -60,4 +63,8 @@ class MockApiService implements ApiServiceInterface {
   @override
   MaterialHandleApiService get materialHandle =>
       _materialHandleService ??= MockMaterialHandleApiService();
+
+  @override
+  SignoutApiService get signout =>
+      _signoutApiService ??= MockSignoutApiService();
 }

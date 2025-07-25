@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-17 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-24 18:16:33
+ * @LastEditTime: 2025-07-25 11:30:10
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -72,11 +72,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
         LoadAcceptanceUsers(
           projectId: projectId,
           roleType: 1, // Example role type
-        ),
-      );
-      context.read<AcceptanceBloc>().add(
-        const LoadWarehouseUsers(
-          warehouseId: 1000, // Use current warehouse ID
         ),
       );
     });

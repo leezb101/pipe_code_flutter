@@ -1,3 +1,10 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-22 08:53:08
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-24 19:44:10
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import '../models/acceptance/acceptance_info_vo.dart';
 import '../models/acceptance/do_accept_vo.dart';
 import '../models/acceptance/do_accept_sign_in_vo.dart';
@@ -14,9 +21,6 @@ import '../utils/logger.dart';
 class AcceptanceRepository {
   final AcceptanceApiService _apiService;
   final CommonQueryApiService _commonQueryApiService;
-  final Map<int, AcceptanceInfoVO> _detailCache = {};
-  final Map<int, DateTime> _detailCacheTimestamps = {};
-  final Duration _cacheTimeout = const Duration(minutes: 5);
 
   AcceptanceRepository(this._apiService, this._commonQueryApiService);
 
@@ -32,8 +36,6 @@ class AcceptanceRepository {
           tag: 'AcceptanceRepository',
         );
         // Clear cache after successful submission
-        _detailCache.clear();
-        _detailCacheTimestamps.clear();
       } else {
         Logger.error(
           'Failed to submit acceptance: ${result.msg}',
@@ -66,7 +68,6 @@ class AcceptanceRepository {
           tag: 'AcceptanceRepository',
         );
         // Clear cache after successful audit
-        _clearDetailCache(request.id);
       } else {
         Logger.error(
           'Failed to audit acceptance: ${result.msg}',
@@ -85,19 +86,8 @@ class AcceptanceRepository {
   }
 
   /// 获取验收详情
-  Future<Result<AcceptanceInfoVO>> getAcceptanceDetail(
-    int id, {
-    bool forceRefresh = false,
-  }) async {
+  Future<Result<AcceptanceInfoVO>> getAcceptanceDetail(int id) async {
     try {
-      if (!forceRefresh && _isDetailCacheValid(id)) {
-        Logger.info(
-          'Returning cached acceptance detail for id: $id',
-          tag: 'AcceptanceRepository',
-        );
-        return Result(code: 0, msg: 'success', data: _detailCache[id]!);
-      }
-
       Logger.info(
         'Fetching acceptance detail for id: $id',
         tag: 'AcceptanceRepository',
@@ -109,8 +99,6 @@ class AcceptanceRepository {
           'Acceptance detail fetched successfully',
           tag: 'AcceptanceRepository',
         );
-        _detailCache[id] = result.data!;
-        _detailCacheTimestamps[id] = DateTime.now();
       } else {
         Logger.error(
           'Failed to fetch acceptance detail: ${result.msg}',
@@ -183,8 +171,6 @@ class AcceptanceRepository {
           'Acceptance sign-in processed successfully',
           tag: 'AcceptanceRepository',
         );
-        // Clear cache after successful sign-in
-        _clearDetailCache(request.acceptId);
       } else {
         Logger.error(
           'Failed to process acceptance sign-in: ${result.msg}',
@@ -200,24 +186,6 @@ class AcceptanceRepository {
       );
       return Result(code: -1, msg: '验收入库失败，请重试', data: null);
     }
-  }
-
-  /// 检查详情缓存是否有效
-  bool _isDetailCacheValid(int id) {
-    if (!_detailCache.containsKey(id) ||
-        !_detailCacheTimestamps.containsKey(id)) {
-      return false;
-    }
-
-    final cacheTime = _detailCacheTimestamps[id]!;
-    final now = DateTime.now();
-    return now.difference(cacheTime) < _cacheTimeout;
-  }
-
-  /// 清除特定ID的详情缓存
-  void _clearDetailCache(int id) {
-    _detailCache.remove(id);
-    _detailCacheTimestamps.remove(id);
   }
 
   /// 获取验收用户
@@ -314,12 +282,5 @@ class AcceptanceRepository {
       );
       return Result(code: -1, msg: '获取仓库列表失败，请重试', data: null);
     }
-  }
-
-  /// 清除所有缓存
-  void clearAllCache() {
-    _detailCache.clear();
-    _detailCacheTimestamps.clear();
-    Logger.info('All acceptance cache cleared', tag: 'AcceptanceRepository');
   }
 }

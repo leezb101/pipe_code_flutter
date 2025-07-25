@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-17 19:35:17
+ * @LastEditTime: 2025-07-25 11:03:15
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/constants/menu_actions.dart';
@@ -128,11 +128,13 @@ extension UserRoleMenuExtension on UserRole {
             isEnabled: !isExpired,
           ),
           _createMenuItem(
-            id: 'outbound',
+            id: 'signout',
             title: '出库',
-            type: MenuItemType.page,
+            // type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'output',
-            route: '/outbound',
+            // route: '/signout',
+            action: MenuActions.qrScanSignout,
             order: 3,
             isEnabled: !isExpired,
           ),
@@ -232,11 +234,12 @@ extension UserRoleMenuExtension on UserRole {
             isEnabled: !isExpired,
           ),
           _createMenuItem(
-            id: 'outbound',
+            id: 'signout',
             title: '出库',
             type: MenuItemType.action,
             icon: 'output',
-            route: '/outbound',
+            // route: '/signout',
+            action: MenuActions.qrScanSignout,
             order: 3,
             isEnabled: !isExpired,
           ),
@@ -336,11 +339,12 @@ extension UserRoleMenuExtension on UserRole {
             isEnabled: !isExpired,
           ),
           _createMenuItem(
-            id: 'outbound',
+            id: 'signout',
             title: '出库',
-            type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'output',
-            route: '/outbound',
+            // route: '/signout',
+            action: MenuActions.qrScanSignout,
             order: 3,
             isEnabled: !isExpired,
           ),

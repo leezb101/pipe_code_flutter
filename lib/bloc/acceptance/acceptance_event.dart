@@ -13,15 +13,11 @@ abstract class AcceptanceEvent extends Equatable {
 
 class LoadAcceptanceDetail extends AcceptanceEvent {
   final int acceptanceId;
-  final bool forceRefresh;
 
-  const LoadAcceptanceDetail({
-    required this.acceptanceId,
-    this.forceRefresh = false,
-  });
+  const LoadAcceptanceDetail({required this.acceptanceId});
 
   @override
-  List<Object?> get props => [acceptanceId, forceRefresh];
+  List<Object?> get props => [acceptanceId];
 }
 
 class SubmitAcceptance extends AcceptanceEvent {

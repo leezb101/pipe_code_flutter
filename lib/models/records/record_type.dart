@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-22 11:01:13
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-24 18:33:34
+ * @LastEditTime: 2025-07-25 16:40:23
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:json_annotation/json_annotation.dart';
@@ -11,6 +11,8 @@ enum RecordType {
   @JsonValue('todo')
   todo,
 
+  @JsonValue('warehouseTodo')
+  warehouseTodo,
   // @JsonValue('signin')
   // signin,
   @JsonValue('accept')
@@ -40,6 +42,9 @@ extension RecordTypeExtension on RecordType {
     switch (this) {
       case RecordType.todo:
         return '待办';
+
+      case RecordType.warehouseTodo:
+        return '仓管待办';
       // case RecordType.signin:
       //   return '入库记录';
       case RecordType.accept:
@@ -63,6 +68,8 @@ extension RecordTypeExtension on RecordType {
     switch (this) {
       case RecordType.todo:
         return '/todo/list';
+      case RecordType.warehouseTodo:
+        return '/todo/warehouse/list';
       // case RecordType.signin:
       //   return '/signin/list';
       case RecordType.accept:
@@ -85,7 +92,7 @@ extension RecordTypeExtension on RecordType {
   bool get isMainTab {
     switch (this) {
       case RecordType.todo:
-      // case RecordType.signin:
+      case RecordType.warehouseTodo:
       case RecordType.accept:
       case RecordType.signout:
       case RecordType.install:

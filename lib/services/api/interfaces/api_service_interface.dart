@@ -6,6 +6,7 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/spareqr_api_service.dart';
 
 import 'auth_api_service.dart';
@@ -24,4 +25,5 @@ abstract class ApiServiceInterface {
   CommonQueryApiService get commonQuery;
   EnumApiService get enums;
   MaterialHandleApiService get materialHandle;
+  SignoutApiService get signout;
 }

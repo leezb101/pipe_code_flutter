@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-24 18:26:28
+ * @LastEditTime: 2025-07-25 11:22:45
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -10,9 +10,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
+import 'package:pipe_code_flutter/bloc/signout/signin_bloc.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
+import 'package:pipe_code_flutter/pages/signout/signout_page.dart';
 import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
+import 'package:pipe_code_flutter/repositories/signout_repository.dart';
 import 'package:pipe_code_flutter/repositories/spareqr_repository.dart';
 import 'package:pipe_code_flutter/repositories/material_handle_repository.dart';
 import '../pages/auth/login_page.dart';
@@ -187,21 +190,20 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/inventory-confirmation',
-          name: 'inventory-confirmation',
+          path: '/signout',
+          name: 'signout',
           builder: (context, state) {
             final data = state.extra as Map<String, dynamic>?;
             if (data == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            final materials = data['materials'] as List<PipeMaterial>?;
-            final scanMode = data['scanMode'] as String?;
-            if (materials == null || scanMode == null) {
+            final materials = data['materialInfo'] as MaterialInfoForBusiness?;
+            if (materials == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            return InventoryConfirmationPage(
-              materials: materials,
-              scanMode: scanMode,
+            return BlocProvider(
+              create: (context) => SignoutBloc(getIt<SignoutRepository>()),
+              child: SignoutPage(materials: materials),
             );
           },
         ),

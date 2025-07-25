@@ -32,6 +32,34 @@ class MockTodoApiService implements TodoApiService {
     return Result<PageTodoTask>(code: 0, msg: 'success', data: pageData);
   }
 
+  @override
+  Future<Result<PageTodoTask>> getWarehouseTodoList({
+    int? pageNum,
+    int? pageSize,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final currentPage = pageNum ?? 1;
+    final size = pageSize ?? 10;
+
+    final mockTasks = _generateMockTodos();
+    final startIndex = (currentPage - 1) * size;
+    final endIndex = (startIndex + size).clamp(0, mockTasks.length);
+
+    final paginatedTasks = startIndex < mockTasks.length
+        ? mockTasks.sublist(startIndex, endIndex)
+        : <TodoTask>[];
+
+    final pageData = PageTodoTask(
+      records: paginatedTasks,
+      total: mockTasks.length,
+      size: size,
+      current: currentPage,
+    );
+
+    return Result<PageTodoTask>(code: 0, msg: 'success', data: pageData);
+  }
+
   List<TodoTask> _generateMockTodos() {
     final now = DateTime.now();
     return [

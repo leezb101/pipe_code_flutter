@@ -27,7 +27,7 @@ class QrScanConfig extends Equatable {
     switch (scanType) {
       // case QrScanType.inbound:
       //   return '$modePrefix入库扫码';
-      case QrScanType.outbound:
+      case QrScanType.signout:
         return '$modePrefix出库扫码';
       case QrScanType.returnMaterial:
         return '$modePrefix退库扫码';

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-24 18:32:01
+ * @LastEditTime: 2025-07-24 18:53:02
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -1034,8 +1034,8 @@ class _HomePageState extends State<HomePage> {
     // 根据菜单ID返回不同颜色
     switch (menuItem.id) {
       // QR扫码相关
-      case 'qr_scan_inbound':
-      case 'qr_scan_outbound':
+      // case 'qr_scan_inbound':
+      case 'qr_scan_signout':
       case 'qr_scan_transfer':
       case 'qr_scan_inventory':
       case 'qr_scan_pipe_copy':
@@ -1062,8 +1062,8 @@ class _HomePageState extends State<HomePage> {
         return Colors.blue;
       // 库存管理相关
       case 'inventory':
-      case 'inbound':
-      case 'outbound':
+      // case 'inbound':
+      case 'signout':
       case 'return':
       case 'transfer':
         return Colors.orange;
@@ -1166,8 +1166,11 @@ class _HomePageState extends State<HomePage> {
       // case MenuActions.qrScanInbound:
       //   _showScanModeSelection(context, QrScanType.inbound);
       //   break;
-      case MenuActions.qrScanOutbound:
-        _showScanModeSelection(context, QrScanType.outbound);
+      case MenuActions.qrScanSignout:
+        _navigateToScan(
+          context,
+          const QrScanConfig(scanType: QrScanType.signout, scanMode: QrScanMode.batch),
+        );
         break;
       case MenuActions.qrScanTransfer:
         _showScanModeSelection(context, QrScanType.transfer);
@@ -1313,7 +1316,7 @@ class _HomePageState extends State<HomePage> {
       // case QrScanType.inbound:
       //   title = scanMode == QrScanMode.single ? '单码入库' : '批量入库';
       //   break;
-      case QrScanType.outbound:
+      case QrScanType.signout:
         title = scanMode == QrScanMode.single ? '单个物料出库' : '批量物料出库';
         break;
       case QrScanType.transfer:
@@ -1340,7 +1343,7 @@ class _HomePageState extends State<HomePage> {
       //       ? '扫描单个二维码进行入库操作'
       //       : '连续扫描多个物料码，手动结束后统一处理';
       //   break;
-      case QrScanType.outbound:
+      case QrScanType.signout:
         subtitle = scanMode == QrScanMode.single
             ? '扫描单个物料进行出库操作'
             : '连续扫描多个物料进行批量出库';

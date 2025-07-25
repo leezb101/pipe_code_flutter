@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:10:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-22 19:34:15
+ * @LastEditTime: 2025-07-24 18:53:18
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -12,7 +12,7 @@ import 'qr_scan_strategies/qr_scan_strategy.dart';
 abstract class QrScanService {
   Future<bool> validateCode(String code);
   // Future<QrScanProcessResult?> processInbound(List<QrScanResult> results);
-  Future<QrScanProcessResult?> processOutbound(List<QrScanResult> results);
+  Future<QrScanProcessResult?> processSignout(List<QrScanResult> results);
   Future<QrScanProcessResult?> processTransfer(List<QrScanResult> results);
   Future<QrScanProcessResult?> processInventory(List<QrScanResult> results);
   Future<QrScanProcessResult?> processPipeCopy(List<QrScanResult> results);
@@ -53,10 +53,10 @@ class QrScanServiceImpl implements QrScanService {
   // }
 
   @override
-  Future<QrScanProcessResult?> processOutbound(
+  Future<QrScanProcessResult?> processSignout(
     List<QrScanResult> results,
   ) async {
-    final strategy = OutboundStrategy();
+    final strategy = SignoutStrategy();
     return strategy.process(results);
   }
 

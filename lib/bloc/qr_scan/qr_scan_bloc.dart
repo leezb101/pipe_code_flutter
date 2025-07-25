@@ -185,8 +185,8 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
         // case QrScanType.inbound:
         //   result = await _qrScanService.processInbound(state.scannedCodes);
         //   break;
-        case QrScanType.outbound:
-          result = await _qrScanService.processOutbound(state.scannedCodes);
+        case QrScanType.signout:
+          result = await _qrScanService.processSignout(state.scannedCodes);
           break;
         case QrScanType.transfer:
           result = await _qrScanService.processTransfer(state.scannedCodes);

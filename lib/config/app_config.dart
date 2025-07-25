@@ -96,7 +96,8 @@ class AppConfig {
         // return 'https://dev-api.example.com';
         // return 'http://10.2.220.12:8775/m';
         // return 'http://10.3.3.213:8775/m'; // 孙煊
-        return 'http://10.3.2.223:8775/m'; // 和宇翔
+        // return 'http://10.3.2.223:8775/m'; // 和宇翔
+        return 'http://10.3.6.235:8775/m';
       case Environment.staging:
         return 'https://staging-api.example.com';
       case Environment.production:

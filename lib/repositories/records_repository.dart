@@ -44,6 +44,11 @@ class RecordsRepository {
           pageNum: pageNum,
           pageSize: pageSize,
         );
+      } else if (recordType == RecordType.warehouseTodo) {
+        records = await _getWarehouseTodoRecords(
+          pageNum: pageNum,
+          pageSize: pageSize,
+        );
       } else if (recordType == RecordType.inventory) {
         records = await _getProjectInitRecords(
           pageNum: pageNum,
@@ -112,6 +117,22 @@ class RecordsRepository {
 
     final todoTasks = response.data!.records;
     return todoTasks.map((todo) => TodoRecordItem(todo)).toList();
+  }
+
+  Future<List<RecordItem>> _getWarehouseTodoRecords({
+    int pageNum = 1,
+    int pageSize = 10,
+  }) async {
+    final response = await _todoApiService.getWarehouseTodoList(
+      pageNum: pageNum,
+      pageSize: pageSize,
+    );
+
+    if (!response.isSuccess) {
+      throw Exception(response.msg.isNotEmpty ? response.msg : '获取仓库待办任务失败');
+    }
+
+    return response.data!.records.map((todo) => TodoRecordItem(todo)).toList();
   }
 
   Future<List<RecordItem>> _getProjectInitRecords({

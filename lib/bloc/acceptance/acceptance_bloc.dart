@@ -1,3 +1,10 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-23 17:28:27
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-25 09:58:24
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import '../../repositories/acceptance_repository.dart';
@@ -37,10 +44,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         tag: 'AcceptanceBloc',
       );
 
-      final result = await _repository.getAcceptanceDetail(
-        event.acceptanceId,
-        forceRefresh: event.forceRefresh,
-      );
+      final result = await _repository.getAcceptanceDetail(event.acceptanceId);
 
       if (result.isSuccess && result.data != null) {
         emit(AcceptanceDetailLoaded(acceptanceInfo: result.data!));
@@ -219,19 +223,13 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     RefreshAcceptanceDetail event,
     Emitter<AcceptanceState> emit,
   ) async {
-    add(
-      LoadAcceptanceDetail(
-        acceptanceId: event.acceptanceId,
-        forceRefresh: true,
-      ),
-    );
+    add(LoadAcceptanceDetail(acceptanceId: event.acceptanceId));
   }
 
   Future<void> _onClearAcceptanceCache(
     ClearAcceptanceCache event,
     Emitter<AcceptanceState> emit,
   ) async {
-    _repository.clearAllCache();
     Logger.info('Acceptance cache cleared', tag: 'AcceptanceBloc');
   }
 
