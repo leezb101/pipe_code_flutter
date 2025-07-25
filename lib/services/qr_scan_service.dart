@@ -26,6 +26,8 @@ abstract class QrScanService {
   Future<QrScanProcessResult?> processMaterialInbound(
     List<QrScanResult> results,
   );
+
+  Future<QrScanProcessResult?> processInstall(List<QrScanResult> results);
 }
 
 class QrScanServiceImpl implements QrScanService {
@@ -111,6 +113,12 @@ class QrScanServiceImpl implements QrScanService {
     List<QrScanResult> results,
   ) {
     final strategy = MaterialInboundStrategy();
+    return strategy.process(results);
+  }
+
+  @override
+  Future<QrScanProcessResult?> processInstall(List<QrScanResult> results) {
+    final strategy = InstallStrategy();
     return strategy.process(results);
   }
 }

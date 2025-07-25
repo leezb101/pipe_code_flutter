@@ -117,6 +117,12 @@ class _RecordsListPageState extends State<RecordsListPage> {
         queryParameters: {'id': rec.todo.businessId.toString()},
       );
     }
+    if (rec.todo.todoName == 'sign_out_install') {
+      context.goNamed(
+        'install',
+        queryParameters: {'id': rec.todo.businessId.toString()},
+      );
+    }
   }
 
   @override
@@ -299,6 +305,8 @@ class _RecordsListPageState extends State<RecordsListPage> {
           );
         },
       );
+    } else {
+      handleGoTodoDetail(context, record);
     }
   }
 }

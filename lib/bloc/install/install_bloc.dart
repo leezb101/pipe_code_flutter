@@ -1,7 +1,5 @@
 import 'package:bloc/bloc.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
+import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/repositories/install_repository.dart';
 
 import 'install_event.dart';
@@ -12,7 +10,7 @@ class InstallBloc extends Bloc<InstallEvent, InstallState> {
 
   InstallBloc({required InstallRepository installRepository})
     : _installRepository = installRepository,
-      super(const InstallInitial()) {
+      super(const InstallReady()) {
     on<LoadInstallDetail>(_onLoadInstallDetail);
     on<DoInstall>(_onDoInstall);
     on<RefreshInstallDetail>(_onRefreshInstallDetail);
@@ -71,7 +69,7 @@ class InstallBloc extends Bloc<InstallEvent, InstallState> {
     if (currentState is InstallReady) {
       final material = event.materialInfo.normals.first;
       InstallReady newReadyState;
-      final newMaterialInfos = currentState.materialInfos;
+      MaterialInfoForBusiness? newMaterialInfos = currentState.materialInfos;
       if (newMaterialInfos != null) {
         if (newMaterialInfos.normals.any(
           (m) => m.materialId == material.materialId,
@@ -92,7 +90,11 @@ class InstallBloc extends Bloc<InstallEvent, InstallState> {
           );
         }
       } else {
-        newReadyState = currentState;
+        newMaterialInfos = MaterialInfoForBusiness(
+          normals: [material],
+          errors: [],
+        );
+        newReadyState = currentState.copyWith(materialInfos: newMaterialInfos);
       }
       emit(newReadyState);
     }

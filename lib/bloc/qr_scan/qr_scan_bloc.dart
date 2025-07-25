@@ -215,6 +215,9 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
             state.scannedCodes,
           );
           break;
+
+        case QrScanType.install:
+          result = await _qrScanService.processInstall(state.scannedCodes);
       }
 
       if (result != null && !result.success) {

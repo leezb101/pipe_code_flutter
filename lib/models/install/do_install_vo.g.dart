@@ -15,7 +15,7 @@ DoInstallVo _$DoInstallVoFromJson(Map<String, dynamic> json) => DoInstallVo(
       .toList(),
   installQualityUrl: json['installQualityUrl'] as String?,
   onlyInstall: json['onlyInstall'] as bool? ?? false,
-  signOutId: (json['signOutId'] as num).toInt(),
+  signOutId: (json['signOutId'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$DoInstallVoToJson(DoInstallVo instance) =>

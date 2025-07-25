@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-25 18:50:15
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 18:54:56
+ * @LastEditTime: 2025-07-25 20:28:19
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:equatable/equatable.dart';
@@ -18,14 +18,14 @@ class DoInstallVo extends Equatable {
   final List<AttachmentVO> imageList;
   final String? installQualityUrl;
   final bool onlyInstall;
-  final int signOutId;
+  final int? signOutId;
 
   const DoInstallVo({
     required this.materialList,
     required this.imageList,
     this.installQualityUrl,
     this.onlyInstall = false,
-    required this.signOutId,
+    this.signOutId,
   });
 
   factory DoInstallVo.fromJson(Map<String, dynamic> json) =>

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 20:07:32
+ * @LastEditTime: 2025-07-25 20:23:25
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -14,6 +14,7 @@ import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dar
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
+import 'package:pipe_code_flutter/pages/install/install_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_audit_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_page.dart';
 import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
@@ -232,9 +233,17 @@ final GoRouter appRouter = GoRouter(
           path: '/install',
           name: 'install',
           builder: (context, state) {
-            return BlocProvider(
-              create: (context) =>
-                  InstallBloc(installRepository: getIt<InstallRepository>()),
+            final signOutId = state.uri.queryParameters['signOutId'];
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (context) => InstallBloc(
+                    installRepository: getIt<InstallRepository>(),
+                  ),
+                ),
+                BlocProvider(create: (context) => MaterialHandleCubit()),
+              ],
+              child: InstallPage(signOutId: signOutId),
             );
           },
         ),
