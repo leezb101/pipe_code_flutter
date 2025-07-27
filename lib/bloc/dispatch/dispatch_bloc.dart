@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-27 13:09:35
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 16:15:23
+ * @LastEditTime: 2025-07-27 16:59:52
  * @copyright: Copyright © 2025 高新供水.
  */
 /*
@@ -27,6 +27,7 @@ import 'package:pipe_code_flutter/repositories/dispatch_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 
 import '../../models/material/material_info_base.dart';
+import '../../models/material/material_info_for_business.dart';
 
 part 'dispatch_event.dart';
 part 'dispatch_state.dart';
@@ -49,6 +50,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     on<SubmitDispatchSignIn>(_onSubmitDispatchSignIn);
     on<UpdateScannedMaterials>(_onUpdateScannedMaterials);
     on<UpdateWarehouseUsersList>(_onUpdateWarehouseUsersList);
+    on<MatchScannedMaterial>(_onMatchScannedMaterial);
   }
 
   // 处理加载调拨详情事件
@@ -236,5 +238,79 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     Emitter<DispatchState> emit,
   ) {
     emit(state.copyWith(scannedMaterials: event.scannedMaterials));
+  }
+
+  // 处理匹配扫码物料事件
+  void _onMatchScannedMaterial(
+    MatchScannedMaterial event,
+    Emitter<DispatchState> emit,
+  ) {
+    // 检查是否有调拨详情
+    if (state.dispatchDetail == null) {
+      emit(
+        state.copyWith(status: DispatchStatus.failure, errorMessage: '调拨详情未加载'),
+      );
+      return;
+    }
+
+    final dispatchDetail = state.dispatchDetail!;
+    final scannedMaterial = event.scannedMaterial;
+
+    // 检查是否有错误信息
+    if (scannedMaterial.errors.isNotEmpty) {
+      emit(
+        state.copyWith(
+          matchMessage: '扫码物料存在错误: ${scannedMaterial.errors.first}',
+        ),
+      );
+      return;
+    }
+
+    // 检查是否有正常物料信息
+    if (scannedMaterial.normals.isEmpty) {
+      emit(state.copyWith(matchMessage: '未找到有效的物料信息'));
+      return;
+    }
+
+    final scannedBaseInfo = scannedMaterial.normals.first;
+    final matchedMaterials = Set<MaterialVO>.from(state.matchedMaterials);
+
+    // 查找匹配的物料
+    MaterialVO? matchedMaterial;
+    for (final material in dispatchDetail.materialList) {
+      // 通过materialId进行匹配
+      if (material.materialId == scannedBaseInfo.materialId) {
+        matchedMaterial = material;
+        break;
+      }
+    }
+
+    // 如果找到了匹配的物料
+    if (matchedMaterial != null) {
+      // 检查是否已经匹配过该物料
+      if (matchedMaterials.contains(matchedMaterial)) {
+        emit(
+          state.copyWith(
+            matchMessage: '物料 ${matchedMaterial.materialName} 已经扫描过了',
+          ),
+        );
+      } else {
+        // 添加到已匹配物料集合中
+        matchedMaterials.add(matchedMaterial);
+        emit(
+          state.copyWith(
+            matchedMaterials: matchedMaterials,
+            matchMessage: '成功匹配物料: ${matchedMaterial.materialName}',
+          ),
+        );
+      }
+    } else {
+      // 没有找到匹配的物料
+      emit(
+        state.copyWith(
+          matchMessage: '未找到匹配的物料，扫码的物料ID为: ${scannedBaseInfo.materialId}',
+        ),
+      );
+    }
   }
 }

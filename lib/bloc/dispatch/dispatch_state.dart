@@ -22,6 +22,8 @@ class DispatchState extends Equatable {
     this.availableWarehouses = const [],
     this.availableWarehouseUsers = const [],
     this.scannedMaterials,
+    this.matchedMaterials = const {},
+    this.matchMessage,
     this.errorMessage,
   });
 
@@ -43,6 +45,10 @@ class DispatchState extends Equatable {
   final List<CommonUserVO> availableWarehouseUsers;
   // 调拨入库时扫描的物料 (入库页)
   final List<MaterialVO>? scannedMaterials;
+  // 已匹配的物料 (入库页)
+  final Set<MaterialVO> matchedMaterials;
+  // 匹配消息 (入库页)
+  final String? matchMessage;
   // 错误信息
   final String? errorMessage;
 
@@ -56,6 +62,8 @@ class DispatchState extends Equatable {
     List<WarehouseVO>? availableWarehouses,
     List<CommonUserVO>? availableWarehouseUsers,
     List<MaterialVO>? scannedMaterials,
+    Set<MaterialVO>? matchedMaterials,
+    String? matchMessage,
     String? errorMessage,
   }) {
     return DispatchState(
@@ -69,6 +77,8 @@ class DispatchState extends Equatable {
       availableWarehouseUsers:
           availableWarehouseUsers ?? this.availableWarehouseUsers,
       scannedMaterials: scannedMaterials ?? this.scannedMaterials,
+      matchedMaterials: matchedMaterials ?? this.matchedMaterials,
+      matchMessage: matchMessage ?? this.matchMessage,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -84,6 +94,8 @@ class DispatchState extends Equatable {
     availableWarehouses,
     availableWarehouseUsers,
     scannedMaterials,
+    matchedMaterials,
+    matchMessage,
     errorMessage,
   ];
 }

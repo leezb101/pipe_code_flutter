@@ -67,6 +67,16 @@ class UpdateScannedMaterials extends DispatchEvent {
   List<Object> get props => [scannedMaterials];
 }
 
+/// (入库页) 匹配扫码物料
+class MatchScannedMaterial extends DispatchEvent {
+  final MaterialInfoForBusiness scannedMaterial;
+
+  const MatchScannedMaterial({required this.scannedMaterial});
+
+  @override
+  List<Object> get props => [scannedMaterial];
+}
+
 class UpdateWarehouseUsersList extends DispatchEvent {
   final int warehouseId;
   const UpdateWarehouseUsersList(this.warehouseId);

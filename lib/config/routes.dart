@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 16:45:34
+ * @LastEditTime: 2025-07-27 16:59:15
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -29,6 +29,7 @@ import '../bloc/dispatch/dispatch_bloc.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/register_page.dart';
 import '../pages/dispatch/dispatch_application_page.dart';
+import '../pages/dispatch/dispatch_after_signin_page.dart';
 import '../pages/main_page.dart';
 import '../pages/qr_scan/qr_scan_page.dart';
 import '../pages/inventory/inventory_confirmation_page.dart';
@@ -243,6 +244,31 @@ final GoRouter appRouter = GoRouter(
                 commonQueryApiService: getIt<CommonQueryApiService>(),
               ),
               child: DispatchConfirmationPage(dispatchId: dispatchId),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/dispatch-after-signin',
+          name: 'dispatch-after-signin',
+          builder: (context, state) {
+            final dispatchIdParam = state.uri.queryParameters['id'];
+            final dispatchId = dispatchIdParam != null
+                ? int.tryParse(dispatchIdParam)
+                : null;
+            if (dispatchId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (context) => DispatchBloc(
+                    dispatchRepository: getIt<DispatchRepository>(),
+                    commonQueryApiService: getIt<CommonQueryApiService>(),
+                  )..add(LoadDispatchDetail(dispatchId)),
+                ),
+                BlocProvider(create: (context) => MaterialHandleCubit()),
+              ],
+              child: DispatchAfterSigninPage(dispatchId: dispatchId),
             );
           },
         ),
