@@ -139,12 +139,21 @@ extension UserRoleMenuExtension on UserRole {
             isEnabled: !isExpired,
           ),
           _createMenuItem(
+            id: 'install',
+            title: '安装',
+            type: MenuItemType.page,
+            icon: 'build',
+            route: '/install',
+            order: 4,
+            isEnabled: !isExpired,
+          ),
+          _createMenuItem(
             id: 'return',
             title: '退库',
             type: MenuItemType.page,
             icon: 'keyboard_return',
             route: '/return',
-            order: 4,
+            order: 5,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -153,7 +162,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'swap_horiz',
             route: '/transfer',
-            order: 5,
+            order: 6,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -162,7 +171,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'content_cut',
             route: '/cut-pipe',
-            order: 6,
+            order: 7,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -171,7 +180,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'delete_forever',
             route: '/scrap',
-            order: 7,
+            order: 8,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -180,7 +189,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'inventory',
             route: '/inventory',
-            order: 8,
+            order: 9,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -189,7 +198,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'admin_panel_settings',
             route: '/temporary-auth',
-            order: 9,
+            order: 10,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -198,7 +207,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.action,
             icon: 'qr_code_scanner',
             action: 'qr_identify',
-            order: 10,
+            order: 11,
             isEnabled: true, // 扫码识别始终可用
           ),
         ];
@@ -244,12 +253,21 @@ extension UserRoleMenuExtension on UserRole {
             isEnabled: !isExpired,
           ),
           _createMenuItem(
+            id: 'install',
+            title: '安装',
+            type: MenuItemType.page,
+            icon: 'build',
+            route: '/install',
+            order: 4,
+            isEnabled: !isExpired,
+          ),
+          _createMenuItem(
             id: 'return',
             title: '退库',
             type: MenuItemType.page,
             icon: 'keyboard_return',
             route: '/return',
-            order: 4,
+            order: 5,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -258,7 +276,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'swap_horiz',
             route: '/transfer',
-            order: 5,
+            order: 6,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -267,7 +285,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'content_cut',
             route: '/cut-pipe',
-            order: 6,
+            order: 7,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -276,7 +294,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'delete_forever',
             route: '/scrap',
-            order: 7,
+            order: 8,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -285,7 +303,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'inventory',
             route: '/inventory',
-            order: 8,
+            order: 9,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -294,7 +312,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'admin_panel_settings',
             route: '/temporary-auth',
-            order: 9,
+            order: 10,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -303,7 +321,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.action,
             icon: 'qr_code_scanner',
             action: 'qr_identify',
-            order: 10,
+            order: 11,
             isEnabled: true, // 扫码识别始终可用
           ),
         ];
@@ -349,12 +367,21 @@ extension UserRoleMenuExtension on UserRole {
             isEnabled: !isExpired,
           ),
           _createMenuItem(
+            id: 'install',
+            title: '安装',
+            type: MenuItemType.page,
+            icon: 'build',
+            route: '/install',
+            order: 4,
+            isEnabled: !isExpired,
+          ),
+          _createMenuItem(
             id: 'return',
             title: '退库',
             type: MenuItemType.page,
             icon: 'keyboard_return',
             route: '/return',
-            order: 4,
+            order: 5,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -363,7 +390,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'swap_horiz',
             route: '/transfer',
-            order: 5,
+            order: 6,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -372,7 +399,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'content_cut',
             route: '/cut-pipe',
-            order: 6,
+            order: 7,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -381,7 +408,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'delete_forever',
             route: '/scrap',
-            order: 7,
+            order: 8,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -390,7 +417,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'inventory',
             route: '/inventory',
-            order: 8,
+            order: 9,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -399,7 +426,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.action,
             icon: 'qr_code_scanner',
             action: 'qr_identify',
-            order: 9,
+            order: 10,
             isEnabled: true, // 扫码识别始终可用
           ),
         ];
