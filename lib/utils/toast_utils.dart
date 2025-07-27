@@ -2,13 +2,14 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 15:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-24 18:15:29
+ * @LastEditTime: 2025-07-27 17:56:29
  * @copyright: Copyright © 2025 高新供水.
  */
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pipe_code_flutter/config/routes.dart';
+import 'package:pipe_code_flutter/utils/logger.dart';
 import '../widgets/toast/ios_toast.dart';
 import '../widgets/toast/toast_type.dart';
 
@@ -103,11 +104,26 @@ class ToastUtils {
     bool showIcon = true,
     bool isGlobal = false,
   }) {
-    final overlayContext = (isGlobal && navigatorKey.currentContext != null)
-        ? navigatorKey.currentContext!
-        : context;
+    // final overlayContext = (isGlobal && navigatorKey.currentContext != null)
+    //     ? navigatorKey.currentContext!
+    //     : context;
 
-    if (!overlayContext.mounted) return;
+    // if (!overlayContext.mounted) return;
+    OverlayState? overlay;
+    if (isGlobal) {
+      // 当需要全局显示时，直接从navigatorKey中获取顶层的OverlayState
+      overlay = navigatorKey.currentState?.overlay;
+    } else {
+      // 否则使用当前上下文的OverlayState
+      if (context.mounted) {
+        overlay = Overlay.of(context);
+      }
+    }
+
+    if (overlay == null) {
+      Logger.debug("Toast显示失败：没有overlay可以被找到");
+      return;
+    }
 
     // 检查是否为重复消息
     final now = DateTime.now();
@@ -146,13 +162,17 @@ class ToastUtils {
       HapticFeedback.lightImpact();
     }
 
-    final overlay = Overlay.of(overlayContext);
     OverlayEntry? entry;
 
     entry = OverlayEntry(
       builder: (context) {
         // 计算垂直偏移量，让多个 toast 错开显示
-        final double topOffset = 60.0 + (_activeToasts.length * 80.0);
+        // [修正] indexOf 在 entry 尚未添加到 list 时会返回 -1，导致偏移量计算错误。
+        // 我们在添加后再计算或使用当前 list 的长度。
+        final currentToastIndex = _activeToasts.contains(entry)
+            ? _activeToasts.indexOf(entry!)
+            : _activeToasts.length;
+        final double topOffset = 60.0 + (currentToastIndex * 80.0);
         return Positioned(
           top: topOffset,
           left: 20,
