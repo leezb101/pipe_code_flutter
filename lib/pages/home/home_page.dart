@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-24 18:53:02
+ * @LastEditTime: 2025-07-27 14:50:06
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -1169,11 +1169,21 @@ class _HomePageState extends State<HomePage> {
       case MenuActions.qrScanSignout:
         _navigateToScan(
           context,
-          const QrScanConfig(scanType: QrScanType.signout, scanMode: QrScanMode.batch),
+          const QrScanConfig(
+            scanType: QrScanType.signout,
+            scanMode: QrScanMode.batch,
+          ),
         );
         break;
       case MenuActions.qrScanTransfer:
-        _showScanModeSelection(context, QrScanType.transfer);
+        // _showScanModeSelection(context, QrScanType.transfer);
+        _navigateToScan(
+          context,
+          const QrScanConfig(
+            scanType: QrScanType.transfer,
+            scanMode: QrScanMode.batch,
+          ),
+        );
         break;
       case MenuActions.qrScanInventory:
         _showScanModeSelection(context, QrScanType.inventory);

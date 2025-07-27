@@ -66,3 +66,11 @@ class UpdateScannedMaterials extends DispatchEvent {
   @override
   List<Object> get props => [scannedMaterials];
 }
+
+class UpdateWarehouseUsersList extends DispatchEvent {
+  final int warehouseId;
+  const UpdateWarehouseUsersList(this.warehouseId);
+
+  @override
+  List<Object> get props => [warehouseId];
+}

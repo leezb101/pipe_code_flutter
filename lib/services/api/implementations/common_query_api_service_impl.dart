@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-21 14:54:15
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 13:34:31
+ * @LastEditTime: 2025-07-27 15:44:55
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
@@ -124,7 +124,7 @@ class CommonQueryApiServiceImpl implements CommonQueryApiService {
   Future<Result<List<ProjectSimpleVo>>> getCurrentLegalProjectList() async {
     try {
       final response = await _dio.get(
-        '${AppConfig.apiBaseUrl}/mobile/common/project/current/legal/list',
+        '${AppConfig.apiBaseUrl}/mobile/common/project/list',
       );
 
       return Result.safeFromJson<List<ProjectSimpleVo>>(response.data, (data) {

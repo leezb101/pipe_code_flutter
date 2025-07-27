@@ -123,6 +123,12 @@ class _RecordsListPageState extends State<RecordsListPage> {
         queryParameters: {'id': rec.todo.businessId.toString()},
       );
     }
+    if (rec.todo.todoName == 'dispatch') {
+      context.goNamed(
+        'dispatch-confirmation',
+        queryParameters: {'id': rec.todo.businessId.toString()},
+      );
+    }
   }
 
   @override

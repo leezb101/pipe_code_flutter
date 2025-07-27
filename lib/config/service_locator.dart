@@ -1,9 +1,12 @@
 import 'package:get_it/get_it.dart';
+import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
+import 'package:pipe_code_flutter/repositories/dispatch_repository.dart';
 import 'package:pipe_code_flutter/repositories/enum_repository.dart';
 import 'package:pipe_code_flutter/repositories/install_repository.dart';
 import 'package:pipe_code_flutter/repositories/signout_repository.dart';
 import 'package:pipe_code_flutter/repositories/spareqr_repository.dart';
 import 'package:pipe_code_flutter/repositories/material_handle_repository.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/dispatch_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
@@ -85,6 +88,10 @@ Future<void> setupServiceLocator({
     () => ApiServiceFactory.createMaterialHandleService(),
   );
 
+  getIt.registerLazySingleton<DispatchApiService>(
+    () => ApiServiceFactory.createDispatchService(),
+  );
+
   getIt.registerSingleton<EnumRepository>(
     EnumRepository(getIt<EnumApiService>()),
   );
@@ -136,6 +143,12 @@ Future<void> setupServiceLocator({
     ),
   );
 
+  getIt.registerLazySingleton<DispatchRepository>(
+    () => DispatchRepository(
+      getIt<DispatchApiService>(),
+    ),
+  );
+
   getIt.registerLazySingleton<MaterialHandleRepository>(
     () => MaterialHandleRepository(getIt<MaterialHandleApiService>()),
   );
@@ -158,6 +171,14 @@ Future<void> setupServiceLocator({
 
   getIt.registerLazySingleton<InstallApiService>(
     () => ApiServiceFactory.createInstallApiService(),
+  );
+
+  // Blocs
+  getIt.registerFactory<DispatchBloc>(
+    () => DispatchBloc(
+      dispatchRepository: getIt<DispatchRepository>(),
+      commonQueryApiService: getIt<CommonQueryApiService>(),
+    ),
   );
 }
 

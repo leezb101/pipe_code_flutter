@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-27 13:09:35
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 13:54:16
+ * @LastEditTime: 2025-07-27 16:15:23
  * @copyright: Copyright © 2025 高新供水.
  */
 /*
@@ -26,6 +26,8 @@ import 'package:pipe_code_flutter/models/dispatch/do_dispatch_sign_in_vo.dart';
 import 'package:pipe_code_flutter/repositories/dispatch_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 
+import '../../models/material/material_info_base.dart';
+
 part 'dispatch_event.dart';
 part 'dispatch_state.dart';
 
@@ -46,6 +48,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     on<AuditDispatch>(_onAuditDispatch);
     on<SubmitDispatchSignIn>(_onSubmitDispatchSignIn);
     on<UpdateScannedMaterials>(_onUpdateScannedMaterials);
+    on<UpdateWarehouseUsersList>(_onUpdateWarehouseUsersList);
   }
 
   // 处理加载调拨详情事件
@@ -119,7 +122,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       final sourceWarehouse = sourceWarehouseResult.data as WarehouseVO;
       List<CommonUserVO> users = [];
       final usersResult = await _commonQueryApiService.getWarehouseUsers(
-        sourceWarehouse.id,
+        warehousesResult.data.first.id,
       );
       if (usersResult.isSuccess && usersResult.data != null) {
         users = usersResult.data!.warehouseUsers;
@@ -140,6 +143,31 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
         state.copyWith(
           status: DispatchStatus.failure,
           errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onUpdateWarehouseUsersList(
+    UpdateWarehouseUsersList event,
+    Emitter<DispatchState> emit,
+  ) async {
+    emit(state.copyWith(status: DispatchStatus.loading));
+    final result = await _commonQueryApiService.getWarehouseUsers(
+      event.warehouseId,
+    );
+    if (result.isSuccess && result.data != null) {
+      emit(
+        state.copyWith(
+          status: DispatchStatus.success,
+          availableWarehouseUsers: result.data!.warehouseUsers,
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(
+          status: DispatchStatus.failure,
+          errorMessage: result.msg,
         ),
       );
     }

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 10:11:51
+ * @LastEditTime: 2025-07-27 16:45:34
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -13,6 +13,8 @@ import 'package:pipe_code_flutter/bloc/install/install_bloc.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
+import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
+import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/pages/install/install_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_audit_page.dart';
@@ -23,8 +25,10 @@ import 'package:pipe_code_flutter/repositories/signout_repository.dart';
 import 'package:pipe_code_flutter/repositories/spareqr_repository.dart';
 import 'package:pipe_code_flutter/repositories/material_handle_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
+import '../bloc/dispatch/dispatch_bloc.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/register_page.dart';
+import '../pages/dispatch/dispatch_application_page.dart';
 import '../pages/main_page.dart';
 import '../pages/qr_scan/qr_scan_page.dart';
 import '../pages/inventory/inventory_confirmation_page.dart';
@@ -32,6 +36,7 @@ import '../pages/acceptance/acceptance_page.dart';
 import '../pages/acceptance/acceptance_detail_page.dart';
 import '../pages/acceptance/acceptance_confirmation_page.dart';
 import '../pages/acceptance/acceptance_after_signin_page.dart';
+import '../pages/dispatch/dispatch_confirmation_page.dart';
 import '../bloc/acceptance/acceptance_bloc.dart';
 import '../repositories/acceptance_repository.dart';
 import '../pages/developer_settings_page.dart';
@@ -50,6 +55,7 @@ import '../models/records/record_type.dart';
 import '../services/qr_scan_service.dart';
 import '../pages/material/material_detail_page.dart';
 import '../models/material/scan_identification_response.dart';
+import '../repositories/dispatch_repository.dart';
 import 'service_locator.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -73,6 +79,32 @@ final GoRouter appRouter = GoRouter(
       name: 'main',
       builder: (context, state) => const MainPage(),
       routes: [
+        GoRoute(
+          path: 'dispatch-application',
+          name: 'dispatch-application',
+          builder: (context, state) {
+            final config = state.extra as Map<String, dynamic>?;
+            if (config == null || config.isEmpty) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            final materialInfo =
+                config['materialInfo'] as MaterialInfoForBusiness?;
+            if (materialInfo == null) {
+              return const Scaffold(body: Center(child: Text('错误: 未提供物料信息')));
+            }
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider<DispatchBloc>(
+                  create: (context) => getIt<DispatchBloc>(),
+                ),
+                BlocProvider<MaterialHandleCubit>(
+                  create: (context) => MaterialHandleCubit(),
+                ),
+              ],
+              child: DispatchApplicationPage(materials: materialInfo),
+            );
+          },
+        ),
         GoRoute(
           path: '/spare-qr',
           name: 'spare-qr',
@@ -191,6 +223,26 @@ final GoRouter appRouter = GoRouter(
                 ),
               ],
               child: AcceptanceAfterSigninPage(acceptanceId: acceptanceId),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/dispatch-confirmation',
+          name: 'dispatch-confirmation',
+          builder: (context, state) {
+            final dispatchIdParam = state.uri.queryParameters['id'];
+            final dispatchId = dispatchIdParam != null
+                ? int.tryParse(dispatchIdParam)
+                : null;
+            if (dispatchId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return BlocProvider(
+              create: (context) => DispatchBloc(
+                dispatchRepository: getIt<DispatchRepository>(),
+                commonQueryApiService: getIt<CommonQueryApiService>(),
+              ),
+              child: DispatchConfirmationPage(dispatchId: dispatchId),
             );
           },
         ),
