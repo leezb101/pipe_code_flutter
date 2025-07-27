@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 20:23:25
+ * @LastEditTime: 2025-07-27 10:11:51
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -233,7 +233,7 @@ final GoRouter appRouter = GoRouter(
           path: '/install',
           name: 'install',
           builder: (context, state) {
-            final signOutId = state.uri.queryParameters['signOutId'];
+            final signOutId = state.uri.queryParameters['id'];
             return MultiBlocProvider(
               providers: [
                 BlocProvider(

@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/repositories/install_repository.dart';
 
@@ -69,34 +70,47 @@ class InstallBloc extends Bloc<InstallEvent, InstallState> {
     if (currentState is InstallReady) {
       final material = event.materialInfo.normals.first;
       InstallReady newReadyState;
-      MaterialInfoForBusiness? newMaterialInfos = currentState.materialInfos;
-      if (newMaterialInfos != null) {
-        if (newMaterialInfos.normals.any(
+
+      if (currentState.materialInfos != null) {
+        // 检查是否已经存在相同的物料
+        if (currentState.materialInfos!.normals.any(
           (m) => m.materialId == material.materialId,
         )) {
+          // 物料已存在，发出提示信息
           newReadyState = currentState.copyWith(
-            materialInfos: newMaterialInfos,
+            materialScanMessage: '材料 ${material.materialId} 已经匹配过了',
+            clearScanMessage: false,
           );
-          emit(
-            newReadyState.copyWith(
-              materialScanMessage: '材料 ${material.materialId} 已经匹配过了',
-              clearScanMessage: false,
-            ),
-          );
+          emit(newReadyState);
         } else {
-          newMaterialInfos.normals.add(material);
+          // 创建新的MaterialInfoForBusiness对象，而不是直接修改现有对象
+          final updatedNormals = List<MaterialInfoBase>.from(
+            currentState.materialInfos!.normals,
+          )..add(material);
+
+          final newMaterialInfos = MaterialInfoForBusiness(
+            normals: updatedNormals,
+            errors: List.from(currentState.materialInfos!.errors ?? []),
+          );
+
           newReadyState = currentState.copyWith(
             materialInfos: newMaterialInfos,
+            detail: currentState.detail,
           );
+          emit(newReadyState);
         }
       } else {
-        newMaterialInfos = MaterialInfoForBusiness(
+        // 第一次添加物料
+        final newMaterialInfos = MaterialInfoForBusiness(
           normals: [material],
           errors: [],
         );
-        newReadyState = currentState.copyWith(materialInfos: newMaterialInfos);
+        newReadyState = currentState.copyWith(
+          materialInfos: newMaterialInfos,
+          detail: currentState.detail,
+        );
+        emit(newReadyState);
       }
-      emit(newReadyState);
     }
   }
 }

@@ -484,33 +484,31 @@ class _InstallViewState extends State<InstallView> {
 
     setState(() => _isSubmitting = true);
 
-    // 构建所有照片附件
-    final List<AttachmentVO> allAttachments = [];
-
-    for (final material in materials) {
+    // 构建包含桩号和照片信息的材料列表
+    final List<MaterialVO> updatedMaterials = materials.map((material) {
       final materialId = material.materialId;
       final photos = _materialPhotos[materialId] ?? [];
+      final stakeNumber = _materialStakeNumbers[materialId] ?? '';
 
-      for (int i = 0; i < photos.length; i++) {
-        allAttachments.add(
-          AttachmentVO(
-            type: 1,
-            name: 'install_photo_${materialId}_${i + 1}.jpg',
-            url: photos[i].path,
-            attachFormat: 1, // Image type
-          ),
-        );
-      }
-    }
+      return material.copyWith(
+        installPileNo: stakeNumber,
+        installImageUrl1: photos.length > 0 ? photos[0].path : null,
+        installImageUrl2: photos.length > 1 ? photos[1].path : null,
+      );
+    }).toList();
+
+    // 构建所有照片附件（仅用于质量验收报告）
+    final List<AttachmentVO> allAttachments = [];
 
     final request = DoInstallVo(
-      materialList: materials,
-      imageList: allAttachments,
+      materialList: updatedMaterials,
+      imageList: allAttachments, // 照片信息已包含在材料列表中，此处保持空列表
       installQualityUrl: _qualityReportUrl,
-      onlyInstall: true,
+      // onlyInstall: true,
       signOutId: widget.signOutId != null
           ? int.tryParse(widget.signOutId!)
           : null,
+      onlyInstall: widget.signOutId != null,
     );
 
     context.read<InstallBloc>().add(DoInstall(request: request));
