@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 13:17:21
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 11:24:43
+ * @LastEditTime: 2025-07-27 14:56:39
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -124,7 +124,7 @@ class ApiServiceFactory {
     }
   }
 
-  static DispatchApiService createDispatchApiService() {
+  static DispatchApiService createDispatchService() {
     if (AppConfig.isMockEnabled) {
       return MockDispatchApiService();
     } else {

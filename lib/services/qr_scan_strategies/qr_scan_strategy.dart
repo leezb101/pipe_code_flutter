@@ -2,10 +2,13 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 20:51:27
+ * @LastEditTime: 2025-07-27 15:34:16
  * @copyright: Copyright © 2025 高新供水.
  */
 
+import 'package:pipe_code_flutter/models/material/material_info_base.dart';
+
+import '../../models/common/result.dart';
 import '../../models/qr_scan/qr_scan_result.dart';
 import '../../models/material/material_info_for_business.dart';
 import '../../repositories/material_handle_repository.dart';
@@ -218,53 +221,59 @@ class SignoutStrategy implements QrScanStrategy {
 }
 
 class TransferStrategy implements QrScanStrategy {
+  late final MaterialHandleRepository _materialHandleRepository;
+
+  TransferStrategy() {
+    _materialHandleRepository = getIt<MaterialHandleRepository>();
+  }
+
   @override
   Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
-    await Future.delayed(const Duration(seconds: 1));
+    final result = await _processBatchTransfer(results);
 
-    if (results.length == 1) {
-      await _processSingleTransfer(results.first);
-    } else {
-      await _processBatchTransfer(results);
-    }
-
-    return const QrScanProcessResult(success: true);
+    return result;
   }
 
-  Future<void> _processSingleTransfer(QrScanResult result) async {
-    Logger.qrScan('=== 单个调拨处理 ===', deviceCode: result.code);
-    Logger.qrScan('货物编号: ${result.code}', deviceCode: result.code);
-    Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
-    Logger.qrScan('调拨状态: 调拨完成', deviceCode: result.code);
-
-    // TODO: 实现单个调拨的具体业务逻辑
-    // 1. 验证货物编号和当前位置
-    // 2. 检查源和目标仓库状态
-    // 3. 更新货物位置信息
-    // 4. 生成调拨单据
-    // 5. 记录调拨操作日志
-  }
-
-  Future<void> _processBatchTransfer(List<QrScanResult> results) async {
-    Logger.qrScan('=== 批量调拨处理 ===');
+  Future<QrScanProcessResult> _processBatchTransfer(
+    List<QrScanResult> results,
+  ) async {
+    Logger.qrScan('=== 批量出库处理 ===');
     Logger.qrScan('批次大小: ${results.length}');
+    final codes = results.map((r) => r.code).toList();
 
-    for (int i = 0; i < results.length; i++) {
-      final result = results[i];
-      Logger.qrScan(
-        '第${i + 1}个货物 - 编号: ${result.code}',
-        deviceCode: result.code,
+    final materialResult = await _getMaterialInfoByBatchCodes(codes);
+    if (materialResult != null) {
+      return QrScanProcessResult(
+        success: true,
+        navigationData: QrScanNavigationData(
+          route: '/dispatch-application',
+          data: {'materialInfo': materialResult, 'scanMode': 'batch'},
+        ),
+      );
+    } else {
+      return const QrScanProcessResult(
+        success: false,
+        errorMessage: "未找到对应的管件信息",
       );
     }
+  }
 
-    Logger.qrScan('批量调拨状态: 全部完成');
-
-    // TODO: 实现批量调拨的具体业务逻辑
-    // 1. 批量验证所有货物编号
-    // 2. 批量检查仓库状态
-    // 3. 批量更新位置信息
-    // 4. 生成批量调拨报告
-    // 5. 发送调拨完成通知
+  // 批量获取物料信息
+  Future<MaterialInfoForBusiness?> _getMaterialInfoByBatchCodes(
+    List<String> codes,
+  ) async {
+    try {
+      final result = await _materialHandleRepository.scanBatchToQueryAll(codes);
+      if (result.isSuccess && result.data != null) {
+        return result.data!;
+      } else {
+        Logger.qrScan('批量获取物料信息失败: ${result.msg}');
+        return null;
+      }
+    } catch (e) {
+      Logger.qrScan('批量获取物料信息异常: $e');
+      return null;
+    }
   }
 }
 

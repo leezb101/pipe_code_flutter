@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 11:03:15
+ * @LastEditTime: 2025-07-27 15:05:11
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/constants/menu_actions.dart';
@@ -40,9 +40,11 @@ extension UserRoleMenuExtension on UserRole {
           _createMenuItem(
             id: 'transfer',
             title: '调拨',
-            type: MenuItemType.page,
+            // type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'swap_horiz',
-            route: '/transfer',
+            // route: '/transfer',
+            action: MenuActions.qrScanTransfer,
             order: 3,
             isEnabled: !isExpired,
           ),
@@ -159,9 +161,11 @@ extension UserRoleMenuExtension on UserRole {
           _createMenuItem(
             id: 'transfer',
             title: '调拨',
-            type: MenuItemType.page,
+            // type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'swap_horiz',
-            route: '/transfer',
+            // route: '/transfer',
+            action: MenuActions.qrScanTransfer,
             order: 6,
             isEnabled: !isExpired,
           ),
@@ -273,9 +277,11 @@ extension UserRoleMenuExtension on UserRole {
           _createMenuItem(
             id: 'transfer',
             title: '调拨',
-            type: MenuItemType.page,
+            // type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'swap_horiz',
-            route: '/transfer',
+            // route: '/transfer',
+            action: MenuActions.qrScanTransfer,
             order: 6,
             isEnabled: !isExpired,
           ),
@@ -387,9 +393,11 @@ extension UserRoleMenuExtension on UserRole {
           _createMenuItem(
             id: 'transfer',
             title: '调拨',
-            type: MenuItemType.page,
+            // type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'swap_horiz',
-            route: '/transfer',
+            // route: '/transfer',
+            action: MenuActions.qrScanTransfer,
             order: 6,
             isEnabled: !isExpired,
           ),
