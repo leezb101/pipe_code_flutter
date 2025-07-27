@@ -3,6 +3,7 @@ import '../../../models/common/warehouse_user_info_vo.dart';
 import '../../../models/common/warehouse_vo.dart';
 import '../../../models/common/common_user_vo.dart';
 import '../../../models/common/result.dart';
+import '../../../models/project/project_simple_vo.dart';
 import '../interfaces/common_query_api_service.dart';
 
 class MockCommonQueryApiService implements CommonQueryApiService {
@@ -107,5 +108,29 @@ class MockCommonQueryApiService implements CommonQueryApiService {
     );
 
     return Result<List<WarehouseVO>>(code: 0, msg: '', data: warehouses);
+  }
+
+  @override
+  Future<Result<ProjectSimpleVo>> getProjectByMaterial(int materialId) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final project = ProjectSimpleVo(
+      id: materialId % 10 + 1, // 基于materialId生成项目ID
+      name: '项目${materialId % 5 + 1}',
+    );
+
+    return Result<ProjectSimpleVo>(code: 0, msg: '', data: project);
+  }
+
+  @override
+  Future<Result<List<ProjectSimpleVo>>> getCurrentLegalProjectList() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final projects = List.generate(
+      5,
+      (index) => ProjectSimpleVo(id: index + 1, name: '项目${index + 1}'),
+    );
+
+    return Result<List<ProjectSimpleVo>>(code: 0, msg: '', data: projects);
   }
 }

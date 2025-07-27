@@ -2,13 +2,14 @@
  * @Author: LeeZB
  * @Date: 2025-07-21 14:44:35
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-21 15:41:21
+ * @LastEditTime: 2025-07-27 13:34:14
  * @copyright: Copyright © 2025 高新供水.
  */
 import '../../../models/common/accept_user_info_vo.dart';
 import '../../../models/common/warehouse_user_info_vo.dart';
 import '../../../models/common/warehouse_vo.dart';
 import '../../../models/common/result.dart';
+import '../../../models/project/project_simple_vo.dart';
 
 abstract class CommonQueryApiService {
   /// 获取验收用户
@@ -43,4 +44,13 @@ abstract class CommonQueryApiService {
   /// 返回所有仓库的列表
   /// Returns [Result<List<WarehouseVO>>] 包含所有仓库的列表
   Future<Result<List<WarehouseVO>>> getWarehouseList();
+
+  /// 通过材料ID获取对应当前项目信息
+  /// [materialId] 材料ID
+  /// Returns [Result<ProjectSimpleVo>] 包含项目信息
+  Future<Result<ProjectSimpleVo>> getProjectByMaterial(int materialId);
+
+  /// 获取当前正在进行的合法项目列表
+  /// Returns [Result<List<ProjectSimpleVo>>] 包含当前正在进行的合法项目列表
+  Future<Result<List<ProjectSimpleVo>>> getCurrentLegalProjectList();
 }

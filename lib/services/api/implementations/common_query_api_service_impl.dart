@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-21 14:54:15
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 18:12:26
+ * @LastEditTime: 2025-07-27 13:34:31
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
@@ -10,6 +10,7 @@ import '../../../models/common/accept_user_info_vo.dart';
 import '../../../models/common/warehouse_user_info_vo.dart';
 import '../../../models/common/warehouse_vo.dart';
 import '../../../models/common/result.dart';
+import '../../../models/project/project_simple_vo.dart';
 import '../interfaces/common_query_api_service.dart';
 import '../../../config/app_config.dart';
 
@@ -96,6 +97,50 @@ class CommonQueryApiServiceImpl implements CommonQueryApiService {
       }, 'List<WarehouseVO>');
     } catch (e) {
       throw Exception('获取仓库列表失败: $e');
+    }
+  }
+
+  @override
+  Future<Result<ProjectSimpleVo>> getProjectByMaterial(int materialId) async {
+    try {
+      final response = await _dio.get(
+        '${AppConfig.apiBaseUrl}/mobile/common/project/material',
+        queryParameters: {'materialId': materialId},
+      );
+
+      return Result.safeFromJson<ProjectSimpleVo>(
+        response.data,
+        (data) => ProjectSimpleVo.fromJson(data as Map<String, dynamic>),
+        'ProjectSimpleVo',
+      );
+    } on DioException catch (e) {
+      throw Exception('获取项目信息失败: ${e.message}');
+    } catch (e) {
+      throw Exception('获取项目信息失败: $e');
+    }
+  }
+
+  @override
+  Future<Result<List<ProjectSimpleVo>>> getCurrentLegalProjectList() async {
+    try {
+      final response = await _dio.get(
+        '${AppConfig.apiBaseUrl}/mobile/common/project/current/legal/list',
+      );
+
+      return Result.safeFromJson<List<ProjectSimpleVo>>(response.data, (data) {
+        if (data is List) {
+          return data
+              .map(
+                (item) =>
+                    ProjectSimpleVo.fromJson(item as Map<String, dynamic>),
+              )
+              .toList();
+        } else {
+          throw FormatException('Expected List but got ${data.runtimeType}');
+        }
+      }, 'List<ProjectSimpleVo>');
+    } catch (e) {
+      throw Exception('获取当前正在进行的合法项目列表失败: $e');
     }
   }
 }
