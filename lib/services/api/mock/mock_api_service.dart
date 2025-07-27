@@ -2,10 +2,11 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 10:15:25
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 19:21:36
+ * @LastEditTime: 2025-07-27 11:24:34
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/dispatch_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/material_handle_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
@@ -24,6 +25,7 @@ import '../interfaces/list_api_service.dart';
 import '../interfaces/acceptance_api_service.dart';
 import '../interfaces/install_api_service.dart';
 import 'mock_auth_api_service.dart';
+import 'mock_dispatch_api_service.dart';
 import 'mock_user_api_service.dart';
 import 'mock_list_api_service.dart';
 import 'mock_acceptance_api_service.dart';
@@ -39,6 +41,7 @@ class MockApiService implements ApiServiceInterface {
   MaterialHandleApiService? _materialHandleService;
   SignoutApiService? _signoutApiService;
   InstallApiService? _installApiService;
+  DispatchApiService? _dispatchApiService;
 
   @override
   AuthApiService get auth => _authService ??= MockAuthApiService();
@@ -74,4 +77,8 @@ class MockApiService implements ApiServiceInterface {
   @override
   InstallApiService get install =>
       _installApiService ??= MockInstallApiService();
+
+  @override
+  DispatchApiService get dispatch =>
+      _dispatchApiService ??= MockDispatchApiService();
 }

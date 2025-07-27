@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 13:17:21
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 20:04:58
+ * @LastEditTime: 2025-07-27 11:24:43
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -20,11 +20,14 @@ import '../config/app_config.dart';
 import '../utils/logger.dart';
 import '../utils/network_logger.dart';
 import '../utils/auth_interceptor.dart';
+import 'api/implementations/dispatch_api_service_impl.dart';
 import 'api/interfaces/api_service_interface.dart';
 import 'api/implementations/api_service_impl.dart';
+import 'api/interfaces/dispatch_api_service.dart';
 import 'api/mock/mock_api_service.dart';
 import 'api/interfaces/records_api_service.dart';
 import 'api/implementations/real_records_api_service.dart';
+import 'api/mock/mock_dispatch_api_service.dart';
 import 'api/mock/mock_records_api_service.dart';
 import 'api/interfaces/identification_api_service.dart';
 import 'api/implementations/identification_api_service_impl.dart';
@@ -118,6 +121,15 @@ class ApiServiceFactory {
     } else {
       final dio = _createDio();
       return InstallApiServiceImpl(dio);
+    }
+  }
+
+  static DispatchApiService createDispatchApiService() {
+    if (AppConfig.isMockEnabled) {
+      return MockDispatchApiService();
+    } else {
+      final dio = _createDio();
+      return DispatchApiServiceImpl(dio);
     }
   }
 
