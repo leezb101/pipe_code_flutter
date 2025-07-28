@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+// ...existing code...
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/bloc/project/project_bloc.dart';
 import 'package:pipe_code_flutter/bloc/project/project_event.dart';
 import 'package:pipe_code_flutter/bloc/project/project_state.dart';
@@ -12,6 +13,9 @@ import '../../models/records/record_type.dart';
 import '../../widgets/expandable_tab_bar.dart';
 import '../../widgets/record_list_item.dart';
 import '../../widgets/common_state_widgets.dart' as common;
+import '../../bloc/auth/auth_bloc.dart';
+import '../../bloc/auth/auth_state.dart';
+import '../../models/user/wx_login_vo.dart';
 
 class RecordsListPage extends StatefulWidget {
   final RecordType? initialTab;
@@ -24,12 +28,68 @@ class RecordsListPage extends StatefulWidget {
 
 class _RecordsListPageState extends State<RecordsListPage> {
   late ScrollController _scrollController;
-  static const List<RecordType> _allTabs = RecordType.values;
+  late List<RecordType> _allTabs;
+  late RecordType _initialTab;
+  AuthState? _lastAuthState;
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController()..addListener(_onScroll);
+    // 先用当前authState初始化tabs
+    final authState = context.read<AuthBloc>().state;
+    _setupTabsByAuth(authState);
+    _lastAuthState = authState;
+    // 首次进入时自动加载默认tab（如待办）
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final bloc = context.read<RecordsBloc>();
+      bloc.add(LoadRecords(recordType: _initialTab));
+    });
+  }
+
+  void _setupTabsByAuth(AuthState authState) {
+    // 直接从authState获取wxLoginVO
+    bool isStoreKeeper = false;
+    WxLoginVO? wxLoginVO;
+    if (authState is AuthStorekeeperAuthenticated) {
+      wxLoginVO = authState.wxLoginVO;
+    } else if (authState is AuthFullyAuthenticated) {
+      wxLoginVO = authState.wxLoginVO;
+    } else if (authState is AuthLoginSuccess) {
+      wxLoginVO = authState.wxLoginVO;
+    } else if (authState is AuthTokenRefreshed) {
+      wxLoginVO = authState.wxLoginVO;
+    } else if (authState is AuthIdentitySelectionRequired) {
+      wxLoginVO = authState.wxLoginVO;
+    }
+    if (wxLoginVO != null) {
+      isStoreKeeper = wxLoginVO.storekeeper == true;
+    }
+
+    List<RecordType> tabs = [];
+    if (isStoreKeeper) {
+      // 展示“待办”和“仓管待办”
+      tabs = [RecordType.todo, RecordType.warehouseTodo];
+    } else {
+      // 只展示“待办”
+      tabs = [RecordType.todo];
+    }
+    // 追加其他tab
+    tabs.addAll(
+      RecordType.values.where(
+        (e) => e != RecordType.todo && e != RecordType.warehouseTodo,
+      ),
+    );
+    _allTabs = tabs;
+
+    // 设置默认tab
+    if (authState is AuthStorekeeperAuthenticated) {
+      // 独立库管员身份，默认“仓管待办”优先
+      _initialTab = isStoreKeeper ? RecordType.warehouseTodo : RecordType.todo;
+    } else {
+      // 其他身份，默认“待办”优先
+      _initialTab = RecordType.todo;
+    }
   }
 
   @override
@@ -132,51 +192,58 @@ class _RecordsListPageState extends State<RecordsListPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 如果是第一次进入页面，触发加载
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final bloc = context.read<RecordsBloc>();
-      if (bloc.state is RecordsInitial) {
-        bloc.add(LoadRecords(recordType: widget.initialTab ?? RecordType.todo));
-      }
-    });
-
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text('工作记录'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: Size.zero,
-          child: Container(height: 1, color: Colors.grey[200]),
-        ),
-      ),
-      body: Column(
-        children: [
-          BlocBuilder<RecordsBloc, RecordsState>(
-            builder: (context, state) {
-              RecordType currentTab = RecordType.todo;
-              if (state is RecordsInitial) {
-                currentTab = state.currentTab;
-              } else if (state is RecordsLoading) {
-                currentTab = state.currentTab;
-              } else if (state is RecordsLoaded) {
-                currentTab = state.currentTab;
-              } else if (state is RecordsError) {
-                currentTab = state.currentTab;
-              } else if (state is RecordsEmpty) {
-                currentTab = state.currentTab;
-              }
-              return ExpandableTabBar(
-                selectedTab: currentTab,
-                onTabSelected: _onTabSelected,
-                allTabs: _allTabs,
-              );
-            },
+    // 监听身份变化，动态调整tabs和重置tab状态
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, authState) {
+        if (_lastAuthState.runtimeType != authState.runtimeType) {
+          // 身份切换，重置tabs和初始tab
+          setState(() {
+            _setupTabsByAuth(authState);
+            // 重置bloc状态
+            final bloc = context.read<RecordsBloc>();
+            bloc.add(LoadRecords(recordType: _initialTab));
+          });
+        }
+        _lastAuthState = authState;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          title: const Text('工作记录'),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black87,
+          elevation: 0,
+          bottom: PreferredSize(
+            preferredSize: Size.zero,
+            child: Container(height: 1, color: Colors.grey[200]),
           ),
-          Expanded(child: _buildContent()),
-        ],
+        ),
+        body: Column(
+          children: [
+            BlocBuilder<RecordsBloc, RecordsState>(
+              builder: (context, state) {
+                RecordType currentTab = _initialTab;
+                if (state is RecordsInitial) {
+                  currentTab = state.currentTab;
+                } else if (state is RecordsLoading) {
+                  currentTab = state.currentTab;
+                } else if (state is RecordsLoaded) {
+                  currentTab = state.currentTab;
+                } else if (state is RecordsError) {
+                  currentTab = state.currentTab;
+                } else if (state is RecordsEmpty) {
+                  currentTab = state.currentTab;
+                }
+                return ExpandableTabBar(
+                  selectedTab: currentTab,
+                  onTabSelected: _onTabSelected,
+                  allTabs: _allTabs,
+                );
+              },
+            ),
+            Expanded(child: _buildContent()),
+          ],
+        ),
       ),
     );
   }

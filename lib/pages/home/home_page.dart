@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-28 16:25:23
+ * @LastEditTime: 2025-07-28 16:45:44
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -24,6 +24,9 @@ import '../../models/user/user_role.dart';
 import '../../models/project/project_info.dart';
 import '../../utils/toast_utils.dart';
 import '../../constants/menu_actions.dart';
+import '../../bloc/records/records_bloc.dart';
+import '../../bloc/records/records_event.dart';
+import '../../models/records/record_type.dart';
 
 // 假设这是您在项目中定义的扩展
 extension ColorValues on Color {
@@ -1125,14 +1128,23 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 处理菜单点击事件
-  void _handleMenuTap(
+  Future<void> _handleMenuTap(
     BuildContext context,
     MenuItem menuItem,
     ProjectRoleInfoLoaded state,
-  ) {
+  ) async {
     if (menuItem.isPageMenu && menuItem.route != null) {
-      // 导航到页面
-      _navigateToPage(context, menuItem.route!);
+      final result = await context.push(menuItem.route!);
+      if (result == true) {
+        final recordsBloc = context.read<RecordsBloc>();
+        // 刷新待办
+        recordsBloc.add(RefreshRecords(recordType: RecordType.todo));
+        // 菜单 id 到 RecordType 的映射
+        final type = _menuIdToRecordType(menuItem.id);
+        if (type != null) {
+          recordsBloc.add(RefreshRecords(recordType: type));
+        }
+      }
     } else if (menuItem.isActionMenu && menuItem.action != null) {
       // 执行操作
       _executeAction(context, menuItem.action!, state);
@@ -1142,11 +1154,25 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  /// 导航到页面
-  void _navigateToPage(BuildContext context, String route) {
-    // 这里可以实现路由导航逻辑
-    // 使用goRouter进行导航
-    context.push(route);
+  RecordType? _menuIdToRecordType(String id) {
+    switch (id) {
+      case 'accept':
+        return RecordType.accept;
+      case 'signout':
+        return RecordType.signout;
+      case 'install':
+        return RecordType.install;
+      case 'dispatch':
+        return RecordType.dispatch;
+      case 'return':
+        return RecordType.returnWarehouse;
+      case 'waste':
+        return RecordType.waste;
+      case 'inventory':
+        return RecordType.inventory;
+      default:
+        return null;
+    }
   }
 
   /// 执行操作
