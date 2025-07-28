@@ -27,11 +27,7 @@ class InstallApiServiceImpl extends BaseApiService
         );
         return Result(code: 0, msg: 'success', data: installDetail);
       } else {
-        return Result(
-          code: result.code,
-          msg: result.msg ?? '获取安装详情失败',
-          data: null,
-        );
+        return Result(code: result.code, msg: result.msg, data: null);
       }
     } else {
       return Result(code: -1, msg: '获取安装详情失败，请重试', data: null);
@@ -52,7 +48,7 @@ class InstallApiServiceImpl extends BaseApiService
       if (result.isSuccess) {
         return Result(code: 0, msg: 'success');
       } else {
-        return Result(code: result.code, msg: result.msg ?? '安装失败');
+        return Result(code: result.code, msg: result.msg);
       }
     } else {
       return Result(code: -1, msg: '安装失败，请重试');

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-08 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-08 15:00:00
+ * @LastEditTime: 2025-07-28 16:15:36
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -41,6 +41,7 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
   }
 
   Future<void> _pickFiles() async {
+    final context = this.context;
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -63,9 +64,11 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
         widget.onFilesChanged(_files);
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('选择文件失败: $e')));
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('选择文件失败: $e')));
+      }
     }
   }
 

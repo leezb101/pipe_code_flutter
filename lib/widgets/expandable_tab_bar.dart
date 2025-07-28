@@ -57,10 +57,7 @@ class _ExpandableTabBarState extends State<ExpandableTabBar>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: _buildTabSection(),
-    );
+    return Container(color: Colors.white, child: _buildTabSection());
   }
 
   Widget _buildTabSection() {
@@ -74,10 +71,7 @@ class _ExpandableTabBarState extends State<ExpandableTabBar>
           AnimatedBuilder(
             animation: _animation,
             builder: (context, child) {
-              return SizeTransition(
-                sizeFactor: _animation,
-                child: child,
-              );
+              return SizeTransition(sizeFactor: _animation, child: child);
             },
             child: _buildExpandedContent(),
           ),
@@ -88,7 +82,7 @@ class _ExpandableTabBarState extends State<ExpandableTabBar>
 
   Widget _buildFirstRow() {
     final firstRowTabs = _getFirstRowTabs();
-    
+
     return Row(
       children: [
         // 左侧：首行tab列表
@@ -96,26 +90,29 @@ class _ExpandableTabBarState extends State<ExpandableTabBar>
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: firstRowTabs.map((tab) => Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: _buildTabChip(tab),
-              )).toList(),
+              children: firstRowTabs
+                  .map(
+                    (tab) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _buildTabChip(tab),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
         ),
         // 右侧：展开/收起按钮
-        if (_hasMoreTabs && !_isExpanded)
-          _buildInlineExpandButton(),
+        if (_hasMoreTabs && !_isExpanded) _buildInlineExpandButton(),
       ],
     );
   }
 
   Widget _buildExpandedContent() {
     if (!_hasMoreTabs || !_isExpanded) return const SizedBox.shrink();
-    
+
     final hiddenTabs = _getHiddenTabs();
-    
-    return Container(
+
+    return SizedBox(
       width: double.infinity,
       child: Column(
         children: [
@@ -157,11 +154,7 @@ class _ExpandableTabBarState extends State<ExpandableTabBar>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         margin: const EdgeInsets.only(left: 8),
-        child: Icon(
-          Icons.keyboard_arrow_up,
-          color: Colors.grey[500],
-          size: 20,
-        ),
+        child: Icon(Icons.keyboard_arrow_up, color: Colors.grey[500], size: 20),
       ),
     );
   }
@@ -169,17 +162,17 @@ class _ExpandableTabBarState extends State<ExpandableTabBar>
   List<RecordType> _getFirstRowTabs() {
     // 首行显示前4个tabs（为展开按钮留出空间）
     List<RecordType> firstRowTabs = [];
-    
+
     // 首先确保当前选中的tab在首行
     firstRowTabs.add(widget.selectedTab);
-    
+
     // 然后添加其他tabs，首行最多显示4个（为按钮留空间）
     for (RecordType tab in widget.allTabs) {
       if (!firstRowTabs.contains(tab) && firstRowTabs.length < 4) {
         firstRowTabs.add(tab);
       }
     }
-    
+
     return firstRowTabs;
   }
 
@@ -190,7 +183,7 @@ class _ExpandableTabBarState extends State<ExpandableTabBar>
 
   Widget _buildTabChip(RecordType recordType) {
     final isSelected = widget.selectedTab == recordType;
-    
+
     return GestureDetector(
       onTap: () => widget.onTabSelected(recordType),
       child: AnimatedContainer(
@@ -200,7 +193,9 @@ class _ExpandableTabBarState extends State<ExpandableTabBar>
           color: isSelected ? Theme.of(context).primaryColor : Colors.grey[100],
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? Theme.of(context).primaryColor : Colors.grey[300]!,
+            color: isSelected
+                ? Theme.of(context).primaryColor
+                : Colors.grey[300]!,
             width: 1,
           ),
         ),

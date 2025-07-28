@@ -56,8 +56,10 @@ class RealRecordsApiService implements RecordsApiService {
         queryParameters: {
           'pageNum': pageNum,
           'pageSize': pageSize,
-          if (projectName != null && projectName.isNotEmpty) 'projectName': projectName,
-          if (projectCode != null && projectCode.isNotEmpty) 'projectCode': projectCode,
+          if (projectName != null && projectName.isNotEmpty)
+            'projectName': projectName,
+          if (projectCode != null && projectCode.isNotEmpty)
+            'projectCode': projectCode,
         },
       );
 
@@ -89,8 +91,10 @@ class RealRecordsApiService implements RecordsApiService {
         queryParameters: {
           'pageNum': pageNum,
           'pageSize': pageSize,
-          if (projectName != null && projectName.isNotEmpty) 'projectName': projectName,
-          if (projectCode != null && projectCode.isNotEmpty) 'projectCode': projectCode,
+          if (projectName != null && projectName.isNotEmpty)
+            'projectName': projectName,
+          if (projectCode != null && projectCode.isNotEmpty)
+            'projectCode': projectCode,
         },
       );
 
@@ -126,7 +130,7 @@ class RealRecordsApiService implements RecordsApiService {
         } else if (statusCode == 500) {
           return '服务器内部错误，请稍后重试';
         } else {
-          return '网络请求失败(${statusCode})';
+          return '网络请求失败($statusCode)';
         }
       case DioExceptionType.cancel:
         return '请求已取消';
@@ -135,7 +139,6 @@ class RealRecordsApiService implements RecordsApiService {
       case DioExceptionType.badCertificate:
         return '证书验证失败';
       case DioExceptionType.unknown:
-      default:
         return '网络请求失败: ${e.message}';
     }
   }

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-27 11:26:37
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 11:30:38
+ * @LastEditTime: 2025-07-28 15:56:10
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
@@ -12,7 +12,6 @@ import 'package:pipe_code_flutter/models/dispatch/do_dispatch_sign_in_vo.dart';
 import '../models/common/result.dart';
 import '../models/dispatch/dispatch_detail_vo.dart';
 import '../services/api/interfaces/dispatch_api_service.dart';
-import '../services/api/interfaces/common_query_api_service.dart';
 
 class DispatchRepository {
   final DispatchApiService _dispatchApiService;

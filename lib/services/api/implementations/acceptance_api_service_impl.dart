@@ -26,7 +26,7 @@ class AcceptanceApiServiceImpl extends BaseApiService
         if (result.success == true) {
           return Result(code: 0, msg: 'success', data: null);
         } else {
-          return Result(code: -1, msg: result.msg ?? '提交失败', data: null);
+          return Result(code: -1, msg: result.msg, data: null);
         }
       } else {
         return Result(code: -1, msg: '提交失败，请重试', data: null);
@@ -59,7 +59,7 @@ class AcceptanceApiServiceImpl extends BaseApiService
         if (result.isSuccess) {
           return Result(code: 0, msg: 'success', data: null);
         } else {
-          return Result(code: -1, msg: result.msg ?? '审核失败', data: null);
+          return Result(code: -1, msg: result.msg, data: null);
         }
       } else {
         return Result(code: -1, msg: '审核失败，请重试', data: null);
@@ -95,7 +95,7 @@ class AcceptanceApiServiceImpl extends BaseApiService
           );
           return Result(code: 0, msg: 'success', data: acceptanceInfo);
         } else {
-          return Result(code: -1, msg: result.msg ?? '获取详情失败', data: null);
+          return Result(code: -1, msg: result.msg, data: null);
         }
       } else {
         return Result(code: -1, msg: '获取详情失败，请重试', data: null);
@@ -142,7 +142,7 @@ class AcceptanceApiServiceImpl extends BaseApiService
           );
           return Result(code: 0, msg: 'success', data: recordList);
         } else {
-          return Result(code: -1, msg: result.msg ?? '获取列表失败', data: null);
+          return Result(code: -1, msg: result.msg, data: null);
         }
       } else {
         return Result(code: -1, msg: '获取列表失败，请重试', data: null);
@@ -175,7 +175,7 @@ class AcceptanceApiServiceImpl extends BaseApiService
         if (result.isSuccess) {
           return Result(code: 0, msg: 'success', data: null);
         } else {
-          return Result(code: -1, msg: result.msg ?? '入库失败', data: null);
+          return Result(code: -1, msg: result.msg, data: null);
         }
       } else {
         return Result(code: -1, msg: '入库失败，请重试', data: null);
@@ -190,5 +190,4 @@ class AcceptanceApiServiceImpl extends BaseApiService
       return Result(code: -1, msg: '入库失败，请检查网络连接', data: null);
     }
   }
-
 }

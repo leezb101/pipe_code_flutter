@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-24 19:50:22
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 17:59:27
+ * @LastEditTime: 2025-07-28 16:09:04
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'dart:io';
@@ -16,7 +16,6 @@ import 'package:pipe_code_flutter/bloc/user/user_bloc.dart';
 import 'package:pipe_code_flutter/bloc/user/user_state.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
-import 'package:pipe_code_flutter/models/common/warehouse_user_info_vo.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/signout/do_signout_request_vo.dart';
@@ -35,7 +34,7 @@ class SignoutPage extends StatefulWidget {
 
 class _SignoutPageState extends State<SignoutPage> {
   List<File> _signoutPhotos = [];
-  Map<String, bool?> _userPushStates = {};
+  final Map<String, bool?> _userPushStates = {};
 
   @override
   void initState() {
@@ -62,7 +61,7 @@ class _SignoutPageState extends State<SignoutPage> {
         } else if (state is SignoutSubmitted) {
           context.showSuccessToast('提交成功，即将返回', isGlobal: true);
           Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) {
+            if (context.mounted) {
               GoRouter.of(context).popUntil(
                 predicate: (route) {
                   return route.name == '/';
@@ -354,7 +353,7 @@ class _SignoutPageState extends State<SignoutPage> {
             ),
           )
         else if (users != null)
-          ...users.map((user) => _buildUserItem(user, 'warehouse')).toList()
+          ...users.map((user) => _buildUserItem(user, 'warehouse'))
         else
           Container(
             padding: const EdgeInsets.all(16),

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-17 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-28 15:35:54
+ * @LastEditTime: 2025-07-28 16:06:59
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -131,7 +131,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
           // 通过GoRouter返回MainPage
           context.showSuccessToast('提交成功，即将返回', isGlobal: true);
           Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) {
+            if (context.mounted) {
               GoRouter.of(context).popUntil(
                 predicate: (route) {
                   return route.name == '/';
@@ -207,9 +207,9 @@ class _AcceptancePageState extends State<AcceptancePage> {
               ],
             ),
             const SizedBox(height: 16),
-            ...widget.materials.normals
-                .map((material) => _buildMaterialItem(material))
-                ,
+            ...widget.materials.normals.map(
+              (material) => _buildMaterialItem(material),
+            ),
           ],
         ),
       ),
@@ -755,7 +755,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
   }
 
   void _handleConfirmAcceptance() {
-
     // Collect selected user IDs for push notifications
     final selectedUserIds = <int>[];
     _userPushStates.forEach((key, value) {

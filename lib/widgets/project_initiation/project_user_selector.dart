@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:05:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 22:05:00
+ * @LastEditTime: 2025-07-28 15:51:53
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -33,15 +33,15 @@ class ProjectUserSelector extends StatelessWidget {
           children: [
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
             OutlinedButton(
               onPressed: onAddUser,
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
               ),
               child: Text('添加${_getRoleLabel(title)}'),
             ),
@@ -52,7 +52,7 @@ class ProjectUserSelector extends StatelessWidget {
           final index = entry.key;
           final user = entry.value;
           return _buildUserCard(context, user, index);
-        }).toList(),
+        }),
         if (users.isEmpty)
           Container(
             width: double.infinity,
@@ -63,10 +63,7 @@ class ProjectUserSelector extends StatelessWidget {
             ),
             child: Text(
               '暂无${_getRoleLabel(title)}信息',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ),
@@ -84,9 +81,14 @@ class ProjectUserSelector extends StatelessWidget {
               value: user.orgName,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
               ),
-              items: [user.orgName, 'XXXXX监理公司', 'XXXXX工程有限公司'].map((String value) {
+              items: [user.orgName, 'XXXXX监理公司', 'XXXXX工程有限公司'].map((
+                String value,
+              ) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
@@ -107,7 +109,10 @@ class ProjectUserSelector extends StatelessWidget {
                     decoration: const InputDecoration(
                       labelText: '姓名',
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                     ),
                     onChanged: (value) {
                       // 处理姓名变化
@@ -121,7 +126,10 @@ class ProjectUserSelector extends StatelessWidget {
                     decoration: const InputDecoration(
                       labelText: '电话',
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                     ),
                     onChanged: (value) {
                       // 处理电话变化
@@ -132,7 +140,10 @@ class ProjectUserSelector extends StatelessWidget {
                 OutlinedButton(
                   onPressed: () => onRemoveUser(index),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     foregroundColor: Colors.red,
                   ),
                   child: const Text('删除'),

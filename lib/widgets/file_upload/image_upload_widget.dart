@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-08 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-08 14:59:37
+ * @LastEditTime: 2025-07-28 16:15:52
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -41,6 +41,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   }
 
   Future<void> _pickImages() async {
+    final context = this.context;
     try {
       final List<XFile> pickedFiles = await _picker.pickMultiImage();
       if (pickedFiles.isNotEmpty) {
@@ -56,13 +57,16 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
         widget.onImagesChanged(_images);
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
+      }
     }
   }
 
   Future<void> _takePicture() async {
+    final context = this.context;
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.camera,
@@ -77,9 +81,11 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
         widget.onImagesChanged(_images);
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('拍照失败: $e')));
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('拍照失败: $e')));
+      }
     }
   }
 

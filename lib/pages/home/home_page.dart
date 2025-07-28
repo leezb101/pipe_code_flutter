@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 14:50:06
+ * @LastEditTime: 2025-07-28 16:24:14
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -647,7 +647,7 @@ class _HomePageState extends State<HomePage> {
                         );
                       },
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
@@ -1278,7 +1278,7 @@ class _HomePageState extends State<HomePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('选择${scanType}模式'),
+        title: Text('选择$scanType模式'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

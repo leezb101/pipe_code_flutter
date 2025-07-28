@@ -15,13 +15,17 @@ import 'base_api_service.dart';
 /// 对接实际后端API
 class ProjectApiServiceImpl extends BaseApiService
     implements ProjectApiService {
-  ProjectApiServiceImpl(Dio dio) : super(dio);
+  ProjectApiServiceImpl(super.dio);
 
   @override
   Future<Result<void>> addProject(ProjectInitiation project) async {
     try {
       final response = await dio.post('/project/add', data: project.toJson());
-      return Result.safeFromJson(response.data, (json) => json, 'ProjectResponse');
+      return Result.safeFromJson(
+        response.data,
+        (json) => json,
+        'ProjectResponse',
+      );
     } on DioException catch (e) {
       return Result(
         code: e.response?.statusCode ?? 500,
@@ -38,7 +42,11 @@ class ProjectApiServiceImpl extends BaseApiService
         '/project/update',
         data: project.toJson(),
       );
-      return Result.safeFromJson(response.data, (json) => json, 'ProjectResponse');
+      return Result.safeFromJson(
+        response.data,
+        (json) => json,
+        'ProjectResponse',
+      );
     } on DioException catch (e) {
       return Result(
         code: e.response?.statusCode ?? 500,
@@ -55,7 +63,11 @@ class ProjectApiServiceImpl extends BaseApiService
         '/project/commit',
         data: project.toJson(),
       );
-      return Result.safeFromJson(response.data, (json) => json, 'ProjectResponse');
+      return Result.safeFromJson(
+        response.data,
+        (json) => json,
+        'ProjectResponse',
+      );
     } on DioException catch (e) {
       return Result(
         code: e.response?.statusCode ?? 500,
@@ -69,7 +81,11 @@ class ProjectApiServiceImpl extends BaseApiService
   Future<Result<void>> deleteProject(int id) async {
     try {
       final response = await dio.post('/project/delete', data: {'id': id});
-      return Result.safeFromJson(response.data, (json) => json, 'ProjectResponse');
+      return Result.safeFromJson(
+        response.data,
+        (json) => json,
+        'ProjectResponse',
+      );
     } on DioException catch (e) {
       return Result(
         code: e.response?.statusCode ?? 500,
@@ -103,7 +119,11 @@ class ProjectApiServiceImpl extends BaseApiService
         '/project/init/list',
         queryParameters: queryParams,
       );
-      final result = Result.safeFromJson(response.data, (json) => json, 'ProjectResponse');
+      final result = Result.safeFromJson(
+        response.data,
+        (json) => json,
+        'ProjectResponse',
+      );
 
       if (result.code == 0 && result.data != null) {
         final records = (result.data as Map)['records'] as List;
@@ -130,7 +150,11 @@ class ProjectApiServiceImpl extends BaseApiService
         '/project/detail',
         queryParameters: {'id': id},
       );
-      final result = Result.safeFromJson(response.data, (json) => json, 'ProjectResponse');
+      final result = Result.safeFromJson(
+        response.data,
+        (json) => json,
+        'ProjectResponse',
+      );
 
       if (result.code == 0 && result.data != null) {
         final detail = ProjectDetail.fromJson((result.data as Map)['project']);
@@ -151,7 +175,11 @@ class ProjectApiServiceImpl extends BaseApiService
   Future<Result<List<ProjectSupplier>>> getSupplierList() async {
     try {
       final response = await dio.get('/supplier/list');
-      final result = Result.safeFromJson(response.data, (json) => json, 'ProjectResponse');
+      final result = Result.safeFromJson(
+        response.data,
+        (json) => json,
+        'ProjectResponse',
+      );
 
       if (result.code == 0 && result.data != null) {
         final suppliers = (result.data as List)
@@ -174,7 +202,11 @@ class ProjectApiServiceImpl extends BaseApiService
   Future<Result<List<MaterialType>>> getMaterialTypes() async {
     try {
       final response = await dio.get('/material/types');
-      final result = Result.safeFromJson(response.data, (json) => json, 'ProjectResponse');
+      final result = Result.safeFromJson(
+        response.data,
+        (json) => json,
+        'ProjectResponse',
+      );
 
       if (result.code == 0 && result.data != null) {
         final types = (result.data as List)
@@ -212,7 +244,11 @@ class ProjectApiServiceImpl extends BaseApiService
         '/user/list',
         queryParameters: queryParams,
       );
-      final result = Result.safeFromJson(response.data, (json) => json, 'ProjectResponse');
+      final result = Result.safeFromJson(
+        response.data,
+        (json) => json,
+        'ProjectResponse',
+      );
 
       if (result.code == 0 && result.data != null) {
         final users = (result.data as List)

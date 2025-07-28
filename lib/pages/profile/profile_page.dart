@@ -75,19 +75,18 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ),
-                    if (userState.wxLoginVO.name != null ||
-                        userState.wxLoginVO.nick != null)
+                    if (userState.wxLoginVO.nick != null)
                       Card(
                         child: ListTile(
                           leading: const Icon(Icons.badge),
                           title: const Text('Name'),
                           subtitle:
-                              ('${userState.wxLoginVO.name ?? ''} ${userState.wxLoginVO.nick ?? ''}')
+                              ('${userState.wxLoginVO.name} ${userState.wxLoginVO.nick ?? ''}')
                                   .trim()
                                   .isEmpty
                               ? const Text('No name set')
                               : Text(
-                                  '${userState.wxLoginVO.name ?? ''} ${userState.wxLoginVO.nick ?? ''}',
+                                  '${userState.wxLoginVO.name} ${userState.wxLoginVO.nick ?? ''}',
                                 ),
                         ),
                       ),

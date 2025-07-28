@@ -5,7 +5,6 @@ import 'package:pipe_code_flutter/bloc/project/project_bloc.dart';
 import 'package:pipe_code_flutter/bloc/project/project_event.dart';
 import 'package:pipe_code_flutter/bloc/project/project_state.dart';
 import 'package:pipe_code_flutter/models/records/record_item.dart';
-import 'package:pipe_code_flutter/repositories/enum_repository.dart';
 import '../../bloc/records/records_bloc.dart';
 import '../../bloc/records/records_event.dart';
 import '../../bloc/records/records_state.dart';
@@ -87,12 +86,6 @@ class _RecordsListPageState extends State<RecordsListPage> {
       case RecordType.warehouseTodo:
         final rec = record as TodoRecordItem;
         handleGoTodoDetail(context, rec);
-        break;
-      default:
-        // For other record types, show a placeholder message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${currentTab.displayName}详情页面待开发')),
-        );
         break;
     }
   }
