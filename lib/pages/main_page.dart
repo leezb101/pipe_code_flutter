@@ -29,10 +29,10 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   int _currentIndex = 0;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  
+
   // 控制界面是否准备好显示 TabBar
   bool _isReady = false;
-  
+
   // 当前用户状态
   bool _isStorekeeper = false;
   AuthState? _currentAuthState;
@@ -71,21 +71,17 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     // 初始化当前状态
     final authState = context.read<AuthBloc>().state;
     final projectState = context.read<ProjectBloc>().state;
-    
-    print('MainPage._initializeProjectState: AuthState=${authState.runtimeType}, ProjectState=${projectState.runtimeType}');
-    
+
     setState(() {
       _currentAuthState = authState;
       _currentProjectState = projectState;
     });
-    
+
     // 检查认证状态并加载用户数据
     if (authState is AuthLoginSuccess) {
-      print('MainPage: AuthLoginSuccess detected in init');
       // 触发用户数据加载
       context.read<UserBloc>().add(UserSetData(wxLoginVO: authState.wxLoginVO));
     } else if (authState is AuthStorekeeperAuthenticated) {
-      print('MainPage: AuthStorekeeperAuthenticated detected in init');
       // 仓管员模式，设置状态并加载用户数据
       setState(() {
         _isStorekeeper = true;
@@ -93,7 +89,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       });
       context.read<UserBloc>().add(UserSetData(wxLoginVO: authState.wxLoginVO));
     }
-    
+
     // 更新准备状态
     _updateReadyState();
   }
@@ -122,22 +118,19 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         // 监听认证状态变化
         BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
-            print('MainPage AuthBloc Listener: ${state.runtimeType}');
             setState(() {
               _currentAuthState = state;
             });
-            
-            if (state is AuthLoginSuccess || state is AuthIdentitySelectionRequired) {
+
+            if (state is AuthLoginSuccess ||
+                state is AuthIdentitySelectionRequired) {
               // 登录成功或需要身份选择，都设置用户数据
               final wxLoginVO = state is AuthLoginSuccess
                   ? state.wxLoginVO
                   : (state as AuthIdentitySelectionRequired).wxLoginVO;
-              context.read<UserBloc>().add(
-                UserSetData(wxLoginVO: wxLoginVO),
-              );
+              context.read<UserBloc>().add(UserSetData(wxLoginVO: wxLoginVO));
             } else if (state is AuthStorekeeperAuthenticated) {
               // 仓管员认证完成，设置仓管员状态
-              print('MainPage: Setting storekeeper state');
               setState(() {
                 _isStorekeeper = true;
                 _isReady = true;
@@ -151,14 +144,13 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
               context.read<ProjectBloc>().add(const ProjectClearData());
               context.go('/login');
             }
-            
+
             _updateReadyState();
           },
         ),
         // 监听项目状态变化
         BlocListener<ProjectBloc, ProjectState>(
           listener: (context, state) {
-            print('MainPage ProjectBloc Listener: ${state.runtimeType}');
             setState(() {
               _currentProjectState = state;
             });
@@ -173,7 +165,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   /// 更新界面准备状态
   void _updateReadyState() {
     bool newReadyState = false;
-    
+
     // 仓管员状态优先级最高
     if (_isStorekeeper) {
       newReadyState = true;
@@ -186,7 +178,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         newReadyState = true;
       }
     }
-    
+
     if (newReadyState != _isReady) {
       setState(() {
         _isReady = newReadyState;
@@ -197,49 +189,41 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   /// 构建页面内容
   Widget _buildPageContent() {
     // Debug 日志
-    print('MainPage._buildPageContent: AuthState=${_currentAuthState.runtimeType}, ProjectState=${_currentProjectState.runtimeType}, isStorekeeper=$_isStorekeeper, isReady=$_isReady');
-    
+
     // 1. 仓管员身份选择状态 - 最高优先级，在 MainPage 中处理
     if (_currentAuthState is AuthIdentitySelectionRequired) {
-      print('MainPage: Showing identity selection page');
       return _buildIdentitySelectionPage();
     }
-    
+
     // 2. 普通用户等待项目选择 - 在 MainPage 中处理
-    if (_currentAuthState is AuthLoginSuccess && 
+    if (_currentAuthState is AuthLoginSuccess &&
         _currentProjectState is ProjectListLoaded) {
-      print('MainPage: Showing project selection page');
       return _buildProjectSelectionPage();
     }
-    
+
     // 2.1 普通用户无项目 - 显示无项目提示
-    if (_currentAuthState is AuthLoginSuccess && 
+    if (_currentAuthState is AuthLoginSuccess &&
         _currentProjectState is ProjectEmpty) {
-      print('MainPage: Showing no projects page');
       return _buildNoProjectsPage();
     }
-    
+
     // 3. 仓管员已认证状态 - 显示主界面
     if (_currentAuthState is AuthStorekeeperAuthenticated) {
-      print('MainPage: Showing storekeeper main interface');
       return _buildMainInterface();
     }
-    
+
     // 4. 普通用户完整状态 - 显示主界面
-    if (_currentAuthState is AuthLoginSuccess && 
+    if (_currentAuthState is AuthLoginSuccess &&
         _currentProjectState is ProjectRoleInfoLoaded) {
-      print('MainPage: Showing normal user main interface');
       return _buildMainInterface();
     }
-    
+
     // 5. 项目加载错误
     if (_currentProjectState is ProjectError) {
-      print('MainPage: Project error');
       return _buildErrorPage((_currentProjectState as ProjectError).message);
     }
-    
+
     // 6. 默认加载状态
-    print('MainPage: Default loading state');
     return _buildLoadingPage();
   }
 
@@ -299,11 +283,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
-            ),
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text('加载项目信息失败: $message'),
             const SizedBox(height: 16),
@@ -313,9 +293,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                 final userState = context.read<UserBloc>().state;
                 if (userState is UserLoaded) {
                   context.read<ProjectBloc>().add(
-                    ProjectLoadUserProjects(
-                      wxLoginVO: userState.wxLoginVO,
-                    ),
+                    ProjectLoadUserProjects(wxLoginVO: userState.wxLoginVO),
                   );
                 }
               },
@@ -331,7 +309,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   Widget _buildIdentitySelectionPage() {
     final authState = _currentAuthState as AuthIdentitySelectionRequired;
     final wxLoginVO = authState.wxLoginVO;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('选择登录身份'),
@@ -346,11 +324,11 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             // 顶部用户信息
             _buildUserInfoCard(wxLoginVO),
             const SizedBox(height: 40),
-            
+
             // 身份选择提示
             _buildSelectionTitle(),
             const SizedBox(height: 30),
-            
+
             // 身份选择卡片
             Expanded(
               child: Column(
@@ -361,7 +339,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                 ],
               ),
             ),
-            
+
             // 底部说明
             _buildSelectionNote(),
           ],
@@ -376,7 +354,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     final projectState = _currentProjectState as ProjectListLoaded;
     final wxLoginVO = authState.wxLoginVO;
     final projects = projectState.availableProjects;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('选择项目'),
@@ -391,16 +369,16 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             // 顶部用户信息
             _buildProjectUserInfoCard(wxLoginVO),
             const SizedBox(height: 24),
-            
+
             // 项目选择提示
             _buildProjectSelectionTitle(),
             const SizedBox(height: 24),
-            
+
             // 项目列表
             Expanded(
-              child: projects.isEmpty 
-                ? _buildNoProjectsView()
-                : _buildProjectsList(projects),
+              child: projects.isEmpty
+                  ? _buildNoProjectsView()
+                  : _buildProjectsList(projects),
             ),
           ],
         ),
@@ -426,7 +404,9 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+            backgroundColor: Theme.of(
+              context,
+            ).primaryColor.withValues(alpha: 0.1),
             child: Text(
               wxLoginVO.name.isNotEmpty ? wxLoginVO.name[0] : 'U',
               style: TextStyle(
@@ -452,10 +432,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                 const SizedBox(height: 4),
                 const Text(
                   '仓管员账户',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF7F8C8D),
-                  ),
+                  style: TextStyle(fontSize: 14, color: Color(0xFF7F8C8D)),
                 ),
               ],
             ),
@@ -479,10 +456,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         SizedBox(height: 8),
         Text(
           '根据您的工作需要选择合适的身份模式',
-          style: TextStyle(
-            fontSize: 16,
-            color: Color(0xFF7F8C8D),
-          ),
+          style: TextStyle(fontSize: 16, color: Color(0xFF7F8C8D)),
         ),
       ],
     );
@@ -603,10 +577,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           Expanded(
             child: Text(
               '每次登录都需要重新选择身份，确保符合当前工作需要',
-              style: TextStyle(
-                fontSize: 13,
-                color: Color(0xFF6C757D),
-              ),
+              style: TextStyle(fontSize: 13, color: Color(0xFF6C757D)),
             ),
           ),
         ],
@@ -641,7 +612,9 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+            backgroundColor: Theme.of(
+              context,
+            ).primaryColor.withValues(alpha: 0.1),
             child: Text(
               wxLoginVO.name.isNotEmpty ? wxLoginVO.name[0] : 'U',
               style: TextStyle(
@@ -695,10 +668,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         SizedBox(height: 8),
         Text(
           '请从以下项目中选择您要参与的项目',
-          style: TextStyle(
-            fontSize: 16,
-            color: Color(0xFF7F8C8D),
-          ),
+          style: TextStyle(fontSize: 16, color: Color(0xFF7F8C8D)),
         ),
       ],
     );
@@ -822,10 +792,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           SizedBox(height: 8),
           Text(
             '请联系管理员为您分配项目权限',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF95A5A6),
-            ),
+            style: TextStyle(fontSize: 14, color: Color(0xFF95A5A6)),
           ),
         ],
       ),
@@ -834,11 +801,8 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   /// 选择项目
   void _selectProject(dynamic project) {
-    print('MainPage: Selecting project ${project.projectName}');
     context.read<ProjectBloc>().add(
-      ProjectSelectProject(
-        projectId: project.projectId,
-      ),
+      ProjectSelectProject(projectId: project.projectId),
     );
   }
 
@@ -846,7 +810,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   Widget _buildNoProjectsPage() {
     final authState = _currentAuthState as AuthLoginSuccess;
     final wxLoginVO = authState.wxLoginVO;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('项目信息'),
@@ -861,7 +825,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             // 顶部用户信息
             _buildProjectUserInfoCard(wxLoginVO),
             const SizedBox(height: 40),
-            
+
             // 无项目提示
             Expanded(
               child: Center(
@@ -893,21 +857,15 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                     const SizedBox(height: 12),
                     const Text(
                       '您当前没有被分配到任何项目',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF95A5A6),
-                      ),
+                      style: TextStyle(fontSize: 16, color: Color(0xFF95A5A6)),
                     ),
                     const SizedBox(height: 8),
                     const Text(
                       '请联系项目管理员为您分配项目权限',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF95A5A6),
-                      ),
+                      style: TextStyle(fontSize: 16, color: Color(0xFF95A5A6)),
                     ),
                     const SizedBox(height: 40),
-                    
+
                     // 联系管理员按钮
                     Container(
                       width: double.infinity,
@@ -925,13 +883,16 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                         icon: const Icon(Icons.contact_support),
                         label: const Text(
                           '联系管理员',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // 退出登录按钮
                     Container(
                       width: double.infinity,

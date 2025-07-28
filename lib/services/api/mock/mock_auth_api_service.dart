@@ -43,7 +43,6 @@ class MockAuthApiService implements AuthApiService {
     // 模拟imgCode验证（在mock环境中不严格要求）
     if (imgCode == null || imgCode.isEmpty) {
       // 在mock环境中只记录警告，不阻断流程
-      print('Mock Warning: imgCode未提供，实际环境中可能导致验证失败');
     }
 
     if (MockDataGenerator.shouldFail(failureRate: 0.2)) {
@@ -58,7 +57,6 @@ class MockAuthApiService implements AuthApiService {
 
     if (isEncrypted) {
       // RSA加密密码验证 - 在mock环境中简化验证逻辑
-      print('Mock Info: 检测到RSA加密密码，长度: ${password.length}');
       // 在实际环境中，这里应该解密并验证密码
       // Mock环境中，只要是有效的Base64格式就认为通过
     } else {
@@ -66,7 +64,6 @@ class MockAuthApiService implements AuthApiService {
       if (password.length < 3) {
         return const Result(code: 400, msg: '密码长度不能少于3位', data: null);
       }
-      print('Mock Warning: 检测到明文密码，建议使用RSA加密');
     }
 
     final mockLoginData = _generateMockWxLoginVO(loginRequest.account);
@@ -90,12 +87,7 @@ class MockAuthApiService implements AuthApiService {
     // 模拟smsCode验证（在mock环境中不严格要求）
     if (smsCode == null || smsCode.isEmpty) {
       // 在mock环境中只记录警告，不阻断流程
-      print('Mock Warning: smsCode未提供，实际环境中可能导致验证失败');
-    } else {
-      print(
-        'Mock Info: 检测到smsCode，标识符: ${smsCode.length > 8 ? '${smsCode.substring(0, 8)}...' : smsCode}',
-      );
-    }
+    } else {}
 
     if (code != '1234') {
       return const Result(code: 400, msg: '验证码不正确', data: null);

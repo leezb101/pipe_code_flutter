@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-07 14:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-11 18:02:33
+ * @LastEditTime: 2025-07-28 15:37:36
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -129,9 +129,7 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
               ],
             ),
             const SizedBox(height: 16),
-            ...widget.materials
-                .map((material) => _buildMaterialItem(material))
-                .toList(),
+            ...widget.materials.map((material) => _buildMaterialItem(material)),
           ],
         ),
       ),
@@ -371,9 +369,6 @@ class _InventoryConfirmationPageState extends State<InventoryConfirmationPage> {
   void _handleConfirmAcceptance() {
     // TODO: Implement acceptance confirmation logic
     // 这里使用上传的文件数据
-    print('验收照片数量: ${_acceptancePhotos.length}');
-    print('报验单数量: ${_inspectionReports.length}');
-    print('验收报告数量: ${_acceptanceReports.length}');
 
     ScaffoldMessenger.of(
       context,
