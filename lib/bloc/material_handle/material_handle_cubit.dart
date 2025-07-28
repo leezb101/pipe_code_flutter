@@ -30,7 +30,7 @@ class MaterialHandleCubit extends Cubit<MaterialHandleState> {
     if (result.isSuccess && result.data != null) {
       emit(MaterialHandleScanSuccess(result.data!));
     } else {
-      emit(MaterialHandleScanFailure(result.msg ?? '扫码失败'));
+      emit(MaterialHandleScanFailure(result.msg));
     }
   }
 

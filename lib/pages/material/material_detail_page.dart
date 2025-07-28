@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-20 15:45:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-20 15:45:00
+ * @LastEditTime: 2025-07-28 15:50:23
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -340,8 +340,9 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     buffer.writeln('=== 项目信息 ===');
     buffer.writeln('项目ID: ${data.projectId}');
     if (data.projectName != null) buffer.writeln('项目名称: ${data.projectName}');
-    if (data.projectAddress != null)
+    if (data.projectAddress != null) {
       buffer.writeln('项目地址: ${data.projectAddress}');
+    }
     buffer.writeln();
 
     // 基础信息
@@ -352,19 +353,24 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
         baseInfo.mfgNm != null ||
         baseInfo.purNm != null) {
       buffer.writeln('=== 基础信息 ===');
-      if (baseInfo.materialCode != null)
+      if (baseInfo.materialCode != null) {
         buffer.writeln('材料编码: ${baseInfo.materialCode}');
-      if (baseInfo.deliveryNumber != null)
+      }
+      if (baseInfo.deliveryNumber != null) {
         buffer.writeln('发货单号: ${baseInfo.deliveryNumber}');
-      if (baseInfo.batchCode != null)
+      }
+      if (baseInfo.batchCode != null) {
         buffer.writeln('批次号: ${baseInfo.batchCode}');
+      }
       if (baseInfo.mfgNm != null) buffer.writeln('制造商: ${baseInfo.mfgNm}');
       if (baseInfo.purNm != null) buffer.writeln('采购方: ${baseInfo.purNm}');
-      if (baseInfo.prodStdNo != null)
+      if (baseInfo.prodStdNo != null) {
         buffer.writeln('产品标准号: ${baseInfo.prodStdNo}');
+      }
       if (baseInfo.spec != null) buffer.writeln('规格: ${baseInfo.spec}');
-      if (baseInfo.pressLvl != null)
+      if (baseInfo.pressLvl != null) {
         buffer.writeln('压力等级: ${baseInfo.pressLvl}');
+      }
       if (baseInfo.weight != null) buffer.writeln('重量: ${baseInfo.weight}');
       buffer.writeln();
     }
@@ -383,10 +389,12 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     // 位置信息
     if (data.lat != null || data.lng != null) {
       buffer.writeln('=== 位置信息 ===');
-      if (data.lat != null)
+      if (data.lat != null) {
         buffer.writeln('纬度: ${data.lat!.toStringAsFixed(6)}');
-      if (data.lng != null)
+      }
+      if (data.lng != null) {
         buffer.writeln('经度: ${data.lng!.toStringAsFixed(6)}');
+      }
     }
 
     Clipboard.setData(ClipboardData(text: buffer.toString()));

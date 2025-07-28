@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:05:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-11 17:49:53
+ * @LastEditTime: 2025-07-28 16:14:00
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -821,7 +821,7 @@ class _ProjectInitiationFormPageState extends State<ProjectInitiationFormPage> {
   /// 添加用户
   void _addUser(String userType) {
     // 实现添加用户逻辑
-    context.showInfoToast('添加${userType}用户功能待实现');
+    context.showInfoToast('添加$userType用户功能待实现');
   }
 
   /// 移除用户
@@ -838,11 +838,10 @@ class _ProjectInitiationFormPageState extends State<ProjectInitiationFormPage> {
 
   /// 导航到物料选择页面
   void _navigateToMaterialSelection() {
+    final projectInitiationBloc = context.read<ProjectInitiationBloc>();
     context.pushNamed('material-selection').then((result) {
       if (result != null && result is List<ProjectMaterial>) {
-        context.read<ProjectInitiationBloc>().add(
-          AddMaterialToProject(materials: result),
-        );
+        projectInitiationBloc.add(AddMaterialToProject(materials: result));
       }
     });
   }

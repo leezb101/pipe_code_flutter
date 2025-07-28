@@ -25,7 +25,7 @@ class SignoutBloc extends Bloc<SignoutEvent, SignoutState> {
     if (result.isSuccess) {
       emit(SignoutReady(signoutDetail: result.data!));
     } else {
-      emit(SignoutDetailError(result.msg ?? '加载失败'));
+      emit(SignoutDetailError(result.msg));
     }
   }
 
@@ -38,7 +38,7 @@ class SignoutBloc extends Bloc<SignoutEvent, SignoutState> {
     if (result.isSuccess) {
       emit(SignoutReady(signoutDetail: result.data!));
     } else {
-      emit(SignoutDetailError(result.msg ?? '加载失败'));
+      emit(SignoutDetailError(result.msg));
     }
   }
 
@@ -70,7 +70,7 @@ class SignoutBloc extends Bloc<SignoutEvent, SignoutState> {
       emit(
         newReadyState.copyWith(
           isWarehouseInfoLoading: false,
-          warehouseInfoError: result.msg ?? '获取仓库信息失败，请重试',
+          warehouseInfoError: result.msg,
         ),
       );
     }
@@ -108,7 +108,7 @@ class SignoutBloc extends Bloc<SignoutEvent, SignoutState> {
       emit(
         newReadyState.copyWith(
           isWarehouseUsersLoading: false,
-          warehouseUsersError: result.msg ?? '获取仓库用户失败，请重试',
+          warehouseUsersError: result.msg,
         ),
       );
     }
@@ -125,7 +125,7 @@ class SignoutBloc extends Bloc<SignoutEvent, SignoutState> {
       if (result.isSuccess) {
         emit(SignoutSubmitted());
       } else {
-        emit(currentState.copyWith(submitError: result.msg ?? '提交失败'));
+        emit(currentState.copyWith(submitError: result.msg));
       }
     }
   }
@@ -140,7 +140,7 @@ class SignoutBloc extends Bloc<SignoutEvent, SignoutState> {
       if (result.isSuccess) {
         emit(SignoutAudited());
       } else {
-        emit(currentState.copyWith(auditError: result.msg ?? '审核失败'));
+        emit(currentState.copyWith(auditError: result.msg));
       }
     }
   }

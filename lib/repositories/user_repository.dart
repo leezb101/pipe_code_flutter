@@ -1,8 +1,15 @@
 /*
  * @Author: LeeZB
+ * @Date: 2025-07-22 08:53:08
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-28 15:57:49
+ * @copyright: Copyright © 2025 高新供水.
+ */
+/*
+ * @Author: LeeZB
  * @Date: 2025-07-09 23:55:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-09 23:55:00
+ * @LastEditTime: 2025-07-28 15:47:31
  * @copyright: Copyright © 2025 高新供水.
  */
 import '../models/user/wx_login_vo.dart';
@@ -32,14 +39,14 @@ class UserRepository {
         return _cachedWxLoginVO;
       }
 
-      final userData = await _storageService.getUserData();
+      final userData = _storageService.getUserData();
       if (userData == null) {
         _clearUserCache();
         return null;
       }
 
       final wxLoginVO = WxLoginVO.fromJson(userData);
-      
+
       // 更新缓存
       _cachedWxLoginVO = wxLoginVO;
       _lastCacheTime = DateTime.now();
@@ -54,7 +61,7 @@ class UserRepository {
   Future<void> saveUserData(WxLoginVO wxLoginVO) async {
     try {
       await _storageService.saveUserData(wxLoginVO.toJson());
-      
+
       // 更新缓存
       _cachedWxLoginVO = wxLoginVO;
       _lastCacheTime = DateTime.now();

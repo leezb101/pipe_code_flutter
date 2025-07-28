@@ -168,9 +168,6 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     AcceptanceInfoVO acceptanceInfo,
     Set<MaterialVO> matchedMaterials,
   ) {
-    final allMaterials = acceptanceInfo.materialList;
-    final allMatched = matchedMaterials.length == allMaterials.length;
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -492,7 +489,9 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
           result is List<QrScanResult> &&
           result.first.code.isNotEmpty) {
         final qrCode = result.first.code;
-        context.read<MaterialHandleCubit>().getMaterialInfoFromQr(qrCode);
+        if (context.mounted) {
+          context.read<MaterialHandleCubit>().getMaterialInfoFromQr(qrCode);
+        }
       }
     });
   }
@@ -508,6 +507,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
   }
 
   Future<void> _takePhoto() async {
+    final context = this.context;
     try {
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
@@ -522,7 +522,9 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
         });
       }
     } catch (e) {
-      context.showErrorToast('拍照失败: $e');
+      if (context.mounted) {
+        context.showErrorToast('拍照失败: $e');
+      }
     }
   }
 

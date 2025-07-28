@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-24 19:22:20
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 19:01:45
+ * @LastEditTime: 2025-07-28 15:58:28
  * @copyright: Copyright © 2025 高新供水.
  */
 /*
@@ -43,11 +43,7 @@ class SignoutApiServiceImpl extends BaseApiService
           );
           return Result(code: 0, msg: 'success', data: signoutInfo);
         } else {
-          return Result(
-            code: result.code,
-            msg: result.msg ?? '获取详失败败',
-            data: null,
-          );
+          return Result(code: result.code, msg: result.msg, data: null);
         }
       } else {
         return Result(code: -1, msg: '获取详情失败，请重试', data: null);
@@ -77,11 +73,7 @@ class SignoutApiServiceImpl extends BaseApiService
         if (result.isSuccess) {
           return Result(code: 0, msg: 'success', data: null);
         } else {
-          return Result(
-            code: result.code,
-            msg: result.msg ?? '出库失败',
-            data: null,
-          );
+          return Result(code: result.code, msg: result.msg, data: null);
         }
       } else {
         return Result(code: -1, msg: '提交失败，请重试');
@@ -111,11 +103,7 @@ class SignoutApiServiceImpl extends BaseApiService
         if (result.isSuccess) {
           return Result(code: 0, msg: 'success', data: null);
         } else {
-          return Result(
-            code: result.code,
-            msg: result.msg ?? '确认提交失败',
-            data: null,
-          );
+          return Result(code: result.code, msg: result.msg, data: null);
         }
       } else {
         return Result(code: -1, msg: '确认提交失败，请重试', data: null);

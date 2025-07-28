@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
-import 'package:pipe_code_flutter/repositories/install_repository.dart';
 import '../../bloc/install/install_bloc.dart';
 import '../../bloc/install/install_event.dart';
 import '../../bloc/install/install_state.dart';
@@ -408,6 +407,7 @@ class _InstallViewState extends State<InstallView> {
   }
 
   void _navigateToQrScan(BuildContext context) {
+    final materialCubit = context.read<MaterialHandleCubit>();
     final config = QrScanConfig(scanType: QrScanType.install, title: '扫码安装');
 
     context.pushNamed('qr-scan', extra: config).then((result) {
@@ -416,7 +416,7 @@ class _InstallViewState extends State<InstallView> {
           result is List<QrScanResult> &&
           result.first.code.isNotEmpty) {
         final qrCode = result.first.code;
-        context.read<MaterialHandleCubit>().getMaterialInfoFromQr(qrCode);
+        materialCubit.getMaterialInfoFromQr(qrCode);
       }
     });
   }
@@ -492,7 +492,7 @@ class _InstallViewState extends State<InstallView> {
 
       return material.copyWith(
         installPileNo: stakeNumber,
-        installImageUrl1: photos.length > 0 ? photos[0].path : null,
+        installImageUrl1: photos.isNotEmpty ? photos[0].path : null,
         installImageUrl2: photos.length > 1 ? photos[1].path : null,
       );
     }).toList();

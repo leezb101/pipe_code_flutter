@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-25 18:45:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 18:37:37
+ * @LastEditTime: 2025-07-28 16:15:01
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -52,7 +52,7 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
         } else if (state is SignoutAudited) {
           context.showSuccessToast('审核完成，即将返回', isGlobal: true);
           Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) {
+            if (context.mounted) {
               context.pop();
             }
           });
@@ -168,7 +168,7 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  material.materialName ?? '',
+                  material.materialName,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

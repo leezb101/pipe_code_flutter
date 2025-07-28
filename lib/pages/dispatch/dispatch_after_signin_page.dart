@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
 import '../../bloc/dispatch/dispatch_bloc.dart';
 import '../../bloc/records/records_bloc.dart';
@@ -143,9 +142,6 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
     DispatchDetailVo dispatchInfo,
     Set<MaterialVO> matchedMaterials,
   ) {
-    final allMaterials = dispatchInfo.materialList;
-    final allMatched = matchedMaterials.length == allMaterials.length;
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -456,6 +452,7 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
   }
 
   void _navigateToQrScan(BuildContext context) {
+    final materialCubit = context.read<MaterialHandleCubit>();
     // 导航到扫码逻辑保持不变，但返回结果后处理方式不同
     final config = QrScanConfig(
       scanType: QrScanType.materialInbound,
@@ -463,11 +460,12 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
     );
 
     context.pushNamed('qr-scan', extra: config).then((result) {
+      if (!context.mounted) return;
       if (result != null &&
           result is List<QrScanResult> &&
           result.first.code.isNotEmpty) {
         final qrCode = result.first.code;
-        context.read<MaterialHandleCubit>().getMaterialInfoFromQr(qrCode);
+        materialCubit.getMaterialInfoFromQr(qrCode);
       }
     });
   }
@@ -483,6 +481,7 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
   }
 
   Future<void> _takePhoto() async {
+    final context = this.context;
     try {
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
@@ -497,7 +496,7 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
         });
       }
     } catch (e) {
-      context.showErrorToast('拍照失败: $e');
+      if (context.mounted) context.showErrorToast('拍照失败: $e');
     }
   }
 

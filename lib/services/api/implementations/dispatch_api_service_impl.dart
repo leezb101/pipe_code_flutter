@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-27 11:16:06
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 11:21:56
+ * @LastEditTime: 2025-07-28 15:57:31
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
@@ -36,11 +36,7 @@ class DispatchApiServiceImpl extends BaseApiService
         );
         return Result(code: result.code, data: dispatchDetail, msg: 'success');
       } else {
-        return Result(
-          code: result.code,
-          msg: result.msg ?? '获取调拨详情失败',
-          data: null,
-        );
+        return Result(code: result.code, msg: result.msg, data: null);
       }
     } else {
       return Result(code: -1, msg: '获取调拨详情失败，请重试', data: null);
@@ -61,7 +57,7 @@ class DispatchApiServiceImpl extends BaseApiService
       if (result.isSuccess) {
         return Result(code: result.code, msg: 'success');
       } else {
-        return Result(code: result.code, msg: result.msg ?? '调拨失败');
+        return Result(code: result.code, msg: result.msg);
       }
     } else {
       return Result(code: -1, msg: '调拨失败，请重试');
@@ -84,7 +80,7 @@ class DispatchApiServiceImpl extends BaseApiService
       if (result.isSuccess) {
         return Result(code: result.code, msg: 'success');
       } else {
-        return Result(code: result.code, msg: result.msg ?? '签到失败');
+        return Result(code: result.code, msg: result.msg);
       }
     } else {
       return Result(code: -1, msg: '签到失败，请重试');
@@ -104,7 +100,7 @@ class DispatchApiServiceImpl extends BaseApiService
       if (result.isSuccess) {
         return Result(code: result.code, msg: 'success');
       } else {
-        return Result(code: result.code, msg: result.msg ?? '审核失败');
+        return Result(code: result.code, msg: result.msg);
       }
     } else {
       return Result(code: -1, msg: '审核失败，请重试');

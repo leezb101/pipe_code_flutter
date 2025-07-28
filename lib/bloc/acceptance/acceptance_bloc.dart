@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-23 17:28:27
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 19:49:04
+ * @LastEditTime: 2025-07-28 15:52:08
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -53,7 +53,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           tag: 'AcceptanceBloc',
         );
       } else {
-        emit(AcceptanceError(message: result.msg ?? '获取验收详情失败'));
+        emit(AcceptanceError(message: result.msg));
         Logger.error(
           'Failed to load acceptance detail: ${result.msg}',
           tag: 'AcceptanceBloc',
@@ -82,7 +82,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         emit(const AcceptanceSubmitted());
         Logger.info('Acceptance submitted successfully', tag: 'AcceptanceBloc');
       } else {
-        emit(AcceptanceError(message: result.msg ?? '提交验收失败'));
+        emit(AcceptanceError(message: result.msg));
         Logger.error(
           'Failed to submit acceptance: ${result.msg}',
           tag: 'AcceptanceBloc',
@@ -111,7 +111,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         emit(const AcceptanceAudited());
         Logger.info('Acceptance audited successfully', tag: 'AcceptanceBloc');
       } else {
-        emit(AcceptanceError(message: result.msg ?? '审核验收失败'));
+        emit(AcceptanceError(message: result.msg));
         Logger.error(
           'Failed to audit acceptance: ${result.msg}',
           tag: 'AcceptanceBloc',
@@ -142,7 +142,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       if (currentState is AcceptanceDetailLoaded) {
         emit(currentState);
       }
-      emit(AcceptanceError(message: result.msg ?? '验收入库失败'));
+      emit(AcceptanceError(message: result.msg));
     }
     // try {
     //   emit(const AcceptanceSigningIn());
@@ -207,7 +207,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           tag: 'AcceptanceBloc',
         );
       } else {
-        emit(AcceptanceError(message: result.msg ?? '获取验收列表失败'));
+        emit(AcceptanceError(message: result.msg));
         Logger.error(
           'Failed to load acceptance list: ${result.msg}',
           tag: 'AcceptanceBloc',
@@ -255,7 +255,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           tag: 'AcceptanceBloc',
         );
       } else {
-        emit(AcceptanceError(message: result.msg ?? '获取验收用户失败'));
+        emit(AcceptanceError(message: result.msg));
         Logger.error(
           'Failed to load acceptance users: ${result.msg}',
           tag: 'AcceptanceBloc',
@@ -289,7 +289,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           tag: 'AcceptanceBloc',
         );
       } else {
-        emit(AcceptanceError(message: result.msg ?? '获取仓库用户失败'));
+        emit(AcceptanceError(message: result.msg));
         Logger.error(
           'Failed to load warehouse users: ${result.msg}',
           tag: 'AcceptanceBloc',
@@ -318,7 +318,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           tag: 'AcceptanceBloc',
         );
       } else {
-        emit(AcceptanceError(message: result.msg ?? '获取仓库列表失败'));
+        emit(AcceptanceError(message: result.msg));
         Logger.error(
           'Failed to load warehouse list: ${result.msg}',
           tag: 'AcceptanceBloc',

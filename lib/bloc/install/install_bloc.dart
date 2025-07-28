@@ -28,7 +28,7 @@ class InstallBloc extends Bloc<InstallEvent, InstallState> {
       if (result.isSuccess && result.data != null) {
         emit(InstallReady(detail: result.data));
       } else {
-        emit(InstallFailure(result.msg ?? '加载安装详情失败'));
+        emit(InstallFailure(result.msg));
       }
     } catch (e) {
       emit(InstallFailure('加载安装详情失败,请稍后重试'));
@@ -55,7 +55,7 @@ class InstallBloc extends Bloc<InstallEvent, InstallState> {
       if (result.isSuccess && result.data != null) {
         emit(InstallReady(detail: result.data));
       } else {
-        emit(InstallFailure(result.msg ?? '刷新安装详情失败'));
+        emit(InstallFailure(result.msg));
       }
     } catch (e) {
       emit(InstallFailure('刷新安装详情失败,请稍后重试'));
@@ -90,7 +90,7 @@ class InstallBloc extends Bloc<InstallEvent, InstallState> {
 
           final newMaterialInfos = MaterialInfoForBusiness(
             normals: updatedNormals,
-            errors: List.from(currentState.materialInfos!.errors ?? []),
+            errors: List.from(currentState.materialInfos!.errors),
           );
 
           newReadyState = currentState.copyWith(
