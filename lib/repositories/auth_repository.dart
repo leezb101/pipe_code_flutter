@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 23:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-14 19:34:51
+ * @LastEditTime: 2025-07-28 15:36:14
  * @copyright: Copyright © 2025 高新供水.
  */
 import '../models/common/result.dart';
@@ -129,7 +129,7 @@ class AuthRepository {
   /// 检查token有效性
   Future<Result<WxLoginVO>> checkToken() async {
     try {
-      final token = await _storageService.getAuthToken();
+      final token = _storageService.getAuthToken();
       if (token == null) {
         return const Result(code: 401, msg: '未登录', data: null);
       }

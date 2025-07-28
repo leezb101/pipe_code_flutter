@@ -64,26 +64,20 @@ class _QrScanPageState extends State<QrScanPage> {
 
   void _controlScanner(QrScanState state) {
     if (_controller == null) {
-      print('扫码器控制器为空');
       return;
     }
-
-    print('控制扫码器状态: ${state.status}, 暂停状态: $_isTemporarilyPaused');
 
     switch (state.status) {
       case QrScanStatus.scanning:
         if (!_isTemporarilyPaused) {
-          print('启动扫码器');
           _controller?.start();
         }
         break;
       case QrScanStatus.processing:
       case QrScanStatus.processComplete:
-        print('暂停扫码器');
         _controller?.stop();
         break;
       case QrScanStatus.initial:
-        print('初始化启动扫码器');
         _controller?.start();
         break;
       case QrScanStatus.error:
@@ -94,11 +88,8 @@ class _QrScanPageState extends State<QrScanPage> {
   }
 
   void _onBarcodeDetected(BarcodeCapture capture, QrScanState state) {
-    print('扫码检测到数据: ${capture.barcodes.length} codes, 当前状态: ${state.status}');
-
     // 检查是否允许扫码
     if (!_canScanInCurrentState(state)) {
-      print('当前状态不允许扫码: ${state.status}');
       return;
     }
 
@@ -109,11 +100,8 @@ class _QrScanPageState extends State<QrScanPage> {
 
         // 防抖检查
         if (_isRecentlyScanned(code)) {
-          print('防抖：忽略重复扫码 $code');
           return;
         }
-
-        print('处理扫码: $code');
 
         // 立即停止扫码器，防止重复触发
         _controller?.stop();
@@ -174,7 +162,6 @@ class _QrScanPageState extends State<QrScanPage> {
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (mounted && !_hasReturned) {
         _isTemporarilyPaused = false;
-        print('批量模式重新启动扫码器');
         _controller?.start();
       }
     });
@@ -214,7 +201,6 @@ class _QrScanPageState extends State<QrScanPage> {
 
     testCode = testCodePool[Random().nextInt(testCodePool.length)];
 
-    print('模拟扫码: $testCode');
     context.read<QrScanBloc>().add(CodeScanned(testCode));
   }
 
@@ -391,8 +377,6 @@ class _QrScanPageState extends State<QrScanPage> {
     if (_hasReturned) {
       return;
     }
-
-    print('处理完成，检查导航数据: ${state.processResult?.navigationData?.route}');
 
     // 检查是否有导航数据需要处理
     if (state.processResult?.navigationData != null) {

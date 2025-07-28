@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-17 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 11:30:10
+ * @LastEditTime: 2025-07-28 15:35:54
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -54,7 +54,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
   List<CommonUserVO> _constructionUsers = [];
 
   // 推送选择状态
-  Map<String, bool?> _userPushStates = {};
+  final Map<String, bool?> _userPushStates = {};
 
   @override
   void initState() {
@@ -209,7 +209,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
             const SizedBox(height: 16),
             ...widget.materials.normals
                 .map((material) => _buildMaterialItem(material))
-                .toList(),
+                ,
           ],
         ),
       ),
@@ -503,7 +503,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
             child: const Text('暂无用户数据', style: TextStyle(color: Colors.grey)),
           )
         else
-          ...users.map((user) => _buildUserItem(user, type)).toList(),
+          ...users.map((user) => _buildUserItem(user, type)),
       ],
     );
   }
@@ -733,11 +733,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
     );
 
     // 打印调试信息
-    print('DoAcceptVO 数据:');
-    print('  材料数量: ${doAcceptVO.materialList.length}');
-    print('  仓库类型: ${realWarehouse ? "独立仓库" : "项目现场"}');
-    print('  仓库ID: $warehouseId');
-    print('  通知用户ID: $selectedUserIds');
 
     // 通过BLoC提交验收数据
     context.read<AcceptanceBloc>().add(SubmitAcceptance(request: doAcceptVO));
@@ -760,18 +755,11 @@ class _AcceptancePageState extends State<AcceptancePage> {
   }
 
   void _handleConfirmAcceptance() {
-    print('验收照片数量: ${_acceptancePhotos.length}');
-    print('报验单数量: ${_inspectionReports.length}');
-    print('验收报告数量: ${_acceptanceReports.length}');
-    print('仓库类型: $_storageType');
-    print('选择的仓库: $_selectedWarehouse');
-    print('推送状态: $_userPushStates');
 
     // Collect selected user IDs for push notifications
     final selectedUserIds = <int>[];
     _userPushStates.forEach((key, value) {
       if (value != null && value) {
-        print('选中推送用户: $key');
         // In real implementation, map user names to IDs
       }
     });
