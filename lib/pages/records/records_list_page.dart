@@ -54,8 +54,9 @@ class _RecordsListPageState extends State<RecordsListPage>
     // 根据会话状态确定tabs
     bool isStoreKeeper = false;
 
-    if (sessionState is SessionStorekeeperEstablished) {
-      isStoreKeeper = sessionState.user.storekeeper ?? false;
+    if (sessionState is SessionStorekeeperEstablished ||
+        sessionState is SessionProjectEstablished) {
+      isStoreKeeper = sessionState.user.storekeeper;
     }
 
     List<RecordType> tabs = [];

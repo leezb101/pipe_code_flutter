@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-29 15:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-29 19:50:59
+ * @LastEditTime: 2025-07-29 19:55:12
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:equatable/equatable.dart';
@@ -18,6 +18,8 @@ abstract class SessionState extends Equatable {
 
   @override
   List<Object?> get props => [];
+
+  get user => null;
 }
 
 /// 会话初始状态
@@ -74,6 +76,7 @@ class SessionStorekeeperEstablished extends SessionState {
   List<Object> get props => [wxLoginVO, isSwitching];
 
   /// 获取用户信息
+  @override
   WxLoginVO get user => wxLoginVO;
 
   SessionStorekeeperEstablished copyWith({
@@ -126,6 +129,7 @@ class SessionProjectEstablished extends SessionState {
   List<ProjectInfo> get availableProjects => wxLoginVO.projectInfos;
 
   /// 获取当前用户信息
+  @override
   WxLoginVO get user => wxLoginVO;
 
   /// 获取菜单项列表
