@@ -98,12 +98,12 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     Logger.info('Switching to tab: ${event.recordType}', tag: 'RecordsBloc');
 
     final cachedRecords = _repository.getCachedRecords(event.recordType);
-    
+    final pageSize = 10; // 与LoadRecords默认pageSize保持一致
     if (cachedRecords != null && cachedRecords.isNotEmpty) {
       emit(RecordsLoaded(
         currentTab: event.recordType,
         records: cachedRecords,
-        hasMoreData: true,
+        hasMoreData: cachedRecords.length >= pageSize,
         currentPage: 1,
       ));
     } else {

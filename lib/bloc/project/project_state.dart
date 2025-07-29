@@ -22,7 +22,12 @@ abstract class ProjectState extends Equatable {
 
 /// 项目状态初始化
 class ProjectInitial extends ProjectState {
-  const ProjectInitial();
+  const ProjectInitial({this.timestamp});
+  
+  final DateTime? timestamp;
+
+  @override
+  List<Object?> get props => [timestamp];
 }
 
 /// 项目数据加载中

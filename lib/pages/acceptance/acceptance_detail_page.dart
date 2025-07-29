@@ -233,8 +233,12 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
       child: Row(
         children: [
           Icon(
-            attachment.isImage ? Icons.image : Icons.insert_drive_file,
-            color: attachment.isImage ? Colors.green : Colors.blue,
+            attachment.attachFormat == 'png'
+                ? Icons.image
+                : Icons.insert_drive_file,
+            color: attachment.attachFormat == 'png'
+                ? Colors.green
+                : Colors.blue,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -242,7 +246,7 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  attachment.name,
+                  attachment.name ?? '',
                   style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
                 Text(
@@ -486,13 +490,17 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
               Row(
                 children: [
                   Icon(
-                    attachment.isImage ? Icons.image : Icons.insert_drive_file,
-                    color: attachment.isImage ? Colors.green : Colors.blue,
+                    attachment.attachFormat == 'png'
+                        ? Icons.image
+                        : Icons.insert_drive_file,
+                    color: attachment.attachFormat == 'png'
+                        ? Colors.green
+                        : Colors.blue,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      attachment.name,
+                      attachment.name ?? '',
                       style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -503,7 +511,9 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
                 ],
               ),
               const SizedBox(height: 16),
-              if (attachment.isImage)
+              if (attachment.attachFormat == 'png' ||
+                  attachment.attachFormat == 'jpg' ||
+                  attachment.attachFormat == 'jpeg')
                 Image.network(
                   attachment.url,
                   errorBuilder: (context, error, stackTrace) => Container(

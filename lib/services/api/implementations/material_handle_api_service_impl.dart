@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-22 17:57:18
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-23 17:43:07
+ * @LastEditTime: 2025-07-28 18:36:36
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
@@ -31,7 +31,7 @@ class MaterialHandleApiServiceImpl implements MaterialHandleApiService {
             'Content-Type': 'application/json',
           },
         ),
-        data: {'deliveryCode': code},
+        data: {'code': code},
       );
 
       Logger.api('扫码识别响应成功 - Status: ${response.statusCode}');

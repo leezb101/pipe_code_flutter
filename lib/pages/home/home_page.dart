@@ -2,13 +2,14 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-28 16:24:14
+ * @LastEditTime: 2025-07-28 20:10:54
  * @copyright: Copyright © 2025 高新供水.
  */
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_event.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
@@ -23,8 +24,10 @@ import '../../models/menu/menu_config.dart';
 import '../../models/user/user_role.dart';
 import '../../models/project/project_info.dart';
 import '../../utils/toast_utils.dart';
-import '../toast_demo_page.dart';
 import '../../constants/menu_actions.dart';
+import '../../bloc/records/records_bloc.dart';
+import '../../bloc/records/records_event.dart';
+import '../../models/records/record_type.dart';
 
 // 假设这是您在项目中定义的扩展
 extension ColorValues on Color {
@@ -79,6 +82,19 @@ class _HomePageState extends State<HomePage> {
                 setState(() {
                   _showProjectSwitchingOverlay = false;
                 });
+              }
+              if (state is ProjectInitial) {
+                context.read<AuthBloc>().add(AuthProjectModeRequested());
+              }
+            },
+          ),
+          BlocListener<AuthBloc, AuthState>(
+            listener: (context, authState) {
+              // 身份切换为项目参与方后自动加载项目
+              if (authState is AuthLoginSuccess) {
+                context.read<ProjectBloc>().add(
+                  ProjectLoadUserProjects(wxLoginVO: authState.wxLoginVO),
+                );
               }
             },
           ),
@@ -1126,14 +1142,23 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 处理菜单点击事件
-  void _handleMenuTap(
+  Future<void> _handleMenuTap(
     BuildContext context,
     MenuItem menuItem,
     ProjectRoleInfoLoaded state,
-  ) {
+  ) async {
     if (menuItem.isPageMenu && menuItem.route != null) {
-      // 导航到页面
-      _navigateToPage(context, menuItem.route!);
+      final result = await context.push(menuItem.route!);
+      if (result == true) {
+        final recordsBloc = context.read<RecordsBloc>();
+        // 刷新待办
+        recordsBloc.add(RefreshRecords(recordType: RecordType.todo));
+        // 菜单 id 到 RecordType 的映射
+        final type = _menuIdToRecordType(menuItem.id);
+        if (type != null) {
+          recordsBloc.add(RefreshRecords(recordType: type));
+        }
+      }
     } else if (menuItem.isActionMenu && menuItem.action != null) {
       // 执行操作
       _executeAction(context, menuItem.action!, state);
@@ -1143,11 +1168,25 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  /// 导航到页面
-  void _navigateToPage(BuildContext context, String route) {
-    // 这里可以实现路由导航逻辑
-    // 使用goRouter进行导航
-    context.push(route);
+  RecordType? _menuIdToRecordType(String id) {
+    switch (id) {
+      case 'accept':
+        return RecordType.accept;
+      case 'signout':
+        return RecordType.signout;
+      case 'install':
+        return RecordType.install;
+      case 'dispatch':
+        return RecordType.dispatch;
+      case 'return':
+        return RecordType.returnWarehouse;
+      case 'waste':
+        return RecordType.waste;
+      case 'inventory':
+        return RecordType.inventory;
+      default:
+        return null;
+    }
   }
 
   /// 执行操作

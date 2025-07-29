@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 23:20:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-14 18:23:01
+ * @LastEditTime: 2025-07-28 20:08:36
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -185,10 +185,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   /// 处理登录成功，检查是否需要身份选择
-  void _handleLoginSuccess(
-    dynamic wxLoginVO,
-    Emitter<AuthState> emit,
-  ) {
+  void _handleLoginSuccess(dynamic wxLoginVO, Emitter<AuthState> emit) {
     // 检查用户是否为仓管员
     if (wxLoginVO.storekeeper == true) {
       // 仓管员需要选择身份
@@ -207,6 +204,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final currentState = state;
     if (currentState is AuthIdentitySelectionRequired) {
       // 继续原有的项目选择流程
+      emit(AuthLoginSuccess(wxLoginVO: currentState.wxLoginVO));
+    } else if (currentState is AuthStorekeeperAuthenticated) {
+      // 支持从库管员身份直接切换为项目参与方
       emit(AuthLoginSuccess(wxLoginVO: currentState.wxLoginVO));
     }
   }
