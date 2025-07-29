@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-29 15:45:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-29 19:31:33
+ * @LastEditTime: 2025-07-29 20:00:53
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -73,6 +73,7 @@ class _SessionGuardState extends State<SessionGuard> {
       ],
       child: BlocBuilder<SessionBloc, SessionState>(
         builder: (context, sessionState) {
+          // 如果现在已经建立了会话，只是需要切换身份或项目，则需要保留原状态，而不是直接通过laoding状态进行重新创建组件，导致页面重建状态丢失
           if (sessionState is SessionProjectEstablished ||
               sessionState is SessionStorekeeperEstablished) {
             bool isLoading = false;
