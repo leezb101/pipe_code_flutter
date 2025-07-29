@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
+import '../../bloc/session/session_bloc.dart';
+import '../../bloc/session/session_event.dart';
 import '../../models/auth/login_account_vo.dart';
 import '../../utils/toast_utils.dart';
 
@@ -38,8 +40,12 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthFullyAuthenticated) {
+          if (state is AuthLoginSuccess) {
             context.showSuccessToast('注册成功');
+            // 注册成功后初始化Session
+            context.read<SessionBloc>().add(
+              SessionInitializeRequested(wxLoginVO: state.wxLoginVO),
+            );
             context.go('/');
           } else if (state is AuthFailure) {
             context.showErrorToast(state.error);

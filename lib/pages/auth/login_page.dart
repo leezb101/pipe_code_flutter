@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
+import '../../bloc/session/session_bloc.dart';
+import '../../bloc/session/session_event.dart';
 import '../../models/auth/login_account_vo.dart';
 import '../../utils/toast_utils.dart';
 import '../../utils/rsa_encryption_util.dart';
@@ -123,12 +125,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             listener: (context, state) {
               if (state is AuthLoginSuccess) {
                 context.showSuccessToast('登录成功');
-                context.go('/');
-              } else if (state is AuthIdentitySelectionRequired) {
-                // 仓管员需要选择身份，由 MainPage 处理跳转
-                context.go('/');
-              } else if (state is AuthStorekeeperAuthenticated) {
-                // 仓管员认证完成，由 MainPage 处理跳转
+                // 登录成功后初始化Session
+                context.read<SessionBloc>().add(
+                  SessionInitializeRequested(wxLoginVO: state.wxLoginVO),
+                );
                 context.go('/');
               } else if (state is AuthSmsCodeSent) {
                 context.showSuccessToast('验证码已发送到 ${state.phone}');

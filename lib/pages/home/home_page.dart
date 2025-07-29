@@ -1,27 +1,12 @@
-/*
- * @Author: LeeZB
- * @Date: 2025-06-28 14:25:00
- * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-28 20:10:54
- * @copyright: Copyright © 2025 高新供水.
- */
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pipe_code_flutter/bloc/auth/auth_event.dart';
-import 'package:pipe_code_flutter/utils/logger.dart';
-import '../../bloc/auth/auth_bloc.dart';
-import '../../bloc/auth/auth_state.dart';
-import '../../bloc/user/user_bloc.dart';
-import '../../bloc/user/user_state.dart';
-import '../../bloc/project/project_bloc.dart';
-import '../../bloc/project/project_state.dart';
-import '../../bloc/project/project_event.dart';
+import '../../bloc/session/session_bloc.dart';
+import '../../bloc/session/session_state.dart';
+import '../../bloc/session/session_event.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
 import '../../models/qr_scan/qr_scan_type.dart';
 import '../../models/menu/menu_config.dart';
-import '../../models/user/user_role.dart';
 import '../../models/project/project_info.dart';
 import '../../utils/toast_utils.dart';
 import '../../constants/menu_actions.dart';
@@ -64,83 +49,60 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.blue[600],
         foregroundColor: Colors.white,
       ),
-      body: MultiBlocListener(
-        listeners: [
-          BlocListener<ProjectBloc, ProjectState>(
-            listener: (context, state) {
-              // 监听项目状态变化，显示/隐藏overlay
-              Logger.debug(
-                'HomePage: ProjectBloc state changed to ${state.runtimeType}',
-              );
-              if (state is ProjectLoading) {
-                Logger.debug('HomePage: Showing project switching overlay');
-                setState(() {
-                  _showProjectSwitchingOverlay = true;
-                });
-              } else {
-                Logger.debug('HomePage: Hiding project switching overlay');
-                setState(() {
-                  _showProjectSwitchingOverlay = false;
-                });
-              }
-              if (state is ProjectInitial) {
-                context.read<AuthBloc>().add(AuthProjectModeRequested());
-              }
-            },
-          ),
-          BlocListener<AuthBloc, AuthState>(
-            listener: (context, authState) {
-              // 身份切换为项目参与方后自动加载项目
-              if (authState is AuthLoginSuccess) {
-                context.read<ProjectBloc>().add(
-                  ProjectLoadUserProjects(wxLoginVO: authState.wxLoginVO),
-                );
-              }
-            },
-          ),
-        ],
+      body: BlocListener<SessionBloc, SessionState>(
+        // 使用 listenWhen 提高效率，只在关心的状态变化时才触发 listener
+        listenWhen: (previous, current) {
+          // 仅当 isSwitching 状态在 SessionProjectEstablished 内部发生变化时触发
+          if (previous is SessionProjectEstablished &&
+              current is SessionProjectEstablished) {
+            return previous.isSwitching != current.isSwitching;
+          }
+          // 如果状态类型发生了根本变化（例如从加载到建立），也触发
+          return previous.runtimeType != current.runtimeType;
+        },
+        listener: (context, state) {
+          // 监听会话状态变化，显示/隐藏项目切换overlay
+          if (state is SessionProjectEstablished) {
+            setState(() {
+              _showProjectSwitchingOverlay = state.isSwitching;
+            });
+          } else {
+            // 在其他任何状态下，确保遮罩层是隐藏的
+            if (_showProjectSwitchingOverlay) {
+              setState(() {
+                _showProjectSwitchingOverlay = false;
+              });
+            }
+          }
+        },
         child: Stack(
           children: [
             // 主要内容
-            BlocBuilder<AuthBloc, AuthState>(
-              builder: (context, authState) {
-                // 如果是仓管员已认证状态，显示仓管员主页
-                if (authState is AuthStorekeeperAuthenticated) {
-                  return _buildStorekeeperHome(context, authState.wxLoginVO);
+            BlocBuilder<SessionBloc, SessionState>(
+              builder: (context, sessionState) {
+                // 根据会话状态显示不同界面
+                if (sessionState is SessionStorekeeperEstablished) {
+                  return _buildStorekeeperHome(context, sessionState.user);
                 }
 
-                // 否则显示正常的项目相关界面
-                return BlocBuilder<ProjectBloc, ProjectState>(
-                  builder: (context, projectState) {
-                    // 如果项目状态为初始状态，显示加载界面
-                    if (projectState is ProjectInitial) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+                if (sessionState is SessionProjectEstablished) {
+                  return _buildRoleBasedHome(context, sessionState);
+                }
 
-                    // 如果项目角色信息已加载，显示角色相关的主页
-                    if (projectState is ProjectRoleInfoLoaded) {
-                      return _buildRoleBasedHome(context, projectState);
-                    }
+                if (sessionState is SessionProjectSelectionRequired) {
+                  return _buildProjectSelectionView(context, sessionState);
+                }
 
-                    // 如果项目列表已加载但未选择项目，显示项目选择界面
-                    if (projectState is ProjectListLoaded) {
-                      return _buildProjectSelectionView(context, projectState);
-                    }
+                if (sessionState is SessionError) {
+                  return _buildErrorView(context, sessionState.message);
+                }
 
-                    // 如果项目状态有错误，显示错误界面
-                    if (projectState is ProjectError) {
-                      return _buildErrorView(context, projectState.message);
-                    }
+                if (sessionState is SessionEmpty) {
+                  return _buildEmptyProjectView(context, '暂无项目数据');
+                }
 
-                    // 如果没有项目数据，显示空状态
-                    if (projectState is ProjectEmpty) {
-                      return _buildEmptyProjectView(context, '暂无项目数据');
-                    }
-
-                    // 默认显示加载界面
-                    return const Center(child: CircularProgressIndicator());
-                  },
-                );
+                // 默认显示加载界面
+                return const Center(child: CircularProgressIndicator());
               },
             ),
             // 项目切换overlay
@@ -199,7 +161,7 @@ class _HomePageState extends State<HomePage> {
   /// 根据角色构建首页内容
   Widget _buildRoleBasedHome(
     BuildContext context,
-    ProjectRoleInfoLoaded state,
+    SessionProjectEstablished state,
   ) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -220,7 +182,7 @@ class _HomePageState extends State<HomePage> {
   /// 构建项目头部信息
   Widget _buildProjectHeader(
     BuildContext context,
-    ProjectRoleInfoLoaded state,
+    SessionProjectEstablished state,
   ) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -277,7 +239,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            state.currentProject.projectName,
+                            state.project.projectName,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -337,9 +299,7 @@ class _HomePageState extends State<HomePage> {
                             child: _buildStatItem(
                               Icons.inventory,
                               '耗材总数',
-                              _getMaterialCount(
-                                state.currentProject,
-                              ).toString(),
+                              _getMaterialCount(state.project).toString(),
                               Colors.orange,
                             ),
                           ),
@@ -349,7 +309,7 @@ class _HomePageState extends State<HomePage> {
                               Icons.check_circle,
                               '验收通过',
                               _getAcceptedMaterialCount(
-                                state.currentProject,
+                                state.project,
                               ).toString(),
                               Colors.green,
                             ),
@@ -360,7 +320,7 @@ class _HomePageState extends State<HomePage> {
                               Icons.cancel,
                               '验收退回',
                               _getRejectedMaterialCount(
-                                state.currentProject,
+                                state.project,
                               ).toString(),
                               Colors.red,
                             ),
@@ -375,7 +335,7 @@ class _HomePageState extends State<HomePage> {
                             child: _buildDetailRow(
                               Icons.engineering,
                               '工程状态',
-                              state.currentProject.projectCode,
+                              state.project.projectCode,
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -383,7 +343,7 @@ class _HomePageState extends State<HomePage> {
                             child: _buildDetailRow(
                               Icons.person,
                               '负责人',
-                              state.currentProject.orgName ?? '未设置',
+                              state.project.orgName ?? '未设置',
                             ),
                           ),
                         ],
@@ -400,7 +360,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            _formatProjectDuration(state.currentProject),
+                            _formatProjectDuration(state.project),
                             style: const TextStyle(
                               fontSize: 14,
                               color: Colors.white,
@@ -550,28 +510,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// 获取状态颜色
-  Color _getStatusColor(dynamic status) {
-    // 根据状态返回对应颜色，这里需要根据实际的状态枚举来调整
-    return Colors.white.withValues(alpha: 0.9);
-  }
-
-  /// 获取状态简称
-  String _getStatusShort(dynamic status) {
-    // 根据实际状态枚举返回简称
-    String displayName = status ?? '未知';
-    if (displayName.length > 4) {
-      return displayName.substring(0, 4);
-    }
-    return displayName;
-  }
-
-  /// 格式化工程周期（简化版）
-  String _formatProjectDurationShort(ProjectInfo project) {
-    // ProjectInfo 不包含日期信息，返回项目名称
-    return project.projectName;
-  }
-
   /// 获取耗材总数（模拟数据，实际应从项目数据中获取）
   int _getMaterialCount(ProjectInfo project) {
     // 这里应该从实际的项目数据或API获取耗材总数
@@ -600,7 +538,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 显示项目选择器
-  void _showProjectSelector(BuildContext context, ProjectRoleInfoLoaded state) {
+  void _showProjectSelector(
+    BuildContext context,
+    SessionProjectEstablished state,
+  ) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -619,7 +560,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 16),
             ...state.availableProjects.map((project) {
               final isCurrentProject =
-                  project.projectId == state.currentProject.projectId;
+                  project.projectId == state.project.projectId;
               return ListTile(
                 leading: Icon(
                   isCurrentProject ? Icons.check_circle : Icons.business,
@@ -658,8 +599,8 @@ class _HomePageState extends State<HomePage> {
                     ? null
                     : () {
                         Navigator.pop(context);
-                        context.read<ProjectBloc>().add(
-                          ProjectSelectProject(projectId: project.projectId),
+                        context.read<SessionBloc>().add(
+                          SessionSelectProject(projectId: project.projectId),
                         );
                       },
               );
@@ -671,7 +612,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 构建菜单功能区域
-  Widget _buildMenuSection(BuildContext context, ProjectRoleInfoLoaded state) {
+  Widget _buildMenuSection(
+    BuildContext context,
+    SessionProjectEstablished state,
+  ) {
     // 对菜单项进行排序：启用的菜单项在前，禁用的菜单项在后
     final sortedMenuItems = [...state.menuItems]
       ..sort((a, b) {
@@ -709,7 +653,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildMenuCard(
     BuildContext context,
     MenuItem menuItem,
-    ProjectRoleInfoLoaded state,
+    SessionProjectEstablished state,
   ) {
     return Opacity(
       opacity: menuItem.isEnabled ? 1.0 : 0.6,
@@ -774,7 +718,7 @@ class _HomePageState extends State<HomePage> {
   /// 构建项目选择界面
   Widget _buildProjectSelectionView(
     BuildContext context,
-    ProjectListLoaded state,
+    SessionProjectSelectionRequired state,
   ) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -891,8 +835,8 @@ class _HomePageState extends State<HomePage> {
                       // 提取项目ID（从项目编码中解析）
                       final projectId = project.projectId;
 
-                      context.read<ProjectBloc>().add(
-                        ProjectSelectProject(projectId: projectId),
+                      context.read<SessionBloc>().add(
+                        SessionSelectProject(projectId: projectId),
                       );
                     },
                   ),
@@ -949,13 +893,8 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              // 通过重新触发用户状态来重新加载项目
-              final userState = context.read<UserBloc>().state;
-              if (userState is UserLoaded) {
-                context.read<ProjectBloc>().add(
-                  ProjectLoadUserProjects(wxLoginVO: userState.wxLoginVO),
-                );
-              }
+              // 重新加载会话
+              context.read<SessionBloc>().add(const SessionReloadRequested());
             },
             child: const Text('重新加载'),
           ),
@@ -984,65 +923,6 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
-  }
-
-  /// 构建项目加载中视图
-  Widget _buildLoadingProjectView(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('正在加载项目信息...'),
-        ],
-      ),
-    );
-  }
-
-  /// 构建空视图
-  Widget _buildEmptyView(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.person_outline, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            '请先登录',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 获取角色对应的颜色
-  Color _getRoleColor(UserRole role) {
-    switch (role) {
-      case UserRole.suppliers:
-        return Colors.orange;
-      case UserRole.construction:
-        return Colors.blue;
-      case UserRole.supervisor:
-        return Colors.green;
-      case UserRole.builder:
-        return Colors.purple;
-      case UserRole.check:
-        return Colors.red;
-      case UserRole.builderSub:
-        return Colors.indigo;
-      case UserRole.laborer:
-        return Colors.brown;
-      case UserRole.playgoer:
-        return Colors.grey;
-      case UserRole.storekeeper:
-        return Colors.teal;
-    }
   }
 
   /// 获取菜单项对应的颜色
@@ -1145,8 +1025,10 @@ class _HomePageState extends State<HomePage> {
   Future<void> _handleMenuTap(
     BuildContext context,
     MenuItem menuItem,
-    ProjectRoleInfoLoaded state,
+    SessionProjectEstablished state,
   ) async {
+    if (!context.mounted) return;
+
     if (menuItem.isPageMenu && menuItem.route != null) {
       final result = await context.push(menuItem.route!);
       if (result == true) {
@@ -1193,7 +1075,7 @@ class _HomePageState extends State<HomePage> {
   void _executeAction(
     BuildContext context,
     String action,
-    ProjectRoleInfoLoaded state,
+    SessionProjectEstablished state,
   ) {
     // 验证action是否有效
     if (!MenuActions.isValidAction(action)) {
@@ -1255,7 +1137,7 @@ class _HomePageState extends State<HomePage> {
   void _showSubMenu(
     BuildContext context,
     MenuItem menuItem,
-    ProjectRoleInfoLoaded state,
+    SessionProjectEstablished state,
   ) {
     showModalBottomSheet(
       context: context,

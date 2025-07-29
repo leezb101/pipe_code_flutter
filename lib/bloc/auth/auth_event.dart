@@ -67,18 +67,6 @@ class AuthCaptchaRequested extends AuthEvent {
   List<Object> get props => [];
 }
 
-/// 选择项目
-class AuthProjectSelected extends AuthEvent {
-  const AuthProjectSelected({
-    required this.projectId,
-  });
-
-  final int projectId;
-
-  @override
-  List<Object> get props => [projectId];
-}
-
 /// 登出请求
 class AuthLogoutRequested extends AuthEvent {}
 
@@ -95,14 +83,4 @@ class AuthTokenRefreshRequested extends AuthEvent {
 
   @override
   List<Object> get props => [uid];
-}
-
-/// 选择项目参与方模式（仓管员用户的选择）
-class AuthProjectModeRequested extends AuthEvent {
-  const AuthProjectModeRequested();
-}
-
-/// 选择独立仓管员模式
-class AuthStorekeeperModeRequested extends AuthEvent {
-  const AuthStorekeeperModeRequested();
 }
