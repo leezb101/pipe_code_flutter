@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
+import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/repositories/dispatch_repository.dart';
 import 'package:pipe_code_flutter/repositories/enum_repository.dart';
 import 'package:pipe_code_flutter/repositories/install_repository.dart';
@@ -178,6 +179,13 @@ Future<void> setupServiceLocator({
     () => DispatchBloc(
       dispatchRepository: getIt<DispatchRepository>(),
       commonQueryApiService: getIt<CommonQueryApiService>(),
+    ),
+  );
+
+  // Session Bloc - factory registration for proper dependency injection
+  getIt.registerFactory<SessionBloc>(
+    () => SessionBloc(
+      authRepository: getIt<AuthRepository>(),
     ),
   );
 }

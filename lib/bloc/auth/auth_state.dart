@@ -7,7 +7,6 @@
  */
 import 'package:equatable/equatable.dart';
 import '../../models/user/wx_login_vo.dart';
-import '../../models/user/current_user_on_project_role_info.dart';
 
 abstract class AuthState extends Equatable {
   const AuthState();
@@ -89,20 +88,6 @@ class AuthLoginSuccess extends AuthState {
   List<Object> get props => [wxLoginVO];
 }
 
-/// 项目选择成功，完全认证
-class AuthFullyAuthenticated extends AuthState {
-  const AuthFullyAuthenticated({
-    required this.wxLoginVO,
-    required this.currentUserRoleInfo,
-  });
-
-  final WxLoginVO wxLoginVO;
-  final CurrentUserOnProjectRoleInfo currentUserRoleInfo;
-
-  @override
-  List<Object> get props => [wxLoginVO, currentUserRoleInfo];
-}
-
 /// 认证失败
 class AuthUnauthenticated extends AuthState {}
 
@@ -149,26 +134,6 @@ class AuthSmsCodeFailure extends AuthState {
 /// Token刷新成功
 class AuthTokenRefreshed extends AuthState {
   const AuthTokenRefreshed({required this.wxLoginVO});
-
-  final WxLoginVO wxLoginVO;
-
-  @override
-  List<Object> get props => [wxLoginVO];
-}
-
-/// 需要选择身份（仓管员用户专用）
-class AuthIdentitySelectionRequired extends AuthState {
-  const AuthIdentitySelectionRequired({required this.wxLoginVO});
-
-  final WxLoginVO wxLoginVO;
-
-  @override
-  List<Object> get props => [wxLoginVO];
-}
-
-/// 仓管员模式认证完成
-class AuthStorekeeperAuthenticated extends AuthState {
-  const AuthStorekeeperAuthenticated({required this.wxLoginVO});
 
   final WxLoginVO wxLoginVO;
 

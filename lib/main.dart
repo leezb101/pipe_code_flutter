@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/bloc/enum/enum_cubit.dart';
+import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/repositories/enum_repository.dart';
 import 'config/routes.dart';
 import 'config/service_locator.dart';
@@ -67,6 +68,9 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               AuthBloc(authRepository: getIt<AuthRepository>()),
         ),
+        BlocProvider<SessionBloc>(
+          create: (context) => getIt<SessionBloc>(),
+        ),
         BlocProvider<UserBloc>(
           create: (context) =>
               UserBloc(userRepository: getIt<UserRepository>()),
@@ -82,15 +86,7 @@ class MyApp extends StatelessWidget {
       ],
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthFullyAuthenticated) {
-            context.read<UserBloc>().add(
-              UserSetData(wxLoginVO: state.wxLoginVO),
-            );
-            // // 登录成功后，触发项目上下文加载
-            // context.read<ProjectBloc>().add(
-            //   ProjectLoadUserContext(userId: state.user.id),
-            // );
-          } else if (state is AuthUnauthenticated) {
+          if (state is AuthUnauthenticated) {
             context.read<UserBloc>().add(const UserClearData());
             context.read<ProjectBloc>().add(const ProjectClearData());
           }

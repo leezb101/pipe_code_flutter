@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-// ...existing code...
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pipe_code_flutter/bloc/project/project_bloc.dart';
-import 'package:pipe_code_flutter/bloc/project/project_event.dart';
-import 'package:pipe_code_flutter/bloc/project/project_state.dart';
-import 'package:pipe_code_flutter/bloc/user/user_bloc.dart';
-import 'package:pipe_code_flutter/bloc/user/user_state.dart';
 import 'package:pipe_code_flutter/models/records/record_item.dart';
-import '../../bloc/auth/auth_event.dart';
+import '../../bloc/session/session_bloc.dart';
+import '../../bloc/session/session_state.dart';
+import '../../bloc/session/session_event.dart';
 import '../../bloc/records/records_bloc.dart';
 import '../../bloc/records/records_event.dart';
 import '../../bloc/records/records_state.dart';
@@ -16,9 +12,6 @@ import '../../models/records/record_type.dart';
 import '../../widgets/expandable_tab_bar.dart';
 import '../../widgets/record_list_item.dart';
 import '../../widgets/common_state_widgets.dart' as common;
-import '../../bloc/auth/auth_bloc.dart';
-import '../../bloc/auth/auth_state.dart';
-import '../../models/user/wx_login_vo.dart';
 
 class RecordsListPage extends StatefulWidget {
   final RecordType? initialTab;
@@ -29,55 +22,51 @@ class RecordsListPage extends StatefulWidget {
   State<RecordsListPage> createState() => _RecordsListPageState();
 }
 
-class _RecordsListPageState extends State<RecordsListPage> {
+class _RecordsListPageState extends State<RecordsListPage>
+    with AutomaticKeepAliveClientMixin {
   late ScrollController _scrollController;
   late List<RecordType> _allTabs;
   late RecordType _initialTab;
-  AuthState? _lastAuthState;
+  SessionState? _lastSessionState;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController()..addListener(_onScroll);
-    // 先用当前authState初始化tabs
-    final authState = context.read<AuthBloc>().state;
-    _setupTabsByAuth(authState);
-    _lastAuthState = authState;
+
+    // 使用当前 SessionState 初始化 Tabs 和 lastSessionState
+    final sessionState = context.read<SessionBloc>().state;
+    _setupTabsBySession(sessionState);
+    _lastSessionState = sessionState;
+
     // 首次进入时自动加载默认tab（如待办）
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final bloc = context.read<RecordsBloc>();
-      bloc.add(LoadRecords(recordType: _initialTab));
+      if (mounted) {
+        context.read<RecordsBloc>().add(LoadRecords(recordType: _initialTab));
+      }
     });
   }
 
-  void _setupTabsByAuth(AuthState authState) {
-    // 直接从authState获取wxLoginVO
+  void _setupTabsBySession(SessionState sessionState) {
+    // 根据会话状态确定tabs
     bool isStoreKeeper = false;
-    WxLoginVO? wxLoginVO;
-    if (authState is AuthStorekeeperAuthenticated) {
-      wxLoginVO = authState.wxLoginVO;
-    } else if (authState is AuthFullyAuthenticated) {
-      wxLoginVO = authState.wxLoginVO;
-    } else if (authState is AuthLoginSuccess) {
-      wxLoginVO = authState.wxLoginVO;
-    } else if (authState is AuthTokenRefreshed) {
-      wxLoginVO = authState.wxLoginVO;
-    } else if (authState is AuthIdentitySelectionRequired) {
-      wxLoginVO = authState.wxLoginVO;
-    }
-    if (wxLoginVO != null) {
-      isStoreKeeper = wxLoginVO.storekeeper == true;
+
+    if (sessionState is SessionStorekeeperEstablished) {
+      isStoreKeeper = sessionState.user.storekeeper ?? false;
     }
 
     List<RecordType> tabs = [];
     if (isStoreKeeper) {
-      // 展示“待办”和“仓管待办”
+      // 仓管员身份，展示"待办"和"仓管待办"
       tabs = [RecordType.todo, RecordType.warehouseTodo];
     } else {
-      // 只展示“待办”
+      // 普通项目参与方，只展示"待办"
       tabs = [RecordType.todo];
     }
-    // 追加其他tab
+    // 追加其他所有tab
     tabs.addAll(
       RecordType.values.where(
         (e) => e != RecordType.todo && e != RecordType.warehouseTodo,
@@ -85,12 +74,12 @@ class _RecordsListPageState extends State<RecordsListPage> {
     );
     _allTabs = tabs;
 
-    // 设置默认tab
-    if (authState is AuthStorekeeperAuthenticated) {
-      // 独立库管员身份，默认“仓管待办”优先
-      _initialTab = isStoreKeeper ? RecordType.warehouseTodo : RecordType.todo;
+    // 根据最终的会话身份设置默认选中的tab
+    if (sessionState is SessionStorekeeperEstablished && isStoreKeeper) {
+      // 独立库管员身份，默认"仓管待办"优先
+      _initialTab = RecordType.warehouseTodo;
     } else {
-      // 其他身份，默认“待办”优先
+      // 其他身份，默认"待办"优先
       _initialTab = RecordType.todo;
     }
   }
@@ -127,7 +116,7 @@ class _RecordsListPageState extends State<RecordsListPage> {
     final bloc = context.read<RecordsBloc>();
     final currentTab = bloc.currentTab;
 
-    // Navigate to specific detail page based on record type
+    // 根据记录类型导航到不同的详情页
     switch (currentTab) {
       case RecordType.accept:
         context.goNamed(
@@ -135,13 +124,6 @@ class _RecordsListPageState extends State<RecordsListPage> {
           queryParameters: {'id': record.id.toString()},
         );
         break;
-      // case RecordType.signin:
-      case RecordType.signout:
-      case RecordType.install:
-      case RecordType.returnWarehouse:
-      case RecordType.dispatch:
-      case RecordType.waste:
-      case RecordType.inventory:
       case RecordType.todo:
         final rec = record as TodoRecordItem;
         _handleSelectProject(context, rec.todo.projectId, rec);
@@ -150,42 +132,39 @@ class _RecordsListPageState extends State<RecordsListPage> {
         final rec = record as TodoRecordItem;
         handleGoTodoDetail(context, rec);
         break;
+      default:
+      // 其他列表的点击事件
     }
   }
 
   void handleGoTodoDetail(BuildContext context, TodoRecordItem rec) {
+    // 根据待办的具体类型（type.name）或名称（todoName）导航
     if (rec.todo.type.name == '验收确认') {
       context.goNamed(
         'acceptance-confirmation',
         queryParameters: {'id': rec.todo.businessId.toString()},
       );
-    }
-    // 这里需要继续判断，当前item的todoType是什么
-    if (rec.todo.type.name == '验收后入库') {
+    } else if (rec.todo.type.name == '验收后入库') {
       context.goNamed(
         'acceptance-after-signin',
         queryParameters: {'id': rec.todo.businessId.toString()},
       );
-    }
-    if (rec.todo.todoName == 'sign_out') {
+    } else if (rec.todo.todoName == 'sign_out') {
       context.goNamed(
         'signout-audit',
         queryParameters: {'id': rec.todo.businessId.toString()},
       );
-    }
-    if (rec.todo.todoName == 'sign_out_install') {
+    } else if (rec.todo.todoName == 'sign_out_install') {
       context.goNamed(
         'install',
         queryParameters: {'id': rec.todo.businessId.toString()},
       );
-    }
-    if (rec.todo.todoName == 'dispatch') {
+    } else if (rec.todo.todoName == 'dispatch') {
       context.goNamed(
         'dispatch-confirmation',
         queryParameters: {'id': rec.todo.businessId.toString()},
       );
-    }
-    if (rec.todo.todoName == 'dispatch_sign_in') {
+    } else if (rec.todo.todoName == 'dispatch_sign_in') {
       context.goNamed(
         'dispatch-after-signin',
         queryParameters: {'id': rec.todo.businessId.toString()},
@@ -195,63 +174,99 @@ class _RecordsListPageState extends State<RecordsListPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 监听身份变化，动态调整tabs和重置tab状态
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, authState) {
-        // 如果变为未认证或初始状态，先清空 records
-        if (authState is AuthUnauthenticated || authState is AuthInitial) {
-          context.read<RecordsBloc>().add(const ClearRecordsCache());
+    super.build(context); // 保持页面状态所必需
+    return BlocConsumer<SessionBloc, SessionState>(
+      // `listenWhen` 精确控制 `listener` 的触发时机，避免不必要的回调
+      listenWhen: (previous, current) {
+        // 条件一：当导航事件出现时触发 (从无到有)
+        if (current is SessionProjectEstablished) {
+          final prevRecord = (previous is SessionProjectEstablished)
+              ? previous.pendingTodoRecord
+              : null;
+          if (prevRecord == null && current.pendingTodoRecord != null) {
+            return true;
+          }
         }
-        if (_lastAuthState.runtimeType != authState.runtimeType) {
-          // 身份切换，重置tabs和初始tab
-          setState(() {
-            _setupTabsByAuth(authState);
-            // 重置bloc状态
-            final bloc = context.read<RecordsBloc>();
-            bloc.add(LoadRecords(recordType: _initialTab));
+        // 条件二：当会话的身份类型发生本质变化时触发 (用于刷新Tabs)
+        if (previous.runtimeType != current.runtimeType) {
+          return true;
+        }
+        return false;
+      },
+      // `listener` 专门用于处理副作用，如导航、弹窗、刷新其他Bloc等
+      listener: (context, sessionState) {
+        // 处理一次性的导航事件
+        if (sessionState is SessionProjectEstablished &&
+            sessionState.pendingTodoRecord != null) {
+          // 使用 addPostFrameCallback 确保在 build 流程结束后再执行导航
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              handleGoTodoDetail(context, sessionState.pendingTodoRecord!);
+              // **关键**：导航逻辑触发后，立即发送事件“消费”掉这个导航信息
+              context.read<SessionBloc>().add(
+                const SessionClearPendingNavigation(),
+              );
+            }
           });
         }
-        _lastAuthState = authState;
+
+        // 处理会话身份切换，这需要重置Tabs并重新加载记录
+        if (_lastSessionState?.runtimeType != sessionState.runtimeType) {
+          if (mounted) {
+            setState(() {
+              _setupTabsBySession(sessionState);
+              // 重置 RecordsBloc 状态，并加载新身份下的默认Tab
+              context.read<RecordsBloc>().add(
+                LoadRecords(recordType: _initialTab),
+              );
+            });
+          }
+        }
+        // 更新上一次的会话状态，用于下一次比较
+        _lastSessionState = sessionState;
       },
-      child: Scaffold(
-        backgroundColor: Colors.grey[50],
-        appBar: AppBar(
-          title: const Text('工作记录'),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black87,
-          elevation: 0,
-          bottom: PreferredSize(
-            preferredSize: Size.zero,
-            child: Container(height: 1, color: Colors.grey[200]),
-          ),
-        ),
-        body: Column(
-          children: [
-            BlocBuilder<RecordsBloc, RecordsState>(
-              builder: (context, state) {
-                RecordType currentTab = _initialTab;
-                if (state is RecordsInitial) {
-                  currentTab = state.currentTab;
-                } else if (state is RecordsLoading) {
-                  currentTab = state.currentTab;
-                } else if (state is RecordsLoaded) {
-                  currentTab = state.currentTab;
-                } else if (state is RecordsError) {
-                  currentTab = state.currentTab;
-                } else if (state is RecordsEmpty) {
-                  currentTab = state.currentTab;
-                }
-                return ExpandableTabBar(
-                  selectedTab: currentTab,
-                  onTabSelected: _onTabSelected,
-                  allTabs: _allTabs,
-                );
-              },
+      // `builder` 只负责根据当前状态构建UI，不包含任何业务逻辑
+      builder: (context, sessionState) {
+        return Scaffold(
+          backgroundColor: Colors.grey[50],
+          appBar: AppBar(
+            title: const Text('工作记录'),
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black87,
+            elevation: 0,
+            bottom: PreferredSize(
+              preferredSize: Size.zero,
+              child: Container(height: 1, color: Colors.grey[200]),
             ),
-            Expanded(child: _buildContent()),
-          ],
-        ),
-      ),
+          ),
+          body: Column(
+            children: [
+              BlocBuilder<RecordsBloc, RecordsState>(
+                builder: (context, state) {
+                  RecordType currentTab = _initialTab;
+                  if (state is RecordsInitial) {
+                    currentTab = state.currentTab;
+                  } else if (state is RecordsLoading) {
+                    currentTab = state.currentTab;
+                  } else if (state is RecordsLoaded) {
+                    currentTab = state.currentTab;
+                  } else if (state is RecordsError) {
+                    currentTab = state.currentTab;
+                  } else if (state is RecordsEmpty) {
+                    currentTab = state.currentTab;
+                  }
+                  return ExpandableTabBar(
+                    selectedTab: currentTab,
+                    onTabSelected: _onTabSelected,
+                    allTabs: _allTabs,
+                  );
+                },
+              ),
+              Expanded(child: _buildContent()),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -354,22 +369,21 @@ class _RecordsListPageState extends State<RecordsListPage> {
     int projectId,
     TodoRecordItem record,
   ) {
-    final projectState = context.read<ProjectBloc>().state;
+    final sessionState = context.read<SessionBloc>().state;
     int? currentProjectId;
-    bool isProjectRoleLoaded = false;
-    if (projectState is ProjectRoleInfoLoaded) {
-      currentProjectId = projectState.currentProject.projectId;
-      isProjectRoleLoaded = true;
+    bool isProjectEstablished = false;
+
+    if (sessionState is SessionProjectEstablished) {
+      currentProjectId = sessionState.project.projectId;
+      isProjectEstablished = true;
     }
 
-    // 只有在ProjectRoleInfoLoaded且项目id一致时直接进入详情，否则都弹窗
-    if (isProjectRoleLoaded && currentProjectId == projectId) {
+    if (isProjectEstablished && currentProjectId == projectId) {
       handleGoTodoDetail(context, record);
       return;
     }
 
-    // 判断当前是否为项目参与方身份
-    final isParticipant = projectState is ProjectRoleInfoLoaded;
+    final isParticipant = sessionState is SessionProjectEstablished;
     final dialogTitle = isParticipant ? '该操作需要切换项目' : '该操作需要切换至项目参与方';
     final dialogContent = isParticipant
         ? '该待办不属于当前项目，若确认查看详情，将自动切换到目标项目'
@@ -387,21 +401,23 @@ class _RecordsListPageState extends State<RecordsListPage> {
               child: const Text('取消'),
             ),
             TextButton(
-              onPressed: () async {
+              onPressed: () {
                 Navigator.of(context).pop();
-                // 先切换项目
-                // context.read<ProjectBloc>().add(
-                //   ProjectSelectProject(projectId: projectId),
-                // );
-                // 如果不是项目参与方身份，切换身份
                 if (!isParticipant) {
-                  // 这里假设有 ProjectSwitchToParticipant 事件
-                  context.read<ProjectBloc>().add(
-                    ProjectSwitchToParticipant(projectId),
+                  context.read<SessionBloc>().add(
+                    SessionSelectProjectParticipant(
+                      pendingProjectId: projectId,
+                      pendingTodoRecord: record,
+                    ),
+                  );
+                } else {
+                  context.read<SessionBloc>().add(
+                    SessionSelectProjectWithPendingNavigation(
+                      projectId: projectId,
+                      pendingTodoRecord: record,
+                    ),
                   );
                 }
-                // 跳转详情
-                handleGoTodoDetail(context, record);
               },
               child: const Text('确认'),
             ),
