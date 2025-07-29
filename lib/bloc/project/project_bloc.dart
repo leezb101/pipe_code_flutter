@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 23:40:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-14 18:30:39
+ * @LastEditTime: 2025-07-29 09:39:07
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,14 +13,25 @@ import 'project_state.dart';
 
 class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
   final AuthRepository _authRepository;
+  int? _pendingProjectId;
 
   ProjectBloc({required AuthRepository authRepository})
     : _authRepository = authRepository,
-      super(const ProjectInitial()) {
+      super(ProjectInitial(timestamp: DateTime.now())) {
     on<ProjectLoadUserProjects>(_onLoadUserProjects);
     on<ProjectSelectProject>(_onSelectProject);
     on<ProjectSetCurrentRoleInfo>(_onSetCurrentRoleInfo);
     on<ProjectClearData>(_onClearData);
+    on<ProjectSwitchToParticipant>(_onSwitchToParticipant);
+  }
+
+  /// 切换为项目参与方身份
+  Future<void> _onSwitchToParticipant(
+    ProjectSwitchToParticipant event,
+    Emitter<ProjectState> emit,
+  ) async {
+    _pendingProjectId = event.pendingProjectId;
+    emit(ProjectInitial(timestamp: DateTime.now()));
   }
 
   /// 加载用户项目列表
@@ -37,6 +48,19 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
           availableProjects: event.wxLoginVO.projectInfos,
         ),
       );
+
+      if (_pendingProjectId != null) {
+        // 如果有待选项目ID，直接选择该项目
+        final pendingId = _pendingProjectId!;
+        _pendingProjectId = null; // 清除待选项目ID
+        add(
+          ProjectSelectProject(
+            isFromStoreKeeperMode: true,
+            projectId: pendingId,
+          ),
+        );
+        return;
+      }
 
       // 执行智能项目选择逻辑
       await smartProjectSelection(
@@ -61,6 +85,12 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
         currentState is ProjectRoleInfoLoaded) {
       emit(const ProjectLoading());
       try {
+        final isFromStoreKeeperMode = event.isFromStoreKeeperMode ?? false;
+        if (isFromStoreKeeperMode) {
+          _pendingProjectId = event.projectId;
+        } else {
+          _pendingProjectId = null;
+        }
         final result = await _authRepository.selectProject(event.projectId);
         if (result.isSuccess) {
           // 获取wxLoginVO，优先从当前状态获取
@@ -106,8 +136,15 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     ProjectClearData event,
     Emitter<ProjectState> emit,
   ) async {
-    emit(const ProjectInitial());
+    _pendingProjectId = null; // 重置待选项目ID
+    emit(ProjectInitial(timestamp: DateTime.now()));
   }
+
+  Future<void> autoSelectProjectForSwitchMode(
+    String userId,
+    int projectId,
+    Emitter<ProjectState> emit,
+  ) async {}
 
   /// 智能项目选择逻辑
   Future<void> smartProjectSelection(

@@ -1,3 +1,10 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-22 08:53:08
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-28 19:42:33
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -5,16 +12,16 @@ part 'attachment_vo.g.dart';
 
 @JsonSerializable()
 class AttachmentVO extends Equatable {
-  final int type;
-  final String name;
+  final int? type;
+  final String? name;
   final String url;
-  final int attachFormat;
+  final String? attachFormat;
 
   const AttachmentVO({
-    required this.type,
-    required this.name,
+    this.type,
+    this.name,
     required this.url,
-    required this.attachFormat,
+    this.attachFormat,
   });
 
   factory AttachmentVO.fromJson(Map<String, dynamic> json) =>
@@ -23,18 +30,13 @@ class AttachmentVO extends Equatable {
   Map<String, dynamic> toJson() => _$AttachmentVOToJson(this);
 
   @override
-  List<Object?> get props => [
-        type,
-        name,
-        url,
-        attachFormat,
-      ];
+  List<Object?> get props => [type, name, url, attachFormat];
 
   AttachmentVO copyWith({
     int? type,
     String? name,
     String? url,
-    int? attachFormat,
+    String? attachFormat,
   }) {
     return AttachmentVO(
       type: type ?? this.type,
@@ -56,8 +58,4 @@ class AttachmentVO extends Equatable {
         return '其他附件';
     }
   }
-
-  bool get isImage => attachFormat == 1;
-  bool get isPdf => attachFormat == 2;
-  bool get isDoc => attachFormat == 3;
 }

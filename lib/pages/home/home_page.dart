@@ -2,13 +2,14 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:25:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-28 16:45:44
+ * @LastEditTime: 2025-07-28 20:10:54
  * @copyright: Copyright © 2025 高新供水.
  */
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_event.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
@@ -81,6 +82,19 @@ class _HomePageState extends State<HomePage> {
                 setState(() {
                   _showProjectSwitchingOverlay = false;
                 });
+              }
+              if (state is ProjectInitial) {
+                context.read<AuthBloc>().add(AuthProjectModeRequested());
+              }
+            },
+          ),
+          BlocListener<AuthBloc, AuthState>(
+            listener: (context, authState) {
+              // 身份切换为项目参与方后自动加载项目
+              if (authState is AuthLoginSuccess) {
+                context.read<ProjectBloc>().add(
+                  ProjectLoadUserProjects(wxLoginVO: authState.wxLoginVO),
+                );
               }
             },
           ),

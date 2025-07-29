@@ -548,7 +548,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
         type: 1,
         name: 'warehouse_photo_${entry.key + 1}.jpg',
         url: entry.value.path,
-        attachFormat: 1, // Image type
+        attachFormat: '', // Image type
       );
     }).toList();
 

@@ -313,7 +313,7 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
         const SizedBox(width: 12),
         Expanded(
           child: Text(
-            documents.isNotEmpty ? documents.first.name : '暂无$label',
+            documents.isNotEmpty ? documents.first.name ?? '' : '暂无$label',
             style: TextStyle(
               fontSize: 16,
               color: documents.isNotEmpty ? Colors.black : Colors.grey.shade600,
@@ -383,7 +383,7 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      photo.name,
+                      photo.name ?? '',
                       style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
                   ),

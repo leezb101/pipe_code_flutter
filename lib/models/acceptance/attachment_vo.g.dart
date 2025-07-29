@@ -7,10 +7,10 @@ part of 'attachment_vo.dart';
 // **************************************************************************
 
 AttachmentVO _$AttachmentVOFromJson(Map<String, dynamic> json) => AttachmentVO(
-  type: (json['type'] as num).toInt(),
-  name: json['name'] as String,
+  type: (json['type'] as num?)?.toInt(),
+  name: json['name'] as String?,
   url: json['url'] as String,
-  attachFormat: (json['attachFormat'] as num).toInt(),
+  attachFormat: json['attachFormat'] as String?,
 );
 
 Map<String, dynamic> _$AttachmentVOToJson(AttachmentVO instance) =>

@@ -5,7 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/bloc/project/project_bloc.dart';
 import 'package:pipe_code_flutter/bloc/project/project_event.dart';
 import 'package:pipe_code_flutter/bloc/project/project_state.dart';
+import 'package:pipe_code_flutter/bloc/user/user_bloc.dart';
+import 'package:pipe_code_flutter/bloc/user/user_state.dart';
 import 'package:pipe_code_flutter/models/records/record_item.dart';
+import '../../bloc/auth/auth_event.dart';
 import '../../bloc/records/records_bloc.dart';
 import '../../bloc/records/records_event.dart';
 import '../../bloc/records/records_state.dart';
@@ -195,6 +198,10 @@ class _RecordsListPageState extends State<RecordsListPage> {
     // 监听身份变化，动态调整tabs和重置tab状态
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, authState) {
+        // 如果变为未认证或初始状态，先清空 records
+        if (authState is AuthUnauthenticated || authState is AuthInitial) {
+          context.read<RecordsBloc>().add(const ClearRecordsCache());
+        }
         if (_lastAuthState.runtimeType != authState.runtimeType) {
           // 身份切换，重置tabs和初始tab
           setState(() {
@@ -347,38 +354,60 @@ class _RecordsListPageState extends State<RecordsListPage> {
     int projectId,
     TodoRecordItem record,
   ) {
-    final currentProject =
-        context.read<ProjectBloc>().state as ProjectRoleInfoLoaded;
-    final currentProjectId = currentProject.currentProject.projectId;
-    if (currentProjectId != projectId) {
-      // 弹出确认框提示用户
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('该操作需要切换项目'),
-            content: const Text('该待办不属于当前项目，若确认查看详情，将自动切换到目标项目'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('取消'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  context.read<ProjectBloc>().add(
-                    ProjectSelectProject(projectId: projectId),
-                  );
-                  handleGoTodoDetail(context, record);
-                },
-                child: const Text('确认'),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      handleGoTodoDetail(context, record);
+    final projectState = context.read<ProjectBloc>().state;
+    int? currentProjectId;
+    bool isProjectRoleLoaded = false;
+    if (projectState is ProjectRoleInfoLoaded) {
+      currentProjectId = projectState.currentProject.projectId;
+      isProjectRoleLoaded = true;
     }
+
+    // 只有在ProjectRoleInfoLoaded且项目id一致时直接进入详情，否则都弹窗
+    if (isProjectRoleLoaded && currentProjectId == projectId) {
+      handleGoTodoDetail(context, record);
+      return;
+    }
+
+    // 判断当前是否为项目参与方身份
+    final isParticipant = projectState is ProjectRoleInfoLoaded;
+    final dialogTitle = isParticipant ? '该操作需要切换项目' : '该操作需要切换至项目参与方';
+    final dialogContent = isParticipant
+        ? '该待办不属于当前项目，若确认查看详情，将自动切换到目标项目'
+        : '当前身份为库管员，若继续该操作，将自动切换至项目参与方并选中该项目';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(dialogTitle),
+          content: Text(dialogContent),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                // 先切换项目
+                // context.read<ProjectBloc>().add(
+                //   ProjectSelectProject(projectId: projectId),
+                // );
+                // 如果不是项目参与方身份，切换身份
+                if (!isParticipant) {
+                  // 这里假设有 ProjectSwitchToParticipant 事件
+                  context.read<ProjectBloc>().add(
+                    ProjectSwitchToParticipant(projectId),
+                  );
+                }
+                // 跳转详情
+                handleGoTodoDetail(context, record);
+              },
+              child: const Text('确认'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

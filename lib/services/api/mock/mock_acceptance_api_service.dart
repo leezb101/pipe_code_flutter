@@ -70,25 +70,25 @@ class MockAcceptanceApiService implements AcceptanceApiService {
         type: 1,
         name: '报验单.pdf',
         url: '/uploads/docs/acceptance_report_${_random.nextInt(1000)}.pdf',
-        attachFormat: 2,
+        attachFormat: 'pdf', // Document type
       ),
       AttachmentVO(
         type: 2,
         name: '验收报告.pdf',
         url: '/uploads/docs/acceptance_audit_${_random.nextInt(1000)}.pdf',
-        attachFormat: 2,
+        attachFormat: 'pdf',
       ),
       AttachmentVO(
         type: 3,
         name: '现场照片1.jpg',
         url: '/uploads/images/site_photo_${_random.nextInt(1000)}.jpg',
-        attachFormat: 1,
+        attachFormat: 'jpg',
       ),
       AttachmentVO(
         type: 3,
         name: '现场照片2.jpg',
         url: '/uploads/images/site_photo_${_random.nextInt(1000)}.jpg',
-        attachFormat: 1,
+        attachFormat: 'jpg',
       ),
     ];
   }
