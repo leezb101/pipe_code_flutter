@@ -16,6 +16,7 @@ import 'acceptance_api_service.dart';
 import 'common_query_api_service.dart';
 import 'material_handle_api_service.dart';
 import 'dispatch_api_service.dart';
+import 'return_api_service.dart';
 
 abstract class ApiServiceInterface {
   AuthApiService get auth;
@@ -29,4 +30,5 @@ abstract class ApiServiceInterface {
   SignoutApiService get signout;
   InstallApiService get install;
   DispatchApiService get dispatch;
+  ReturnApiService get returnApi;
 }

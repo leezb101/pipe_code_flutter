@@ -41,6 +41,9 @@ import 'api/mock/mock_todo_api_service.dart';
 import 'api/interfaces/material_handle_api_service.dart';
 import 'api/implementations/material_handle_api_service_impl.dart';
 import 'api/mock/mock_material_handle_api_service.dart';
+import 'api/interfaces/return_api_service.dart';
+import 'api/implementations/return_api_service_impl.dart';
+import 'api/mock/mock_return_api_service.dart';
 
 class ApiServiceFactory {
   static ApiServiceInterface create() {
@@ -130,6 +133,15 @@ class ApiServiceFactory {
     } else {
       final dio = _createDio();
       return DispatchApiServiceImpl(dio);
+    }
+  }
+
+  static ReturnApiService createReturnService() {
+    if (AppConfig.isMockEnabled) {
+      return MockReturnApiService();
+    } else {
+      final dio = _createDio();
+      return ReturnApiServiceImpl(dio);
     }
   }
 

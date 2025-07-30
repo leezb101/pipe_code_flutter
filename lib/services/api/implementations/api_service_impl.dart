@@ -23,12 +23,14 @@ import '../interfaces/list_api_service.dart';
 import '../interfaces/acceptance_api_service.dart';
 import '../interfaces/signout_api_service.dart';
 import '../interfaces/dispatch_api_service.dart';
+import '../interfaces/return_api_service.dart';
 import 'auth_api_service_impl.dart';
 import 'install_api_service_impl.dart';
 import 'user_api_service_impl.dart';
 import 'list_api_service_impl.dart';
 import 'acceptance_api_service_impl.dart';
 import 'signout_api_service_impl.dart';
+import 'return_api_service_impl.dart';
 
 class ApiServiceImpl implements ApiServiceInterface {
   final Dio _dio;
@@ -43,6 +45,7 @@ class ApiServiceImpl implements ApiServiceInterface {
   SignoutApiService? _signoutApiService;
   InstallApiService? _installApiService;
   DispatchApiService? _dispatchApiService;
+  ReturnApiService? _returnApiService;
 
   ApiServiceImpl(this._dio);
 
@@ -84,4 +87,8 @@ class ApiServiceImpl implements ApiServiceInterface {
   @override
   DispatchApiService get dispatch =>
       _dispatchApiService ??= DispatchApiServiceImpl(_dio);
+
+  @override
+  ReturnApiService get returnApi =>
+      _returnApiService ??= ReturnApiServiceImpl(_dio);
 }

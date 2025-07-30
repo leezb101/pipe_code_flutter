@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 16:59:15
+ * @LastEditTime: 2025-07-30 16:38:19
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -51,8 +51,12 @@ import '../models/project/project_initiation.dart';
 import '../models/records/record_type.dart';
 import '../services/qr_scan_service.dart';
 import '../pages/material/material_detail_page.dart';
+import '../pages/return/return_page.dart';
+import '../pages/return/return_detail_page.dart';
+import '../bloc/return/return_bloc.dart';
 import '../models/material/scan_identification_response.dart';
 import '../repositories/dispatch_repository.dart';
+import '../repositories/interfaces/return_repository.dart';
 import 'service_locator.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -387,6 +391,43 @@ final GoRouter appRouter = GoRouter(
               },
             ),
           ],
+        ),
+        GoRoute(
+          path: '/return-material',
+          name: 'return-material',
+          builder: (context, state) {
+            final data = state.extra as Map<String, dynamic>?;
+            if (data == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            final materials = data['materialInfo'] as MaterialInfoForBusiness?;
+            if (materials == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return BlocProvider(
+              create: (context) =>
+                  ReturnBloc(returnRepository: getIt<ReturnRepository>()),
+              child: ReturnPage(materials: materials),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/return-detail',
+          name: 'return-detail',
+          builder: (context, state) {
+            final returnIdParam = state.uri.queryParameters['id'];
+            final returnId = returnIdParam != null
+                ? int.tryParse(returnIdParam)
+                : null;
+            if (returnId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return BlocProvider(
+              create: (context) =>
+                  ReturnBloc(returnRepository: getIt<ReturnRepository>()),
+              child: ReturnDetailPage(id: returnId),
+            );
+          },
         ),
       ],
     ),

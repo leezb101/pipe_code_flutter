@@ -1,15 +1,19 @@
 import 'package:get_it/get_it.dart';
 import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
+import 'package:pipe_code_flutter/bloc/return/return_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/repositories/dispatch_repository.dart';
 import 'package:pipe_code_flutter/repositories/enum_repository.dart';
 import 'package:pipe_code_flutter/repositories/install_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/return_repository.dart';
+import 'package:pipe_code_flutter/repositories/repository_factory.dart';
 import 'package:pipe_code_flutter/repositories/signout_repository.dart';
 import 'package:pipe_code_flutter/repositories/spareqr_repository.dart';
 import 'package:pipe_code_flutter/repositories/material_handle_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/dispatch_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/install_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/return_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../repositories/auth_repository.dart';
@@ -93,6 +97,10 @@ Future<void> setupServiceLocator({
     () => ApiServiceFactory.createDispatchService(),
   );
 
+  getIt.registerLazySingleton<ReturnApiService>(
+    () => ApiServiceFactory.createReturnService(),
+  );
+
   getIt.registerSingleton<EnumRepository>(
     EnumRepository(getIt<EnumApiService>()),
   );
@@ -174,12 +182,20 @@ Future<void> setupServiceLocator({
     () => ApiServiceFactory.createInstallApiService(),
   );
 
+  getIt.registerLazySingleton<ReturnRepository>(
+    () => RepositoryFactory.createReturnRepository(),
+  );
+
   // Blocs
   getIt.registerFactory<DispatchBloc>(
     () => DispatchBloc(
       dispatchRepository: getIt<DispatchRepository>(),
       commonQueryApiService: getIt<CommonQueryApiService>(),
     ),
+  );
+
+  getIt.registerFactory<ReturnBloc>(
+    () => ReturnBloc(),
   );
 
   // Session Bloc - factory registration for proper dependency injection

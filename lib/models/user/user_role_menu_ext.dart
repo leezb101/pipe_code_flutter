@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 15:05:11
+ * @LastEditTime: 2025-07-30 11:39:31
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/constants/menu_actions.dart';
@@ -51,9 +51,11 @@ extension UserRoleMenuExtension on UserRole {
           _createMenuItem(
             id: 'return',
             title: '退库',
-            type: MenuItemType.page,
+            // type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'keyboard_return',
-            route: '/return',
+            // route: '/return',
+            action: MenuActions.qrScanReturnMaterial,
             order: 4,
             isEnabled: !isExpired,
           ),
@@ -82,9 +84,9 @@ extension UserRoleMenuExtension on UserRole {
           _createMenuItem(
             id: 'return',
             title: '退库',
-            type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'keyboard_return',
-            route: '/return',
+            action: MenuActions.qrScanReturnMaterial,
             order: 2,
             isEnabled: !isExpired,
           ),
@@ -152,9 +154,9 @@ extension UserRoleMenuExtension on UserRole {
           _createMenuItem(
             id: 'return',
             title: '退库',
-            type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'keyboard_return',
-            route: '/return',
+            action: MenuActions.qrScanReturnMaterial,
             order: 5,
             isEnabled: !isExpired,
           ),
@@ -268,9 +270,9 @@ extension UserRoleMenuExtension on UserRole {
           _createMenuItem(
             id: 'return',
             title: '退库',
-            type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'keyboard_return',
-            route: '/return',
+            action: MenuActions.qrScanReturnMaterial,
             order: 5,
             isEnabled: !isExpired,
           ),
@@ -384,9 +386,9 @@ extension UserRoleMenuExtension on UserRole {
           _createMenuItem(
             id: 'return',
             title: '退库',
-            type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'keyboard_return',
-            route: '/return',
+            action: MenuActions.qrScanReturnMaterial,
             order: 5,
             isEnabled: !isExpired,
           ),
