@@ -1,20 +1,19 @@
 import 'package:pipe_code_flutter/services/api/interfaces/material_handle_api_service.dart';
+import 'package:pipe_code_flutter/models/common/result.dart';
+import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 
-import '../models/common/result.dart';
-import '../models/material/material_info_for_business.dart';
-
-class MaterialHandleRepository {
+class MaterialHandleRepositoryImpl implements MaterialHandleRepository {
   final MaterialHandleApiService _materialHandleApiService;
 
-  MaterialHandleRepository(this._materialHandleApiService);
+  MaterialHandleRepositoryImpl(this._materialHandleApiService);
 
-  /// 扫码查询所有物料信息
+  @override
   Future<Result<MaterialInfoForBusiness>> scanSingleToQueryAll(String code) {
     return _materialHandleApiService.scanSingleToQueryAll(code);
   }
 
-  /// 批量扫码查询所有物料信息
-  /// [codes] 物料码列表
+  @override
   Future<Result<MaterialInfoForBusiness>> scanBatchToQueryAll(
     List<String> codes,
   ) {

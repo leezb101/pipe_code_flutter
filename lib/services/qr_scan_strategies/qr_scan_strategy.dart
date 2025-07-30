@@ -2,13 +2,13 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-30 11:41:45
+ * @LastEditTime: 2025-07-30 18:28:14
  * @copyright: Copyright © 2025 高新供水.
  */
 
 import '../../models/qr_scan/qr_scan_result.dart';
 import '../../models/material/material_info_for_business.dart';
-import '../../repositories/material_handle_repository.dart';
+import '../../repositories/interfaces/material_handle_repository.dart';
 import '../../utils/logger.dart';
 import '../../config/service_locator.dart';
 import '../api_service_factory.dart';
@@ -411,53 +411,62 @@ class PipeCopyStrategy implements QrScanStrategy {
 }
 
 class ReturnMaterialStrategy implements QrScanStrategy {
-  late final MaterialHandleRepository _materialHandleRepository;
-
-  ReturnMaterialStrategy() {
-    _materialHandleRepository = getIt<MaterialHandleRepository>();
-  }
-
   @override
   Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
-    // 退库只支持批量扫码
-    return await _processBatchReturnMaterial(results);
-  }
+    await Future.delayed(const Duration(seconds: 1));
 
-  Future<QrScanProcessResult> _processBatchReturnMaterial(List<QrScanResult> results) async {
-    Logger.qrScan('=== 批量退库处理 ===');
-    Logger.qrScan('批次大小: [36m${results.length}[0m');
-    final codes = results.map((r) => r.code).toList();
-
-    final materialResult = await _getMaterialInfoByBatchCodes(codes);
-    if (materialResult != null) {
-      return QrScanProcessResult(
-        success: true,
-        navigationData: QrScanNavigationData(
-          route: '/return-material', // 占位路径
-          data: {'materialInfo': materialResult, 'scanMode': 'batch'},
-        ),
-      );
+    if (results.length == 1) {
+      await _processSingleReturnMaterial(results.first);
     } else {
-      return const QrScanProcessResult(
-        success: false,
-        errorMessage: "未找到对应的管件信息",
-      );
+      await _processBatchReturnMaterial(results);
     }
+
+    return const QrScanProcessResult(success: true);
   }
 
-  Future<MaterialInfoForBusiness?> _getMaterialInfoByBatchCodes(List<String> codes) async {
-    try {
-      final result = await _materialHandleRepository.scanBatchToQueryAll(codes);
-      if (result.isSuccess && result.data != null) {
-        return result.data!;
-      } else {
-        Logger.qrScan('批量获取物料信息失败: ${result.msg}');
-        return null;
-      }
-    } catch (e) {
-      Logger.qrScan('批量获取物料信息异常: $e');
-      return null;
+  Future<void> _processSingleReturnMaterial(QrScanResult result) async {
+    // TODO: 实现单个退料的具体业务逻辑
+    // 1. 验证材料编号和当前状态
+    // 2. 检查退料权限和条件
+    // 3. 更新库存数量和状态
+    // 4. 生成退料单据
+    // 5. 记录退料操作日志
+  }
+
+  Future<void> _processBatchReturnMaterial(List<QrScanResult> results) async {
+    Logger.qrScan('=== 批量退料处理 ===');
+    Logger.qrScan('批次大小: ${results.length}');
+
+    for (int i = 0; i < results.length; i++) {
+      final result = results[i];
+      Logger.qrScan(
+        '第${i + 1}个材料 - 编号: ${result.code}',
+        deviceCode: result.code,
+      );
     }
+
+    Logger.qrScan('批量退料状态: 全部完成');
+
+    // TODO: 实现批量退料的具体业务逻辑
+    // 1. 批量验证所有材料编号
+    // 2. 批量检查退料权限
+    // 3. 批量更新库存状态
+    // 4. 生成批量退料报告
+    // 5. 发送退料完成通知
+  }
+
+  Map<String, dynamic> _mockReturnMaterialInfo(String materialCode) {
+    return {
+      '材料编号': materialCode,
+      '材料名称': '水管接头',
+      '规格型号': 'DN100 弯头',
+      '退料数量': 5,
+      '退料原因': '规格不匹配',
+      '原领料人': '李师傅',
+      '退料时间': DateTime.now().toString().substring(0, 19),
+      '退料状态': '已退回库存',
+      '备注': '材料完好，可重新使用',
+    };
   }
 }
 

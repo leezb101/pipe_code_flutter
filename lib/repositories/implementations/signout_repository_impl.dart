@@ -13,14 +13,15 @@ import 'package:pipe_code_flutter/models/signout/do_signout_request_vo.dart';
 import 'package:pipe_code_flutter/models/signout/signout_info_vo.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/signout_repository.dart';
 
-class SignoutRepository {
+class SignoutRepositoryImpl implements SignoutRepository {
   final SignoutApiService _signoutApiService;
   final CommonQueryApiService _commonQueryApiService;
 
-  SignoutRepository(this._signoutApiService, this._commonQueryApiService);
+  SignoutRepositoryImpl(this._signoutApiService, this._commonQueryApiService);
 
-  /// 获取出库详情
+  @override
   Future<Result<SignoutInfoVo>> getSignoutDetail(int id) async {
     try {
       final result = await _signoutApiService.getSignoutDetail(id);
@@ -30,7 +31,7 @@ class SignoutRepository {
     }
   }
 
-  /// 提交出库请求
+  @override
   Future<Result<void>> doSignout(DoSignoutRequestVo request) async {
     try {
       final result = await _signoutApiService.doSignout(request);
@@ -40,7 +41,7 @@ class SignoutRepository {
     }
   }
 
-  /// 出库确认
+  @override
   Future<Result<void>> auditSignout(CommonDoBusinessAuditVO request) async {
     try {
       final result = await _signoutApiService.auditSignout(request);
@@ -50,7 +51,7 @@ class SignoutRepository {
     }
   }
 
-  /// 获取仓库管理员列表
+  @override
   Future<Result<WarehouseUserInfoVO>> getWarehouseUsers(int warehouseId) async {
     try {
       final result = await _commonQueryApiService.getWarehouseUsers(
@@ -62,6 +63,7 @@ class SignoutRepository {
     }
   }
 
+  @override
   Future<Result<WarehouseVO>> getWarehouseInfoByMaterialId(
     int materialId,
   ) async {

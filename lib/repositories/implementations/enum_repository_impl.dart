@@ -5,20 +5,14 @@
  * @LastEditTime: 2025-07-25 18:29:06
  * @copyright: Copyright © 2025 高新供水.
  */
-/*
- * @Author: LeeZB
- * @Date: 2025-07-22 16:18:56
- * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-22 17:07:39
- * @copyright: Copyright © 2025 高新供水.
- */
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
 import 'package:pipe_code_flutter/models/common/result.dart';
 import 'package:pipe_code_flutter/models/common/common_enum_vo.dart';
 import 'package:pipe_code_flutter/models/common/org_models.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/enum_repository.dart';
 
 /// 枚举仓库，负责统一拉取和管理所有枚举数据
-class EnumRepository {
+class EnumRepositoryImpl implements EnumRepository {
   final EnumApiService _enumApiService;
 
   List<TodoType>? _todoTypes;
@@ -33,9 +27,10 @@ class EnumRepository {
   List<ProjectType>? _projectTypes;
   List<ReturnType>? _returnTypes;
 
-  EnumRepository(this._enumApiService);
+  EnumRepositoryImpl(this._enumApiService);
 
   /// 初始化所有枚举数据，建议在应用启动时调用
+  @override
   Future<void> initializeEnums() async {
     try {
       final results = await Future.wait([
@@ -124,19 +119,30 @@ class EnumRepository {
     }
   }
 
+  @override
   List<TodoType>? get todoTypes => _todoTypes;
+  @override
   List<MaterialGroup>? get materialGroups => _materialGroups;
+  @override
   List<MaterialType>? get materialTypes => _materialTypes;
+  @override
   List<OrgType>? get orgTypes => _orgTypes;
+  @override
   List<SimpleOrg>? get orgs => _orgs;
+  @override
   List<AcceptStatus>? get acceptStatuses => _acceptStatuses;
+  @override
   List<BusinessType>? get businessTypes => _businessTypes;
+  @override
   List<ProjectStatus>? get projectStatuses => _projectStatuses;
+  @override
   List<ProjectSupplyType>? get projectSupplyTypes => _projectSupplyTypes;
+  @override
   List<ProjectType>? get projectTypes => _projectTypes;
+  @override
   List<ReturnType>? get returnTypes => _returnTypes;
 
-  /// 判断是否已初始化
+  @override
   bool get isInitialized =>
       _todoTypes != null &&
       _materialGroups != null &&

@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/records/record_type.dart';
-import '../../repositories/records_repository.dart';
+import '../../repositories/interfaces/records_repository.dart';
 import '../../utils/logger.dart';
 import 'records_event.dart';
 import 'records_state.dart';

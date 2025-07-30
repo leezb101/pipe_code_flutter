@@ -5,26 +5,27 @@
  * @LastEditTime: 2025-07-24 19:44:10
  * @copyright: Copyright © 2025 高新供水.
  */
-import '../models/acceptance/acceptance_info_vo.dart';
-import '../models/acceptance/do_accept_vo.dart';
-import '../models/acceptance/do_accept_sign_in_vo.dart';
-import '../models/acceptance/common_do_business_audit_vo.dart';
-import '../models/common/accept_user_info_vo.dart';
-import '../models/common/warehouse_user_info_vo.dart';
-import '../models/records/record_list_response.dart';
-import '../models/common/result.dart';
-import '../models/common/warehouse_vo.dart';
-import '../services/api/interfaces/acceptance_api_service.dart';
-import '../services/api/interfaces/common_query_api_service.dart';
-import '../utils/logger.dart';
+import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
+import 'package:pipe_code_flutter/models/acceptance/do_accept_vo.dart';
+import 'package:pipe_code_flutter/models/acceptance/do_accept_sign_in_vo.dart';
+import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
+import 'package:pipe_code_flutter/models/common/accept_user_info_vo.dart';
+import 'package:pipe_code_flutter/models/common/warehouse_user_info_vo.dart';
+import 'package:pipe_code_flutter/models/records/record_list_response.dart';
+import 'package:pipe_code_flutter/models/common/result.dart';
+import 'package:pipe_code_flutter/models/common/warehouse_vo.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/acceptance_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
+import 'package:pipe_code_flutter/utils/logger.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 
-class AcceptanceRepository {
+class AcceptanceRepositoryImpl implements AcceptanceRepository {
   final AcceptanceApiService _apiService;
   final CommonQueryApiService _commonQueryApiService;
 
-  AcceptanceRepository(this._apiService, this._commonQueryApiService);
+  AcceptanceRepositoryImpl(this._apiService, this._commonQueryApiService);
 
-  /// 提交验收单
+  @override
   Future<Result<void>> submitAcceptance(DoAcceptVO request) async {
     try {
       Logger.info('Submitting acceptance request', tag: 'AcceptanceRepository');
@@ -53,7 +54,7 @@ class AcceptanceRepository {
     }
   }
 
-  /// 审核验收单
+  @override
   Future<Result<void>> auditAcceptance(CommonDoBusinessAuditVO request) async {
     try {
       Logger.info(
@@ -85,7 +86,7 @@ class AcceptanceRepository {
     }
   }
 
-  /// 获取验收详情
+  @override
   Future<Result<AcceptanceInfoVO>> getAcceptanceDetail(int id) async {
     try {
       Logger.info(
@@ -116,7 +117,7 @@ class AcceptanceRepository {
     }
   }
 
-  /// 获取验收列表
+  @override
   Future<Result<RecordListResponse>> getAcceptanceList({
     int? projectId,
     int? userId,
@@ -157,7 +158,7 @@ class AcceptanceRepository {
     }
   }
 
-  /// 验收后入库
+  @override
   Future<Result<void>> doAcceptanceSignIn(DoAcceptSignInVO request) async {
     try {
       Logger.info(
@@ -188,7 +189,7 @@ class AcceptanceRepository {
     }
   }
 
-  /// 获取验收用户
+  @override
   Future<Result<AcceptUserInfoVO>> getAcceptanceUsers({
     required int projectId,
   }) async {
@@ -221,7 +222,7 @@ class AcceptanceRepository {
     }
   }
 
-  /// 获取仓库用户
+  @override
   Future<Result<WarehouseUserInfoVO>> getWarehouseUsers({
     required int warehouseId,
   }) async {
@@ -256,7 +257,7 @@ class AcceptanceRepository {
     }
   }
 
-  /// 获取仓库列表
+  @override
   Future<Result<List<WarehouseVO>>> getWarehouseList() async {
     try {
       Logger.info('Fetching warehouse list', tag: 'AcceptanceRepository');

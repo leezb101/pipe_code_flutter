@@ -1,36 +1,35 @@
 import 'package:get_it/get_it.dart';
+import 'package:pipe_code_flutter/bloc/acceptance/acceptance_bloc.dart';
 import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
+import 'package:pipe_code_flutter/bloc/install/install_bloc.dart';
+import 'package:pipe_code_flutter/bloc/project_initiation/project_initiation_bloc.dart';
+import 'package:pipe_code_flutter/bloc/qr_scan/qr_scan_bloc.dart';
+import 'package:pipe_code_flutter/bloc/records/records_bloc.dart';
 import 'package:pipe_code_flutter/bloc/return/return_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
-import 'package:pipe_code_flutter/repositories/dispatch_repository.dart';
-import 'package:pipe_code_flutter/repositories/enum_repository.dart';
-import 'package:pipe_code_flutter/repositories/install_repository.dart';
+import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
+import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/auth_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/enum_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/install_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/list_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/project_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/records_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/return_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/signout_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/user_repository.dart';
 import 'package:pipe_code_flutter/repositories/repository_factory.dart';
-import 'package:pipe_code_flutter/repositories/signout_repository.dart';
-import 'package:pipe_code_flutter/repositories/spareqr_repository.dart';
-import 'package:pipe_code_flutter/repositories/material_handle_repository.dart';
-import 'package:pipe_code_flutter/services/api/interfaces/dispatch_api_service.dart';
-import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
-import 'package:pipe_code_flutter/services/api/interfaces/install_api_service.dart';
-import 'package:pipe_code_flutter/services/api/interfaces/return_api_service.dart';
-import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/identification_api_service.dart';
+import 'package:pipe_code_flutter/services/api_service_factory.dart';
+import 'package:pipe_code_flutter/services/qr_scan_service.dart';
+import 'package:pipe_code_flutter/services/storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../repositories/auth_repository.dart';
-import '../repositories/user_repository.dart';
-import '../repositories/project_repository.dart';
-import '../repositories/list_repository.dart';
-import '../repositories/records_repository.dart';
-import '../repositories/acceptance_repository.dart';
-import '../services/api/interfaces/api_service_interface.dart';
-import '../services/api/interfaces/records_api_service.dart';
-import '../services/api/interfaces/identification_api_service.dart';
-import '../services/api/interfaces/common_query_api_service.dart';
-import '../services/api/interfaces/todo_api_service.dart';
-import '../services/api/interfaces/material_handle_api_service.dart';
-import '../services/api_service_factory.dart';
-import '../services/storage_service.dart';
-import '../services/qr_scan_service.dart';
+
 import 'app_config.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -61,147 +60,114 @@ Future<void> setupServiceLocator({
     () => StorageService(getIt<SharedPreferences>()),
   );
 
-  // API Service - automatically chooses Mock or Real based on config
-  getIt.registerLazySingleton<ApiServiceInterface>(
-    () => ApiServiceFactory.create(),
+  // API Services needed by Blocs or other services directly
+  getIt.registerLazySingleton<CommonQueryApiService>(
+    () => ApiServiceFactory.createCommonQueryService(),
   );
-
-  // Records API Service - automatically chooses Mock or Real based on config
-  getIt.registerLazySingleton<RecordsApiService>(
-    () => ApiServiceFactory.createRecordsService(),
-  );
-
-  // Identification API Service - automatically chooses Mock or Real based on config
   getIt.registerLazySingleton<IdentificationApiService>(
     () => ApiServiceFactory.createIdentificationService(),
   );
 
-  // Common Query API Service - automatically chooses Mock or Real based on config
-  getIt.registerLazySingleton<CommonQueryApiService>(
-    () => ApiServiceFactory.createCommonQueryService(),
-  );
-
-  getIt.registerLazySingleton<TodoApiService>(
-    () => ApiServiceFactory.createTodoService(),
-  );
-
-  getIt.registerLazySingleton<EnumApiService>(
-    () => ApiServiceFactory.createEnumService(),
-  );
-
-  getIt.registerLazySingleton<MaterialHandleApiService>(
-    () => ApiServiceFactory.createMaterialHandleService(),
-  );
-
-  getIt.registerLazySingleton<DispatchApiService>(
-    () => ApiServiceFactory.createDispatchService(),
-  );
-
-  getIt.registerLazySingleton<ReturnApiService>(
-    () => ApiServiceFactory.createReturnService(),
-  );
-
-  getIt.registerSingleton<EnumRepository>(
-    EnumRepository(getIt<EnumApiService>()),
-  );
-
-  await getIt<EnumRepository>().initializeEnums();
-
   // QR Scan Service
   getIt.registerLazySingleton<QrScanService>(() => QrScanServiceImpl());
 
-  // Repositories
-  getIt.registerLazySingleton<AuthRepository>(
-    () => AuthRepository(
-      apiService: getIt<ApiServiceInterface>(),
-      storageService: getIt<StorageService>(),
-    ),
-  );
-
-  getIt.registerLazySingleton<SpareqrRepository>(
-    () => SpareqrRepository(apiservice: getIt<ApiServiceInterface>()),
-  );
-
-  getIt.registerLazySingleton<UserRepository>(
-    () => UserRepository(
-      apiService: getIt<ApiServiceInterface>(),
-      storageService: getIt<StorageService>(),
-    ),
-  );
-
-  getIt.registerLazySingleton<ProjectRepository>(
-    () => ProjectRepository(
-      apiService: getIt<ApiServiceInterface>(),
-      storageService: getIt<StorageService>(),
-    ),
-  );
-
-  getIt.registerLazySingleton<ListRepository>(
-    () => ListRepository(apiService: getIt<ApiServiceInterface>()),
-  );
-
-  getIt.registerLazySingleton<RecordsRepository>(
-    () =>
-        RecordsRepository(getIt<RecordsApiService>(), getIt<TodoApiService>()),
-  );
-
+  // Repositories (using RepositoryFactory)
   getIt.registerLazySingleton<AcceptanceRepository>(
-    () => AcceptanceRepository(
-      getIt<ApiServiceInterface>().acceptance,
-      getIt<CommonQueryApiService>(),
-    ),
+    () => RepositoryFactory.createAcceptanceRepository(),
   );
-
+  getIt.registerLazySingletonAsync<AuthRepository>(
+    () => RepositoryFactory.createAuthRepository(),
+  );
   getIt.registerLazySingleton<DispatchRepository>(
-    () => DispatchRepository(
-      getIt<DispatchApiService>(),
-    ),
+    () => RepositoryFactory.createDispatchRepository(),
   );
-
-  getIt.registerLazySingleton<MaterialHandleRepository>(
-    () => MaterialHandleRepository(getIt<MaterialHandleApiService>()),
+  getIt.registerSingleton<EnumRepository>(
+    RepositoryFactory.createEnumRepository(),
   );
-  getIt.registerLazySingleton<SignoutApiService>(
-    () => ApiServiceFactory.createSignoutService(),
-  );
-  getIt.registerLazySingleton<SignoutRepository>(
-    () => SignoutRepository(
-      getIt<ApiServiceInterface>().signout,
-      getIt<CommonQueryApiService>(),
-    ),
-  );
+  await getIt<EnumRepository>().initializeEnums();
 
   getIt.registerLazySingleton<InstallRepository>(
-    () => InstallRepository(
-      getIt<InstallApiService>(),
-      getIt<CommonQueryApiService>(),
-    ),
+    () => RepositoryFactory.createInstallRepository(),
   );
-
-  getIt.registerLazySingleton<InstallApiService>(
-    () => ApiServiceFactory.createInstallApiService(),
+  getIt.registerLazySingleton<ListRepository>(
+    () => RepositoryFactory.createListRepository(),
   );
-
+  getIt.registerLazySingleton<MaterialHandleRepository>(
+    () => RepositoryFactory.createMaterialHandleRepository(),
+  );
+  getIt.registerLazySingletonAsync<ProjectRepository>(
+    () => RepositoryFactory.createProjectRepository(),
+  );
+  getIt.registerLazySingleton<RecordsRepository>(
+    () => RepositoryFactory.createRecordsRepository(),
+  );
   getIt.registerLazySingleton<ReturnRepository>(
     () => RepositoryFactory.createReturnRepository(),
   );
+  getIt.registerLazySingleton<SignoutRepository>(
+    () => RepositoryFactory.createSignoutRepository(),
+  );
+  getIt.registerLazySingleton<SpareqrRepository>(
+    () => RepositoryFactory.createSpareqrRepository(),
+  );
+  getIt.registerLazySingletonAsync<UserRepository>(
+    () => RepositoryFactory.createUserRepository(),
+  );
+
+  // Wait for async singletons to be ready before registering dependent Blocs
+  await getIt.isReady<AuthRepository>();
+  await getIt.isReady<ProjectRepository>();
+  await getIt.isReady<UserRepository>();
 
   // Blocs
+  getIt.registerFactory<SessionBloc>(
+    () => SessionBloc(
+      authRepository: getIt<AuthRepository>(),
+    ),
+  );
+  getIt.registerFactory<AcceptanceBloc>(
+    () => AcceptanceBloc(
+      getIt<AcceptanceRepository>(),
+      getIt<MaterialHandleRepository>(),
+    ),
+  );
   getIt.registerFactory<DispatchBloc>(
     () => DispatchBloc(
       dispatchRepository: getIt<DispatchRepository>(),
       commonQueryApiService: getIt<CommonQueryApiService>(),
     ),
   );
-
-  getIt.registerFactory<ReturnBloc>(
-    () => ReturnBloc(),
+  getIt.registerFactory<InstallBloc>(
+    () => InstallBloc(
+      installRepository: getIt<InstallRepository>(),
+    ),
   );
-
-  // Session Bloc - factory registration for proper dependency injection
-  getIt.registerFactory<SessionBloc>(
-    () => SessionBloc(
-      authRepository: getIt<AuthRepository>(),
+  getIt.registerFactory<ProjectInitiationBloc>(
+    () => ProjectInitiationBloc(),
+  );
+  getIt.registerFactory<QrScanBloc>(
+    () => QrScanBloc(
+      qrScanService: getIt<QrScanService>(),
+    ),
+  );
+  getIt.registerFactory<RecordsBloc>(
+    () => RecordsBloc(
+      getIt<RecordsRepository>(),
+    ),
+  );
+  getIt.registerFactory<ReturnBloc>(
+    () => ReturnBloc(
+      returnRepository: getIt<ReturnRepository>(),
+    ),
+  );
+  getIt.registerFactory<SignoutBloc>(
+    () => SignoutBloc(
+      getIt<SignoutRepository>(),
+    ),
+  );
+  getIt.registerFactory<SpareQrBloc>(
+    () => SpareQrBloc(
+      repository: getIt<SpareqrRepository>(),
     ),
   );
 }

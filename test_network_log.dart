@@ -9,18 +9,18 @@ import 'lib/config/app_config.dart';
 import 'lib/bloc/auth/auth_bloc.dart';
 import 'lib/bloc/auth/auth_event.dart';
 import 'lib/bloc/auth/auth_state.dart';
-import 'lib/repositories/auth_repository.dart';
+import 'lib/repositories/interfaces/auth_repository.dart';
 import 'lib/utils/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // 设置为开发环境，使用真实API
   await setupDevelopmentEnvironment();
   await AppConfig.initialize();
-  
+
   Logger.info('开始网络日志测试', tag: 'TEST');
-  
+
   runApp(const NetworkLogTestApp());
 }
 
@@ -58,7 +58,10 @@ class _TestPageState extends State<TestPage> {
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthCaptchaLoaded) {
-            Logger.info('验证码加载成功，数据长度: ${state.captchaBase64.length}', tag: 'TEST');
+            Logger.info(
+              '验证码加载成功，数据长度: ${state.captchaBase64.length}',
+              tag: 'TEST',
+            );
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('验证码加载成功！数据长度: ${state.captchaBase64.length}'),
@@ -97,7 +100,9 @@ class _TestPageState extends State<TestPage> {
                       ? null
                       : () {
                           Logger.info('用户点击测试验证码按钮', tag: 'TEST');
-                          context.read<AuthBloc>().add(const AuthCaptchaRequested());
+                          context.read<AuthBloc>().add(
+                            const AuthCaptchaRequested(),
+                          );
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
@@ -113,7 +118,9 @@ class _TestPageState extends State<TestPage> {
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             ),
                             SizedBox(width: 10),
@@ -143,7 +150,9 @@ class _TestPageState extends State<TestPage> {
                       children: [
                         Text('数据长度: ${state.captchaBase64.length} 字符'),
                         const SizedBox(height: 8),
-                        Text('数据预览: ${state.captchaBase64.substring(0, 50)}...'),
+                        Text(
+                          '数据预览: ${state.captchaBase64.substring(0, 50)}...',
+                        ),
                       ],
                     ),
                   ),

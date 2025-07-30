@@ -5,18 +5,12 @@
  * @LastEditTime: 2025-07-28 15:57:49
  * @copyright: Copyright © 2025 高新供水.
  */
-/*
- * @Author: LeeZB
- * @Date: 2025-07-09 23:55:00
- * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-28 15:47:31
- * @copyright: Copyright © 2025 高新供水.
- */
-import '../models/user/wx_login_vo.dart';
-import '../services/api/interfaces/api_service_interface.dart';
-import '../services/storage_service.dart';
+import 'package:pipe_code_flutter/models/user/wx_login_vo.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/api_service_interface.dart';
+import 'package:pipe_code_flutter/services/storage_service.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/user_repository.dart';
 
-class UserRepository {
+class UserRepositoryImpl implements UserRepository {
   final ApiServiceInterface _apiService;
   final StorageService _storageService;
 
@@ -25,13 +19,13 @@ class UserRepository {
   DateTime? _lastCacheTime;
   static const Duration _cacheTimeout = Duration(minutes: 5);
 
-  UserRepository({
+  UserRepositoryImpl({
     required ApiServiceInterface apiService,
     required StorageService storageService,
-  }) : _apiService = apiService,
-       _storageService = storageService;
+  })  : _apiService = apiService,
+        _storageService = storageService;
 
-  /// 从存储加载用户数据
+  @override
   Future<WxLoginVO?> loadUserFromStorage() async {
     try {
       // 检查缓存是否有效
@@ -57,7 +51,7 @@ class UserRepository {
     }
   }
 
-  /// 保存用户数据到存储
+  @override
   Future<void> saveUserData(WxLoginVO wxLoginVO) async {
     try {
       await _storageService.saveUserData(wxLoginVO.toJson());
@@ -72,7 +66,7 @@ class UserRepository {
     }
   }
 
-  /// 更新用户基本信息
+  @override
   Future<WxLoginVO?> updateUserProfile({
     String? name,
     String? nick,
@@ -103,7 +97,7 @@ class UserRepository {
     }
   }
 
-  /// 清除用户数据
+  @override
   Future<void> clearUserData() async {
     try {
       await _storageService.clearUserData();
@@ -114,34 +108,32 @@ class UserRepository {
     }
   }
 
-  /// 获取用户ID
+  @override
   String? getUserId() {
     return _cachedWxLoginVO?.id;
   }
 
-  /// 获取用户名称
+  @override
   String? getUserName() {
     return _cachedWxLoginVO?.name;
   }
 
-  /// 获取用户token
+  @override
   String? getUserToken() {
     return _cachedWxLoginVO?.tk;
   }
 
-  /// 检查缓存是否有效
   bool _isCacheValid() {
     if (_lastCacheTime == null) return false;
     return DateTime.now().difference(_lastCacheTime!) < _cacheTimeout;
   }
 
-  /// 清除用户缓存
   void _clearUserCache() {
     _cachedWxLoginVO = null;
     _lastCacheTime = null;
   }
 
-  /// 刷新用户缓存
+  @override
   void refreshCache() {
     _clearUserCache();
   }

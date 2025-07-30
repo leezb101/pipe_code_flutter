@@ -7,7 +7,7 @@
  */
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/records/record_item.dart';
-import '../../repositories/auth_repository.dart';
+import '../../repositories/interfaces/auth_repository.dart';
 import '../../models/user/wx_login_vo.dart';
 import 'session_event.dart';
 import 'session_state.dart';

@@ -9,7 +9,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
-import 'package:pipe_code_flutter/repositories/material_handle_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'material_handle_state.dart';
 
 class MaterialHandleCubit extends Cubit<MaterialHandleState> {

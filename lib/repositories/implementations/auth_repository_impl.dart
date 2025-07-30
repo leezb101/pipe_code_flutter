@@ -5,28 +5,28 @@
  * @LastEditTime: 2025-07-28 15:36:14
  * @copyright: Copyright © 2025 高新供水.
  */
-import '../models/common/result.dart';
-import '../models/user/wx_login_vo.dart';
-import '../models/user/current_user_on_project_role_info.dart';
-import '../models/auth/login_account_vo.dart';
-import '../models/auth/rf.dart';
-import '../models/auth/captcha_result.dart';
-import '../models/auth/sms_code_result.dart';
-import '../services/api/interfaces/api_service_interface.dart';
-import '../services/storage_service.dart';
+import 'package:pipe_code_flutter/models/common/result.dart';
+import 'package:pipe_code_flutter/models/user/wx_login_vo.dart';
+import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
+import 'package:pipe_code_flutter/models/auth/login_account_vo.dart';
+import 'package:pipe_code_flutter/models/auth/rf.dart';
+import 'package:pipe_code_flutter/models/auth/captcha_result.dart';
+import 'package:pipe_code_flutter/models/auth/sms_code_result.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/api_service_interface.dart';
+import 'package:pipe_code_flutter/services/storage_service.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/auth_repository.dart';
 
-class AuthRepository {
+class AuthRepositoryImpl implements AuthRepository {
   final ApiServiceInterface _apiService;
   final StorageService _storageService;
 
-  AuthRepository({
+  AuthRepositoryImpl({
     required ApiServiceInterface apiService,
     required StorageService storageService,
-  }) : _apiService = apiService,
-       _storageService = storageService;
+  })  : _apiService = apiService,
+        _storageService = storageService;
 
-  /// 账号密码登录
-  /// [imgCode] 验证码标识符，来自验证码接口response header的img_code字段
+  @override
   Future<Result<WxLoginVO>> loginWithPassword(
     LoginAccountVO loginRequest, {
     String? imgCode,
@@ -52,8 +52,7 @@ class AuthRepository {
     }
   }
 
-  /// 短信验证码登录
-  /// [smsCode] SMS验证码标识符，来自短信验证码接口response header的sms_code字段
+  @override
   Future<Result<WxLoginVO>> loginWithSms(
     String phone,
     String code, {
@@ -81,8 +80,7 @@ class AuthRepository {
     }
   }
 
-  /// 请求短信验证码
-  /// 返回包含sms_code标识符的完整结果
+  @override
   Future<Result<SmsCodeResult>> requestSmsCode(String phone) async {
     try {
       return await _apiService.auth.requestSmsCode(phone);
@@ -91,8 +89,7 @@ class AuthRepository {
     }
   }
 
-  /// 请求图片验证码
-  /// 返回包含base64图片数据和img_code标识符的完整结果
+  @override
   Future<Result<CaptchaResult>> requestCaptcha() async {
     try {
       return await _apiService.auth.requestCaptcha();
@@ -101,7 +98,7 @@ class AuthRepository {
     }
   }
 
-  /// 选择项目
+  @override
   Future<Result<CurrentUserOnProjectRoleInfo>> selectProject(
     int projectId,
   ) async {
@@ -126,7 +123,7 @@ class AuthRepository {
     }
   }
 
-  /// 检查token有效性
+  @override
   Future<Result<WxLoginVO>> checkToken() async {
     try {
       final token = _storageService.getAuthToken();
@@ -140,7 +137,7 @@ class AuthRepository {
     }
   }
 
-  /// 刷新token
+  @override
   Future<Result<WxLoginVO>> refreshToken(RF refreshRequest) async {
     try {
       final result = await _apiService.auth.refreshToken(refreshRequest);
@@ -160,7 +157,7 @@ class AuthRepository {
     }
   }
 
-  /// 登出
+  @override
   Future<void> logout() async {
     try {
       await _apiService.auth.logout();
@@ -176,23 +173,23 @@ class AuthRepository {
     }
   }
 
-  /// 获取最后选择的项目ID
+  @override
   Future<String?> getLastSelectedProjectId() async {
     return _storageService.getString('last_selected_project_id');
   }
 
-  /// 检查是否为首次登录
+  @override
   Future<bool> isFirstLogin() async {
     final lastProjectId = await getLastSelectedProjectId();
     return lastProjectId == null;
   }
 
-  /// 标记已登录过
+  @override
   Future<void> markAsLoggedIn() async {
     await _storageService.setBool('has_logged_in_before', true);
   }
 
-  /// 检查是否已登录
+  @override
   bool get isLoggedIn {
     // 这里可以检查token是否存在
     // 实际实现可能需要异步检查

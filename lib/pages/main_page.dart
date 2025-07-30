@@ -1,6 +1,13 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-07-29 19:58:49
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-30 18:27:52
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pipe_code_flutter/repositories/spareqr_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 import 'package:go_router/go_router.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
@@ -9,7 +16,7 @@ import '../pages/records/records_list_page.dart';
 import '../pages/profile/profile_page.dart';
 import '../widgets/session_guard.dart';
 import '../bloc/records/records_bloc.dart';
-import '../repositories/records_repository.dart';
+import '../repositories/interfaces/records_repository.dart';
 import 'package:get_it/get_it.dart';
 
 class MainPage extends StatefulWidget {
@@ -64,9 +71,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           context.go('/login');
         }
       },
-      child: SessionGuard(
-        child: _buildMainInterface(),
-      ),
+      child: SessionGuard(child: _buildMainInterface()),
     );
   }
 

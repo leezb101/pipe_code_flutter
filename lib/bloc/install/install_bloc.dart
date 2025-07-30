@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
-import 'package:pipe_code_flutter/repositories/install_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/install_repository.dart';
 
 import 'install_event.dart';
 import 'install_state.dart';

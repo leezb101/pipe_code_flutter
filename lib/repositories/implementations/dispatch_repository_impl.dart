@@ -9,16 +9,17 @@ import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.
 import 'package:pipe_code_flutter/models/dispatch/do_dispatch_apply_vo.dart';
 import 'package:pipe_code_flutter/models/dispatch/do_dispatch_sign_in_vo.dart';
 
-import '../models/common/result.dart';
-import '../models/dispatch/dispatch_detail_vo.dart';
-import '../services/api/interfaces/dispatch_api_service.dart';
+import 'package:pipe_code_flutter/models/common/result.dart';
+import 'package:pipe_code_flutter/models/dispatch/dispatch_detail_vo.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/dispatch_api_service.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
 
-class DispatchRepository {
+class DispatchRepositoryImpl implements DispatchRepository {
   final DispatchApiService _dispatchApiService;
 
-  DispatchRepository(this._dispatchApiService);
+  DispatchRepositoryImpl(this._dispatchApiService);
 
-  /// 获取调拨详情
+  @override
   Future<Result<DispatchDetailVo>> getDispatchDetail(int id) async {
     try {
       final result = await _dispatchApiService.getDispatchDetail(id);
@@ -28,9 +29,7 @@ class DispatchRepository {
     }
   }
 
-  /// 提交调拨请求
-  /// @param request 调拨请求对象
-  /// @return 调拨结果
+  @override
   Future<Result<void>> doDispatch(DoDispatchApplyVo request) async {
     try {
       final result = await _dispatchApiService.doDispatch(request);
@@ -40,9 +39,7 @@ class DispatchRepository {
     }
   }
 
-  /// 审核确认调拨
-  /// @param id 调拨ID
-  /// @param pass 是否通过
+  @override
   Future<Result<void>> auditDispatch(CommonDoBusinessAuditVO request) async {
     try {
       final result = await _dispatchApiService.auditDispatch(request);
@@ -52,7 +49,7 @@ class DispatchRepository {
     }
   }
 
-  /// 调拨后请求入库
+  @override
   Future<Result<void>> doDispatchSignin(DoDispatchSignInVo request) async {
     try {
       final result = await _dispatchApiService.doDispatchSignin(request);

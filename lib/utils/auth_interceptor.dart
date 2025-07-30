@@ -2,12 +2,12 @@
  * @Author: LeeZB
  * @Date: 2025-07-14 17:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-14 17:30:00
+ * @LastEditTime: 2025-07-30 18:28:21
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
 import '../config/service_locator.dart';
-import '../repositories/user_repository.dart';
+import '../repositories/interfaces/user_repository.dart';
 import 'logger.dart';
 
 /// 认证拦截器
@@ -17,18 +17,21 @@ class AuthInterceptor extends Interceptor {
   static const String _tokenHeaderKey = 'tk';
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     try {
       // 获取用户仓库实例
       final userRepository = getIt<UserRepository>();
-      
+
       // 尝试从缓存中获取用户数据
       final wxLoginVO = await userRepository.loadUserFromStorage();
-      
+
       if (wxLoginVO != null && wxLoginVO.tk.isNotEmpty) {
         // 如果用户已登录且有token，添加到headers中
         options.headers[_tokenHeaderKey] = wxLoginVO.tk;
-        
+
         Logger.info(
           'Added token to request: ${options.method} ${options.path}',
           tag: _tag,
@@ -46,7 +49,7 @@ class AuthInterceptor extends Interceptor {
         tag: _tag,
       );
     }
-    
+
     // 继续处理请求
     handler.next(options);
   }
@@ -59,11 +62,11 @@ class AuthInterceptor extends Interceptor {
         'Received 401 Unauthorized - Token may be expired or invalid',
         tag: _tag,
       );
-      
+
       // 这里可以触发token刷新或重新登录逻辑
       // 暂时只记录日志，具体处理逻辑可以后续完善
     }
-    
+
     handler.next(err);
   }
 }

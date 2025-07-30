@@ -1,7 +1,7 @@
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_event.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pipe_code_flutter/repositories/spareqr_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 
 class SpareQrBloc extends Bloc<SpareQrEvent, SpareQrState> {
   final SpareqrRepository _repository;

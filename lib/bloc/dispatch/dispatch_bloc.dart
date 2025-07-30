@@ -23,7 +23,7 @@ import 'package:pipe_code_flutter/models/common/warehouse_vo.dart';
 import 'package:pipe_code_flutter/models/dispatch/dispatch_detail_vo.dart';
 import 'package:pipe_code_flutter/models/dispatch/do_dispatch_apply_vo.dart';
 import 'package:pipe_code_flutter/models/dispatch/do_dispatch_sign_in_vo.dart';
-import 'package:pipe_code_flutter/repositories/dispatch_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 
 import '../../models/material/material_info_for_business.dart';

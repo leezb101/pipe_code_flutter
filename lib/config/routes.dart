@@ -18,11 +18,6 @@ import 'package:pipe_code_flutter/pages/install/install_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_audit_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_page.dart';
 import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
-import 'package:pipe_code_flutter/repositories/install_repository.dart';
-import 'package:pipe_code_flutter/repositories/signout_repository.dart';
-import 'package:pipe_code_flutter/repositories/spareqr_repository.dart';
-import 'package:pipe_code_flutter/repositories/material_handle_repository.dart';
-import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import '../bloc/dispatch/dispatch_bloc.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/register_page.dart';
@@ -36,7 +31,6 @@ import '../pages/acceptance/acceptance_confirmation_page.dart';
 import '../pages/acceptance/acceptance_after_signin_page.dart';
 import '../pages/dispatch/dispatch_confirmation_page.dart';
 import '../bloc/acceptance/acceptance_bloc.dart';
-import '../repositories/acceptance_repository.dart';
 import '../pages/developer_settings_page.dart';
 import '../pages/project_initiation/project_initiation_form_page.dart';
 import '../pages/project_initiation/material_selection_page.dart';
@@ -45,18 +39,14 @@ import '../bloc/qr_scan/qr_scan_bloc.dart';
 import '../bloc/project_initiation/project_initiation_bloc.dart';
 import '../bloc/records/records_bloc.dart';
 import '../cubits/material_selection_cubit.dart';
-import '../repositories/records_repository.dart';
 import '../models/qr_scan/qr_scan_config.dart';
 import '../models/project/project_initiation.dart';
 import '../models/records/record_type.dart';
-import '../services/qr_scan_service.dart';
 import '../pages/material/material_detail_page.dart';
 import '../pages/return/return_page.dart';
 import '../pages/return/return_detail_page.dart';
 import '../bloc/return/return_bloc.dart';
 import '../models/material/scan_identification_response.dart';
-import '../repositories/dispatch_repository.dart';
-import '../repositories/interfaces/return_repository.dart';
 import 'service_locator.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -111,8 +101,7 @@ final GoRouter appRouter = GoRouter(
           name: 'spare-qr',
           builder: (context, state) {
             return BlocProvider(
-              create: (context) =>
-                  SpareQrBloc(repository: getIt<SpareqrRepository>()),
+              create: (context) => getIt<SpareQrBloc>(),
               child: const SpareQrPage(),
             );
           },
@@ -126,8 +115,7 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('扫码配置错误')));
             }
             return BlocProvider(
-              create: (context) =>
-                  QrScanBloc(qrScanService: getIt<QrScanService>()),
+              create: (context) => getIt<QrScanBloc>(),
               child: QrScanPage(config: config),
             );
           },
@@ -145,10 +133,7 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) => AcceptanceBloc(
-                getIt<AcceptanceRepository>(),
-                getIt<MaterialHandleRepository>(),
-              ),
+              create: (context) => getIt<AcceptanceBloc>(),
               child: AcceptancePage(materials: materials),
             );
           },
@@ -165,10 +150,7 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) => AcceptanceBloc(
-                getIt<AcceptanceRepository>(),
-                getIt<MaterialHandleRepository>(),
-              ),
+              create: (context) => getIt<AcceptanceBloc>(),
               child: AcceptanceDetailPage(acceptanceId: acceptanceId),
             );
           },
@@ -185,10 +167,7 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) => AcceptanceBloc(
-                getIt<AcceptanceRepository>(),
-                getIt<MaterialHandleRepository>(),
-              ),
+              create: (context) => getIt<AcceptanceBloc>(),
               child: AcceptanceConfirmationPage(acceptanceId: acceptanceId),
             );
           },
@@ -204,20 +183,11 @@ final GoRouter appRouter = GoRouter(
             if (acceptanceId == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            // return BlocProvider(
-            //   create: (context) => AcceptanceBloc(
-            //     getIt<AcceptanceRepository>(),
-            //     getIt<MaterialHandleRepository>(),
-            //   ),
-            // child: AcceptanceAfterSigninPage(acceptanceId: acceptanceId),
-            // return AcceptanceAfterSigninPage(acceptanceId: acceptanceId);
             return MultiBlocProvider(
               providers: [
                 BlocProvider<AcceptanceBloc>(
-                  create: (context) => AcceptanceBloc(
-                    getIt<AcceptanceRepository>(),
-                    getIt<MaterialHandleRepository>(),
-                  )..add(LoadAcceptanceDetail(acceptanceId: acceptanceId)),
+                  create: (context) => getIt<AcceptanceBloc>()
+                    ..add(LoadAcceptanceDetail(acceptanceId: acceptanceId)),
                 ),
                 BlocProvider<MaterialHandleCubit>(
                   create: (context) => MaterialHandleCubit(),
@@ -239,10 +209,7 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) => DispatchBloc(
-                dispatchRepository: getIt<DispatchRepository>(),
-                commonQueryApiService: getIt<CommonQueryApiService>(),
-              ),
+              create: (context) => getIt<DispatchBloc>(),
               child: DispatchConfirmationPage(dispatchId: dispatchId),
             );
           },
@@ -261,10 +228,8 @@ final GoRouter appRouter = GoRouter(
             return MultiBlocProvider(
               providers: [
                 BlocProvider(
-                  create: (context) => DispatchBloc(
-                    dispatchRepository: getIt<DispatchRepository>(),
-                    commonQueryApiService: getIt<CommonQueryApiService>(),
-                  )..add(LoadDispatchDetail(dispatchId)),
+                  create: (context) => getIt<DispatchBloc>()
+                    ..add(LoadDispatchDetail(dispatchId)),
                 ),
                 BlocProvider(create: (context) => MaterialHandleCubit()),
               ],
@@ -285,7 +250,7 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) => SignoutBloc(getIt<SignoutRepository>()),
+              create: (context) => getIt<SignoutBloc>(),
               child: SignoutPage(materials: materials),
             );
           },
@@ -302,7 +267,7 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) => SignoutBloc(getIt<SignoutRepository>()),
+              create: (context) => getIt<SignoutBloc>(),
               child: SignoutAuditPage(signoutId: signoutId),
             );
           },
@@ -315,9 +280,7 @@ final GoRouter appRouter = GoRouter(
             return MultiBlocProvider(
               providers: [
                 BlocProvider(
-                  create: (context) => InstallBloc(
-                    installRepository: getIt<InstallRepository>(),
-                  ),
+                  create: (context) => getIt<InstallBloc>(),
                 ),
                 BlocProvider(create: (context) => MaterialHandleCubit()),
               ],
@@ -341,7 +304,7 @@ final GoRouter appRouter = GoRouter(
               }
             }
             return BlocProvider(
-              create: (context) => RecordsBloc(getIt<RecordsRepository>()),
+              create: (context) => getIt<RecordsBloc>(),
               child: RecordsListPage(initialTab: initialTab),
             );
           },
@@ -368,7 +331,7 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) {
             final projectId = state.uri.queryParameters['projectId'];
             return BlocProvider(
-              create: (context) => ProjectInitiationBloc(),
+              create: (context) => getIt<ProjectInitiationBloc>(),
               child: ProjectInitiationFormPage(
                 projectId: projectId != null ? int.tryParse(projectId) : null,
               ),
@@ -405,8 +368,7 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) =>
-                  ReturnBloc(returnRepository: getIt<ReturnRepository>()),
+              create: (context) => getIt<ReturnBloc>(),
               child: ReturnPage(materials: materials),
             );
           },
@@ -423,8 +385,7 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) =>
-                  ReturnBloc(returnRepository: getIt<ReturnRepository>()),
+              create: (context) => getIt<ReturnBloc>(),
               child: ReturnDetailPage(id: returnId),
             );
           },

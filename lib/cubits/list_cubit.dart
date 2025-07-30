@@ -1,7 +1,14 @@
+/*
+ * @Author: LeeZB
+ * @Date: 2025-06-28 13:17:21
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-07-30 18:19:22
+ * @copyright: Copyright © 2025 高新供水.
+ */
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../models/list_item/list_item.dart';
-import '../repositories/list_repository.dart';
+import '../repositories/interfaces/list_repository.dart';
 
 class ListState extends Equatable {
   const ListState({
@@ -38,22 +45,16 @@ class ListCubit extends Cubit<ListState> {
   final ListRepository _listRepository;
 
   ListCubit({required ListRepository listRepository})
-      : _listRepository = listRepository,
-        super(const ListState());
+    : _listRepository = listRepository,
+      super(const ListState());
 
   Future<void> loadItems() async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
       final items = await _listRepository.getItems();
-      emit(state.copyWith(
-        items: items,
-        isLoading: false,
-      ));
+      emit(state.copyWith(items: items, isLoading: false));
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      ));
+      emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }
 
@@ -61,15 +62,9 @@ class ListCubit extends Cubit<ListState> {
     emit(state.copyWith(isRefreshing: true, error: null));
     try {
       final items = await _listRepository.getItems();
-      emit(state.copyWith(
-        items: items,
-        isRefreshing: false,
-      ));
+      emit(state.copyWith(items: items, isRefreshing: false));
     } catch (e) {
-      emit(state.copyWith(
-        isRefreshing: false,
-        error: e.toString(),
-      ));
+      emit(state.copyWith(isRefreshing: false, error: e.toString()));
     }
   }
 }

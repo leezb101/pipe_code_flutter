@@ -10,13 +10,15 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_state.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/api_service_interface.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 
-class SpareqrRepository {
+class SpareqrRepositoryImpl implements SpareqrRepository {
   final ApiServiceInterface _apiservice;
 
-  SpareqrRepository({required ApiServiceInterface apiservice})
-    : _apiservice = apiservice;
+  SpareqrRepositoryImpl({required ApiServiceInterface apiservice})
+      : _apiservice = apiservice;
 
+  @override
   Stream<SpareQrState> downloadSpareqrZipFile(int num) async* {
     try {
       yield const SpareQrInProgress(0.0);
@@ -53,6 +55,7 @@ class SpareqrRepository {
     }
   }
 
+  @override
   Future<bool> deleteFile(String filePath) async {
     try {
       final file = File(filePath);

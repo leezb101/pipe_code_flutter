@@ -1,18 +1,20 @@
-import '../models/records/record_item.dart';
-import '../models/records/record_type.dart';
-import '../services/api/interfaces/records_api_service.dart';
-import '../services/api/interfaces/todo_api_service.dart';
-import '../utils/logger.dart';
+import 'package:pipe_code_flutter/models/records/record_item.dart';
+import 'package:pipe_code_flutter/models/records/record_type.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/records_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/todo_api_service.dart';
+import 'package:pipe_code_flutter/utils/logger.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/records_repository.dart';
 
-class RecordsRepository {
+class RecordsRepositoryImpl implements RecordsRepository {
   final RecordsApiService _apiService;
   final TodoApiService _todoApiService;
   final Map<RecordType, List<RecordItem>> _cache = {};
   final Map<RecordType, DateTime> _cacheTimestamps = {};
   final Duration _cacheTimeout = const Duration(minutes: 5);
 
-  RecordsRepository(this._apiService, this._todoApiService);
+  RecordsRepositoryImpl(this._apiService, this._todoApiService);
 
+  @override
   Future<List<RecordItem>> getRecords({
     required RecordType recordType,
     int? projectId,
@@ -153,6 +155,7 @@ class RecordsRepository {
         .toList();
   }
 
+  @override
   Future<List<RecordItem>> getProjectAuditRecords({
     int pageNum = 1,
     int pageSize = 10,
@@ -190,6 +193,7 @@ class RecordsRepository {
     return DateTime.now().difference(timestamp) < _cacheTimeout;
   }
 
+  @override
   void clearCache([RecordType? recordType]) {
     if (recordType != null) {
       _cache.remove(recordType);
@@ -202,6 +206,7 @@ class RecordsRepository {
     }
   }
 
+  @override
   void updateCache(RecordType recordType, List<RecordItem> records) {
     _cache[recordType] = records;
     _cacheTimestamps[recordType] = DateTime.now();
@@ -211,6 +216,7 @@ class RecordsRepository {
     );
   }
 
+  @override
   List<RecordItem>? getCachedRecords(RecordType recordType) {
     if (_isCacheValid(recordType)) {
       return _cache[recordType];
@@ -218,6 +224,7 @@ class RecordsRepository {
     return null;
   }
 
+  @override
   bool hasCachedData(RecordType recordType) {
     return _isCacheValid(recordType) && _cache.containsKey(recordType);
   }

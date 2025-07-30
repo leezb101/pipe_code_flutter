@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../repositories/enum_repository.dart';
+import '../../repositories/interfaces/enum_repository.dart';
 import '../../models/common/org_models.dart';
 import '../../models/common/common_enum_vo.dart';
 

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 13:17:21
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-24 17:38:58
+ * @LastEditTime: 2025-07-30 18:28:47
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'dart:io';
@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/bloc/enum/enum_cubit.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
-import 'package:pipe_code_flutter/repositories/enum_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/enum_repository.dart';
 import 'config/routes.dart';
 import 'config/service_locator.dart';
 import 'config/app_config.dart';
@@ -23,9 +23,9 @@ import 'bloc/user/user_event.dart';
 import 'bloc/project/project_bloc.dart';
 import 'bloc/project/project_event.dart';
 import 'cubits/list_cubit.dart';
-import 'repositories/auth_repository.dart';
-import 'repositories/user_repository.dart';
-import 'repositories/list_repository.dart';
+import 'repositories/interfaces/auth_repository.dart';
+import 'repositories/interfaces/user_repository.dart';
+import 'repositories/interfaces/list_repository.dart';
 
 void main() async {
   if (kDebugMode) {
@@ -68,9 +68,7 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               AuthBloc(authRepository: getIt<AuthRepository>()),
         ),
-        BlocProvider<SessionBloc>(
-          create: (context) => getIt<SessionBloc>(),
-        ),
+        BlocProvider<SessionBloc>(create: (context) => getIt<SessionBloc>()),
         BlocProvider<UserBloc>(
           create: (context) =>
               UserBloc(userRepository: getIt<UserRepository>()),

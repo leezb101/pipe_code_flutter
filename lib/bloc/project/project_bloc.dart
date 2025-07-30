@@ -6,7 +6,7 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../repositories/auth_repository.dart';
+import '../../repositories/interfaces/auth_repository.dart';
 import '../../models/user/wx_login_vo.dart';
 import 'project_event.dart';
 import 'project_state.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pipe_code_flutter/repositories/signout_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/signout_repository.dart';
 
 import 'signout_event.dart';
 import 'signout_state.dart';
