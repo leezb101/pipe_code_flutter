@@ -10,7 +10,7 @@ MaterialInfoForBusiness _$MaterialInfoForBusinessFromJson(
   Map<String, dynamic> json,
 ) => MaterialInfoForBusiness(
   normals: (json['normals'] as List<dynamic>)
-      .map((e) => MaterialInfoBase.fromJson(e as Map<String, dynamic>))
+      .map((e) => MaterialInfo.fromJson(e as Map<String, dynamic>))
       .toList(),
   errors: (json['errors'] as List<dynamic>)
       .map((e) => SyncVendorDataError.fromJson(e as Map<String, dynamic>))

@@ -14,7 +14,7 @@ part 'material_info_for_business.g.dart';
 
 @JsonSerializable()
 class MaterialInfoForBusiness extends Equatable {
-  final List<MaterialInfoBase> normals;
+  final List<MaterialInfo> normals;
 
   final List<SyncVendorDataError> errors;
 

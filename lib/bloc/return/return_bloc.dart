@@ -55,8 +55,8 @@ class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
         validMaterials.addAll(
           event.materialInfo.normals.map(
             (e) => MaterialVO(
-              materialId: e.materialId,
-              materialName: e.prodNm ?? '',
+              materialId: e.baseInfo.materialId,
+              materialName: e.baseInfo.prodNm ?? '',
               num: 1,
             ),
           ),

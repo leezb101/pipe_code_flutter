@@ -79,7 +79,8 @@ class CutBloc extends Bloc<CutEvent, CutState> {
     final newItems = event.qrCodes.map((qr) {
       return NewCutMaterialItem(
         qrCode: qr,
-        materialName: state.originalMaterialInfo!.normals[0].prodNm ?? '未知产品',
+        materialName:
+            state.originalMaterialInfo!.normals.first.baseInfo.prodNm ?? '未知产品',
       );
     }).toList();
 
@@ -127,7 +128,8 @@ class CutBloc extends Bloc<CutEvent, CutState> {
 
   Future<void> _onSubmitted(CutSubmitted event, Emitter<CutState> emit) async {
     // --- Validation ---
-    if (state.originalMaterialInfo?.normals[0].materialCode == null) {
+    if (state.originalMaterialInfo?.normals.first.baseInfo.materialCode ==
+        null) {
       emit(state.copyWith(status: CutStatus.failure, errorMessage: '缺少原耗材信息'));
       return;
     }
@@ -177,7 +179,8 @@ class CutBloc extends Bloc<CutEvent, CutState> {
       }).toList();
 
       final request = CutRequestVo(
-        qrCode: state.originalMaterialInfo!.normals[0].materialCode!,
+        qrCode:
+            state.originalMaterialInfo!.normals.first.baseInfo.materialCode!,
         img: state.originalMaterialPhotoPath!,
         description: state.cutDescription,
         cutMaterialSubVOS: subItems,

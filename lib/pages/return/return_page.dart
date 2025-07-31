@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import '../../models/acceptance/attachment_vo.dart';
+import '../../models/material/material_info_base.dart';
 import '../../widgets/file_upload/image_upload_widget.dart';
 import '../../bloc/return/return_bloc.dart';
 import '../../utils/go_router_popuntil.dart';
@@ -142,7 +143,7 @@ class _ReturnPageState extends State<ReturnPage> {
     );
   }
 
-  Widget _buildMaterialItem(dynamic material) {
+  Widget _buildMaterialItem(MaterialInfo material) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -167,7 +168,7 @@ class _ReturnPageState extends State<ReturnPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  material.prodNm ?? '无',
+                  material.baseInfo.prodNm ?? '无',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -176,7 +177,7 @@ class _ReturnPageState extends State<ReturnPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  material.materialCode ?? '无',
+                  material.baseInfo.materialCode ?? '无',
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
@@ -268,7 +269,9 @@ class _ReturnPageState extends State<ReturnPage> {
           color: _returnType == value ? color : Colors.grey[300]!,
         ),
         borderRadius: BorderRadius.circular(8),
-        color: _returnType == value ? color.withValues(alpha: 0.1) : Colors.white,
+        color: _returnType == value
+            ? color.withValues(alpha: 0.1)
+            : Colors.white,
       ),
       child: RadioListTile<int>(
         value: value,
@@ -276,9 +279,7 @@ class _ReturnPageState extends State<ReturnPage> {
         onChanged: (value) {
           setState(() {
             _returnType = value!;
-            context.read<ReturnBloc>().add(
-              UpdateReturnType(returnType: value),
-            );
+            context.read<ReturnBloc>().add(UpdateReturnType(returnType: value));
           });
         },
         title: Row(
@@ -297,10 +298,7 @@ class _ReturnPageState extends State<ReturnPage> {
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
         activeColor: color,
       ),

@@ -103,6 +103,7 @@ class MaterialInfo extends Equatable {
     final extendedFields = Map<String, dynamic>.from(json);
     extendedFields.removeWhere(
       (key, value) => [
+        'materialId',
         'materialCode',
         'deliveryNumber',
         'batchCode',

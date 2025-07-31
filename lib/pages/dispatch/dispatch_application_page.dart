@@ -54,8 +54,8 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
         widget.materials.normals
             .map(
               (e) => MaterialVO(
-                materialId: e.materialId,
-                materialName: e.prodNm ?? '',
+                materialId: e.baseInfo.materialId,
+                materialName: e.baseInfo.prodNm ?? '',
               ),
             )
             .toList(),
@@ -147,7 +147,7 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
             itemBuilder: (context, index) {
               final material = materials.normals[index];
               return ListTile(
-                title: Text(material.prodNm ?? '未知材料'),
+                title: Text(material.baseInfo.prodNm ?? '未知材料'),
                 trailing: const Text('1个'),
               );
             },
@@ -371,8 +371,8 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
       materialList: widget.materials.normals
           .map(
             (m) => MaterialVO(
-              materialId: m.materialId,
-              materialName: m.prodNm ?? '未知材料',
+              materialId: m.baseInfo.materialId,
+              materialName: m.baseInfo.prodNm ?? '未知材料',
               num: 1,
             ),
           )

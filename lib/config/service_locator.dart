@@ -31,9 +31,6 @@ import 'package:pipe_code_flutter/services/api_service_factory.dart';
 import 'package:pipe_code_flutter/services/qr_scan_service.dart';
 import 'package:pipe_code_flutter/services/storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pipe_code_flutter/services/api/interfaces/cut_api_service.dart';
-import 'package:pipe_code_flutter/services/api/implementations/cut_api_service_impl.dart';
-import 'package:pipe_code_flutter/services/api/mock/mock_cut_api_service.dart';
 
 import 'app_config.dart';
 

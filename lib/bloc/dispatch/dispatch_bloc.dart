@@ -278,7 +278,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     MaterialVO? matchedMaterial;
     for (final material in dispatchDetail.materialList) {
       // 通过materialId进行匹配
-      if (material.materialId == scannedBaseInfo.materialId) {
+      if (material.materialId == scannedBaseInfo.baseInfo.materialId) {
         matchedMaterial = material;
         break;
       }
@@ -307,7 +307,8 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       // 没有找到匹配的物料
       emit(
         state.copyWith(
-          matchMessage: '未找到匹配的物料，扫码的物料ID为: ${scannedBaseInfo.materialId}',
+          matchMessage:
+              '未找到匹配的物料，扫码的物料ID为: ${scannedBaseInfo.baseInfo.materialId}',
         ),
       );
     }

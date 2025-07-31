@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/install_repository.dart';
 
+import '../../models/material/material_info_base.dart';
 import 'install_event.dart';
 import 'install_state.dart';
 
@@ -74,17 +74,17 @@ class InstallBloc extends Bloc<InstallEvent, InstallState> {
       if (currentState.materialInfos != null) {
         // 检查是否已经存在相同的物料
         if (currentState.materialInfos!.normals.any(
-          (m) => m.materialId == material.materialId,
+          (m) => m.baseInfo.materialId == material.baseInfo.materialId,
         )) {
           // 物料已存在，发出提示信息
           newReadyState = currentState.copyWith(
-            materialScanMessage: '材料 ${material.materialId} 已经匹配过了',
+            materialScanMessage: '材料 ${material.baseInfo.materialId} 已经匹配过了',
             clearScanMessage: false,
           );
           emit(newReadyState);
         } else {
           // 创建新的MaterialInfoForBusiness对象，而不是直接修改现有对象
-          final updatedNormals = List<MaterialInfoBase>.from(
+          final updatedNormals = List<MaterialInfo>.from(
             currentState.materialInfos!.normals,
           )..add(material);
 

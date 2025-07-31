@@ -216,7 +216,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
     );
   }
 
-  Widget _buildMaterialItem(MaterialInfoBase material) {
+  Widget _buildMaterialItem(MaterialInfo material) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -241,7 +241,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  material.prodNm ?? '无',
+                  material.baseInfo.prodNm ?? '无',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -250,7 +250,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  material.materialCode ?? '无',
+                  material.baseInfo.materialCode ?? '无',
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
@@ -707,8 +707,8 @@ class _AcceptancePageState extends State<AcceptancePage> {
     final materialVOList = widget.materials.normals
         .map(
           (e) => MaterialVO(
-            materialId: e.materialId,
-            materialName: e.prodNm ?? '',
+            materialId: e.baseInfo.materialId,
+            materialName: e.baseInfo.prodNm ?? '',
           ),
         )
         .toList();

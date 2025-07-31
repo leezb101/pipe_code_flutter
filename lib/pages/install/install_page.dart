@@ -158,8 +158,8 @@ class _InstallViewState extends State<InstallView> {
             scannedMaterials
                 .map(
                   (m) => MaterialVO(
-                    materialId: m.materialId,
-                    materialName: m.prodNm ?? '未知材料',
+                    materialId: m.baseInfo.materialId,
+                    materialName: m.baseInfo.prodNm ?? '未知材料',
                     num: 1,
                   ),
                 )
@@ -170,13 +170,13 @@ class _InstallViewState extends State<InstallView> {
     );
   }
 
-  Widget _buildMaterialsList(List<MaterialInfoBase> materials) {
+  Widget _buildMaterialsList(List<MaterialInfo> materials) {
     return Column(
       children: materials
           .map(
             (m) => MaterialVO(
-              materialId: m.materialId,
-              materialName: m.prodNm ?? '未知材料',
+              materialId: m.baseInfo.materialId,
+              materialName: m.baseInfo.prodNm ?? '未知材料',
               num: 1,
             ),
           )

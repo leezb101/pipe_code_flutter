@@ -16,12 +16,13 @@ import 'package:pipe_code_flutter/bloc/user/user_bloc.dart';
 import 'package:pipe_code_flutter/bloc/user/user_state.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
-import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/signout/do_signout_request_vo.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 import 'package:pipe_code_flutter/utils/go_router_popuntil.dart';
+
+import '../../models/material/material_info_base.dart';
 
 class SignoutPage extends StatefulWidget {
   final MaterialInfoForBusiness materials;
@@ -39,7 +40,9 @@ class _SignoutPageState extends State<SignoutPage> {
   @override
   void initState() {
     context.read<SignoutBloc>().add(
-      LoadWarehouseInfo(materialId: widget.materials.normals.first.materialId),
+      LoadWarehouseInfo(
+        materialId: widget.materials.normals.first.baseInfo.materialId,
+      ),
     );
     super.initState();
   }
@@ -157,7 +160,7 @@ class _SignoutPageState extends State<SignoutPage> {
     );
   }
 
-  Widget _buildMaterialItem(MaterialInfoBase material) {
+  Widget _buildMaterialItem(MaterialInfo material) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -182,7 +185,7 @@ class _SignoutPageState extends State<SignoutPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  material.prodNm ?? '',
+                  material.baseInfo.prodNm ?? '',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -191,7 +194,7 @@ class _SignoutPageState extends State<SignoutPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '材料ID: ${material.materialId}',
+                  '材料ID: ${material.baseInfo.materialId}',
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
@@ -572,8 +575,8 @@ class _SignoutPageState extends State<SignoutPage> {
     final materialList = widget.materials.normals
         .map(
           (m) => MaterialVO(
-            materialId: m.materialId,
-            materialName: m.prodNm!,
+            materialId: m.baseInfo.materialId,
+            materialName: m.baseInfo.prodNm!,
             num: 1,
           ),
         )

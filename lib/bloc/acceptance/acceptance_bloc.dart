@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-23 17:28:27
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-28 15:52:08
+ * @LastEditTime: 2025-07-31 17:19:40
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -343,7 +343,8 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
             .firstWhere(
               (m) =>
                   m.materialId.toString() ==
-                  event.scannedMaterial.normals.first.materialId.toString(),
+                  event.scannedMaterial.normals.first.baseInfo.materialId
+                      .toString(),
             );
 
         // 如果找到匹配项，检查是否已经匹配过
@@ -380,7 +381,8 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         // 如果在列表中找不到匹配项，（firstwhere抛出异常）
         emit(
           currentState.copyWith(
-            matchMessage: '物料${event.scannedMaterial.normals.first.prodNm}不存在',
+            matchMessage:
+                '物料${event.scannedMaterial.normals.first.baseInfo.prodNm}不存在',
           ),
         );
       }

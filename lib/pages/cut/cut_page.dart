@@ -8,7 +8,6 @@ import 'package:pipe_code_flutter/bloc/cut/cut_event.dart';
 import 'package:pipe_code_flutter/bloc/cut/cut_state.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_state.dart';
-import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
@@ -377,7 +376,7 @@ class _CutViewState extends State<CutView> {
         Padding(
           padding: const EdgeInsets.only(bottom: 12.0),
           child: Text(
-            info.normals[0].prodNm ?? '未知材料',
+            info.normals[0].baseInfo.prodNm ?? '未知材料',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -387,17 +386,16 @@ class _CutViewState extends State<CutView> {
         ),
         const Divider(),
         const SizedBox(height: 8),
-        _buildInfoRow('制造厂家:', info.normals[0].mfgNm ?? 'N/A'),
-        _buildInfoRow('产品编号:', info.normals[0].materialCode ?? 'N/A'),
-        _buildInfoRow('规格型号:', info.normals[0].spec ?? 'N/A'),
+        _buildInfoRow('制造厂家:', info.normals[0].baseInfo.mfgNm ?? 'N/A'),
+        _buildInfoRow('产品编号:', info.normals[0].baseInfo.materialCode ?? 'N/A'),
+        _buildInfoRow('规格型号:', info.normals[0].baseInfo.spec ?? 'N/A'),
         _buildInfoRow(
           '管节长:',
-          '${(info.normals[0] as MaterialInfo).extendedFields['len'] ?? 'N/A'}',
+          '${info.normals.first.extendedFields['len'] ?? 'N/A'}',
         ),
         _buildInfoRow(
           '生产日期:',
-          (info.normals[0] as MaterialInfo).extendedFields['produceDate'] ??
-              'N/A',
+          info.normals.first.extendedFields['produceDate'] ?? 'N/A',
         ),
       ],
     );

@@ -41,18 +41,24 @@ class MockMaterialHandleApiService implements MaterialHandleApiService {
   MaterialInfoForBusiness _generateMaterialInfoBaseList(int? count) {
     return MaterialInfoForBusiness(
       normals: List.generate(count ?? 10, (index) {
-        return MaterialInfoBase(
-          materialId: DateTime.now().millisecondsSinceEpoch, // 使用时间戳作为唯一ID
-          materialCode: "35$index",
-          deliveryNumber: "84$index",
-          batchCode: "11$index",
-          mfgNm: "cillum commodo laboris$index",
-          purNm: "quis$index",
-          prodStdNo: "laboris ad quis dolore$index",
-          prodNm: "in$index",
-          spec: "commodo proident est$index",
-          pressLvl: "anim nisi$index",
-          weight: "adipisicing magna ut$index",
+        return MaterialInfo(
+          baseInfo: MaterialInfoBase(
+            materialId: DateTime.now().millisecondsSinceEpoch, // 使用时间戳作为唯一ID
+            materialCode: "35$index",
+            deliveryNumber: "84$index",
+            batchCode: "11$index",
+            mfgNm: "cillum commodo laboris$index",
+            purNm: "quis$index",
+            prodStdNo: "laboris ad quis dolore$index",
+            prodNm: "in$index",
+            spec: "commodo proident est$index",
+            pressLvl: "anim nisi$index",
+            weight: "adipisicing magna ut$index",
+          ),
+          extendedFields: {
+            'len': (6.0 + index).toString(),
+            'produceDate': '2025-01-${index + 1}',
+          },
         );
       }),
       errors: List.generate(2, (index) {
