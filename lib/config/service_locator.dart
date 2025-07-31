@@ -29,6 +29,9 @@ import 'package:pipe_code_flutter/services/api_service_factory.dart';
 import 'package:pipe_code_flutter/services/qr_scan_service.dart';
 import 'package:pipe_code_flutter/services/storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/cut_api_service.dart';
+import 'package:pipe_code_flutter/services/api/implementations/cut_api_service_impl.dart';
+import 'package:pipe_code_flutter/services/api/mock/mock_cut_api_service.dart';
 
 import 'app_config.dart';
 
@@ -121,9 +124,7 @@ Future<void> setupServiceLocator({
 
   // Blocs
   getIt.registerFactory<SessionBloc>(
-    () => SessionBloc(
-      authRepository: getIt<AuthRepository>(),
-    ),
+    () => SessionBloc(authRepository: getIt<AuthRepository>()),
   );
   getIt.registerFactory<AcceptanceBloc>(
     () => AcceptanceBloc(
@@ -138,37 +139,23 @@ Future<void> setupServiceLocator({
     ),
   );
   getIt.registerFactory<InstallBloc>(
-    () => InstallBloc(
-      installRepository: getIt<InstallRepository>(),
-    ),
+    () => InstallBloc(installRepository: getIt<InstallRepository>()),
   );
-  getIt.registerFactory<ProjectInitiationBloc>(
-    () => ProjectInitiationBloc(),
-  );
+  getIt.registerFactory<ProjectInitiationBloc>(() => ProjectInitiationBloc());
   getIt.registerFactory<QrScanBloc>(
-    () => QrScanBloc(
-      qrScanService: getIt<QrScanService>(),
-    ),
+    () => QrScanBloc(qrScanService: getIt<QrScanService>()),
   );
   getIt.registerFactory<RecordsBloc>(
-    () => RecordsBloc(
-      getIt<RecordsRepository>(),
-    ),
+    () => RecordsBloc(getIt<RecordsRepository>()),
   );
   getIt.registerFactory<ReturnBloc>(
-    () => ReturnBloc(
-      returnRepository: getIt<ReturnRepository>(),
-    ),
+    () => ReturnBloc(returnRepository: getIt<ReturnRepository>()),
   );
   getIt.registerFactory<SignoutBloc>(
-    () => SignoutBloc(
-      getIt<SignoutRepository>(),
-    ),
+    () => SignoutBloc(getIt<SignoutRepository>()),
   );
   getIt.registerFactory<SpareQrBloc>(
-    () => SpareQrBloc(
-      repository: getIt<SpareqrRepository>(),
-    ),
+    () => SpareQrBloc(repository: getIt<SpareqrRepository>()),
   );
 }
 

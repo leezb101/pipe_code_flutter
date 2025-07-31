@@ -6,7 +6,9 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/cut_api_service.dart';
 import 'common_query_api_service_impl.dart';
+import 'cut_api_service_impl.dart';
 import 'dispatch_api_service_impl.dart';
 import 'enum_api_service_impl.dart';
 import 'material_handle_api_service_impl.dart';
@@ -46,6 +48,7 @@ class ApiServiceImpl implements ApiServiceInterface {
   InstallApiService? _installApiService;
   DispatchApiService? _dispatchApiService;
   ReturnApiService? _returnApiService;
+  CutApiService? _cutApiService;
 
   ApiServiceImpl(this._dio);
 
@@ -91,4 +94,7 @@ class ApiServiceImpl implements ApiServiceInterface {
   @override
   ReturnApiService get returnApi =>
       _returnApiService ??= ReturnApiServiceImpl(_dio);
+
+  @override
+  CutApiService get cut => _cutApiService ??= CutApiServiceImpl(_dio);
 }

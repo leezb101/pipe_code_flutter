@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-30 16:10:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-30 16:10:00
+ * @LastEditTime: 2025-07-30 19:12:01
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -35,6 +35,8 @@ import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dar
 import 'package:pipe_code_flutter/repositories/implementations/spareqr_repository_impl.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/user_repository.dart';
 import 'package:pipe_code_flutter/repositories/implementations/user_repository_impl.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/cut_repository.dart';
+import 'package:pipe_code_flutter/repositories/implementations/cut_repository_impl.dart';
 
 /// Repository 工厂
 ///
@@ -63,7 +65,10 @@ class RepositoryFactory {
     final commonQueryApiService = ApiServiceFactory.createCommonQueryService();
 
     // 创建并返回 AcceptanceRepositoryImpl，并注入其依赖
-    return AcceptanceRepositoryImpl(acceptanceApiService, commonQueryApiService);
+    return AcceptanceRepositoryImpl(
+      acceptanceApiService,
+      commonQueryApiService,
+    );
   }
 
   /// 创建并返回一个 [AuthRepository] 实例。
@@ -152,5 +157,11 @@ class RepositoryFactory {
       apiService: apiService,
       storageService: storageService,
     );
+  }
+
+  /// 创建并返回一个 [CutRepository] 实例。
+  static CutRepository createCutRepository() {
+    final cutApiService = ApiServiceFactory.createCutService();
+    return CutRepositoryImpl(cutApiService);
   }
 }

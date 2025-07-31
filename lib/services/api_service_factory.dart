@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 13:17:21
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 14:56:39
+ * @LastEditTime: 2025-07-30 19:05:54
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -47,6 +47,9 @@ import 'api/mock/mock_return_api_service.dart';
 import 'api/interfaces/acceptance_api_service.dart';
 import 'api/implementations/acceptance_api_service_impl.dart';
 import 'api/mock/mock_acceptance_api_service.dart';
+import 'api/interfaces/cut_api_service.dart';
+import 'api/implementations/cut_api_service_impl.dart';
+import 'api/mock/mock_cut_api_service.dart';
 
 class ApiServiceFactory {
   static ApiServiceInterface create() {
@@ -154,6 +157,15 @@ class ApiServiceFactory {
     } else {
       final dio = _createDio();
       return AcceptanceApiServiceImpl(dio);
+    }
+  }
+
+  static CutApiService createCutService() {
+    if (AppConfig.isMockEnabled) {
+      return MockCutApiService();
+    } else {
+      final dio = _createDio();
+      return CutApiServiceImpl(dio);
     }
   }
 

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 10:15:25
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 11:13:04
+ * @LastEditTime: 2025-07-30 18:48:34
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'enum_api_service.dart';
@@ -17,6 +17,7 @@ import 'common_query_api_service.dart';
 import 'material_handle_api_service.dart';
 import 'dispatch_api_service.dart';
 import 'return_api_service.dart';
+import 'cut_api_service.dart';
 
 abstract class ApiServiceInterface {
   AuthApiService get auth;
@@ -31,4 +32,5 @@ abstract class ApiServiceInterface {
   InstallApiService get install;
   DispatchApiService get dispatch;
   ReturnApiService get returnApi;
+  CutApiService get cut;
 }
