@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-17 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-28 16:06:59
+ * @LastEditTime: 2025-07-31 18:36:44
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -10,10 +10,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pipe_code_flutter/bloc/project/project_state.dart';
+import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
+import 'package:pipe_code_flutter/bloc/session/session_state.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
-import '../../bloc/project/project_bloc.dart';
 import '../../models/inventory/pipe_material.dart';
 import '../../models/common/common_user_vo.dart';
 import '../../models/common/warehouse_vo.dart';
@@ -59,21 +59,22 @@ class _AcceptancePageState extends State<AcceptancePage> {
   @override
   void initState() {
     super.initState();
-    // Load initial user data - using mock project and role IDs
+    // Load initial user data
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Load warehouse list first
       context.read<AcceptanceBloc>().add(const LoadWarehouseList());
 
-      final projectId =
-          (context.read<ProjectBloc>().state as ProjectRoleInfoLoaded)
-              .currentProject
-              .projectId;
-      context.read<AcceptanceBloc>().add(
-        LoadAcceptanceUsers(
-          projectId: projectId,
-          roleType: 1, // Example role type
-        ),
-      );
+      // Get project ID from SessionBloc
+      final sessionState = context.read<SessionBloc>().state;
+      if (sessionState is SessionProjectEstablished) {
+        final projectId = sessionState.currentUserRoleInfo.currentProjectId;
+        context.read<AcceptanceBloc>().add(
+          LoadAcceptanceUsers(
+            projectId: projectId,
+            roleType: 1, // Example role type
+          ),
+        );
+      }
     });
   }
 
