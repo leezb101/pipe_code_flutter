@@ -79,8 +79,9 @@ class CutState extends Equatable {
           ? null
           : cutDescription ?? this.cutDescription,
       newCutItems: newCutItems ?? this.newCutItems,
-      tipMessage: clearMessages ? null : tipMessage ?? this.tipMessage,
-      errorMessage: clearMessages ? null : errorMessage ?? this.errorMessage,
+      tipMessage: clearMessages ? tipMessage : (tipMessage ?? this.tipMessage),
+      errorMessage:
+          clearMessages ? errorMessage : (errorMessage ?? this.errorMessage),
     );
   }
 

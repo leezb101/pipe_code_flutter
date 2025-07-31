@@ -356,10 +356,13 @@ class _CutViewState extends State<CutView> {
   }
 
   void _scanNewMaterials(BuildContext context) {
+    final existingCodes =
+        context.read<CutBloc>().state.newCutItems.map((e) => e.qrCode).toList();
     final config = QrScanConfig(
       scanType: QrScanType.raw, // No specific business logic, just get strings
       title: '新耗材扫码',
       scanMode: QrScanMode.batch,
+      existingCodesToExclude: existingCodes,
     );
     context.pushNamed('qr-scan', extra: config).then((result) {
       if (result != null && result is List<QrScanResult> && result.isNotEmpty) {

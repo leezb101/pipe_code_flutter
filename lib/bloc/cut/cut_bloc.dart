@@ -20,8 +20,8 @@ class CutBloc extends Bloc<CutEvent, CutState> {
   final CutRepository _cutRepository;
 
   CutBloc({CutRepository? cutRepository})
-    : _cutRepository = cutRepository ?? getIt<CutRepository>(),
-      super(const CutState()) {
+      : _cutRepository = cutRepository ?? getIt<CutRepository>(),
+        super(const CutState()) {
     on<CutReset>(_onReset);
     on<CutOriginalMaterialScanned>(_onOriginalMaterialScanned);
     on<CutOriginalPhotoUpdated>(_onOriginalPhotoUpdated);
@@ -60,14 +60,22 @@ class CutBloc extends Bloc<CutEvent, CutState> {
     CutOriginalPhotoUpdated event,
     Emitter<CutState> emit,
   ) {
-    emit(state.copyWith(originalMaterialPhotoPath: event.photoPath));
+    emit(state.copyWith(
+      originalMaterialPhotoPath: event.photoPath,
+      status: CutStatus.initial,
+      clearMessages: true,
+    ));
   }
 
   void _onDescriptionUpdated(
     CutDescriptionUpdated event,
     Emitter<CutState> emit,
   ) {
-    emit(state.copyWith(cutDescription: event.description));
+    emit(state.copyWith(
+      cutDescription: event.description,
+      status: CutStatus.initial,
+      clearMessages: true,
+    ));
   }
 
   void _onNewMaterialsScanned(
@@ -76,7 +84,30 @@ class CutBloc extends Bloc<CutEvent, CutState> {
   ) {
     if (state.originalMaterialInfo == null) return;
 
-    final newItems = event.qrCodes.map((qr) {
+    final existingQrCodes =
+        state.newCutItems.map((item) => item.qrCode).toSet();
+    final uniqueNewQrCodes =
+        event.qrCodes.where((qr) => !existingQrCodes.contains(qr)).toList();
+    final duplicateCount = event.qrCodes.length - uniqueNewQrCodes.length;
+
+    String? tip;
+    if (duplicateCount > 0) {
+      tip = '已自动过滤 $duplicateCount 个重复的耗材码';
+    }
+
+    // If there are no new unique items to add, just show the tip and return.
+    if (uniqueNewQrCodes.isEmpty) {
+      if (tip != null) {
+        emit(state.copyWith(
+          status: CutStatus.tip,
+          tipMessage: tip,
+          clearMessages: true, // Clear old error, set new tip
+        ));
+      }
+      return;
+    }
+
+    final newItems = uniqueNewQrCodes.map((qr) {
       return NewCutMaterialItem(
         qrCode: qr,
         materialName:
@@ -86,8 +117,10 @@ class CutBloc extends Bloc<CutEvent, CutState> {
 
     emit(
       state.copyWith(
-        status: CutStatus.initial,
+        status: tip != null ? CutStatus.tip : CutStatus.initial,
         newCutItems: [...state.newCutItems, ...newItems],
+        tipMessage: tip,
+        clearMessages: true, // Clear old messages, set new tip if any
       ),
     );
   }
@@ -101,7 +134,11 @@ class CutBloc extends Bloc<CutEvent, CutState> {
       updatedItems[event.index] = updatedItems[event.index].copyWith(
         length: event.length,
       );
-      emit(state.copyWith(newCutItems: updatedItems));
+      emit(state.copyWith(
+        newCutItems: updatedItems,
+        status: CutStatus.initial,
+        clearMessages: true,
+      ));
     }
   }
 
@@ -114,7 +151,11 @@ class CutBloc extends Bloc<CutEvent, CutState> {
       updatedItems[event.index] = updatedItems[event.index].copyWith(
         photoPath: event.photoPath,
       );
-      emit(state.copyWith(newCutItems: updatedItems));
+      emit(state.copyWith(
+        newCutItems: updatedItems,
+        status: CutStatus.initial,
+        clearMessages: true,
+      ));
     }
   }
 
@@ -122,7 +163,11 @@ class CutBloc extends Bloc<CutEvent, CutState> {
     final updatedItems = List<NewCutMaterialItem>.from(state.newCutItems);
     if (event.index >= 0 && event.index < updatedItems.length) {
       updatedItems.removeAt(event.index);
-      emit(state.copyWith(newCutItems: updatedItems));
+      emit(state.copyWith(
+        newCutItems: updatedItems,
+        status: CutStatus.initial,
+        clearMessages: true,
+      ));
     }
   }
 

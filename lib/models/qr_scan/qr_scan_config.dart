@@ -14,11 +14,13 @@ class QrScanConfig extends Equatable {
     required this.scanType,
     this.scanMode = QrScanMode.single,
     this.title,
+    this.existingCodesToExclude,
   });
 
   final QrScanType scanType;
   final QrScanMode scanMode;
   final String? title;
+  final List<String>? existingCodesToExclude;
 
   String get displayTitle {
     if (title != null) return title!;
@@ -53,5 +55,5 @@ class QrScanConfig extends Equatable {
   bool get supportsBatch => scanMode == QrScanMode.batch;
 
   @override
-  List<Object?> get props => [scanType, scanMode, title];
+  List<Object?> get props => [scanType, scanMode, title, existingCodesToExclude];
 }

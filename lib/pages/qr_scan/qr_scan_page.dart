@@ -36,6 +36,9 @@ class _QrScanPageState extends State<QrScanPage> {
   MobileScannerController? _controller;
   bool _hasReturned = false;
 
+  // 用于同步检查当次扫描会话中的重复项
+  final Set<String> _sessionScannedCodes = <String>{};
+
   // 防抖相关
   String? _lastScannedCode;
   DateTime? _lastScanTime;
@@ -105,6 +108,22 @@ class _QrScanPageState extends State<QrScanPage> {
 
         // 立即停止扫码器，防止重复触发
         _controller?.stop();
+
+        // 检查是否为需要排除的重复码 (包括历史列表和本次扫描列表)
+        final isDuplicateInHistory =
+            widget.config.existingCodesToExclude?.contains(code) ?? false;
+        // 使用本地同步的 Set 进行当次会话的去重检查
+        final isDuplicateInSession = _sessionScannedCodes.contains(code);
+
+        if (isDuplicateInHistory || isDuplicateInSession) {
+          context.showErrorToast('该耗材已添加，请勿重复扫描');
+          _provideScanFeedback(); // 同样提供反馈
+          _scheduleRestartScanner(); // 重新安排扫描
+          return; // 中断处理
+        }
+
+        // 如果不是重复码，则添加到本地同步Set中
+        _sessionScannedCodes.add(code);
 
         // 震动反馈
         _provideScanFeedback();
@@ -240,6 +259,12 @@ class _QrScanPageState extends State<QrScanPage> {
       ),
       body: BlocConsumer<QrScanBloc, QrScanState>(
         listener: (context, state) {
+          // 同步本地的session-set和bloc中的state
+          // 以确保用户删除列表项后,可以重新扫描
+          final stateCodes = state.scannedCodes.map((e) => e.code).toSet();
+          _sessionScannedCodes.clear();
+          _sessionScannedCodes.addAll(stateCodes);
+
           if (state.status == QrScanStatus.error &&
               state.errorMessage != null) {
             context.showErrorToast(state.errorMessage!);
