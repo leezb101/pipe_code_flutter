@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 20:51:46
+ * @LastEditTime: 2025-07-31 10:48:49
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -45,6 +45,8 @@ class QrScanConfig extends Equatable {
         return '扫码验收入库';
       case QrScanType.install:
         return '扫码安装';
+      case QrScanType.raw:
+        return '$modePrefix原材料扫码';
     }
   }
 

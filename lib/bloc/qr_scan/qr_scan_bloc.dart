@@ -70,7 +70,13 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
     Emitter<QrScanState> emit,
   ) async {
     try {
-      final isValid = await _qrScanService.validateCode(event.code);
+      // For 'raw' type, we skip validation and always treat it as valid.
+      final bool isValid;
+      if (state.config?.scanType == QrScanType.raw) {
+        isValid = true;
+      } else {
+        isValid = await _qrScanService.validateCode(event.code);
+      }
 
       if (isValid) {
         final result = QrScanResult(
@@ -218,6 +224,14 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
 
         case QrScanType.install:
           result = await _qrScanService.processInstall(state.scannedCodes);
+          break;
+        case QrScanType.raw:
+          // For raw type, we just return the scanned codes directly without processing.
+          result = QrScanProcessResult(
+            success: true,
+            data: state.scannedCodes, // The data is the list of raw scan results
+          );
+          break;
       }
 
       if (result != null && !result.success) {

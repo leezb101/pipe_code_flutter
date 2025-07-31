@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-30 18:28:14
+ * @LastEditTime: 2025-07-31 10:49:48
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -22,11 +22,13 @@ class QrScanProcessResult {
     required this.success,
     this.navigationData,
     this.errorMessage,
+    this.data,
   });
 
   final bool success;
   final QrScanNavigationData? navigationData;
   final String? errorMessage;
+  final List<QrScanResult>? data;
 }
 
 class QrScanNavigationData {
@@ -345,68 +347,25 @@ class InventoryStrategy implements QrScanStrategy {
 class PipeCopyStrategy implements QrScanStrategy {
   @override
   Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
-    await Future.delayed(const Duration(seconds: 1));
+    // This strategy, similar to MaterialInboundStrategy, will not perform business logic here.
+    // It ensures the QR code is returned to the calling page (CutPage),
+    // which then uses MaterialHandleCubit to fetch the data.
+    // This is necessary because the scan page cannot directly return complex data objects.
 
-    if (results.length == 1) {
-      await _processSinglePipeCopy(results.first);
-    } else {
-      await _processBatchPipeCopy(results);
-    }
-
-    return const QrScanProcessResult(success: true);
-  }
-
-  Future<void> _processSinglePipeCopy(QrScanResult result) async {
-    Logger.qrScan('=== 单个截管复制处理 ===', deviceCode: result.code);
-    Logger.qrScan('管道编号: ${result.code}', deviceCode: result.code);
-    Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
-
-    // 模拟管道信息查询结果
-    final pipeInfo = _mockPipeInfo(result.code);
-    Logger.qrScan('管道信息: $pipeInfo', deviceCode: result.code);
-    Logger.qrScan('截管复制状态: 复制完成', deviceCode: result.code);
-
-    // TODO: 实现单个截管复制的具体业务逻辑
-    // 1. 查询管道的详细信息和图纸
-    // 2. 复制管道规格和参数
-    // 3. 生成新的管道编号
-    // 4. 创建管道复制记录
-    // 5. 更新管网图纸资料
-  }
-
-  Future<void> _processBatchPipeCopy(List<QrScanResult> results) async {
-    Logger.qrScan('=== 批量截管复制处理 ===');
-    Logger.qrScan('批次大小: ${results.length}');
-
-    for (int i = 0; i < results.length; i++) {
-      final result = results[i];
-      Logger.qrScan(
-        '第${i + 1}个管道 - 编号: ${result.code}',
-        deviceCode: result.code,
+    if (results.length != 1) {
+      return const QrScanProcessResult(
+        success: false,
+        errorMessage: '原耗材扫码一次只能扫描一个二维码',
       );
     }
 
-    Logger.qrScan('批量截管复制状态: 全部完成');
+    final result = results.first;
+    Logger.qrScan('=== 截管-原耗材扫码 ===', deviceCode: result.code);
+    Logger.qrScan('扫码内容: ${result.code}', deviceCode: result.code);
 
-    // TODO: 实现批量截管复制的具体业务逻辑
-    // 1. 批量查询管道信息
-    // 2. 批量生成新编号
-    // 3. 批量创建复制记录
-    // 4. 生成批量复制报告
-    // 5. 更新管网系统数据
-  }
-
-  Map<String, dynamic> _mockPipeInfo(String pipeCode) {
-    return {
-      '管道编号': pipeCode,
-      '管道类型': '主供水管',
-      '管径规格': 'DN300',
-      '材质': '球墨铸铁管',
-      '安装日期': '2023-03-20',
-      '位置信息': '某某路段地下2米',
-      '设计压力': '1.0MPa',
-      '备注': '需要截管延伸施工',
-    };
+    // Return success without navigation data.
+    // This signals the QrScanPage to pop and return the scanned codes to the caller.
+    return const QrScanProcessResult(success: true);
   }
 }
 

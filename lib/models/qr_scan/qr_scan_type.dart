@@ -16,7 +16,8 @@ enum QrScanType {
   returnMaterial('退库'),
   acceptance('验收'),
   materialInbound('物料入库'),
-  install('扫码安装');
+  install('扫码安装'),
+  raw('原始扫码');
 
   /// 扫码类型枚举
 

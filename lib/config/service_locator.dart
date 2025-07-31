@@ -9,8 +9,10 @@ import 'package:pipe_code_flutter/bloc/return/return_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
+import 'package:pipe_code_flutter/bloc/cut/cut_bloc.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/auth_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/cut_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/enum_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/install_repository.dart';
@@ -117,6 +119,10 @@ Future<void> setupServiceLocator({
     () => RepositoryFactory.createUserRepository(),
   );
 
+  getIt.registerLazySingleton<CutRepository>(
+    () => RepositoryFactory.createCutRepository(),
+  );
+
   // Wait for async singletons to be ready before registering dependent Blocs
   await getIt.isReady<AuthRepository>();
   await getIt.isReady<ProjectRepository>();
@@ -156,6 +162,9 @@ Future<void> setupServiceLocator({
   );
   getIt.registerFactory<SpareQrBloc>(
     () => SpareQrBloc(repository: getIt<SpareqrRepository>()),
+  );
+  getIt.registerFactory<CutBloc>(
+    () => CutBloc(cutRepository: getIt<CutRepository>()),
   );
 }
 

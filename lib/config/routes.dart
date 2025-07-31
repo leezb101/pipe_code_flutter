@@ -21,6 +21,7 @@ import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
 import '../bloc/dispatch/dispatch_bloc.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/register_page.dart';
+import '../pages/cut/cut_page.dart';
 import '../pages/dispatch/dispatch_application_page.dart';
 import '../pages/dispatch/dispatch_after_signin_page.dart';
 import '../pages/main_page.dart';
@@ -186,8 +187,9 @@ final GoRouter appRouter = GoRouter(
             return MultiBlocProvider(
               providers: [
                 BlocProvider<AcceptanceBloc>(
-                  create: (context) => getIt<AcceptanceBloc>()
-                    ..add(LoadAcceptanceDetail(acceptanceId: acceptanceId)),
+                  create: (context) =>
+                      getIt<AcceptanceBloc>()
+                        ..add(LoadAcceptanceDetail(acceptanceId: acceptanceId)),
                 ),
                 BlocProvider<MaterialHandleCubit>(
                   create: (context) => MaterialHandleCubit(),
@@ -228,8 +230,9 @@ final GoRouter appRouter = GoRouter(
             return MultiBlocProvider(
               providers: [
                 BlocProvider(
-                  create: (context) => getIt<DispatchBloc>()
-                    ..add(LoadDispatchDetail(dispatchId)),
+                  create: (context) =>
+                      getIt<DispatchBloc>()
+                        ..add(LoadDispatchDetail(dispatchId)),
                 ),
                 BlocProvider(create: (context) => MaterialHandleCubit()),
               ],
@@ -279,9 +282,7 @@ final GoRouter appRouter = GoRouter(
             final signOutId = state.uri.queryParameters['id'];
             return MultiBlocProvider(
               providers: [
-                BlocProvider(
-                  create: (context) => getIt<InstallBloc>(),
-                ),
+                BlocProvider(create: (context) => getIt<InstallBloc>()),
                 BlocProvider(create: (context) => MaterialHandleCubit()),
               ],
               child: InstallPage(signOutId: signOutId),
@@ -389,6 +390,11 @@ final GoRouter appRouter = GoRouter(
               child: ReturnDetailPage(id: returnId),
             );
           },
+        ),
+        GoRoute(
+          path: '/cut',
+          name: 'cut',
+          builder: (context, state) => const CutPage(),
         ),
       ],
     ),
