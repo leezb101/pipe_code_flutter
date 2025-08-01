@@ -2,10 +2,11 @@
  * @Author: LeeZB
  * @Date: 2025-07-18 17:42:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-27 11:22:09
+ * @LastEditTime: 2025-08-01 17:22:58
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
+import 'package:pipe_code_flutter/services/api/implementations/inventory_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/cut_api_service.dart';
 import 'common_query_api_service_impl.dart';
 import 'cut_api_service_impl.dart';
@@ -49,6 +50,7 @@ class ApiServiceImpl implements ApiServiceInterface {
   DispatchApiService? _dispatchApiService;
   ReturnApiService? _returnApiService;
   CutApiService? _cutApiService;
+  InventoryApiServiceImpl? _inventoryApiService;
 
   ApiServiceImpl(this._dio);
 
@@ -97,4 +99,8 @@ class ApiServiceImpl implements ApiServiceInterface {
 
   @override
   CutApiService get cut => _cutApiService ??= CutApiServiceImpl(_dio);
+
+  @override
+  InventoryApiServiceImpl get inventory =>
+      _inventoryApiService ??= InventoryApiServiceImpl(_dio);
 }

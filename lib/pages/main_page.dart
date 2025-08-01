@@ -2,11 +2,13 @@
  * @Author: LeeZB
  * @Date: 2025-07-29 19:58:49
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-30 18:27:52
+ * @LastEditTime: 2025-08-01 18:50:25
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 import 'package:go_router/go_router.dart';
 import '../bloc/auth/auth_bloc.dart';
@@ -77,28 +79,31 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   /// 构建主界面
   Widget _buildMainInterface() {
-    return Scaffold(
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: IndexedStack(index: _currentIndex, children: _pages),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          if (index != _currentIndex) {
-            _animationController.reset();
-            setState(() {
-              _currentIndex = index;
-            });
-            _animationController.forward();
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: '记录'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
-        ],
+    return MultiBlocProvider(
+      providers: [BlocProvider(create: (context) => getIt<InventoryBloc>())],
+      child: Scaffold(
+        body: FadeTransition(
+          opacity: _fadeAnimation,
+          child: IndexedStack(index: _currentIndex, children: _pages),
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            if (index != _currentIndex) {
+              _animationController.reset();
+              setState(() {
+                _currentIndex = index;
+              });
+              _animationController.forward();
+            }
+          },
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
+            BottomNavigationBarItem(icon: Icon(Icons.list), label: '记录'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
+          ],
+        ),
       ),
     );
   }

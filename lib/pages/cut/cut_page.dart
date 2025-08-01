@@ -267,7 +267,7 @@ class _CutViewState extends State<CutView> {
         TextFormField(
           controller: _lengthControllers[index],
           decoration: const InputDecoration(
-            labelText: '管节长 (m)',
+            labelText: '管节长 (mm)',
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
@@ -356,8 +356,12 @@ class _CutViewState extends State<CutView> {
   }
 
   void _scanNewMaterials(BuildContext context) {
-    final existingCodes =
-        context.read<CutBloc>().state.newCutItems.map((e) => e.qrCode).toList();
+    final existingCodes = context
+        .read<CutBloc>()
+        .state
+        .newCutItems
+        .map((e) => e.qrCode)
+        .toList();
     final config = QrScanConfig(
       scanType: QrScanType.raw, // No specific business logic, just get strings
       title: '新耗材扫码',
@@ -394,7 +398,7 @@ class _CutViewState extends State<CutView> {
         _buildInfoRow('规格型号:', info.normals[0].baseInfo.spec ?? 'N/A'),
         _buildInfoRow(
           '管节长:',
-          '${info.normals.first.extendedFields['len'] ?? 'N/A'}',
+          '${info.normals.first.extendedFields['len'] ?? 'N/A'}mm',
         ),
         _buildInfoRow(
           '生产日期:',

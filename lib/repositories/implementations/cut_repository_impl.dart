@@ -6,6 +6,7 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
+import 'package:pipe_code_flutter/bloc/cut/cut_state.dart';
 import 'package:pipe_code_flutter/models/cut/cut_request_vo.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/cut_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/cut_api_service.dart';
@@ -21,8 +22,14 @@ class CutRepositoryImpl implements CutRepository {
     final result = await _apiService.getTipsForCutting(request);
 
     if (result.isSuccess && result.data != null) {
+      // Success (code 0), return data. The BLoC will proceed.
       return result.data!;
     } else {
+      // Check for the specific tip case (code -1)
+      if (result.code == -1) {
+        throw TipException(result.msg ?? '操作提示');
+      }
+      // For all other errors, throw a general exception.
       throw GetCutTipsException(result.msg ?? '获取切割提示失败');
     }
   }

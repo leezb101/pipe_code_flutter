@@ -8,6 +8,16 @@
 import 'package:equatable/equatable.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 
+// Note: For a larger project, this custom exception should be in its own file.
+/// Custom exception to handle server tips that are not critical errors.
+class TipException implements Exception {
+  final String message;
+  TipException(this.message);
+
+  @override
+  String toString() => message;
+}
+
 enum CutStatus { initial, loading, success, failure, submitting, tip }
 
 class NewCutMaterialItem extends Equatable {

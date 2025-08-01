@@ -6,6 +6,8 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
+import 'package:pipe_code_flutter/repositories/implementations/inventory_repository_impl.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/inventory_repository.dart';
 import 'package:pipe_code_flutter/repositories/implementations/return_repository_impl.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/return_repository.dart';
 import 'package:pipe_code_flutter/services/api_service_factory.dart';
@@ -163,5 +165,11 @@ class RepositoryFactory {
   static CutRepository createCutRepository() {
     final cutApiService = ApiServiceFactory.createCutService();
     return CutRepositoryImpl(cutApiService);
+  }
+
+  /// 创建并返回一个 [InventoryRepository] 实例。
+  static InventoryRepository createInventoryRepository() {
+    final inventoryApiService = ApiServiceFactory.createInventoryService();
+    return InventoryRepositoryImpl(apiService: inventoryApiService);
   }
 }

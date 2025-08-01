@@ -8,7 +8,7 @@ part of 'cut_request_vo.dart';
 
 CutRequestVo _$CutRequestVoFromJson(Map<String, dynamic> json) => CutRequestVo(
   cutMaterialSubVOS: (json['cutMaterialSubVOS'] as List<dynamic>)
-      .map((e) => CutRequestVo.fromJson(e as Map<String, dynamic>))
+      .map((e) => CutMaterialSubVO.fromJson(e as Map<String, dynamic>))
       .toList(),
   qrCode: json['qrCode'] as String,
   img: json['img'] as String,

@@ -1,27 +1,18 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/models/cut/cut_material_sub_vo.dart';
 import 'package:pipe_code_flutter/models/cut/cut_request_vo.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/cut_repository.dart';
 
 import 'cut_event.dart';
 import 'cut_state.dart';
 
-// Note: For a larger project, this custom exception should be in its own file.
-/// Custom exception to handle server tips that are not critical errors.
-class TipException implements Exception {
-  final String message;
-  TipException(this.message);
-
-  @override
-  String toString() => message;
-}
-
 class CutBloc extends Bloc<CutEvent, CutState> {
   final CutRepository _cutRepository;
 
   CutBloc({CutRepository? cutRepository})
-      : _cutRepository = cutRepository ?? getIt<CutRepository>(),
-        super(const CutState()) {
+    : _cutRepository = cutRepository ?? getIt<CutRepository>(),
+      super(const CutState()) {
     on<CutReset>(_onReset);
     on<CutOriginalMaterialScanned>(_onOriginalMaterialScanned);
     on<CutOriginalPhotoUpdated>(_onOriginalPhotoUpdated);
@@ -60,22 +51,26 @@ class CutBloc extends Bloc<CutEvent, CutState> {
     CutOriginalPhotoUpdated event,
     Emitter<CutState> emit,
   ) {
-    emit(state.copyWith(
-      originalMaterialPhotoPath: event.photoPath,
-      status: CutStatus.initial,
-      clearMessages: true,
-    ));
+    emit(
+      state.copyWith(
+        originalMaterialPhotoPath: event.photoPath,
+        status: CutStatus.initial,
+        clearMessages: true,
+      ),
+    );
   }
 
   void _onDescriptionUpdated(
     CutDescriptionUpdated event,
     Emitter<CutState> emit,
   ) {
-    emit(state.copyWith(
-      cutDescription: event.description,
-      status: CutStatus.initial,
-      clearMessages: true,
-    ));
+    emit(
+      state.copyWith(
+        cutDescription: event.description,
+        status: CutStatus.initial,
+        clearMessages: true,
+      ),
+    );
   }
 
   void _onNewMaterialsScanned(
@@ -84,10 +79,12 @@ class CutBloc extends Bloc<CutEvent, CutState> {
   ) {
     if (state.originalMaterialInfo == null) return;
 
-    final existingQrCodes =
-        state.newCutItems.map((item) => item.qrCode).toSet();
-    final uniqueNewQrCodes =
-        event.qrCodes.where((qr) => !existingQrCodes.contains(qr)).toList();
+    final existingQrCodes = state.newCutItems
+        .map((item) => item.qrCode)
+        .toSet();
+    final uniqueNewQrCodes = event.qrCodes
+        .where((qr) => !existingQrCodes.contains(qr))
+        .toList();
     final duplicateCount = event.qrCodes.length - uniqueNewQrCodes.length;
 
     String? tip;
@@ -98,11 +95,13 @@ class CutBloc extends Bloc<CutEvent, CutState> {
     // If there are no new unique items to add, just show the tip and return.
     if (uniqueNewQrCodes.isEmpty) {
       if (tip != null) {
-        emit(state.copyWith(
-          status: CutStatus.tip,
-          tipMessage: tip,
-          clearMessages: true, // Clear old error, set new tip
-        ));
+        emit(
+          state.copyWith(
+            status: CutStatus.tip,
+            tipMessage: tip,
+            clearMessages: true, // Clear old error, set new tip
+          ),
+        );
       }
       return;
     }
@@ -134,11 +133,13 @@ class CutBloc extends Bloc<CutEvent, CutState> {
       updatedItems[event.index] = updatedItems[event.index].copyWith(
         length: event.length,
       );
-      emit(state.copyWith(
-        newCutItems: updatedItems,
-        status: CutStatus.initial,
-        clearMessages: true,
-      ));
+      emit(
+        state.copyWith(
+          newCutItems: updatedItems,
+          status: CutStatus.initial,
+          clearMessages: true,
+        ),
+      );
     }
   }
 
@@ -151,11 +152,13 @@ class CutBloc extends Bloc<CutEvent, CutState> {
       updatedItems[event.index] = updatedItems[event.index].copyWith(
         photoPath: event.photoPath,
       );
-      emit(state.copyWith(
-        newCutItems: updatedItems,
-        status: CutStatus.initial,
-        clearMessages: true,
-      ));
+      emit(
+        state.copyWith(
+          newCutItems: updatedItems,
+          status: CutStatus.initial,
+          clearMessages: true,
+        ),
+      );
     }
   }
 
@@ -163,11 +166,13 @@ class CutBloc extends Bloc<CutEvent, CutState> {
     final updatedItems = List<NewCutMaterialItem>.from(state.newCutItems);
     if (event.index >= 0 && event.index < updatedItems.length) {
       updatedItems.removeAt(event.index);
-      emit(state.copyWith(
-        newCutItems: updatedItems,
-        status: CutStatus.initial,
-        clearMessages: true,
-      ));
+      emit(
+        state.copyWith(
+          newCutItems: updatedItems,
+          status: CutStatus.initial,
+          clearMessages: true,
+        ),
+      );
     }
   }
 
@@ -215,11 +220,10 @@ class CutBloc extends Bloc<CutEvent, CutState> {
     try {
       // --- Request Body Construction ---
       final subItems = state.newCutItems.map((item) {
-        return CutRequestVo(
+        return CutMaterialSubVO(
           qrCode: item.qrCode,
           img: item.photoPath!,
-          description: item.length.toString(),
-          cutMaterialSubVOS: const [], // Must be empty for sub-items
+          len: item.length.toString(),
         );
       }).toList();
 
@@ -232,13 +236,20 @@ class CutBloc extends Bloc<CutEvent, CutState> {
       );
 
       // --- API Calls ---
+      // 1. Pre-check call. If it returns, it's a success (code 0).
+      // If it has a tip (code -1), it will throw a TipException.
+      // For other errors, it will throw a general exception.
       await _cutRepository.getTipsForCutting(request);
+
+      // 2. If the pre-check was successful, execute the actual cut.
       await _cutRepository.doCut(request);
 
       emit(state.copyWith(status: CutStatus.success));
     } on TipException catch (e) {
+      // Handle the specific tip case (code -1)
       emit(state.copyWith(status: CutStatus.tip, tipMessage: e.message));
     } catch (e) {
+      // Handle all other errors
       emit(
         state.copyWith(status: CutStatus.failure, errorMessage: e.toString()),
       );

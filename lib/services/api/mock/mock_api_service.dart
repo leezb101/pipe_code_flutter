@@ -2,12 +2,13 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 10:15:25
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-30 19:04:38
+ * @LastEditTime: 2025-08-01 17:23:28
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/dispatch_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/inventory_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/material_handle_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/spareqr_api_service.dart';
@@ -33,6 +34,7 @@ import 'mock_user_api_service.dart';
 import 'mock_list_api_service.dart';
 import 'mock_acceptance_api_service.dart';
 import 'mock_return_api_service.dart';
+import 'mock_inventory_api_service.dart';
 
 class MockApiService implements ApiServiceInterface {
   AuthApiService? _authService;
@@ -48,6 +50,7 @@ class MockApiService implements ApiServiceInterface {
   DispatchApiService? _dispatchApiService;
   ReturnApiService? _returnApiService;
   CutApiService? _cutApiService;
+  InventoryApiService? _inventoryApiService;
 
   @override
   AuthApiService get auth => _authService ??= MockAuthApiService();
@@ -94,4 +97,8 @@ class MockApiService implements ApiServiceInterface {
 
   @override
   CutApiService get cut => _cutApiService ??= MockCutApiService();
+
+  @override
+  InventoryApiService get inventory =>
+      _inventoryApiService ??= MockInventoryApiService();
 }

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-30 16:38:19
+ * @LastEditTime: 2025-08-01 18:22:04
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -48,6 +48,7 @@ import '../pages/return/return_page.dart';
 import '../pages/return/return_detail_page.dart';
 import '../bloc/return/return_bloc.dart';
 import '../models/material/scan_identification_response.dart';
+import '../pages/inventory/inventory_list_page.dart';
 import 'service_locator.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -395,6 +396,11 @@ final GoRouter appRouter = GoRouter(
           path: '/cut',
           name: 'cut',
           builder: (context, state) => const CutPage(),
+        ),
+        GoRoute(
+          path: '/inventory',
+          name: 'inventory-list',
+          builder: (context, state) => const InventoryListPage(),
         ),
       ],
     ),

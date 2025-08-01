@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_bloc.dart';
 import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
 import 'package:pipe_code_flutter/bloc/install/install_bloc.dart';
+import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/project_initiation/project_initiation_bloc.dart';
 import 'package:pipe_code_flutter/bloc/qr_scan/qr_scan_bloc.dart';
 import 'package:pipe_code_flutter/bloc/records/records_bloc.dart';
@@ -16,6 +17,7 @@ import 'package:pipe_code_flutter/repositories/interfaces/cut_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/enum_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/install_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/inventory_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/list_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/project_repository.dart';
@@ -91,6 +93,9 @@ Future<void> setupServiceLocator({
   getIt.registerLazySingleton<InstallRepository>(
     () => RepositoryFactory.createInstallRepository(),
   );
+  getIt.registerLazySingleton<InventoryRepository>(
+    () => RepositoryFactory.createInventoryRepository(),
+  );
   getIt.registerLazySingleton<ListRepository>(
     () => RepositoryFactory.createListRepository(),
   );
@@ -162,6 +167,12 @@ Future<void> setupServiceLocator({
   );
   getIt.registerFactory<CutBloc>(
     () => CutBloc(cutRepository: getIt<CutRepository>()),
+  );
+  getIt.registerFactory<InventoryBloc>(
+    () => InventoryBloc(
+      inventoryRepository: getIt<InventoryRepository>(),
+      materialHandleRepository: getIt<MaterialHandleRepository>(),
+    ),
   );
 }
 

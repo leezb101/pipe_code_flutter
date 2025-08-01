@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-17 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-31 18:36:44
+ * @LastEditTime: 2025-08-01 16:46:37
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -14,7 +14,6 @@ import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_state.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
-import '../../models/inventory/pipe_material.dart';
 import '../../models/common/common_user_vo.dart';
 import '../../models/common/warehouse_vo.dart';
 import '../../models/material/material_info_base.dart';
@@ -702,9 +701,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
   }
 
   void _handleScanAcceptance() {
-    // 转换材料列表
-    // final materialVOList = _convertPipeMaterialsToMaterialVOs(widget.materials);
-
     final materialVOList = widget.materials.normals
         .map(
           (e) => MaterialVO(
@@ -777,18 +773,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
   void _handleReturn() {
     context.pop();
     // Navigator.of(context).pop();
-  }
-
-  List<MaterialVO> _convertPipeMaterialsToMaterialVOs(
-    List<PipeMaterial> materials,
-  ) {
-    return materials.map((material) {
-      return MaterialVO(
-        materialId: int.tryParse(material.id) ?? 0,
-        materialName: material.materialName,
-        num: material.quantity,
-      );
-    }).toList();
   }
 
   List<int> _getSelectedUserIds() {

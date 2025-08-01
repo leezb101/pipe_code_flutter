@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
+import 'package:pipe_code_flutter/bloc/inventory/inventory_event.dart';
+import 'package:pipe_code_flutter/bloc/inventory/inventory_state.dart';
 import '../../bloc/session/session_bloc.dart';
 import '../../bloc/session/session_state.dart';
 import '../../bloc/session/session_event.dart';
@@ -52,15 +55,28 @@ class _HomePageState extends State<HomePage> {
       body: BlocListener<SessionBloc, SessionState>(
         // 使用 listenWhen 提高效率，只在关心的状态变化时才触发 listener
         listenWhen: (previous, current) {
-          // 仅当 isSwitching 状态在 SessionProjectEstablished 内部发生变化时触发
+          // 触发时机：
+          // 1. 首次进入仓管员模式
+          if (previous is! SessionStorekeeperEstablished &&
+              current is SessionStorekeeperEstablished) {
+            return true;
+          }
+          // 2. isSwitching 状态在 SessionProjectEstablished 内部发生变化
           if (previous is SessionProjectEstablished &&
               current is SessionProjectEstablished) {
             return previous.isSwitching != current.isSwitching;
           }
-          // 如果状态类型发生了根本变化（例如从加载到建立），也触发
+          // 3. 状态类型发生了根本变化
           return previous.runtimeType != current.runtimeType;
         },
         listener: (context, state) {
+          // 当会话状态变为独立仓管员时，触发盘点任务列表的加载
+          if (state is SessionStorekeeperEstablished) {
+            context
+                .read<InventoryBloc>()
+                .add(const InventoryTasksFetched(isRefresh: true));
+          }
+
           // 监听会话状态变化，显示/隐藏项目切换overlay
           if (state is SessionProjectEstablished) {
             setState(() {
@@ -1477,11 +1493,21 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildStorekeeperActionCard(
-                title: '盘点',
-                icon: Icons.inventory,
-                color: const Color(0xFFf39C12),
-                onTap: () => _showComingSoon(context, '盘点功能'),
+              child: BlocBuilder<InventoryBloc, InventoryState>(
+                builder: (context, state) {
+                  final badge = Badge(
+                    isLabelVisible: state.totalTasks > 0,
+                    label: Text(state.totalTasks.toString()),
+                    child: _buildStorekeeperActionCard(
+                      title: '盘点',
+                      icon: Icons.inventory,
+                      color: const Color(0xFFf39C12),
+                      onTap: () => context.pushNamed('inventory-list'),
+                    ),
+                  );
+                  // Since Badge can have alignment issues, let's wrap it to ensure it behaves well.
+                  return Center(child: badge);
+                },
               ),
             ),
           ],
