@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 13:17:21
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-30 18:28:47
+ * @LastEditTime: 2025-08-01 19:22:14
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'dart:io';
@@ -11,6 +11,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/bloc/enum/enum_cubit.dart';
+import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
+import 'package:pipe_code_flutter/bloc/inventory/inventory_event.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/enum_repository.dart';
 import 'config/routes.dart';
@@ -81,12 +83,16 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               ListCubit(listRepository: getIt<ListRepository>()),
         ),
+        BlocProvider<InventoryBloc>(
+          create: (context) => getIt<InventoryBloc>(),
+        ),
       ],
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthUnauthenticated) {
             context.read<UserBloc>().add(const UserClearData());
             context.read<ProjectBloc>().add(const ProjectClearData());
+            context.read<InventoryBloc>().add(InventoryReset());
           }
         },
         child: MaterialApp.router(

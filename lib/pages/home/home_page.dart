@@ -41,7 +41,18 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // 只有当当前项目状态不是已加载状态时，才触发加载
+    // The listener might miss the initial state if it's set before the widget
+    // is built. This ensures the data is fetched when the page is first loaded
+    // with the correct session state.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final sessionState = context.read<SessionBloc>().state;
+      if (sessionState is SessionStorekeeperEstablished) {
+        context.read<InventoryBloc>().add(
+          const InventoryTasksFetched(isRefresh: true),
+        );
+      }
+    });
   }
 
   @override
@@ -72,9 +83,9 @@ class _HomePageState extends State<HomePage> {
         listener: (context, state) {
           // 当会话状态变为独立仓管员时，触发盘点任务列表的加载
           if (state is SessionStorekeeperEstablished) {
-            context
-                .read<InventoryBloc>()
-                .add(const InventoryTasksFetched(isRefresh: true));
+            context.read<InventoryBloc>().add(
+              const InventoryTasksFetched(isRefresh: true),
+            );
           }
 
           // 监听会话状态变化，显示/隐藏项目切换overlay
@@ -1463,6 +1474,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             Expanded(
               child: _buildStorekeeperActionCard(
+                context: context,
                 title: '入库',
                 icon: Icons.add_box,
                 color: const Color(0xFF27AE60),
@@ -1472,6 +1484,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStorekeeperActionCard(
+                context: context,
                 title: '出库',
                 icon: Icons.remove_circle,
                 color: const Color(0xFFE74C3C),
@@ -1485,6 +1498,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             Expanded(
               child: _buildStorekeeperActionCard(
+                context: context,
                 title: '调拨',
                 icon: Icons.swap_horiz,
                 color: const Color(0xFF3498DB),
@@ -1493,21 +1507,12 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: BlocBuilder<InventoryBloc, InventoryState>(
-                builder: (context, state) {
-                  final badge = Badge(
-                    isLabelVisible: state.totalTasks > 0,
-                    label: Text(state.totalTasks.toString()),
-                    child: _buildStorekeeperActionCard(
-                      title: '盘点',
-                      icon: Icons.inventory,
-                      color: const Color(0xFFf39C12),
-                      onTap: () => context.pushNamed('inventory-list'),
-                    ),
-                  );
-                  // Since Badge can have alignment issues, let's wrap it to ensure it behaves well.
-                  return Center(child: badge);
-                },
+              child: _buildStorekeeperActionCard(
+                context: context,
+                title: '盘点',
+                icon: Icons.inventory,
+                color: const Color(0xFFf39C12),
+                onTap: () => context.pushNamed('inventory-list'),
               ),
             ),
           ],
@@ -1517,44 +1522,101 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildStorekeeperActionCard({
+    required BuildContext context,
     required String title,
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 80,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
+    if (title != '盘点') {
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 28, color: color),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 28, color: color),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: color,
+      );
+    } else {
+      return BlocBuilder<InventoryBloc, InventoryState>(
+        builder: (context, state) {
+          return GestureDetector(
+            onTap: onTap,
+            child: Container(
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  state.totalTasks > 0
+                      ? Badge(
+                          offset: const Offset(8, -8),
+                          backgroundColor: Colors.red,
+                          label: Text(
+                            state.totalTasks.toString(),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                            ),
+                          ),
+                          child: Icon(icon, size: 28, color: color),
+                        )
+                      : Icon(icon, size: 28, color: color),
+                  const SizedBox(height: 8),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
+          );
+        },
+      );
+    }
   }
 
   Widget _buildStorekeeperFunctionModules(BuildContext context) {

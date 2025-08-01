@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_event.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_state.dart';
-import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/models/inventory/inventory_models.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 
@@ -24,8 +23,8 @@ class _InventoryListPageState extends State<InventoryListPage> {
     // We can add a refresh here if the list is empty.
     if (context.read<InventoryBloc>().state.inventoryList.isEmpty) {
       context.read<InventoryBloc>().add(
-        const InventoryTasksFetched(isRefresh: true),
-      );
+            const InventoryTasksFetched(isRefresh: true),
+          );
     }
     _scrollController.addListener(_onScroll);
   }
@@ -39,7 +38,10 @@ class _InventoryListPageState extends State<InventoryListPage> {
 
   void _onScroll() {
     if (_isBottom) {
-      context.read<InventoryBloc>().add(const InventoryTasksFetched());
+      final state = context.read<InventoryBloc>().state;
+      if (state.listStatus != DataStatus.loading && !state.hasReachedMax) {
+        context.read<InventoryBloc>().add(const InventoryTasksFetched());
+      }
     }
   }
 
@@ -52,8 +54,8 @@ class _InventoryListPageState extends State<InventoryListPage> {
 
   Future<void> _onRefresh() async {
     context.read<InventoryBloc>().add(
-      const InventoryTasksFetched(isRefresh: true),
-    );
+          const InventoryTasksFetched(isRefresh: true),
+        );
   }
 
   void _onItemTap(InventoryListItemVO item) {
@@ -66,8 +68,8 @@ class _InventoryListPageState extends State<InventoryListPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('盘点任务'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: Colors.blue[600],
+        foregroundColor: Colors.white,
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
@@ -76,19 +78,24 @@ class _InventoryListPageState extends State<InventoryListPage> {
       ),
       body: BlocBuilder<InventoryBloc, InventoryState>(
         builder: (context, state) {
+          final isLoadingMore = state.listStatus == DataStatus.loading &&
+              state.inventoryList.isNotEmpty;
+
           switch (state.listStatus) {
             case DataStatus.initial:
             case DataStatus.loading:
-              return state.inventoryList.isEmpty
-                  ? const common.LoadingWidget(message: '正在加载任务...')
-                  : _buildList(state, isLoading: true);
+              if (state.inventoryList.isEmpty) {
+                return const common.LoadingWidget(message: '正在加载任务...');
+              }
+              return _buildList(state,
+                  isLoading: false, isLoadingMore: isLoadingMore);
             case DataStatus.failure:
               return state.inventoryList.isEmpty
                   ? common.ErrorWidget(
                       message: state.errorMessage ?? '加载失败，请稍后重试',
                       onRetry: _onRefresh,
                     )
-                  : _buildList(state, hasError: true);
+                  : _buildList(state, hasError: true, isLoadingMore: false);
             case DataStatus.success:
               if (state.inventoryList.isEmpty) {
                 return common.EmptyWidget(
@@ -96,7 +103,7 @@ class _InventoryListPageState extends State<InventoryListPage> {
                   onRetry: _onRefresh,
                 );
               }
-              return _buildList(state);
+              return _buildList(state, isLoadingMore: false);
           }
         },
       ),
@@ -107,6 +114,7 @@ class _InventoryListPageState extends State<InventoryListPage> {
     InventoryState state, {
     bool isLoading = false,
     bool hasError = false,
+    bool isLoadingMore = false,
   }) {
     return RefreshIndicator(
       onRefresh: _onRefresh,
@@ -135,9 +143,10 @@ class _InventoryListPageState extends State<InventoryListPage> {
             ),
           Expanded(
             child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
               controller: _scrollController,
               itemCount:
-                  state.inventoryList.length + (state.hasReachedMax ? 0 : 1),
+                  state.inventoryList.length + (isLoadingMore ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index >= state.inventoryList.length) {
                   return const Center(child: CircularProgressIndicator());

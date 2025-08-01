@@ -79,31 +79,28 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   /// 构建主界面
   Widget _buildMainInterface() {
-    return MultiBlocProvider(
-      providers: [BlocProvider(create: (context) => getIt<InventoryBloc>())],
-      child: Scaffold(
-        body: FadeTransition(
-          opacity: _fadeAnimation,
-          child: IndexedStack(index: _currentIndex, children: _pages),
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            if (index != _currentIndex) {
-              _animationController.reset();
-              setState(() {
-                _currentIndex = index;
-              });
-              _animationController.forward();
-            }
-          },
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
-            BottomNavigationBarItem(icon: Icon(Icons.list), label: '记录'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
-          ],
-        ),
+    return Scaffold(
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: IndexedStack(index: _currentIndex, children: _pages),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          if (index != _currentIndex) {
+            _animationController.reset();
+            setState(() {
+              _currentIndex = index;
+            });
+            _animationController.forward();
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: '记录'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
+        ],
       ),
     );
   }
