@@ -23,6 +23,7 @@ import 'package:pipe_code_flutter/repositories/interfaces/material_handle_reposi
 import 'package:pipe_code_flutter/repositories/interfaces/project_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/records_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/return_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/scrap_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/signout_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/user_repository.dart';
@@ -110,6 +111,9 @@ Future<void> setupServiceLocator({
   );
   getIt.registerLazySingleton<ReturnRepository>(
     () => RepositoryFactory.createReturnRepository(),
+  );
+  getIt.registerLazySingleton<ScrapRepository>(
+    () => RepositoryFactory.createScrapRepository(),
   );
   getIt.registerLazySingleton<SignoutRepository>(
     () => RepositoryFactory.createSignoutRepository(),

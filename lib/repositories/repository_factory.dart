@@ -39,12 +39,20 @@ import 'package:pipe_code_flutter/repositories/interfaces/user_repository.dart';
 import 'package:pipe_code_flutter/repositories/implementations/user_repository_impl.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/cut_repository.dart';
 import 'package:pipe_code_flutter/repositories/implementations/cut_repository_impl.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/scrap_repository.dart';
+import 'package:pipe_code_flutter/repositories/implementations/scrap_repository_impl.dart';
 
 /// Repository 工厂
 ///
 /// 负责创建和提供所有 Repository 的实例。
 /// 这是一个中心化的位置，用于管理数据仓库的依赖注入。
 class RepositoryFactory {
+  /// 创建并返回一个 [ScrapRepository] 实例。
+  static ScrapRepository createScrapRepository() {
+    final scrapApiService = ApiServiceFactory.createScrapService();
+    return ScrapRepositoryImpl(scrapApiService);
+  }
+
   static SharedPreferences? _prefs;
 
   static Future<void> _initPrefs() async {
