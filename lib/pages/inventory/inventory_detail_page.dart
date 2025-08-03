@@ -2,27 +2,16 @@
  * @Author: LeeZB
  * @Date: 2025-08-03 
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-03
+ * @LastEditTime: 2025-08-03 17:09:36
  * @copyright: Copyright © 2025 高新供水.
  */
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_event.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_state.dart';
-import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
-import 'package:pipe_code_flutter/bloc/material_handle/material_handle_state.dart';
 import 'package:pipe_code_flutter/models/inventory/inventory_models.dart';
-import 'package:pipe_code_flutter/models/material/material_info_base.dart';
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
-import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 
 class InventoryDetailPage extends StatefulWidget {
@@ -35,10 +24,6 @@ class InventoryDetailPage extends StatefulWidget {
 }
 
 class _InventoryDetailPageState extends State<InventoryDetailPage> {
-  final ImagePicker _picker = ImagePicker();
-  File? _photo1;
-  File? _photo2;
-
   @override
   void initState() {
     super.initState();
@@ -47,69 +32,6 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
 
   void _loadDetail() {
     context.read<InventoryBloc>().add(InventoryDetailFetched(widget.taskId));
-  }
-
-  Future<void> _startQrScan() async {
-    final config = QrScanConfig(
-      scanType: QrScanType.inventory,
-      scanMode: QrScanMode.batch,
-      title: '盘点扫码',
-    );
-
-    try {
-      final result = await context.push('/qr-scan', extra: config);
-      if (result != null && result is List<QrScanResult>) {
-        // 获取扫码的二维码列表
-        final qrCodes = result.map((r) => r.code).toList();
-
-        // 使用MaterialHandleCubit查询物料信息
-        await context.read<MaterialHandleCubit>().getMaterialInfoFromQrList(
-          qrCodes,
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        context.showErrorToast('扫码失败: $e');
-      }
-    }
-  }
-
-  Future<void> _pickImage(int photoNumber) async {
-    final XFile? image = await _picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 80,
-    );
-
-    if (image != null) {
-      setState(() {
-        if (photoNumber == 1) {
-          _photo1 = File(image.path);
-        } else {
-          _photo2 = File(image.path);
-        }
-      });
-
-      // 更新Bloc状态
-      context.read<InventoryBloc>().add(
-        InventoryPhotosUpdated(photo1: _photo1, photo2: _photo2),
-      );
-    }
-  }
-
-  Future<void> _submitInventory() async {
-    final state = context.read<InventoryBloc>().state;
-
-    if (state.inventoryDetail == null) {
-      context.showErrorToast('请先加载任务详情');
-      return;
-    }
-
-    if (_photo1 == null || _photo2 == null) {
-      context.showErrorToast('请先上传两张照片');
-      return;
-    }
-
-    context.read<InventoryBloc>().add(InventorySubmitted());
   }
 
   @override
@@ -121,56 +43,24 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: MultiBlocListener(
-        listeners: [
-          BlocListener<MaterialHandleCubit, MaterialHandleState>(
-            listener: (context, state) {
-              if (state is MaterialHandleScanSuccess) {
-                // 扫码查询成功后，触发比对逻辑
-                context.read<InventoryBloc>().add(
-                  InventoryMaterialsCompared(state.materialInfo.normals),
-                );
-                context.showSuccessToast(
-                  '扫码成功，已识别 ${state.materialInfo.normals.length} 个物料',
-                );
-              } else if (state is MaterialHandleScanFailure) {
-                context.showErrorToast('扫码查询失败: ${state.error}');
+      body: BlocBuilder<InventoryBloc, InventoryState>(
+        builder: (context, state) {
+          switch (state.detailStatus) {
+            case DataStatus.initial:
+            case DataStatus.loading:
+              return const common.LoadingWidget(message: '正在加载详情...');
+            case DataStatus.failure:
+              return common.ErrorWidget(
+                message: state.errorMessage ?? '加载失败',
+                onRetry: _loadDetail,
+              );
+            case DataStatus.success:
+              if (state.inventoryDetail == null) {
+                return const common.ErrorWidget(message: '数据为空');
               }
-            },
-          ),
-          BlocListener<InventoryBloc, InventoryState>(
-            listener: (context, state) {
-              if (state.submissionStatus == SubmissionStatus.success) {
-                context.showSuccessToast('盘点提交成功');
-                // 返回到列表页面，此时列表已经通过Bloc自动刷新了
-                context.pop(true);
-              } else if (state.submissionStatus == SubmissionStatus.failure) {
-                context.showErrorToast(
-                  '盘点提交失败: ${state.errorMessage ?? '未知错误'}',
-                );
-              }
-            },
-          ),
-        ],
-        child: BlocBuilder<InventoryBloc, InventoryState>(
-          builder: (context, state) {
-            switch (state.detailStatus) {
-              case DataStatus.initial:
-              case DataStatus.loading:
-                return const common.LoadingWidget(message: '正在加载详情...');
-              case DataStatus.failure:
-                return common.ErrorWidget(
-                  message: state.errorMessage ?? '加载失败',
-                  onRetry: _loadDetail,
-                );
-              case DataStatus.success:
-                if (state.inventoryDetail == null) {
-                  return const common.ErrorWidget(message: '数据为空');
-                }
-                return _buildContent(state);
-            }
-          },
-        ),
+              return _buildContent(state);
+          }
+        },
       ),
     );
   }
@@ -185,15 +75,14 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
         children: [
           _buildTaskInfoCard(detail),
           const SizedBox(height: 16),
-          _buildMaterialsSection(detail, state),
+          _buildMaterialsSection(detail),
           const SizedBox(height: 16),
-          _buildSurplusMaterialsSection(state),
-          const SizedBox(height: 16),
-          _buildScanButton(state),
-          const SizedBox(height: 16),
-          _buildPhotosSection(),
-          const SizedBox(height: 24),
-          _buildSubmitButton(state),
+          if (detail.materialExtras.isNotEmpty) ...[
+            _buildSurplusMaterialsSection(detail),
+            const SizedBox(height: 16),
+          ],
+          if (detail.attachmentUrl1 != null || detail.attachmentUrl2 != null)
+            _buildPhotosSection(detail),
         ],
       ),
     );
@@ -220,9 +109,16 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
             const SizedBox(height: 12),
             _buildInfoRow('任务名称', detail.name ?? '无'),
             _buildInfoRow('负责人', detail.bindUserName ?? '无'),
+            _buildInfoRow('执行人', detail.executeName ?? '无'),
             _buildInfoRow('物料数量', '${detail.materialNum ?? 0}'),
+            _buildInfoRow('实际数量', '${detail.realMaterialNum ?? 0}'),
+            _buildInfoRow('状态', _getStatusText(detail.status)),
+            if (detail.passFlag != null)
+              _buildInfoRow('盘点结果', detail.passFlag! ? '正常' : '异常'),
             if (detail.createdTime != null)
               _buildInfoRow('创建时间', _formatDateTime(detail.createdTime!)),
+            if (detail.executeTime != null)
+              _buildInfoRow('执行时间', _formatDateTime(detail.executeTime!)),
             if (detail.warehouseName != null)
               _buildInfoRow('仓库', detail.warehouseName!),
           ],
@@ -231,10 +127,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
     );
   }
 
-  Widget _buildMaterialsSection(
-    InventoryDetailInfoVO detail,
-    InventoryState state,
-  ) {
+  Widget _buildMaterialsSection(InventoryDetailInfoVO detail) {
     return Card(
       elevation: 2,
       child: Padding(
@@ -247,7 +140,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
                 Icon(Icons.inventory_2, size: 24, color: Colors.orange[600]),
                 const SizedBox(width: 8),
                 Text(
-                  '待盘点物料 (${detail.materials.length})',
+                  '盘点物料 (${detail.materials.length})',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -257,15 +150,10 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
             ),
             const SizedBox(height: 12),
             if (detail.materials.isEmpty)
-              _buildEmptyMaterialsWidget('暂无待盘点物料')
+              _buildEmptyMaterialsWidget('暂无盘点物料')
             else
               ...detail.materials.map(
-                (material) => _buildMaterialItem(
-                  material,
-                  isMatched: state.matchedMaterialIds.contains(
-                    material.materialId,
-                  ),
-                ),
+                (material) => _buildMaterialItem(material),
               ),
           ],
         ),
@@ -273,8 +161,8 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
     );
   }
 
-  Widget _buildSurplusMaterialsSection(InventoryState state) {
-    if (state.surplusMaterials.isEmpty) {
+  Widget _buildSurplusMaterialsSection(InventoryDetailInfoVO detail) {
+    if (detail.materialExtras.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -290,7 +178,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
                 Icon(Icons.add_circle, size: 24, color: Colors.green[600]),
                 const SizedBox(width: 8),
                 Text(
-                  '盘盈物料 (${state.surplusMaterials.length})',
+                  '盘盈物料 (${detail.materialExtras.length})',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -299,8 +187,8 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
               ],
             ),
             const SizedBox(height: 12),
-            ...state.surplusMaterials.map(
-              (material) => _buildSurplusMaterialItem(material),
+            ...detail.materialExtras.map(
+              (material) => _buildExtraMaterialItem(material),
             ),
           ],
         ),
@@ -308,18 +196,18 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
     );
   }
 
-  Widget _buildMaterialItem(
-    InventoryBindMaterialInfoVO material, {
-    bool isMatched = false,
-  }) {
+  Widget _buildMaterialItem(InventoryBindMaterialInfoVO material) {
+    // 直接根据 materialRealNum 判断是否已盘点
+    final isInventoried = (material.materialRealNum ?? 0) > 0;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isMatched ? Colors.green[50] : Colors.grey[50],
+        color: isInventoried ? Colors.green[50] : Colors.grey[50],
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: isMatched ? Colors.green[200]! : Colors.grey[200]!,
+          color: isInventoried ? Colors.green[200]! : Colors.grey[200]!,
         ),
       ),
       child: Row(
@@ -327,13 +215,13 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isMatched ? Colors.green[100] : Colors.grey[100],
+              color: isInventoried ? Colors.green[100] : Colors.grey[100],
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               Icons.inventory_2,
               size: 20,
-              color: isMatched ? Colors.green[700] : Colors.grey[700],
+              color: isInventoried ? Colors.green[700] : Colors.grey[700],
             ),
           ),
           const SizedBox(width: 12),
@@ -355,14 +243,41 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
                     '编号: ${material.materialCode}',
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
-                Text(
-                  '数量: ${material.materialNum}',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                Row(
+                  children: [
+                    Text(
+                      '应盘数量: ${material.materialNum}',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                    Text(
+                      ' | 实盘数量: ${material.materialRealNum ?? 0}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color:
+                            (material.materialRealNum ?? 0) ==
+                                material.materialNum
+                            ? Colors.green[600]
+                            : Colors.orange[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
+                if (material.inWarehouse != null)
+                  Text(
+                    material.inWarehouse! ? '在库' : '不在库',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: material.inWarehouse!
+                          ? Colors.blue[600]
+                          : Colors.red[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
               ],
             ),
           ),
-          if (isMatched)
+          if (isInventoried)
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
@@ -376,7 +291,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
     );
   }
 
-  Widget _buildSurplusMaterialItem(MaterialInfo material) {
+  Widget _buildExtraMaterialItem(InventoryBindMaterialInfoVO material) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -401,7 +316,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  material.baseInfo.prodNm ?? '无名称',
+                  material.materialName ?? '无名称',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -409,16 +324,15 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                if (material.baseInfo.materialCode != null)
+                if (material.materialCode != null)
                   Text(
-                    '编号: ${material.baseInfo.materialCode}',
+                    '编号: ${material.materialCode}',
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
-                if (material.baseInfo.spec != null)
-                  Text(
-                    '规格: ${material.baseInfo.spec}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                  ),
+                Text(
+                  '盘盈数量: ${material.materialNum}',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
               ],
             ),
           ),
@@ -465,32 +379,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
     );
   }
 
-  Widget _buildScanButton(InventoryState state) {
-    final isScanning = state.comparisonStatus == DataStatus.loading;
-
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: ElevatedButton.icon(
-        onPressed: isScanning ? null : _startQrScan,
-        icon: isScanning
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : const Icon(Icons.qr_code_scanner),
-        label: Text(isScanning ? '正在处理扫码结果...' : '扫码盘点'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue[600],
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPhotosSection() {
+  Widget _buildPhotosSection(InventoryDetailInfoVO detail) {
     return Card(
       elevation: 2,
       child: Padding(
@@ -511,13 +400,17 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: _buildPhotoCard('照片 1', _photo1, () => _pickImage(1)),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildPhotoCard('照片 2', _photo2, () => _pickImage(2)),
-                ),
+                if (detail.attachmentUrl1 != null)
+                  Expanded(
+                    child: _buildPhotoCard('照片 1', detail.attachmentUrl1!),
+                  ),
+                if (detail.attachmentUrl1 != null &&
+                    detail.attachmentUrl2 != null)
+                  const SizedBox(width: 12),
+                if (detail.attachmentUrl2 != null)
+                  Expanded(
+                    child: _buildPhotoCard('照片 2', detail.attachmentUrl2!),
+                  ),
               ],
             ),
           ],
@@ -526,68 +419,46 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
     );
   }
 
-  Widget _buildPhotoCard(String title, File? photo, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 120,
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: photo != null
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(photo, fit: BoxFit.cover),
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.camera_alt, size: 32, color: Colors.grey[400]),
-                  const SizedBox(height: 4),
-                  Text(
-                    title,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                  ),
-                ],
-              ),
+  Widget _buildPhotoCard(String title, String imageUrl) {
+    return Container(
+      height: 120,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
       ),
-    );
-  }
-
-  Widget _buildSubmitButton(InventoryState state) {
-    final isSubmitting = state.submissionStatus == SubmissionStatus.loading;
-    final canSubmit =
-        state.inventoryDetail != null && _photo1 != null && _photo2 != null;
-
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: ElevatedButton(
-        onPressed: (canSubmit && !isSubmitting) ? _submitInventory : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green[600],
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.broken_image, size: 32, color: Colors.grey[400]),
+                const SizedBox(height: 4),
+                Text(
+                  '图片加载失败',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                ),
+              ],
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) {
+              return child;
+            }
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            );
+          },
         ),
-        child: isSubmitting
-            ? const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Text('提交中...'),
-                ],
-              )
-            : const Text('提交盘点'),
       ),
     );
   }
@@ -619,5 +490,18 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
   String _formatDateTime(DateTime dateTime) {
     return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} '
         '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _getStatusText(int status) {
+    switch (status) {
+      case 0:
+        return '待执行';
+      case 1:
+        return '已执行';
+      case 2:
+        return '已完成';
+      default:
+        return '未知状态';
+    }
   }
 }

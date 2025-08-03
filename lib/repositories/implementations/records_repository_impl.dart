@@ -51,11 +51,6 @@ class RecordsRepositoryImpl implements RecordsRepository {
           pageNum: pageNum,
           pageSize: pageSize,
         );
-      } else if (recordType == RecordType.inventory) {
-        records = await _getProjectInitRecords(
-          pageNum: pageNum,
-          pageSize: pageSize,
-        );
       } else {
         final response = await _apiService.getBusinessRecords(
           recordType: recordType,

@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
 import 'package:pipe_code_flutter/bloc/install/install_bloc.dart';
+import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/scrap/scrap_bloc.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
@@ -51,6 +52,7 @@ import '../pages/return/return_detail_page.dart';
 import '../bloc/return/return_bloc.dart';
 import '../models/material/scan_identification_response.dart';
 import '../pages/inventory/inventory_list_page.dart';
+import '../pages/inventory/inventory_page.dart';
 import '../pages/inventory/inventory_detail_page.dart';
 import 'service_locator.dart';
 
@@ -406,8 +408,8 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) => const InventoryListPage(),
         ),
         GoRoute(
-          path: '/inventory-detail',
-          name: 'inventory-detail',
+          path: '/inventory-apply',
+          name: 'inventory-apply',
           builder: (context, state) {
             final taskId = state.extra as int?;
             if (taskId == null) {
@@ -419,6 +421,22 @@ final GoRouter appRouter = GoRouter(
                   create: (context) => MaterialHandleCubit(),
                 ),
               ],
+              child: InventoryPage(taskId: taskId),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/inventory-detail',
+          name: 'inventory-detail',
+          builder: (context, state) {
+            final taskId =
+                int.tryParse(state.pathParameters['id'] ?? '') ??
+                int.tryParse(state.uri.queryParameters['id'] ?? '');
+            if (taskId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return BlocProvider<InventoryBloc>(
+              create: (context) => getIt<InventoryBloc>(),
               child: InventoryDetailPage(taskId: taskId),
             );
           },

@@ -67,10 +67,13 @@ class _RecordsListPageState extends State<RecordsListPage>
       // 普通项目参与方，只展示"待办"
       tabs = [RecordType.todo];
     }
-    // 追加其他所有tab
+    // 追加其他所有tab，且仅当isStoreKeeper为true时才包含inventory
     tabs.addAll(
       RecordType.values.where(
-        (e) => e != RecordType.todo && e != RecordType.warehouseTodo,
+        (e) =>
+            e != RecordType.todo &&
+            e != RecordType.warehouseTodo &&
+            (e != RecordType.inventory || isStoreKeeper),
       ),
     );
     _allTabs = tabs;
@@ -134,6 +137,12 @@ class _RecordsListPageState extends State<RecordsListPage>
       case RecordType.waste:
         context.goNamed(
           'scrap-detail',
+          queryParameters: {'id': record.id.toString()},
+        );
+        break;
+      case RecordType.inventory:
+        context.goNamed(
+          'inventory-detail',
           queryParameters: {'id': record.id.toString()},
         );
         break;
