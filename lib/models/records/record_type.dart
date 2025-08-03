@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-22 11:01:13
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 16:40:23
+ * @LastEditTime: 2025-08-03 16:45:19
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:json_annotation/json_annotation.dart';
@@ -85,7 +85,7 @@ extension RecordTypeExtension on RecordType {
       case RecordType.waste:
         return '/waste/list';
       case RecordType.inventory:
-        return '/inventory/list';
+        return '/stocktaking/list';
     }
   }
 
