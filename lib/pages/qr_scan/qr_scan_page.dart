@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:15:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-03 16:09:51
+ * @LastEditTime: 2025-08-03 16:30:00
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -468,7 +468,7 @@ class _QrScanPageState extends State<QrScanPage> {
     Logger.debug(
       '【22222】QrScanPage will be destroyed and replaced by ${navigationData.route} with data: ${navigationData.data}',
     );
-    
+
     // 在导航前清理bloc状态
     context.read<QrScanBloc>().add(const ResetScan());
 

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-08-03
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-03 15:34:07
+ * @LastEditTime: 2025-08-03 16:29:47
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -115,7 +115,7 @@ class _ScrapPageState extends State<ScrapPage> {
     final config = QrScanConfig(
       scanType: QrScanType.scrap,
       scanMode: QrScanMode.batch,
-      context: {'source': 'scrapPageRemove'},
+      context: {'source': 'scrapPage'},
       isRemoveOperation: true, // 明确标记为删除操作
     );
     final result = await context.pushNamed('qr-scan', extra: config);

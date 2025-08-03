@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-21 21:18:36
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-03 13:13:25
+ * @LastEditTime: 2025-08-03 16:38:18
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -12,7 +12,6 @@ import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
 import 'package:pipe_code_flutter/bloc/install/install_bloc.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/scrap/scrap_bloc.dart';
-import 'package:pipe_code_flutter/bloc/scrap/scrap_state.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
@@ -456,6 +455,23 @@ final GoRouter appRouter = GoRouter(
                 child: ScrapPage(codes: codes, materials: materials),
               );
             }
+          },
+        ),
+        GoRoute(
+          path: '/scrap-detail',
+          name: 'scrap-detail',
+          builder: (context, state) {
+            final scrapIdParam = state.uri.queryParameters['id'];
+            final scrapId = scrapIdParam != null
+                ? int.tryParse(scrapIdParam)
+                : null;
+            if (scrapId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return BlocProvider(
+              create: (context) => getIt<ScrapBloc>(),
+              child: ScrapDetailPage(scrapId: scrapId),
+            );
           },
         ),
       ],

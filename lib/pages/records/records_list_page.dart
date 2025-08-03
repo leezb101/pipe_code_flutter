@@ -131,6 +131,12 @@ class _RecordsListPageState extends State<RecordsListPage>
           queryParameters: {'id': record.id.toString()},
         );
         break;
+      case RecordType.waste:
+        context.goNamed(
+          'scrap-detail',
+          queryParameters: {'id': record.id.toString()},
+        );
+        break;
       case RecordType.todo:
         final rec = record as TodoRecordItem;
         _handleSelectProject(context, rec.todo.projectId, rec);

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-08-03 10:46:29
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-03 11:06:32
+ * @LastEditTime: 2025-08-03 16:33:27
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
@@ -42,7 +42,7 @@ class ScrapApiServiceImpl extends BaseApiService implements ScrapApiService {
   @override
   Future<Result<void>> doScrap(ScrapDetailVO request) async {
     try {
-      final response = await dio.post('/waste/add', data: request.toJson());
+      final response = await dio.post('/waste/do', data: request.toJson());
 
       // 对于操作类接口，通常只需要验证成功状态，不需要返回具体数据
       return Result.safeFromJson<void>(
