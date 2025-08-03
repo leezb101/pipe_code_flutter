@@ -65,7 +65,6 @@ InventoryDetailInfoVO _$InventoryDetailInfoVOFromJson(
   materialNum: (json['materialNum'] as num?)?.toInt(),
   bindUser: (json['bindUser'] as num?)?.toInt(),
   bindUserName: json['bindUserName'] as String?,
-  bindRole: (json['bindRole'] as num?)?.toInt(),
   executeUser: (json['executeUser'] as num?)?.toInt(),
   executeName: json['executeName'] as String?,
   status: (json['status'] as num).toInt(),
@@ -108,7 +107,6 @@ Map<String, dynamic> _$InventoryDetailInfoVOToJson(
   'materialNum': instance.materialNum,
   'bindUser': instance.bindUser,
   'bindUserName': instance.bindUserName,
-  'bindRole': instance.bindRole,
   'executeUser': instance.executeUser,
   'executeName': instance.executeName,
   'status': instance.status,
@@ -130,8 +128,8 @@ InventoryBindMaterialInfoVO _$InventoryBindMaterialInfoVOFromJson(
   materialCode: json['materialCode'] as String?,
   materialName: json['materialName'] as String?,
   materialNum: (json['materialNum'] as num).toInt(),
-  materialRealNum: (json['materialRealNum'] as num).toInt(),
-  inWarehouse: json['inWarehouse'] as bool,
+  materialRealNum: (json['materialRealNum'] as num?)?.toInt() ?? 0,
+  inWarehouse: json['inWarehouse'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$InventoryBindMaterialInfoVOToJson(

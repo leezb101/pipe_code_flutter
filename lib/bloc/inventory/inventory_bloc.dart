@@ -20,6 +20,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
     on<InventoryTasksFetched>(_onTasksFetched);
     on<InventoryDetailFetched>(_onDetailFetched);
     on<InventoryScanCompleted>(_onScanCompleted);
+    on<InventoryMaterialsCompared>(_onMaterialsCompared);
     on<InventoryPhotosUpdated>(_onPhotosUpdated);
     on<InventorySubmitted>(_onSubmitted);
     on<InventoryReset>(_onReset);
@@ -148,6 +149,58 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
       } else {
         throw Exception(result.msg);
       }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          comparisonStatus: DataStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onMaterialsCompared(
+    InventoryMaterialsCompared event,
+    Emitter<InventoryState> emit,
+  ) async {
+    if (state.inventoryDetail == null) return;
+    emit(state.copyWith(comparisonStatus: DataStatus.loading));
+
+    try {
+      final scannedMaterials = event.scannedMaterials;
+      final originalMaterialIds = state.inventoryDetail!.materials
+          .map((m) => m.materialId)
+          .toSet();
+
+      final Set<int> newMatchedIds = Set.from(state.matchedMaterialIds);
+      final List<MaterialInfo> newSurplusMaterials = List.from(
+        state.surplusMaterials,
+      );
+      final existingSurplusIds = newSurplusMaterials
+          .map((m) => m.baseInfo.materialId)
+          .toSet();
+
+      for (final scannedMaterial in scannedMaterials) {
+        if (originalMaterialIds.contains(
+          scannedMaterial.baseInfo.materialId,
+        )) {
+          newMatchedIds.add(scannedMaterial.baseInfo.materialId);
+        } else {
+          if (!existingSurplusIds.contains(
+            scannedMaterial.baseInfo.materialId,
+          )) {
+            newSurplusMaterials.add(scannedMaterial);
+            existingSurplusIds.add(scannedMaterial.baseInfo.materialId);
+          }
+        }
+      }
+      emit(
+        state.copyWith(
+          comparisonStatus: DataStatus.success,
+          matchedMaterialIds: newMatchedIds,
+          surplusMaterials: newSurplusMaterials,
+        ),
+      );
     } catch (e) {
       emit(
         state.copyWith(

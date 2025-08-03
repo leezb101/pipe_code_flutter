@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:equatable/equatable.dart';
+import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 
 abstract class InventoryEvent extends Equatable {
   const InventoryEvent();
@@ -23,6 +24,12 @@ class InventoryDetailFetched extends InventoryEvent {
 class InventoryScanCompleted extends InventoryEvent {
   final List<String> qrCodes;
   const InventoryScanCompleted(this.qrCodes);
+}
+
+/// 扫码查询物料成功，直接处理物料信息
+class InventoryMaterialsCompared extends InventoryEvent {
+  final List<MaterialInfo> scannedMaterials;
+  const InventoryMaterialsCompared(this.scannedMaterials);
 }
 
 /// 暂存待上传的照片

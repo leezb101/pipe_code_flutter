@@ -287,7 +287,11 @@ class InventoryStrategy implements QrScanStrategy {
       await _processBatchInventory(results);
     }
 
-    return const QrScanProcessResult(success: true);
+    // 对于盘点，直接返回扫码结果，让页面自己处理
+    return QrScanProcessResult(
+      success: true,
+      data: results,
+    );
   }
 
   Future<void> _processSingleInventory(QrScanResult result) async {

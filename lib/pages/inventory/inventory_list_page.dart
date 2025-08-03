@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_event.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_state.dart';
@@ -59,8 +60,7 @@ class _InventoryListPageState extends State<InventoryListPage> {
   }
 
   void _onItemTap(InventoryListItemVO item) {
-    // TODO: Navigate to inventory detail page with item.id
-    print('Tapped on inventory item: ${item.id}');
+    context.push('/inventory-detail', extra: item.id);
   }
 
   @override

@@ -49,6 +49,7 @@ import '../pages/return/return_detail_page.dart';
 import '../bloc/return/return_bloc.dart';
 import '../models/material/scan_identification_response.dart';
 import '../pages/inventory/inventory_list_page.dart';
+import '../pages/inventory/inventory_detail_page.dart';
 import 'service_locator.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -401,6 +402,24 @@ final GoRouter appRouter = GoRouter(
           path: '/inventory',
           name: 'inventory-list',
           builder: (context, state) => const InventoryListPage(),
+        ),
+        GoRoute(
+          path: '/inventory-detail',
+          name: 'inventory-detail',
+          builder: (context, state) {
+            final taskId = state.extra as int?;
+            if (taskId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider<MaterialHandleCubit>(
+                  create: (context) => MaterialHandleCubit(),
+                ),
+              ],
+              child: InventoryDetailPage(taskId: taskId),
+            );
+          },
         ),
       ],
     ),

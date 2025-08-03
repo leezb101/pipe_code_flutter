@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-08-01 16:55:52
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-01 17:49:25
+ * @LastEditTime: 2025-08-03 09:47:35
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:equatable/equatable.dart';
@@ -73,7 +73,6 @@ class InventoryDetailInfoVO extends Equatable {
   final int? materialNum;
   final int? bindUser;
   final String? bindUserName;
-  final int? bindRole;
   final int? executeUser;
   final String? executeName;
   final int status;
@@ -97,7 +96,6 @@ class InventoryDetailInfoVO extends Equatable {
     this.materialNum,
     this.bindUser,
     this.bindUserName,
-    this.bindRole,
     this.executeUser,
     this.executeName,
     required this.status,
@@ -110,8 +108,8 @@ class InventoryDetailInfoVO extends Equatable {
     this.attachmentUrl2,
     List<InventoryBindMaterialInfoVO>? materials,
     List<InventoryBindMaterialInfoVO>? materialExtras,
-  })  : materials = materials ?? [],
-        materialExtras = materialExtras ?? [];
+  }) : materials = materials ?? [],
+       materialExtras = materialExtras ?? [];
 
   factory InventoryDetailInfoVO.fromJson(Map<String, dynamic> json) =>
       _$InventoryDetailInfoVOFromJson(json);
@@ -127,7 +125,6 @@ class InventoryDetailInfoVO extends Equatable {
     materialNum,
     bindUser,
     bindUserName,
-    bindRole,
     executeUser,
     executeName,
     status,
@@ -149,16 +146,18 @@ class InventoryBindMaterialInfoVO extends Equatable {
   final String? materialCode;
   final String? materialName;
   final int materialNum;
-  final int materialRealNum;
-  final bool inWarehouse;
+  @JsonKey(defaultValue: 0)
+  final int? materialRealNum;
+  @JsonKey(defaultValue: false)
+  final bool? inWarehouse;
 
   const InventoryBindMaterialInfoVO({
     required this.materialId,
     this.materialCode,
     this.materialName,
     required this.materialNum,
-    required this.materialRealNum,
-    required this.inWarehouse,
+    this.materialRealNum,
+    this.inWarehouse,
   });
 
   factory InventoryBindMaterialInfoVO.fromJson(Map<String, dynamic> json) =>

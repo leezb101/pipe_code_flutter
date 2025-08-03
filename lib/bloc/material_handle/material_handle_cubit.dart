@@ -34,6 +34,18 @@ class MaterialHandleCubit extends Cubit<MaterialHandleState> {
     }
   }
 
+  Future<void> getMaterialInfoFromQrList(List<String> qrCodes) async {
+    emit(MaterialHandleInProgress());
+
+    final result = await _materialHandleRepository.scanBatchToQueryAll(qrCodes);
+
+    if (result.isSuccess && result.data != null) {
+      emit(MaterialHandleScanSuccess(result.data!));
+    } else {
+      emit(MaterialHandleScanFailure(result.msg));
+    }
+  }
+
   void reset() {
     emit(MaterialHandleInitial());
   }
