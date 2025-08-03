@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-03 10:01:10
+ * @LastEditTime: 2025-08-03 13:03:29
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -14,7 +14,7 @@ import '../../config/service_locator.dart';
 import '../api_service_factory.dart';
 
 abstract class QrScanStrategy {
-  Future<QrScanProcessResult?> process(List<QrScanResult> results);
+  Future<QrScanProcessResult?> process(List<QrScanResult> results, {Map<String, dynamic>? context});
 }
 
 class QrScanProcessResult {
@@ -168,7 +168,10 @@ class SignoutStrategy implements QrScanStrategy {
   }
 
   @override
-  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(
+    List<QrScanResult> results, {
+    Map<String, dynamic>? context,
+  }) async {
     await Future.delayed(const Duration(seconds: 1));
 
     final result = await _processBatchSignout(results);
@@ -227,7 +230,10 @@ class TransferStrategy implements QrScanStrategy {
   }
 
   @override
-  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(
+    List<QrScanResult> results, {
+    Map<String, dynamic>? context,
+  }) async {
     final result = await _processBatchTransfer(results);
 
     return result;
@@ -278,7 +284,10 @@ class TransferStrategy implements QrScanStrategy {
 
 class InventoryStrategy implements QrScanStrategy {
   @override
-  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(
+    List<QrScanResult> results, {
+    Map<String, dynamic>? context,
+  }) async {
     // 对于盘点，直接返回扫码结果，让页面自己处理
     return QrScanProcessResult(success: true, data: results);
   }
@@ -286,7 +295,10 @@ class InventoryStrategy implements QrScanStrategy {
 
 class PipeCopyStrategy implements QrScanStrategy {
   @override
-  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(
+    List<QrScanResult> results, {
+    Map<String, dynamic>? context,
+  }) async {
     // This strategy, similar to MaterialInboundStrategy, will not perform business logic here.
     // It ensures the QR code is returned to the calling page (CutPage),
     // which then uses MaterialHandleCubit to fetch the data.
@@ -311,7 +323,10 @@ class PipeCopyStrategy implements QrScanStrategy {
 
 class ReturnMaterialStrategy implements QrScanStrategy {
   @override
-  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(
+    List<QrScanResult> results, {
+    Map<String, dynamic>? context,
+  }) async {
     await Future.delayed(const Duration(seconds: 1));
 
     if (results.length == 1) {
@@ -353,20 +368,6 @@ class ReturnMaterialStrategy implements QrScanStrategy {
     // 4. 生成批量退料报告
     // 5. 发送退料完成通知
   }
-
-  Map<String, dynamic> _mockReturnMaterialInfo(String materialCode) {
-    return {
-      '材料编号': materialCode,
-      '材料名称': '水管接头',
-      '规格型号': 'DN100 弯头',
-      '退料数量': 5,
-      '退料原因': '规格不匹配',
-      '原领料人': '李师傅',
-      '退料时间': DateTime.now().toString().substring(0, 19),
-      '退料状态': '已退回库存',
-      '备注': '材料完好，可重新使用',
-    };
-  }
 }
 
 class AcceptanceStrategy implements QrScanStrategy {
@@ -376,7 +377,10 @@ class AcceptanceStrategy implements QrScanStrategy {
     _materialHandleRepository = getIt<MaterialHandleRepository>();
   }
   @override
-  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(
+    List<QrScanResult> results, {
+    Map<String, dynamic>? context,
+  }) async {
     await Future.delayed(const Duration(seconds: 1));
 
     try {
@@ -494,7 +498,10 @@ class AcceptanceStrategy implements QrScanStrategy {
 
 class IdentificationStrategy implements QrScanStrategy {
   @override
-  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(
+    List<QrScanResult> results, {
+    Map<String, dynamic>? context,
+  }) async {
     try {
       // 扫码识别只支持单个扫码
       if (results.length == 1) {
@@ -564,7 +571,10 @@ class IdentificationStrategy implements QrScanStrategy {
 
 class MaterialInboundStrategy implements QrScanStrategy {
   @override
-  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(
+    List<QrScanResult> results, {
+    Map<String, dynamic>? context,
+  }) async {
     try {
       // 这个策略只负责返回扫码结果，不做任何业务处理
       // 物料匹配和验证逻辑由AcceptanceBloc处理
@@ -596,7 +606,10 @@ class MaterialInboundStrategy implements QrScanStrategy {
 
 class InstallStrategy implements QrScanStrategy {
   @override
-  Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
+  Future<QrScanProcessResult?> process(
+    List<QrScanResult> results, {
+    Map<String, dynamic>? context,
+  }) async {
     try {
       // 这个策略只负责返回扫码结果，不做任何业务处理
       // 物料匹配和验证逻辑由AcceptanceBloc处理
@@ -618,6 +631,63 @@ class InstallStrategy implements QrScanStrategy {
       }
     } catch (e) {
       Logger.qrScan('物料入库扫码处理异常: $e');
+      return QrScanProcessResult(
+        success: false,
+        errorMessage: '扫码处理失败: ${e.toString()}',
+      );
+    }
+  }
+}
+
+class ScrapStrategy implements QrScanStrategy {
+  @override
+  Future<QrScanProcessResult?> process(
+    List<QrScanResult> results, {
+    Map<String, dynamic>? context,
+  }) async {
+    try {
+      // 根据调用来源决定处理方式
+      final source = context?['source'] as String?;
+      
+      if (source == 'scrapPage') {
+        // 从 ScrapPage 中继续扫码，只返回数据不进行导航
+        Logger.qrScan('=== ScrapPage 继续扫码 ===');
+        Logger.qrScan('扫码数量: ${results.length}');
+        
+        for (int i = 0; i < results.length; i++) {
+          final result = results[i];
+          Logger.qrScan(
+            '第${i + 1}个 - 编号: ${result.code}',
+            deviceCode: result.code,
+          );
+        }
+        
+        return QrScanProcessResult(success: true, data: results);
+      } else {
+        // 从菜单页面进入，需要带上导航信息跳转到 ScrapPage
+        Logger.qrScan('=== 菜单页面报废扫码 ===');
+        Logger.qrScan('扫码数量: ${results.length}');
+        
+        for (int i = 0; i < results.length; i++) {
+          final result = results[i];
+          Logger.qrScan(
+            '第${i + 1}个 - 编号: ${result.code}',
+            deviceCode: result.code,
+          );
+        }
+        
+        // 返回导航数据，跳转到 ScrapPage
+        final codes = results.map((r) => r.code).toList();
+        return QrScanProcessResult(
+          success: true,
+          navigationData: QrScanNavigationData(
+            route: '/scrap',
+            data: {'codes': codes},
+          ),
+        );
+      }
+    } catch (e) {
+      Logger.qrScan('报废扫码处理异常: $e');
       return QrScanProcessResult(
         success: false,
         errorMessage: '扫码处理失败: ${e.toString()}',

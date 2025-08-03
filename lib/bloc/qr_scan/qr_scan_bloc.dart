@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:05:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-06-28 14:05:00
+ * @LastEditTime: 2025-08-03 13:05:05
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -221,7 +221,11 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
             state.scannedCodes,
           );
           break;
-
+        case QrScanType.scrap:
+          result = await _qrScanService.processScrap(
+            state.scannedCodes,
+            context: state.config?.context,
+          );
         case QrScanType.install:
           result = await _qrScanService.processInstall(state.scannedCodes);
           break;
@@ -229,7 +233,8 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
           // For raw type, we just return the scanned codes directly without processing.
           result = QrScanProcessResult(
             success: true,
-            data: state.scannedCodes, // The data is the list of raw scan results
+            data:
+                state.scannedCodes, // The data is the list of raw scan results
           );
           break;
       }

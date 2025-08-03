@@ -23,6 +23,14 @@ class AuthInterceptor extends Interceptor {
   ) async {
     try {
       // 获取用户仓库实例
+      // 首先判断是否已经getit注册了_userRepositor
+      if (!getIt.isRegistered<UserRepository>()) {
+        Logger.error(
+          'UserRepository is not registered in service locator',
+          tag: _tag,
+        );
+        return handler.next(options);
+      }
       final userRepository = getIt<UserRepository>();
 
       // 尝试从缓存中获取用户数据

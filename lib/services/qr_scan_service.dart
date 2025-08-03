@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:10:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-24 18:53:18
+ * @LastEditTime: 2025-08-03 13:03:48
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -26,7 +26,10 @@ abstract class QrScanService {
   Future<QrScanProcessResult?> processMaterialInbound(
     List<QrScanResult> results,
   );
-
+  Future<QrScanProcessResult?> processScrap(
+    List<QrScanResult> results, {
+    Map<String, dynamic>? context,
+  });
   Future<QrScanProcessResult?> processInstall(List<QrScanResult> results);
 }
 
@@ -114,6 +117,15 @@ class QrScanServiceImpl implements QrScanService {
   ) {
     final strategy = MaterialInboundStrategy();
     return strategy.process(results);
+  }
+
+  @override
+  Future<QrScanProcessResult?> processScrap(
+    List<QrScanResult> results, {
+    Map<String, dynamic>? context,
+  }) async {
+    final strategy = ScrapStrategy();
+    return strategy.process(results, context: context);
   }
 
   @override

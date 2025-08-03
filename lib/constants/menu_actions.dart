@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-05 16:45:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-24 18:50:08
+ * @LastEditTime: 2025-08-03 11:58:44
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -22,6 +22,7 @@ class MenuActions {
   static const String qrScanPipeCopy = 'qr_scan_pipe_copy';
   static const String qrScanAcceptance = 'qr_scan_acceptance';
   static const String qrIdentify = 'qr_identify';
+  static const String qrScanScrap = 'qr_scan_scrap';
 
   // 委托操作
   static const String delegateHarvest = 'delegate_harvest';
@@ -37,6 +38,7 @@ class MenuActions {
     qrScanTransfer,
     qrScanInventory,
     qrScanPipeCopy,
+    qrScanScrap,
     qrScanAcceptance,
     qrIdentify,
     delegateHarvest,
@@ -65,6 +67,8 @@ class MenuActions {
         return '截管复制扫码';
       case qrScanAcceptance:
         return '验收扫码';
+      case qrScanScrap:
+        return '报废扫码';
       case qrIdentify:
         return '扫码识别';
       case delegateHarvest:

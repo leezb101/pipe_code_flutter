@@ -7,6 +7,7 @@ import 'package:pipe_code_flutter/bloc/project_initiation/project_initiation_blo
 import 'package:pipe_code_flutter/bloc/qr_scan/qr_scan_bloc.dart';
 import 'package:pipe_code_flutter/bloc/records/records_bloc.dart';
 import 'package:pipe_code_flutter/bloc/return/return_bloc.dart';
+import 'package:pipe_code_flutter/bloc/scrap/scrap_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
@@ -30,9 +31,11 @@ import 'package:pipe_code_flutter/repositories/interfaces/user_repository.dart';
 import 'package:pipe_code_flutter/repositories/repository_factory.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/identification_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api_service_factory.dart';
 import 'package:pipe_code_flutter/services/qr_scan_service.dart';
 import 'package:pipe_code_flutter/services/storage_service.dart';
+import 'package:pipe_code_flutter/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_config.dart';
@@ -43,14 +46,9 @@ Future<void> setupServiceLocator({
   Environment? environment,
   DataSource? dataSource,
 }) async {
-  // Configure app environment
-  if (environment != null) {
-    await AppConfig.setEnvironment(environment);
-  }
-  if (dataSource != null) {
-    await AppConfig.setDataSource(dataSource);
-  }
-
+  Logger.debug(
+    '=========Setting up service locator with environment: $environment, dataSource: $dataSource',
+  );
   // Reset service locator if already initialized
   if (getIt.isRegistered<SharedPreferences>()) {
     await getIt.reset();
@@ -71,6 +69,9 @@ Future<void> setupServiceLocator({
   );
   getIt.registerLazySingleton<IdentificationApiService>(
     () => ApiServiceFactory.createIdentificationService(),
+  );
+  getIt.registerLazySingleton<ScrapApiService>(
+    () => ApiServiceFactory.createScrapService(),
   );
 
   // QR Scan Service
@@ -112,9 +113,6 @@ Future<void> setupServiceLocator({
   getIt.registerLazySingleton<ReturnRepository>(
     () => RepositoryFactory.createReturnRepository(),
   );
-  getIt.registerLazySingleton<ScrapRepository>(
-    () => RepositoryFactory.createScrapRepository(),
-  );
   getIt.registerLazySingleton<SignoutRepository>(
     () => RepositoryFactory.createSignoutRepository(),
   );
@@ -129,10 +127,14 @@ Future<void> setupServiceLocator({
     () => RepositoryFactory.createCutRepository(),
   );
 
+  getIt.registerLazySingleton<ScrapRepository>(
+    () => RepositoryFactory.createScrapRepository(),
+  );
   // Wait for async singletons to be ready before registering dependent Blocs
   await getIt.isReady<AuthRepository>();
   await getIt.isReady<ProjectRepository>();
   await getIt.isReady<UserRepository>();
+  Logger.debug('=========All repositories are ready');
 
   // Blocs
   getIt.registerFactory<SessionBloc>(
@@ -178,6 +180,22 @@ Future<void> setupServiceLocator({
       materialHandleRepository: getIt<MaterialHandleRepository>(),
     ),
   );
+
+  getIt.registerFactory<ScrapBloc>(
+    () => ScrapBloc(
+      scrapRepository: getIt<ScrapRepository>(),
+      materialHandleRepository: getIt<MaterialHandleRepository>(),
+    ),
+  );
+
+  // Configure app environment
+  Logger.debug('=========Setting app environment and data source');
+  if (environment != null) {
+    await AppConfig.setEnvironment(environment);
+  }
+  if (dataSource != null) {
+    await AppConfig.setDataSource(dataSource);
+  }
 }
 
 // Convenience methods for quick setup

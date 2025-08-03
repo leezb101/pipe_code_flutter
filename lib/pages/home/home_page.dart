@@ -1162,6 +1162,16 @@ class _HomePageState extends State<HomePage> {
           const QrScanConfig(scanType: QrScanType.pipeCopy),
         );
         break;
+      case MenuActions.qrScanScrap:
+        _navigateToScan(
+          context,
+          const QrScanConfig(
+            scanType: QrScanType.scrap,
+            context: {'source': 'menu'},
+            scanMode: QrScanMode.batch,
+          ),
+        );
+        break;
       case MenuActions.qrIdentify:
         _navigateToScan(
           context,

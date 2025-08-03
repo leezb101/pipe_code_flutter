@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-30 16:10:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-30 19:12:01
+ * @LastEditTime: 2025-08-03 14:34:49
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -47,12 +47,6 @@ import 'package:pipe_code_flutter/repositories/implementations/scrap_repository_
 /// 负责创建和提供所有 Repository 的实例。
 /// 这是一个中心化的位置，用于管理数据仓库的依赖注入。
 class RepositoryFactory {
-  /// 创建并返回一个 [ScrapRepository] 实例。
-  static ScrapRepository createScrapRepository() {
-    final scrapApiService = ApiServiceFactory.createScrapService();
-    return ScrapRepositoryImpl(scrapApiService);
-  }
-
   static SharedPreferences? _prefs;
 
   static Future<void> _initPrefs() async {
@@ -179,5 +173,11 @@ class RepositoryFactory {
   static InventoryRepository createInventoryRepository() {
     final inventoryApiService = ApiServiceFactory.createInventoryService();
     return InventoryRepositoryImpl(apiService: inventoryApiService);
+  }
+
+  /// 创建并返回一个 [ScrapRepository] 实例。
+  static ScrapRepository createScrapRepository() {
+    final scrapApiService = ApiServiceFactory.createScrapService();
+    return ScrapRepositoryImpl(scrapApiService);
   }
 }

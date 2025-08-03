@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-25 20:49:17
+ * @LastEditTime: 2025-08-03 12:00:19
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -17,6 +17,7 @@ enum QrScanType {
   acceptance('验收'),
   materialInbound('物料入库'),
   install('扫码安装'),
+  scrap('报废'),
   raw('原始扫码');
 
   /// 扫码类型枚举

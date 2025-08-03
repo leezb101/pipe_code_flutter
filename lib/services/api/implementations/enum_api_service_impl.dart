@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:pipe_code_flutter/utils/logger.dart';
 import '../interfaces/enum_api_service.dart';
 import 'package:pipe_code_flutter/models/common/common_enum_vo.dart';
 import '../../../models/common/org_models.dart'; // SimpleOrg, OrgType等
@@ -11,7 +12,9 @@ class EnumApiServiceImpl implements EnumApiService {
 
   @override
   Future<Result<List<TodoType>>> getTodoTypes() async {
+    Logger.debug("开始调用enum========");
     final response = await dio.get('/enum/todo/type');
+    Logger.debug("调用enum结束========");
     return Result<List<TodoType>>.fromJson(
       response.data,
       (data) => (data as List).map((e) => TodoType.fromJson(e)).toList(),

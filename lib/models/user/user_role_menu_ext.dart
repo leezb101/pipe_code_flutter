@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 22:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-30 11:39:31
+ * @LastEditTime: 2025-08-03 11:59:27
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/constants/menu_actions.dart';
@@ -183,9 +183,11 @@ extension UserRoleMenuExtension on UserRole {
           _createMenuItem(
             id: 'scrap',
             title: '报废',
-            type: MenuItemType.page,
+            // type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'delete_forever',
-            route: '/scrap',
+            // route: '/scrap',
+            action: MenuActions.qrScanScrap,
             order: 8,
             isEnabled: !isExpired,
           ),
@@ -299,9 +301,9 @@ extension UserRoleMenuExtension on UserRole {
           _createMenuItem(
             id: 'scrap',
             title: '报废',
-            type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'delete_forever',
-            route: '/scrap',
+            action: MenuActions.qrScanScrap,
             order: 8,
             isEnabled: !isExpired,
           ),
@@ -415,9 +417,9 @@ extension UserRoleMenuExtension on UserRole {
           _createMenuItem(
             id: 'scrap',
             title: '报废',
-            type: MenuItemType.page,
+            type: MenuItemType.action,
             icon: 'delete_forever',
-            route: '/scrap',
+            action: MenuActions.qrScanScrap,
             order: 8,
             isEnabled: !isExpired,
           ),
