@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:30:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-31 10:49:48
+ * @LastEditTime: 2025-08-03 10:01:10
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -279,69 +279,8 @@ class TransferStrategy implements QrScanStrategy {
 class InventoryStrategy implements QrScanStrategy {
   @override
   Future<QrScanProcessResult?> process(List<QrScanResult> results) async {
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (results.length == 1) {
-      await _processSingleInventory(results.first);
-    } else {
-      await _processBatchInventory(results);
-    }
-
     // 对于盘点，直接返回扫码结果，让页面自己处理
     return QrScanProcessResult(success: true, data: results);
-  }
-
-  Future<void> _processSingleInventory(QrScanResult result) async {
-    Logger.qrScan('=== 单个盘点处理 ===', deviceCode: result.code);
-    Logger.qrScan('货物编号: ${result.code}', deviceCode: result.code);
-    Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
-
-    // 模拟库存信息查询结果
-    final inventoryInfo = _mockInventoryInfo(result.code);
-    Logger.qrScan('库存信息: $inventoryInfo', deviceCode: result.code);
-    Logger.qrScan('盘点状态: 盘点完成', deviceCode: result.code);
-
-    // TODO: 实现单个盘点的具体业务逻辑
-    // 1. 查询货物的理论库存数量
-    // 2. 记录实际盘点数量
-    // 3. 计算库存差异
-    // 4. 生成盘点记录
-    // 5. 标记异常情况
-  }
-
-  Future<void> _processBatchInventory(List<QrScanResult> results) async {
-    Logger.qrScan('=== 批量盘点处理 ===');
-    Logger.qrScan('批次大小: ${results.length}');
-
-    for (int i = 0; i < results.length; i++) {
-      final result = results[i];
-      Logger.qrScan(
-        '第${i + 1}个货物 - 编号: ${result.code}',
-        deviceCode: result.code,
-      );
-    }
-
-    Logger.qrScan('批量盘点状态: 全部完成');
-
-    // TODO: 实现批量盘点的具体业务逻辑
-    // 1. 批量查询理论库存
-    // 2. 批量记录实际数量
-    // 3. 批量计算库存差异
-    // 4. 生成批量盘点报告
-    // 5. 发送盘点完成通知
-  }
-
-  Map<String, dynamic> _mockInventoryInfo(String itemCode) {
-    return {
-      '货物编号': itemCode,
-      '货物名称': '水管配件',
-      '理论库存': 100,
-      '实际数量': 98,
-      '差异数量': -2,
-      '仓库位置': 'A区01号货架',
-      '最近更新': '2024-06-15',
-      '备注': '需要检查缺失原因',
-    };
   }
 }
 
