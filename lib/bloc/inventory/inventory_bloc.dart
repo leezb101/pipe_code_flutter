@@ -181,9 +181,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
           .toSet();
 
       for (final scannedMaterial in scannedMaterials) {
-        if (originalMaterialIds.contains(
-          scannedMaterial.baseInfo.materialId,
-        )) {
+        if (originalMaterialIds.contains(scannedMaterial.baseInfo.materialId)) {
           newMatchedIds.add(scannedMaterial.baseInfo.materialId);
         } else {
           if (!existingSurplusIds.contains(
@@ -239,7 +237,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
 
       await _inventoryRepository.submitInventory(request);
       emit(state.copyWith(submissionStatus: SubmissionStatus.success));
-      
+
       // 提交成功后重新刷新列表
       add(const InventoryTasksFetched(isRefresh: true));
     } catch (e) {

@@ -24,8 +24,8 @@ class _InventoryListPageState extends State<InventoryListPage> {
     // We can add a refresh here if the list is empty.
     if (context.read<InventoryBloc>().state.inventoryList.isEmpty) {
       context.read<InventoryBloc>().add(
-            const InventoryTasksFetched(isRefresh: true),
-          );
+        const InventoryTasksFetched(isRefresh: true),
+      );
     }
     _scrollController.addListener(_onScroll);
   }
@@ -55,8 +55,8 @@ class _InventoryListPageState extends State<InventoryListPage> {
 
   Future<void> _onRefresh() async {
     context.read<InventoryBloc>().add(
-          const InventoryTasksFetched(isRefresh: true),
-        );
+      const InventoryTasksFetched(isRefresh: true),
+    );
   }
 
   void _onItemTap(InventoryListItemVO item) {
@@ -78,7 +78,8 @@ class _InventoryListPageState extends State<InventoryListPage> {
       ),
       body: BlocBuilder<InventoryBloc, InventoryState>(
         builder: (context, state) {
-          final isLoadingMore = state.listStatus == DataStatus.loading &&
+          final isLoadingMore =
+              state.listStatus == DataStatus.loading &&
               state.inventoryList.isNotEmpty;
 
           switch (state.listStatus) {
@@ -87,8 +88,11 @@ class _InventoryListPageState extends State<InventoryListPage> {
               if (state.inventoryList.isEmpty) {
                 return const common.LoadingWidget(message: '正在加载任务...');
               }
-              return _buildList(state,
-                  isLoading: false, isLoadingMore: isLoadingMore);
+              return _buildList(
+                state,
+                isLoading: false,
+                isLoadingMore: isLoadingMore,
+              );
             case DataStatus.failure:
               return state.inventoryList.isEmpty
                   ? common.ErrorWidget(
@@ -145,8 +149,7 @@ class _InventoryListPageState extends State<InventoryListPage> {
             child: ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
               controller: _scrollController,
-              itemCount:
-                  state.inventoryList.length + (isLoadingMore ? 1 : 0),
+              itemCount: state.inventoryList.length + (isLoadingMore ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index >= state.inventoryList.length) {
                   return const Center(child: CircularProgressIndicator());

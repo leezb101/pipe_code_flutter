@@ -61,9 +61,11 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
       if (result != null && result is List<QrScanResult>) {
         // 获取扫码的二维码列表
         final qrCodes = result.map((r) => r.code).toList();
-        
+
         // 使用MaterialHandleCubit查询物料信息
-        await context.read<MaterialHandleCubit>().getMaterialInfoFromQrList(qrCodes);
+        await context.read<MaterialHandleCubit>().getMaterialInfoFromQrList(
+          qrCodes,
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -89,17 +91,14 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
 
       // 更新Bloc状态
       context.read<InventoryBloc>().add(
-        InventoryPhotosUpdated(
-          photo1: _photo1,
-          photo2: _photo2,
-        ),
+        InventoryPhotosUpdated(photo1: _photo1, photo2: _photo2),
       );
     }
   }
 
   Future<void> _submitInventory() async {
     final state = context.read<InventoryBloc>().state;
-    
+
     if (state.inventoryDetail == null) {
       context.showErrorToast('请先加载任务详情');
       return;
@@ -131,7 +130,9 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
                 context.read<InventoryBloc>().add(
                   InventoryMaterialsCompared(state.materialInfo.normals),
                 );
-                context.showSuccessToast('扫码成功，已识别 ${state.materialInfo.normals.length} 个物料');
+                context.showSuccessToast(
+                  '扫码成功，已识别 ${state.materialInfo.normals.length} 个物料',
+                );
               } else if (state is MaterialHandleScanFailure) {
                 context.showErrorToast('扫码查询失败: ${state.error}');
               }
@@ -144,7 +145,9 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
                 // 返回到列表页面，此时列表已经通过Bloc自动刷新了
                 context.pop(true);
               } else if (state.submissionStatus == SubmissionStatus.failure) {
-                context.showErrorToast('盘点提交失败: ${state.errorMessage ?? '未知错误'}');
+                context.showErrorToast(
+                  '盘点提交失败: ${state.errorMessage ?? '未知错误'}',
+                );
               }
             },
           ),
@@ -174,7 +177,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
 
   Widget _buildContent(InventoryState state) {
     final detail = state.inventoryDetail!;
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -210,10 +213,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
                 const SizedBox(width: 8),
                 const Text(
                   '任务信息',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -231,7 +231,10 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
     );
   }
 
-  Widget _buildMaterialsSection(InventoryDetailInfoVO detail, InventoryState state) {
+  Widget _buildMaterialsSection(
+    InventoryDetailInfoVO detail,
+    InventoryState state,
+  ) {
     return Card(
       elevation: 2,
       child: Padding(
@@ -256,10 +259,12 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
             if (detail.materials.isEmpty)
               _buildEmptyMaterialsWidget('暂无待盘点物料')
             else
-              ...detail.materials.map((material) => 
-                _buildMaterialItem(
-                  material, 
-                  isMatched: state.matchedMaterialIds.contains(material.materialId),
+              ...detail.materials.map(
+                (material) => _buildMaterialItem(
+                  material,
+                  isMatched: state.matchedMaterialIds.contains(
+                    material.materialId,
+                  ),
                 ),
               ),
           ],
@@ -294,8 +299,8 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
               ],
             ),
             const SizedBox(height: 12),
-            ...state.surplusMaterials.map((material) => 
-              _buildSurplusMaterialItem(material),
+            ...state.surplusMaterials.map(
+              (material) => _buildSurplusMaterialItem(material),
             ),
           ],
         ),
@@ -303,7 +308,10 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
     );
   }
 
-  Widget _buildMaterialItem(InventoryBindMaterialInfoVO material, {bool isMatched = false}) {
+  Widget _buildMaterialItem(
+    InventoryBindMaterialInfoVO material, {
+    bool isMatched = false,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -323,8 +331,8 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
-              Icons.inventory_2, 
-              size: 20, 
+              Icons.inventory_2,
+              size: 20,
               color: isMatched ? Colors.green[700] : Colors.grey[700],
             ),
           ),
@@ -345,17 +353,11 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
                 if (material.materialCode != null)
                   Text(
                     '编号: ${material.materialCode}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                 Text(
                   '数量: ${material.materialNum}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -367,11 +369,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
                 color: Colors.green,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(
-                Icons.check,
-                color: Colors.white,
-                size: 16,
-              ),
+              child: const Icon(Icons.check, color: Colors.white, size: 16),
             ),
         ],
       ),
@@ -414,18 +412,12 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
                 if (material.baseInfo.materialCode != null)
                   Text(
                     '编号: ${material.baseInfo.materialCode}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                 if (material.baseInfo.spec != null)
                   Text(
                     '规格: ${material.baseInfo.spec}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
               ],
             ),
@@ -461,18 +453,11 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.inventory_2_outlined,
-            size: 48,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey[400]),
           const SizedBox(height: 8),
           Text(
             message,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.grey[600], fontSize: 14),
             textAlign: TextAlign.center,
           ),
         ],
@@ -482,13 +467,13 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
 
   Widget _buildScanButton(InventoryState state) {
     final isScanning = state.comparisonStatus == DataStatus.loading;
-    
+
     return SizedBox(
       width: double.infinity,
       height: 48,
       child: ElevatedButton.icon(
         onPressed: isScanning ? null : _startQrScan,
-        icon: isScanning 
+        icon: isScanning
             ? const SizedBox(
                 width: 20,
                 height: 20,
@@ -499,9 +484,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue[600],
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );
@@ -521,10 +504,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
                 const SizedBox(width: 8),
                 const Text(
                   '盘点照片',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -559,10 +539,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
         child: photo != null
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  photo,
-                  fit: BoxFit.cover,
-                ),
+                child: Image.file(photo, fit: BoxFit.cover),
               )
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -581,10 +558,9 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
 
   Widget _buildSubmitButton(InventoryState state) {
     final isSubmitting = state.submissionStatus == SubmissionStatus.loading;
-    final canSubmit = state.inventoryDetail != null && 
-                     _photo1 != null && 
-                     _photo2 != null;
-    
+    final canSubmit =
+        state.inventoryDetail != null && _photo1 != null && _photo2 != null;
+
     return SizedBox(
       width: double.infinity,
       height: 48,
@@ -593,9 +569,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green[600],
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: isSubmitting
             ? const Row(
@@ -628,19 +602,13 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
             width: 80,
             child: Text(
               '$label:',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -650,6 +618,6 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
 
   String _formatDateTime(DateTime dateTime) {
     return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} '
-           '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }
