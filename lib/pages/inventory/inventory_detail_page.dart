@@ -141,7 +141,8 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
             listener: (context, state) {
               if (state.submissionStatus == SubmissionStatus.success) {
                 context.showSuccessToast('盘点提交成功');
-                context.pop(true); // 返回并标记需要刷新
+                // 返回到列表页面，此时列表已经通过Bloc自动刷新了
+                context.pop(true);
               } else if (state.submissionStatus == SubmissionStatus.failure) {
                 context.showErrorToast('盘点提交失败: ${state.errorMessage ?? '未知错误'}');
               }

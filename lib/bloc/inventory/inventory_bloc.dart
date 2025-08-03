@@ -239,6 +239,9 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
 
       await _inventoryRepository.submitInventory(request);
       emit(state.copyWith(submissionStatus: SubmissionStatus.success));
+      
+      // 提交成功后重新刷新列表
+      add(const InventoryTasksFetched(isRefresh: true));
     } catch (e) {
       emit(
         state.copyWith(
