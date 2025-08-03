@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:15:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-20 12:37:41
+ * @LastEditTime: 2025-08-03 15:19:29
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -115,15 +115,24 @@ class _QrScanPageState extends State<QrScanPage> {
         // 使用本地同步的 Set 进行当次会话的去重检查
         final isDuplicateInSession = _sessionScannedCodes.contains(code);
 
+        // 根据操作类型决定是否需要重复扫描提示
+        final isRemoveOperation = _isRemoveOperation();
+
         if (isDuplicateInHistory || isDuplicateInSession) {
-          context.showErrorToast('该耗材已添加，请勿重复扫描');
-          _provideScanFeedback(); // 同样提供反馈
-          _scheduleRestartScanner(); // 重新安排扫描
-          return; // 中断处理
+          // 如果是删除操作，允许扫描已存在的码，不提示重复
+          if (!isRemoveOperation) {
+            context.showErrorToast('该耗材已添加，请勿重复扫描');
+            _provideScanFeedback(); // 同样提供反馈
+            _scheduleRestartScanner(); // 重新安排扫描
+            return; // 中断处理，不继续执行后续逻辑
+          }
         }
 
-        // 如果不是重复码，则添加到本地同步Set中
-        _sessionScannedCodes.add(code);
+        // 对于添加操作或首次扫描的码，添加到本地同步Set中
+        // 删除操作不需要添加到session set，因为它们是要被移除的
+        if (!isRemoveOperation) {
+          _sessionScannedCodes.add(code);
+        }
 
         // 震动反馈
         _provideScanFeedback();
@@ -160,6 +169,11 @@ class _QrScanPageState extends State<QrScanPage> {
     }
 
     return false;
+  }
+
+  /// 检查当前是否为删除操作
+  bool _isRemoveOperation() {
+    return widget.config.isRemoveOperation;
   }
 
   void _updateScanHistory(String code) {

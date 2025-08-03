@@ -19,6 +19,7 @@ class QrScanConfig extends Equatable {
     this.title,
     this.existingCodesToExclude,
     this.context,
+    this.isRemoveOperation = false,
   });
 
   final QrScanType scanType;
@@ -28,6 +29,9 @@ class QrScanConfig extends Equatable {
 
   /// 额外的上下文信息，用于策略判断调用来源
   final Map<String, dynamic>? context;
+
+  /// 是否为删除操作（如删除材料等），为true时不进行重复扫描检查
+  final bool isRemoveOperation;
 
   factory QrScanConfig.fromJson(Map<String, dynamic> json) =>
       _$QrScanConfigFromJson(json);
@@ -75,5 +79,6 @@ class QrScanConfig extends Equatable {
     title,
     existingCodesToExclude,
     context,
+    isRemoveOperation,
   ];
 }

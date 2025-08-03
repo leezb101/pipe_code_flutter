@@ -16,6 +16,7 @@ QrScanConfig _$QrScanConfigFromJson(Map<String, dynamic> json) => QrScanConfig(
       ?.map((e) => e as String)
       .toList(),
   context: json['context'] as Map<String, dynamic>?,
+  isRemoveOperation: json['isRemoveOperation'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$QrScanConfigToJson(QrScanConfig instance) =>
@@ -25,6 +26,7 @@ Map<String, dynamic> _$QrScanConfigToJson(QrScanConfig instance) =>
       'title': instance.title,
       'existingCodesToExclude': instance.existingCodesToExclude,
       'context': instance.context,
+      'isRemoveOperation': instance.isRemoveOperation,
     };
 
 const _$QrScanTypeEnumMap = {

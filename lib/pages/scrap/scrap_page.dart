@@ -1,8 +1,8 @@
 /*
  * @Author: LeeZB
  * @Date: 2025-08-03
- * @LastEditors: LeeZB
- * @LastEditTime: 2025-08-03
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-08-03 15:34:07
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -34,6 +34,9 @@ class ScrapPage extends StatefulWidget {
 class _ScrapPageState extends State<ScrapPage> {
   final ImagePicker _picker = ImagePicker();
   List<File> _photos = [];
+  
+  // 保存已经扫描过的原始码，用于去重
+  Set<String> _scannedCodes = <String>{};
 
   @override
   void initState() {
@@ -49,6 +52,7 @@ class _ScrapPageState extends State<ScrapPage> {
       );
     } else if (widget.codes != null) {
       // 从扫码结果初始化
+      _scannedCodes.addAll(widget.codes!); // 保存初始的扫码
       context.read<ScrapBloc>().add(
         InitializeScrapFromCodes(codes: widget.codes!),
       );
@@ -91,12 +95,16 @@ class _ScrapPageState extends State<ScrapPage> {
   Future<void> _scanToAddMaterials() async {
     final config = QrScanConfig(
       scanType: QrScanType.scrap,
+      scanMode: QrScanMode.batch,
       context: {'source': 'scrapPage'},
+      existingCodesToExclude: _scannedCodes.toList(), // 传递已扫描的原始码用于去重
     );
     final result = await context.pushNamed('qr-scan', extra: config);
     if (result != null && result is List) {
       final codes = result.map((r) => r.code as String).toList();
       if (mounted) {
+        // 更新已扫描码集合
+        _scannedCodes.addAll(codes);
         context.read<ScrapBloc>().add(AppendMaterialsFromCodes(codes: codes));
       }
     }
@@ -106,13 +114,17 @@ class _ScrapPageState extends State<ScrapPage> {
   Future<void> _scanToRemoveMaterials() async {
     final config = QrScanConfig(
       scanType: QrScanType.scrap,
+      scanMode: QrScanMode.batch,
       context: {'source': 'scrapPageRemove'},
+      isRemoveOperation: true, // 明确标记为删除操作
     );
     final result = await context.pushNamed('qr-scan', extra: config);
     if (result != null && result is List) {
       final codes = result.map((r) => r.code as String).toList();
       if (mounted) {
         context.read<ScrapBloc>().add(RemoveMaterialsFromCodes(codes: codes));
+        // 删除操作后，清空已扫描码集合，允许重新扫描被删除的材料
+        _scannedCodes.clear();
       }
     }
   }
