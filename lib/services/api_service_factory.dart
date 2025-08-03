@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 13:17:21
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-01 17:26:28
+ * @LastEditTime: 2025-08-03 11:19:27
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -10,14 +10,17 @@ import 'package:dio/dio.dart';
 import 'package:pipe_code_flutter/services/api/implementations/enum_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/install_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/inventory_api_service_impl.dart';
+import 'package:pipe_code_flutter/services/api/implementations/scrap_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/signout_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/inventory_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_inventory_api_service.dart';
+import 'package:pipe_code_flutter/services/api/mock/mock_scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_signout_api_service.dart';
 import '../config/app_config.dart';
 import '../utils/logger.dart';
@@ -178,6 +181,15 @@ class ApiServiceFactory {
     } else {
       final dio = _createDio();
       return InventoryApiServiceImpl(dio);
+    }
+  }
+
+  static ScrapApiService createScrapService() {
+    if (AppConfig.isMockEnabled) {
+      return MockScrapApiService();
+    } else {
+      final dio = _createDio();
+      return ScrapApiServiceImpl(dio);
     }
   }
 

@@ -2,9 +2,11 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 10:15:25
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-01 17:16:58
+ * @LastEditTime: 2025-08-03 11:07:35
  * @copyright: Copyright © 2025 高新供水.
  */
+import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
+
 import 'enum_api_service.dart';
 import 'install_api_service.dart';
 import 'signout_api_service.dart';
@@ -35,4 +37,5 @@ abstract class ApiServiceInterface {
   ReturnApiService get returnApi;
   CutApiService get cut;
   InventoryApiService get inventory;
+  ScrapApiService get scrap;
 }

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-09 10:15:25
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-01 17:23:28
+ * @LastEditTime: 2025-08-03 11:09:05
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
@@ -10,12 +10,14 @@ import 'package:pipe_code_flutter/services/api/interfaces/dispatch_api_service.d
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/inventory_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/material_handle_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/spareqr_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_material_handle_api_service.dart';
+import 'package:pipe_code_flutter/services/api/mock/mock_scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_spareqr_api_service.dart';
 
@@ -51,6 +53,7 @@ class MockApiService implements ApiServiceInterface {
   ReturnApiService? _returnApiService;
   CutApiService? _cutApiService;
   InventoryApiService? _inventoryApiService;
+  ScrapApiService? _scrapApiService;
 
   @override
   AuthApiService get auth => _authService ??= MockAuthApiService();
@@ -101,4 +104,7 @@ class MockApiService implements ApiServiceInterface {
   @override
   InventoryApiService get inventory =>
       _inventoryApiService ??= MockInventoryApiService();
+
+  @override
+  ScrapApiService get scrap => _scrapApiService ??= MockScrapApiService();
 }
