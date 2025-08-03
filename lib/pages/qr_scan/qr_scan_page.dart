@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-06-28 14:15:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-03 15:19:29
+ * @LastEditTime: 2025-08-03 16:09:51
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -14,6 +14,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
+import 'package:pipe_code_flutter/utils/logger.dart';
 import '../../bloc/qr_scan/qr_scan_bloc.dart';
 import '../../bloc/qr_scan/qr_scan_event.dart';
 import '../../bloc/qr_scan/qr_scan_state.dart';
@@ -36,6 +37,9 @@ class _QrScanPageState extends State<QrScanPage> {
   MobileScannerController? _controller;
   bool _hasReturned = false;
 
+  // 保存初始配置，避免widget.config被污染
+  late final QrScanConfig _initialConfig;
+
   // 用于同步检查当次扫描会话中的重复项
   final Set<String> _sessionScannedCodes = <String>{};
 
@@ -50,10 +54,22 @@ class _QrScanPageState extends State<QrScanPage> {
   @override
   void initState() {
     super.initState();
+
+    // 保存初始配置，避免被Bloc状态污染
+    _initialConfig = widget.config;
+
+    Logger.debug('【11111】QrScanPage initialized with config: $_initialConfig');
     _controller = MobileScannerController();
 
+    // 重置本地状态，确保是干净的开始
+    _sessionScannedCodes.clear();
+    _lastScannedCode = null;
+    _lastScanTime = null;
+    _hasReturned = false;
+    _isTemporarilyPaused = false;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<QrScanBloc>().add(InitializeScan(widget.config));
+      context.read<QrScanBloc>().add(InitializeScan(_initialConfig));
       // 确保扫码器启动
       _controller?.start();
     });
@@ -62,6 +78,11 @@ class _QrScanPageState extends State<QrScanPage> {
   @override
   void dispose() {
     _controller?.dispose();
+    // 清理bloc状态，确保下次进入时是干净的状态
+    if (context.mounted) {
+      context.read<QrScanBloc>().add(const ResetScan());
+      Logger.debug('【44444】QrScanPage disposed and state reset');
+    }
     super.dispose();
   }
 
@@ -173,7 +194,10 @@ class _QrScanPageState extends State<QrScanPage> {
 
   /// 检查当前是否为删除操作
   bool _isRemoveOperation() {
-    return widget.config.isRemoveOperation;
+    Logger.warning(
+      'Checking if isRemoveOperation for initial config: $_initialConfig',
+    );
+    return _initialConfig.isRemoveOperation;
   }
 
   void _updateScanHistory(String code) {
@@ -441,8 +465,16 @@ class _QrScanPageState extends State<QrScanPage> {
 
     _hasReturned = true;
 
-    // 使用GoRouter进行导航
-    context.push(navigationData.route, extra: navigationData.data);
+    Logger.debug(
+      '【22222】QrScanPage will be destroyed and replaced by ${navigationData.route} with data: ${navigationData.data}',
+    );
+    
+    // 在导航前清理bloc状态
+    context.read<QrScanBloc>().add(const ResetScan());
+
+    // 🎯 使用pushReplacement：销毁QrScanPage，直接替换为业务页面
+    // 这样导航栈变成：Home → BusinessPage（QrScanPage被完全销毁）
+    context.pushReplacement(navigationData.route, extra: navigationData.data);
   }
 
   void _popWithResult(BuildContext context, List<QrScanResult> result) {
@@ -451,6 +483,10 @@ class _QrScanPageState extends State<QrScanPage> {
     }
 
     _hasReturned = true;
+
+    Logger.debug('【33333】Popping with result: $result');
+    // 在返回结果前清理bloc状态
+    context.read<QrScanBloc>().add(const ResetScan());
 
     // 统一使用GoRouter返回
     if (context.canPop()) {

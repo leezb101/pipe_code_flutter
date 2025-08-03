@@ -34,7 +34,7 @@ class ScrapPage extends StatefulWidget {
 class _ScrapPageState extends State<ScrapPage> {
   final ImagePicker _picker = ImagePicker();
   List<File> _photos = [];
-  
+
   // 保存已经扫描过的原始码，用于去重
   Set<String> _scannedCodes = <String>{};
 

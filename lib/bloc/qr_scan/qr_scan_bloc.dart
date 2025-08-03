@@ -30,11 +30,15 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
   final QrScanService _qrScanService;
 
   void _onInitializeScan(InitializeScan event, Emitter<QrScanState> emit) {
+    // 首先完全重置状态，确保是干净的开始
+    emit(const QrScanState());
+
+    // 然后设置新的配置和扫描状态
     emit(
-      state.copyWith(
+      QrScanState(
         status: QrScanStatus.scanning,
         config: event.config,
-        scannedCodes: [],
+        scannedCodes: const [],
         currentCode: null,
         errorMessage: null,
       ),
@@ -159,18 +163,8 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
   }
 
   void _onResetScan(ResetScan event, Emitter<QrScanState> emit) {
-    emit(
-      state.copyWith(
-        status: QrScanStatus.scanning,
-        currentCode: null,
-        errorMessage: null,
-        isValidCode: false,
-        // 对于非批量模式，重置时清空已扫描代码，避免重复扫码检查问题
-        scannedCodes: state.config?.supportsBatch == true
-            ? state.scannedCodes
-            : [],
-      ),
-    );
+    // 完全重置状态，包括清理config，确保下次进入时是干净的状态
+    emit(const QrScanState());
   }
 
   Future<void> _onProcessScannedCodes(
