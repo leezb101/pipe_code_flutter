@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -430,14 +432,14 @@ class _InstallViewState extends State<InstallView> {
         imageQuality: 80,
       );
 
-      if (photo != null && mounted) {
+      if (photo != null && context.mounted) {
         setState(() {
           _materialPhotos[materialId] = (_materialPhotos[materialId] ?? [])
             ..add(photo);
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         context.showErrorToast('拍照失败: $e');
       }
     }

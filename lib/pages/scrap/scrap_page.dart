@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-08-03
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-03 16:29:47
+ * @LastEditTime: 2025-08-04 15:43:05
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -33,10 +33,10 @@ class ScrapPage extends StatefulWidget {
 
 class _ScrapPageState extends State<ScrapPage> {
   final ImagePicker _picker = ImagePicker();
-  List<File> _photos = [];
+  final List<File> _photos = [];
 
   // 保存已经扫描过的原始码，用于去重
-  Set<String> _scannedCodes = <String>{};
+  final Set<String> _scannedCodes = <String>{};
 
   @override
   void initState() {
@@ -72,11 +72,13 @@ class _ScrapPageState extends State<ScrapPage> {
           _photos.add(file);
         });
 
-        // 通知bloc添加照片
-        context.read<ScrapBloc>().add(AddScrapPhoto(photoPath: image.path));
+        if (mounted) {
+          // 通知bloc添加照片
+          context.read<ScrapBloc>().add(AddScrapPhoto(photoPath: image.path));
+        }
       }
     } catch (e) {
-      ToastUtils.showError(context, '拍照失败: $e');
+      if (mounted) ToastUtils.showError(context, '拍照失败: $e');
     }
   }
 
@@ -480,7 +482,7 @@ class _ScrapPageState extends State<ScrapPage> {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
 
                 // 添加照片按钮
                 if (state.photoUrls.length < 6)
@@ -532,7 +534,7 @@ class _ScrapPageState extends State<ScrapPage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
+            color: Colors.grey.withValues(alpha: .3),
             spreadRadius: 1,
             blurRadius: 3,
             offset: const Offset(0, -1),

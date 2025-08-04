@@ -190,7 +190,7 @@ class _ScrapDetailPageState extends State<ScrapDetailPage> {
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

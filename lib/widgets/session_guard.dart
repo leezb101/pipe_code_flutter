@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-29 15:45:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-29 20:00:53
+ * @LastEditTime: 2025-08-04 15:35:28
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
@@ -108,13 +108,13 @@ class _SessionGuardState extends State<SessionGuard> {
   /// 根据会话状态构建内容
   Widget _buildSessionContent(BuildContext context, SessionState sessionState) {
     switch (sessionState.runtimeType) {
-      case SessionInitial:
+      case SessionInitial _:
         return _buildLoadingView('正在初始化...');
 
-      case SessionLoading:
+      case SessionLoading _:
         return _buildLoadingView('正在加载...');
 
-      case SessionIdentitySelectionRequired:
+      case SessionIdentitySelectionRequired _:
         final state = sessionState as SessionIdentitySelectionRequired;
         return IdentitySelector(
           wxLoginVO: state.wxLoginVO,
@@ -128,7 +128,7 @@ class _SessionGuardState extends State<SessionGuard> {
           },
         );
 
-      case SessionProjectSelectionRequired:
+      case SessionProjectSelectionRequired _:
         final state = sessionState as SessionProjectSelectionRequired;
         return ProjectSelector(
           wxLoginVO: state.wxLoginVO,
@@ -143,16 +143,16 @@ class _SessionGuardState extends State<SessionGuard> {
           },
         );
 
-      case SessionStorekeeperEstablished:
-      case SessionProjectEstablished:
+      case SessionStorekeeperEstablished _:
+      case SessionProjectEstablished _:
         // 会话已建立，显示主界面
         return widget.child;
 
-      case SessionNoProjectsAvailable:
+      case SessionNoProjectsAvailable _:
         final state = sessionState as SessionNoProjectsAvailable;
         return _buildNoProjectsView(context, state);
 
-      case SessionError:
+      case SessionError _:
         final state = sessionState as SessionError;
         return _buildErrorView(context, state.error);
 

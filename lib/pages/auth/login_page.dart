@@ -868,7 +868,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
     _countdownTimer?.cancel(); // 确保之前的timer被取消
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
+      if (context.mounted) {
         // 确保widget还在树中
         setState(() {
           if (_countdown > 0) {

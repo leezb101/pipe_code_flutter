@@ -96,14 +96,32 @@ class AppConfig {
         // return 'https://dev-api.example.com';
         // return 'http://10.2.220.12:8775/m';
         // return 'http://10.3.3.213:8775/m'; // 孙煊
-        return 'http://10.3.2.223:8775/m'; // 和宇翔
-      // return 'http://10.3.6.235/m';
+        // return 'http://10.3.2.223:8775/m'; // 和宇翔
+        return 'http://10.3.6.235/m';
       case Environment.staging:
         return 'https://staging-api.example.com';
       case Environment.production:
         return 'https://api.example.com';
     }
   }
+
+  static String get uploadBaseUrl {
+    switch (_environment) {
+      case Environment.development:
+        // 上传文件接口可能与业务接口使用不同的 base URL
+        // 默认情况下与 apiBaseUrl 相同，但可以根据需要单独配置
+        if (apiBaseUrl.contains('10.3.3') || apiBaseUrl.contains('10.3.2')) {
+          return 'http://10.3.6.235/m'; // 本地开发环境
+        }
+        return apiBaseUrl;
+      case Environment.staging:
+        return apiBaseUrl;
+      case Environment.production:
+        return apiBaseUrl;
+    }
+  }
+
+  static String get uploadUrl => '$uploadBaseUrl/group1/upload';
 
   static Duration get apiTimeout => const Duration(seconds: 100);
 

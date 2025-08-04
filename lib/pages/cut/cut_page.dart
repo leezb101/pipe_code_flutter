@@ -350,7 +350,9 @@ class _CutViewState extends State<CutView> {
         final qrCode = result.first.code;
         // With the raw QR code, we now ask the MaterialHandleCubit to fetch the data.
         // The BlocListener<MaterialHandleCubit> will then handle the success/failure state.
-        context.read<MaterialHandleCubit>().getMaterialInfoFromQr(qrCode);
+        if (context.mounted) {
+          context.read<MaterialHandleCubit>().getMaterialInfoFromQr(qrCode);
+        }
       }
     });
   }

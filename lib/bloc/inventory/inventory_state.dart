@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:pipe_code_flutter/models/inventory/inventory_models.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
-import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 
 enum DataStatus { initial, loading, success, failure }
 

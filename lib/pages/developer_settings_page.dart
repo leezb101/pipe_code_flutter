@@ -288,7 +288,7 @@ class _DeveloperSettingsPageState extends State<DeveloperSettingsPage> {
 
                 try {
                   await AppConfig.reset();
-                  if (mounted) {
+                  if (context.mounted) {
                     setState(() {});
                     if (context.mounted) {
                       context.showSuccessToast('设置已重置为默认值');
