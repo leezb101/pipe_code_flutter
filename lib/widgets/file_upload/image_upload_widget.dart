@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'image_preview_widget.dart';
+import 'fade_scale_route.dart';
 
 class ImageUploadWidget extends StatefulWidget {
   const ImageUploadWidget({
@@ -98,8 +99,8 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
     // When previewing, we only need the File objects, not the full state.
     final images = widget.states.map((s) => s.file).toList();
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ImagePreviewWidget(
+      FadeScaleRoute(
+        page: ImagePreviewWidget(
           images: images,
           initialIndex: initialIndex,
           onDelete: (index) {

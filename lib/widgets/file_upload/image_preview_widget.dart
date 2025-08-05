@@ -158,6 +158,7 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
                 child: Row(
                   children: [
                     IconButton(
+                      iconSize: 36,
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.close, color: Colors.white),
                     ),
