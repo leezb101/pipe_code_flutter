@@ -19,6 +19,8 @@ import '../../utils/toast_utils.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_state.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 
 class DispatchAfterSigninPage extends StatelessWidget {
   final int dispatchId;
@@ -54,8 +56,20 @@ class DispatchAfterSigninView extends StatefulWidget {
 }
 
 class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
-  List<File> _warehousePhotos = [];
+  late final FileUploadCubit _fileUploadCubit;
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fileUploadCubit = FileUploadCubit();
+  }
+
+  @override
+  void dispose() {
+    _fileUploadCubit.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -154,14 +168,26 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
           const SizedBox(height: 16),
           _buildScanButton(context),
           const SizedBox(height: 16),
-          ImageUploadWidget(
-            title: '入库照片',
-            requiredPhotoCount: 2,
-            onImagesChanged: (images) {
-              setState(() {
-                _warehousePhotos = images;
-              });
-            },
+          BlocProvider.value(
+            value: _fileUploadCubit,
+            child: BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+              builder: (context, states) {
+                return ImageUploadWidget(
+                  title: '入库照片',
+                  requiredPhotoCount: 2,
+                  states: states,
+                  onAdd: (files) {
+                    _fileUploadCubit.addFiles(files);
+                  },
+                  onRemove: (uniqueId) {
+                    _fileUploadCubit.removeFile(uniqueId);
+                  },
+                  onRetry: (uniqueId) {
+                    _fileUploadCubit.retryUpload(uniqueId);
+                  },
+                );
+              },
+            ),
           ),
           const SizedBox(height: 16),
           _buildWarehouseInfo(dispatchInfo),
@@ -401,8 +427,15 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
   ) {
     final allMaterialScanned =
         matchedMaterials.length == dispatchInfo.materialList.length;
-    final hasEnoughPhotos = _warehousePhotos.length >= 2;
-    return allMaterialScanned && hasEnoughPhotos && !_isSubmitting;
+    final uploadStates = _fileUploadCubit.state;
+    final hasEnoughPhotos = uploadStates.length >= 2;
+    final allPhotosUploaded = uploadStates.every(
+      (s) => s.status == UploadStatus.success,
+    );
+    return allMaterialScanned &&
+        hasEnoughPhotos &&
+        allPhotosUploaded &&
+        !_isSubmitting;
   }
 
   void _submitSignin(
@@ -410,18 +443,32 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
     DispatchDetailVo dispatchInfo,
     Set<MaterialVO> matchedMaterials,
   ) {
+    final uploadStates = _fileUploadCubit.state;
+    final isUploading = uploadStates.any(
+      (s) => s.status == UploadStatus.uploading,
+    );
+    if (isUploading) {
+      context.showInfoToast('照片仍在上传中，请稍候...');
+      return;
+    }
+    if (!mounted) return;
     if (!_canSubmit(dispatchInfo, matchedMaterials)) return;
 
     setState(() => _isSubmitting = true);
 
-    final photoAttachments = _warehousePhotos.asMap().entries.map((entry) {
-      return AttachmentVO(
-        type: 1,
-        name: 'warehouse_photo_${entry.key + 1}.jpg',
-        url: entry.value.path,
-        attachFormat: 'jpg', // Image type
-      );
-    }).toList();
+    final photoAttachments = uploadStates
+        .where(
+          (s) => s.status == UploadStatus.success && s.uploadResult != null,
+        )
+        .map((state) {
+          return AttachmentVO(
+            type: 1,
+            name: state.uploadResult!.fileName,
+            url: state.uploadResult!.fileUrl,
+            attachFormat: state.uploadResult!.fileType ?? 'jpg',
+          );
+        })
+        .toList();
 
     final request = DoDispatchSignInVo(
       dispatchId: widget.dispatchId,

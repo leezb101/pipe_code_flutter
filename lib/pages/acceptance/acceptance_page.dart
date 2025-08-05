@@ -6,7 +6,6 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +24,9 @@ import '../../bloc/acceptance/acceptance_state.dart';
 import '../../models/acceptance/do_accept_vo.dart';
 import '../../models/acceptance/material_vo.dart';
 import '../../utils/go_router_popuntil.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
+import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 
 class AcceptancePage extends StatefulWidget {
   const AcceptancePage({super.key, required this.materials});
@@ -36,13 +38,13 @@ class AcceptancePage extends StatefulWidget {
 }
 
 class _AcceptancePageState extends State<AcceptancePage> {
-  List<File> _acceptancePhotos = [];
-  List<File> _inspectionReports = [];
-  List<File> _acceptanceReports = [];
+  // 为每个上传组件创建一个Cubit
+  late final FileUploadCubit _acceptancePhotosCubit;
+  late final FileUploadCubit _inspectionReportsCubit;
+  late final FileUploadCubit _acceptanceReportsCubit;
 
   // 仓库选择相关
   String _storageType = 'project'; // 'project' 或 'independent'
-  String? _selectedWarehouse;
   int? _selectedWarehouseId;
 
   List<WarehouseVO> _warehouseList = [];
@@ -58,6 +60,10 @@ class _AcceptancePageState extends State<AcceptancePage> {
   @override
   void initState() {
     super.initState();
+    _acceptancePhotosCubit = FileUploadCubit();
+    _inspectionReportsCubit = FileUploadCubit();
+    _acceptanceReportsCubit = FileUploadCubit();
+
     // Load initial user data
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Load warehouse list first
@@ -79,6 +85,9 @@ class _AcceptancePageState extends State<AcceptancePage> {
 
   @override
   void dispose() {
+    _acceptancePhotosCubit.close();
+    _inspectionReportsCubit.close();
+    _acceptanceReportsCubit.close();
     super.dispose();
   }
 
@@ -111,7 +120,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
             _warehouseList = state.warehouseList;
             // Set default selection to first warehouse if available
             if (_warehouseList.isNotEmpty) {
-              _selectedWarehouse = _warehouseList.first.name;
               _selectedWarehouseId = _warehouseList.first.id;
 
               // 如果当前是独立仓库模式，自动获取默认仓库的人员
@@ -286,36 +294,54 @@ class _AcceptancePageState extends State<AcceptancePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            ImageUploadWidget(
-              title: '验收照片',
-              onImagesChanged: (images) {
-                setState(() {
-                  _acceptancePhotos = images;
-                });
+            BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+              bloc: _acceptancePhotosCubit,
+              builder: (context, states) {
+                return ImageUploadWidget(
+                  title: '验收照片',
+                  states: states,
+                  maxImages: 6,
+                  onAdd: (files) => _acceptancePhotosCubit.addFiles(files),
+                  onRemove: (uniqueId) =>
+                      _acceptancePhotosCubit.removeFile(uniqueId),
+                  onRetry: (uniqueId) =>
+                      _acceptancePhotosCubit.retryUpload(uniqueId),
+                );
               },
-              maxImages: 6,
             ),
             const SizedBox(height: 24),
-            FileUploadWidget(
-              title: '报验单',
-              onFilesChanged: (files) {
-                setState(() {
-                  _inspectionReports = files;
-                });
+            BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+              bloc: _inspectionReportsCubit,
+              builder: (context, states) {
+                return FileUploadWidget(
+                  title: '报验单',
+                  states: states,
+                  allowedExtensions: const ['pdf', 'doc', 'docx'],
+                  maxFiles: 3,
+                  onAdd: (files) => _inspectionReportsCubit.addFiles(files),
+                  onRemove: (uniqueId) =>
+                      _inspectionReportsCubit.removeFile(uniqueId),
+                  onRetry: (uniqueId) =>
+                      _inspectionReportsCubit.retryUpload(uniqueId),
+                );
               },
-              allowedExtensions: ['pdf', 'doc', 'docx'],
-              maxFiles: 3,
             ),
             const SizedBox(height: 24),
-            FileUploadWidget(
-              title: '验收报告',
-              onFilesChanged: (files) {
-                setState(() {
-                  _acceptanceReports = files;
-                });
+            BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+              bloc: _acceptanceReportsCubit,
+              builder: (context, states) {
+                return FileUploadWidget(
+                  title: '验收报告',
+                  states: states,
+                  allowedExtensions: const ['pdf', 'doc', 'docx'],
+                  maxFiles: 3,
+                  onAdd: (files) => _acceptanceReportsCubit.addFiles(files),
+                  onRemove: (uniqueId) =>
+                      _acceptanceReportsCubit.removeFile(uniqueId),
+                  onRetry: (uniqueId) =>
+                      _acceptanceReportsCubit.retryUpload(uniqueId),
+                );
               },
-              allowedExtensions: ['pdf', 'doc', 'docx'],
-              maxFiles: 3,
             ),
           ],
         ),
@@ -444,9 +470,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
               value: _selectedWarehouseId,
               onChanged: (int? newValue) {
                 setState(() {
-                  _selectedWarehouse = _warehouseList
-                      .firstWhere((w) => w.id == newValue)
-                      .name;
                   _selectedWarehouseId = newValue!;
                 });
 
@@ -567,7 +590,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -719,17 +742,62 @@ class _AcceptancePageState extends State<AcceptancePage> {
     // 获取仓库ID，如果未选择则默认为0
     final warehouseId = _selectedWarehouseId ?? 0;
 
+    // 从Cubit的state中收集所有附件。
+    final allAttachments = <AttachmentVO>[];
+    // 1. 验收照片
+    allAttachments.addAll(
+      _acceptancePhotosCubit.state
+          .where(
+            (s) => s.status == UploadStatus.success && s.uploadResult != null,
+          )
+          .map(
+            (state) => AttachmentVO(
+              type: 1, // 1 for image
+              name: state.uploadResult!.fileName,
+              url: state.uploadResult!.fileUrl,
+              attachFormat: state.uploadResult!.fileType ?? 'jpg',
+            ),
+          ),
+    );
+    // 2. 报验单
+    allAttachments.addAll(
+      _inspectionReportsCubit.state
+          .where(
+            (s) => s.status == UploadStatus.success && s.uploadResult != null,
+          )
+          .map(
+            (state) => AttachmentVO(
+              type: 2, // 2 for inspection report file
+              name: state.uploadResult!.fileName,
+              url: state.uploadResult!.fileUrl,
+              attachFormat: state.uploadResult!.fileType ?? 'pdf',
+            ),
+          ),
+    );
+    // 3. 验收报告
+    allAttachments.addAll(
+      _acceptanceReportsCubit.state
+          .where(
+            (s) => s.status == UploadStatus.success && s.uploadResult != null,
+          )
+          .map(
+            (state) => AttachmentVO(
+              type: 3, // 3 for acceptance report file
+              name: state.uploadResult!.fileName,
+              url: state.uploadResult!.fileUrl,
+              attachFormat: state.uploadResult!.fileType ?? 'pdf',
+            ),
+          ),
+    );
+
     // 创建DoAcceptVO对象
     final doAcceptVO = DoAcceptVO(
       materialList: materialVOList,
-      // materialList: materialVOListForTest,
-      imageList: const [], // 暂时为空，后续处理文件上传
+      imageList: allAttachments,
       realWarehouse: realWarehouse,
       warehouseId: warehouseId,
       messageTo: selectedUserIds,
     );
-
-    // 打印调试信息
 
     // 通过BLoC提交验收数据
     context.read<AcceptanceBloc>().add(SubmitAcceptance(request: doAcceptVO));

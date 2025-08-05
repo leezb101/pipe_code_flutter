@@ -14,6 +14,9 @@ import 'package:pipe_code_flutter/bloc/signout/signout_event.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_state.dart';
 import 'package:pipe_code_flutter/bloc/user/user_bloc.dart';
 import 'package:pipe_code_flutter/bloc/user/user_state.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
+import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
@@ -34,17 +37,24 @@ class SignoutPage extends StatefulWidget {
 }
 
 class _SignoutPageState extends State<SignoutPage> {
-  List<File> _signoutPhotos = [];
+  late final FileUploadCubit _imageUploadCubit;
   final Map<String, bool?> _userPushStates = {};
 
   @override
   void initState() {
-    context.read<SignoutBloc>().add(
-      LoadWarehouseInfo(
-        materialId: widget.materials.normals.first.baseInfo.materialId,
-      ),
-    );
     super.initState();
+    _imageUploadCubit = FileUploadCubit();
+    context.read<SignoutBloc>().add(
+          LoadWarehouseInfo(
+            materialId: widget.materials.normals.first.baseInfo.materialId,
+          ),
+        );
+  }
+
+  @override
+  void dispose() {
+    _imageUploadCubit.close();
+    super.dispose();
   }
 
   @override
@@ -244,14 +254,24 @@ class _SignoutPageState extends State<SignoutPage> {
               ],
             ),
             const SizedBox(height: 16),
-            ImageUploadWidget(
-              title: '',
-              onImagesChanged: (images) {
-                setState(() {
-                  _signoutPhotos = images;
-                });
+            BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+              bloc: _imageUploadCubit,
+              builder: (context, states) {
+                return ImageUploadWidget(
+                  title: '',
+                  states: states,
+                  onAdd: (files) {
+                    _imageUploadCubit.addFiles(files);
+                  },
+                  onRemove: (uniqueId) {
+                    _imageUploadCubit.removeFile(uniqueId);
+                  },
+                  onRetry: (uniqueId) {
+                    _imageUploadCubit.retryUpload(uniqueId);
+                  },
+                  maxImages: 6,
+                );
               },
-              maxImages: 6,
             ),
           ],
         ),
@@ -570,6 +590,33 @@ class _SignoutPageState extends State<SignoutPage> {
   }
 
   void _handleSubmit(SignoutReady state) {
+    final uploadStates = _imageUploadCubit.state;
+    final isUploading =
+        uploadStates.any((s) => s.status == UploadStatus.uploading);
+    if (isUploading) {
+      context.showInfoToast('照片仍在上传中，请稍候...');
+      return;
+    }
+
+    final hasFailures =
+        uploadStates.any((s) => s.status == UploadStatus.failure);
+    if (hasFailures) {
+      context.showErrorToast('有图片上传失败，请重试或删除。');
+      return;
+    }
+
+    final photoAttachments = uploadStates
+        .where(
+          (s) => s.status == UploadStatus.success && s.uploadResult != null,
+        )
+        .map((state) => AttachmentVO(
+              type: 1, // 1 for image
+              name: state.uploadResult!.fileName,
+              url: state.uploadResult!.fileUrl,
+              attachFormat: state.uploadResult!.fileType ?? 'jpg',
+            ))
+        .toList();
+
     final selectedUserIds = _getSelectedUserIds(state);
 
     final materialList = widget.materials.normals
@@ -584,7 +631,7 @@ class _SignoutPageState extends State<SignoutPage> {
 
     final request = DoSignoutRequestVo(
       materialList: materialList,
-      imageList: const [], // TODO: Handle image upload
+      imageList: photoAttachments,
       messageTo: selectedUserIds,
     );
 

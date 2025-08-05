@@ -13,6 +13,8 @@ import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/scrap/scrap_bloc.dart';
 import 'package:pipe_code_flutter/bloc/scrap/scrap_event.dart';
 import 'package:pipe_code_flutter/bloc/scrap/scrap_state.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
@@ -32,7 +34,7 @@ class ScrapPage extends StatefulWidget {
 }
 
 class _ScrapPageState extends State<ScrapPage> {
-  List<File> _photos = [];
+  late final FileUploadCubit _imageUploadCubit;
 
   // 保存已经扫描过的原始码，用于去重
   final Set<String> _scannedCodes = <String>{};
@@ -40,7 +42,14 @@ class _ScrapPageState extends State<ScrapPage> {
   @override
   void initState() {
     super.initState();
+    _imageUploadCubit = FileUploadCubit();
     _initializeScrap();
+  }
+
+  @override
+  void dispose() {
+    _imageUploadCubit.close();
+    super.dispose();
   }
 
   void _initializeScrap() {
@@ -59,9 +68,28 @@ class _ScrapPageState extends State<ScrapPage> {
   }
 
   void _submitScrap() {
+    final uploadStates = _imageUploadCubit.state;
+    final isUploading =
+        uploadStates.any((s) => s.status == UploadStatus.uploading);
+    if (isUploading) {
+      context.showInfoToast('照片仍在上传中，请稍候...');
+      return;
+    }
+
+    final hasFailures =
+        uploadStates.any((s) => s.status == UploadStatus.failure);
+    if (hasFailures) {
+      context.showErrorToast('有图片上传失败，请重试或删除。');
+      return;
+    }
+
+    final photoUrls = uploadStates
+        .where((s) => s.status == UploadStatus.success && s.uploadResult != null)
+        .map((state) => state.uploadResult!.fileUrl)
+        .toList();
+
     // 更新bloc中的照片列表
-    final photoPaths = _photos.map((p) => p.path).toList();
-    context.read<ScrapBloc>().add(UpdateScrapPhotos(photoPaths: photoPaths));
+    context.read<ScrapBloc>().add(UpdateScrapPhotos(photoPaths: photoUrls));
     // 触发提交
     context.read<ScrapBloc>().add(const SubmitScrap());
   }
@@ -177,13 +205,23 @@ class _ScrapPageState extends State<ScrapPage> {
                 const SizedBox(height: 24),
 
                 // 照片部分
-                ImageUploadWidget(
-                  title: '照片',
-                  maxImages: 6,
-                  onImagesChanged: (images) {
-                    setState(() {
-                      _photos = images;
-                    });
+                BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+                  bloc: _imageUploadCubit,
+                  builder: (context, states) {
+                    return ImageUploadWidget(
+                      title: '照片',
+                      maxImages: 6,
+                      states: states,
+                      onAdd: (files) {
+                        _imageUploadCubit.addFiles(files);
+                      },
+                      onRemove: (uniqueId) {
+                        _imageUploadCubit.removeFile(uniqueId);
+                      },
+                      onRetry: (uniqueId) {
+                        _imageUploadCubit.retryUpload(uniqueId);
+                      },
+                    );
                   },
                 ),
                 const SizedBox(height: 100), // 为底部按钮留出空间

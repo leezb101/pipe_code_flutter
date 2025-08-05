@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 /*
  * @Author: LeeZB
  * @Date: 2025-08-03 
@@ -24,6 +26,8 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 
 class InventoryPage extends StatefulWidget {
   final int taskId;
@@ -35,12 +39,19 @@ class InventoryPage extends StatefulWidget {
 }
 
 class _InventoryPageState extends State<InventoryPage> {
-  List<File> _photos = [];
+  late final FileUploadCubit _fileUploadCubit;
 
   @override
   void initState() {
     super.initState();
+    _fileUploadCubit = FileUploadCubit();
     _loadDetail();
+  }
+
+  @override
+  void dispose() {
+    _fileUploadCubit.close();
+    super.dispose();
   }
 
   void _loadDetail() {
@@ -61,35 +72,63 @@ class _InventoryPageState extends State<InventoryPage> {
         final qrCodes = result.map((r) => r.code).toList();
 
         // 使用MaterialHandleCubit查询物料信息
-        await context.read<MaterialHandleCubit>().getMaterialInfoFromQrList(
-              qrCodes,
-            );
+        if (context.mounted) {
+          await context.read<MaterialHandleCubit>().getMaterialInfoFromQrList(
+            qrCodes,
+          );
+        }
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         context.showErrorToast('扫码失败: $e');
       }
     }
   }
 
   Future<void> _submitInventory() async {
-    final state = context.read<InventoryBloc>().state;
+    final inventoryBloc = context.read<InventoryBloc>();
+    final uploadStates = _fileUploadCubit.state;
 
-    if (state.inventoryDetail == null) {
+    if (inventoryBloc.state.inventoryDetail == null) {
       context.showErrorToast('请先加载任务详情');
       return;
     }
 
-    if (_photos.length < 2) {
+    if (uploadStates.length < 2) {
       context.showErrorToast('请上传两张盘点照片');
       return;
     }
 
-    context.read<InventoryBloc>().add(
-          InventoryPhotosUpdated(photo1: _photos[0], photo2: _photos[1]),
-        );
+    final isUploading = uploadStates.any(
+      (s) => s.status == UploadStatus.uploading,
+    );
+    if (isUploading) {
+      context.showInfoToast('照片仍在上传中，请稍候...');
+      return;
+    }
 
-    context.read<InventoryBloc>().add(InventorySubmitted());
+    final allUploaded = uploadStates.every(
+      (s) => s.status == UploadStatus.success,
+    );
+    if (!allUploaded) {
+      context.showErrorToast('有照片上传失败或未上传，请检查。');
+      return;
+    }
+
+    final photoUrls = uploadStates
+        .map((s) => s.uploadResult?.fileUrl)
+        .where((url) => url != null)
+        .cast<String>()
+        .toList();
+
+    if (photoUrls.length >= 2) {
+      inventoryBloc.add(
+        InventoryPhotosUpdated(photo1: photoUrls[0], photo2: photoUrls[1]),
+      );
+      inventoryBloc.add(InventorySubmitted());
+    } else {
+      context.showErrorToast('照片上传结果无效，请重试。');
+    }
   }
 
   @override
@@ -171,23 +210,27 @@ class _InventoryPageState extends State<InventoryPage> {
           const SizedBox(height: 16),
           _buildScanButton(state),
           const SizedBox(height: 16),
-          ImageUploadWidget(
-            title: '盘点照片',
-            maxImages: 2,
-            requiredPhotoCount: 2,
-            onImagesChanged: (images) {
-              setState(() {
-                _photos = images;
-              });
-              if (images.length == 2) {
-                context.read<InventoryBloc>().add(
-                      InventoryPhotosUpdated(
-                        photo1: images[0],
-                        photo2: images[1],
-                      ),
-                    );
-              }
-            },
+          BlocProvider.value(
+            value: _fileUploadCubit,
+            child: BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+              builder: (context, states) {
+                return ImageUploadWidget(
+                  title: '盘点照片',
+                  maxImages: 2,
+                  requiredPhotoCount: 2,
+                  states: states,
+                  onAdd: (files) {
+                    _fileUploadCubit.addFiles(files);
+                  },
+                  onRemove: (uniqueId) {
+                    _fileUploadCubit.removeFile(uniqueId);
+                  },
+                  onRetry: (uniqueId) {
+                    _fileUploadCubit.retryUpload(uniqueId);
+                  },
+                );
+              },
+            ),
           ),
           const SizedBox(height: 24),
           _buildSubmitButton(state),
@@ -489,7 +532,8 @@ class _InventoryPageState extends State<InventoryPage> {
 
   Widget _buildSubmitButton(InventoryState state) {
     final isSubmitting = state.submissionStatus == SubmissionStatus.loading;
-    final canSubmit = state.inventoryDetail != null && _photos.length >= 2;
+    final canSubmit =
+        state.inventoryDetail != null && _fileUploadCubit.state.length >= 2;
 
     return SizedBox(
       width: double.infinity,

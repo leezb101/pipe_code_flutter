@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:pipe_code_flutter/models/inventory/inventory_models.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
@@ -25,8 +24,8 @@ class InventoryState extends Equatable {
   final Set<int> matchedMaterialIds; // 已匹配的原始物料ID
 
   // 附件和提交状态
-  final File? photo1;
-  final File? photo2;
+  final String? photo1;
+  final String? photo2;
   final SubmissionStatus submissionStatus;
   final String? errorMessage;
 
@@ -58,8 +57,8 @@ class InventoryState extends Equatable {
     DataStatus? comparisonStatus,
     List<MaterialInfo>? surplusMaterials,
     Set<int>? matchedMaterialIds,
-    File? photo1,
-    File? photo2,
+    String? photo1,
+    String? photo2,
     SubmissionStatus? submissionStatus,
     String? errorMessage,
     bool resetPhotos = false, // 用于清空照片

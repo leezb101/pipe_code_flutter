@@ -9,6 +9,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import '../../models/acceptance/attachment_vo.dart';
@@ -30,10 +32,12 @@ class _ReturnPageState extends State<ReturnPage> {
   // 退库表单数据
   int _returnType = 0; // 默认质量不合格退库
   String _returnRemark = '';
+  late final FileUploadCubit _imageUploadCubit;
 
   @override
   void initState() {
     super.initState();
+    _imageUploadCubit = FileUploadCubit();
     // 加载物料信息
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ReturnBloc>().add(
@@ -44,6 +48,7 @@ class _ReturnPageState extends State<ReturnPage> {
 
   @override
   void dispose() {
+    _imageUploadCubit.close();
     super.dispose();
   }
 
@@ -384,22 +389,24 @@ class _ReturnPageState extends State<ReturnPage> {
               ],
             ),
             const SizedBox(height: 16),
-            ImageUploadWidget(
-              title: '退库图片',
-              onImagesChanged: (images) {
-                // 转换为AttachmentVO列表
-                final attachmentList = images.map((file) {
-                  return AttachmentVO(
-                    url: file.path,
-                    name: file.path.split('/').last,
-                    attachFormat: 'image',
-                  );
-                }).toList();
-                context.read<ReturnBloc>().add(
-                  UpdateImageList(imageList: attachmentList),
+            BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+              bloc: _imageUploadCubit,
+              builder: (context, states) {
+                return ImageUploadWidget(
+                  title: '退库图片',
+                  states: states,
+                  onAdd: (files) {
+                    _imageUploadCubit.addFiles(files);
+                  },
+                  onRemove: (uniqueId) {
+                    _imageUploadCubit.removeFile(uniqueId);
+                  },
+                  onRetry: (uniqueId) {
+                    _imageUploadCubit.retryUpload(uniqueId);
+                  },
+                  maxImages: 6,
                 );
               },
-              maxImages: 6,
             ),
           ],
         ),
@@ -485,7 +492,37 @@ class _ReturnPageState extends State<ReturnPage> {
       return;
     }
 
+    final uploadStates = _imageUploadCubit.state;
+    final isUploading =
+        uploadStates.any((s) => s.status == UploadStatus.uploading);
+    if (isUploading) {
+      context.showInfoToast('照片仍在上传中，请稍候...');
+      return;
+    }
+
+    final hasFailures =
+        uploadStates.any((s) => s.status == UploadStatus.failure);
+    if (hasFailures) {
+      context.showErrorToast('有图片上传失败，请重试或删除。');
+      return;
+    }
+
+    final photoAttachments = uploadStates
+        .where(
+          (s) => s.status == UploadStatus.success && s.uploadResult != null,
+        )
+        .map((state) => AttachmentVO(
+              type: 1, // 1 for image
+              name: state.uploadResult!.fileName,
+              url: state.uploadResult!.fileUrl,
+              attachFormat: state.uploadResult!.fileType ?? 'jpg',
+            ))
+        .toList();
+
     // 通过BLoC提交退库申请
+    context
+        .read<ReturnBloc>()
+        .add(UpdateImageList(imageList: photoAttachments));
     context.read<ReturnBloc>().add(const SubmitReturn());
   }
 

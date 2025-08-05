@@ -14,6 +14,8 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 
 class CutPage extends StatelessWidget {
   const CutPage({super.key});
@@ -53,14 +55,27 @@ class CutView extends StatefulWidget {
 
 class _CutViewState extends State<CutView> {
   final TextEditingController _descriptionController = TextEditingController();
-  // A map to hold controllers for each new item's length
   final Map<int, TextEditingController> _lengthControllers = {};
+
+  // 为每个上传点创建独立的Cubit
+  late final FileUploadCubit _originalMaterialPhotoCubit;
+  final Map<int, FileUploadCubit> _newMaterialPhotoCubits = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _originalMaterialPhotoCubit = FileUploadCubit();
+  }
 
   @override
   void dispose() {
     _descriptionController.dispose();
+    _originalMaterialPhotoCubit.close();
     for (var controller in _lengthControllers.values) {
       controller.dispose();
+    }
+    for (var cubit in _newMaterialPhotoCubits.values) {
+      cubit.close();
     }
     super.dispose();
   }
@@ -177,17 +192,40 @@ class _CutViewState extends State<CutView> {
               const Divider(),
               _buildInfoDetails(state.originalMaterialInfo!),
               const SizedBox(height: 16),
-              ImageUploadWidget(
-                title: '原耗材照片',
-                maxImages: 1,
-                initialImages: photoPath != null ? [File(photoPath)] : [],
-                onImagesChanged: (images) {
-                  context.read<CutBloc>().add(
-                    CutOriginalPhotoUpdated(
-                      images.isNotEmpty ? images.first.path : '',
-                    ),
-                  );
-                },
+              BlocProvider.value(
+                value: _originalMaterialPhotoCubit,
+                child: BlocConsumer<FileUploadCubit, List<FileUploadState>>(
+                  listener: (context, states) {
+                    final successState = states.isNotEmpty
+                        ? states.firstWhere(
+                            (s) => s.status == UploadStatus.success,
+                            orElse: () =>
+                                FileUploadState(file: File(''), uniqueId: ''),
+                          )
+                        : null;
+                    if (successState != null &&
+                        successState.uploadResult != null) {
+                      context.read<CutBloc>().add(
+                        CutOriginalPhotoUpdated(
+                          successState.uploadResult!.fileUrl,
+                        ),
+                      );
+                    }
+                  },
+                  builder: (context, states) {
+                    return ImageUploadWidget(
+                      title: '原耗材照片',
+                      maxImages: 1,
+                      states: states,
+                      onAdd: (files) =>
+                          _originalMaterialPhotoCubit.addFiles(files),
+                      onRemove: (uniqueId) =>
+                          _originalMaterialPhotoCubit.removeFile(uniqueId),
+                      onRetry: (uniqueId) =>
+                          _originalMaterialPhotoCubit.retryUpload(uniqueId),
+                    );
+                  },
+                ),
               ),
             ],
           ],
@@ -236,7 +274,12 @@ class _CutViewState extends State<CutView> {
     NewCutMaterialItem item,
     int index,
   ) {
-    final photoPath = item.photoPath;
+    // 为新耗材项动态获取或创建Cubit
+    final cubit = _newMaterialPhotoCubits.putIfAbsent(
+      index,
+      () => FileUploadCubit(),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -255,8 +298,11 @@ class _CutViewState extends State<CutView> {
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
-              onPressed: () =>
-                  context.read<CutBloc>().add(CutNewItemDeleted(index)),
+              onPressed: () {
+                // 删除时也清理对应的Cubit
+                _newMaterialPhotoCubits.remove(index)?.close();
+                context.read<CutBloc>().add(CutNewItemDeleted(index));
+              },
             ),
           ],
         ),
@@ -284,18 +330,37 @@ class _CutViewState extends State<CutView> {
           },
         ),
         const SizedBox(height: 12),
-        ImageUploadWidget(
-          title: '截管后照片',
-          maxImages: 1,
-          initialImages: photoPath != null ? [File(photoPath)] : [],
-          onImagesChanged: (images) {
-            context.read<CutBloc>().add(
-              CutNewItemPhotoUpdated(
-                index: index,
-                photoPath: images.isNotEmpty ? images.first.path : '',
-              ),
-            );
-          },
+        BlocProvider.value(
+          value: cubit,
+          child: BlocConsumer<FileUploadCubit, List<FileUploadState>>(
+            listener: (context, states) {
+              final successState = states.isNotEmpty
+                  ? states.firstWhere(
+                      (s) => s.status == UploadStatus.success,
+                      orElse: () =>
+                          FileUploadState(file: File(''), uniqueId: ''),
+                    )
+                  : null;
+              if (successState != null && successState.uploadResult != null) {
+                context.read<CutBloc>().add(
+                  CutNewItemPhotoUpdated(
+                    index: index,
+                    photoPath: successState.uploadResult!.fileUrl,
+                  ),
+                );
+              }
+            },
+            builder: (context, states) {
+              return ImageUploadWidget(
+                title: '截管后照片',
+                maxImages: 1,
+                states: states,
+                onAdd: (files) => cubit.addFiles(files),
+                onRemove: (uniqueId) => cubit.removeFile(uniqueId),
+                onRetry: (uniqueId) => cubit.retryUpload(uniqueId),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -328,6 +393,31 @@ class _CutViewState extends State<CutView> {
       onPressed: state.status == CutStatus.submitting
           ? null
           : () {
+              // 检查所有照片是否上传完毕
+              final originalPhotoState = _originalMaterialPhotoCubit.state;
+              final allNewPhotosStates = _newMaterialPhotoCubits.values
+                  .expand((cubit) => cubit.state)
+                  .toList();
+
+              final allStates = [...originalPhotoState, ...allNewPhotosStates];
+
+              final isUploading = allStates.any(
+                (s) => s.status == UploadStatus.uploading,
+              );
+              final hasFailure = allStates.any(
+                (s) => s.status == UploadStatus.failure,
+              );
+
+              if (isUploading) {
+                context.showInfoToast('部分照片仍在上传中，请稍候...');
+                return;
+              }
+
+              if (hasFailure) {
+                context.showErrorToast('有照片上传失败，请重试后再提交。');
+                return;
+              }
+
               context.read<CutBloc>().add(CutSubmitted());
             },
       style: ElevatedButton.styleFrom(

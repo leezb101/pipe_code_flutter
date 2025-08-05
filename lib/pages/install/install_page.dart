@@ -20,6 +20,8 @@ import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dar
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_state.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/file_upload_widget.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 
 class InstallPage extends StatelessWidget {
   final String? signOutId;
@@ -58,20 +60,30 @@ class InstallView extends StatefulWidget {
 class _InstallViewState extends State<InstallView> {
   bool _isSubmitting = false;
 
-  // 存储每个材料的照片和桩号
-  final Map<int, List<File>> _materialPhotos = {};
+  // 为每个上传点创建独立的Cubit
+  final Map<int, FileUploadCubit> _materialPhotoCubits = {};
+  late final FileUploadCubit _qualityReportCubit;
+
+  // 桩号管理
   final Map<int, String> _materialStakeNumbers = {};
   final Map<int, TextEditingController> _stakeNumberControllers = {};
 
-  // 质量验收报告
-  List<File> _qualityReportFiles = [];
+  @override
+  void initState() {
+    super.initState();
+    _qualityReportCubit = FileUploadCubit();
+  }
 
   @override
   void dispose() {
-    // 清理控制器
+    // 清理控制器和Cubits
     for (var controller in _stakeNumberControllers.values) {
       controller.dispose();
     }
+    for (var cubit in _materialPhotoCubits.values) {
+      cubit.close();
+    }
+    _qualityReportCubit.close();
     super.dispose();
   }
 
@@ -189,7 +201,11 @@ class _InstallViewState extends State<InstallView> {
 
   Widget _buildMaterialItem(MaterialVO material) {
     final materialId = material.materialId;
-    final photos = _materialPhotos[materialId] ?? [];
+    // 为这个物料动态获取或创建一个Cubit
+    final photoCubit = _materialPhotoCubits.putIfAbsent(
+      materialId,
+      () => FileUploadCubit(),
+    );
 
     // 确保控制器存在
     if (!_stakeNumberControllers.containsKey(materialId)) {
@@ -225,16 +241,21 @@ class _InstallViewState extends State<InstallView> {
             const SizedBox(height: 16),
 
             // 安装照片部分
-            ImageUploadWidget(
-              title: '安装照片',
-              maxImages: 2,
-              requiredPhotoCount: 2,
-              initialImages: _materialPhotos[materialId] ?? [],
-              onImagesChanged: (images) {
-                setState(() {
-                  _materialPhotos[materialId] = images;
-                });
-              },
+            BlocProvider.value(
+              value: photoCubit,
+              child: BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+                builder: (context, states) {
+                  return ImageUploadWidget(
+                    title: '安装照片',
+                    maxImages: 2,
+                    requiredPhotoCount: 2,
+                    states: states,
+                    onAdd: (files) => photoCubit.addFiles(files),
+                    onRemove: (uniqueId) => photoCubit.removeFile(uniqueId),
+                    onRetry: (uniqueId) => photoCubit.retryUpload(uniqueId),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -273,15 +294,20 @@ class _InstallViewState extends State<InstallView> {
   }
 
   Widget _buildQualityReportSection() {
-    return FileUploadWidget(
-      title: '质量验收报告',
-      maxFiles: 1,
-      initialFiles: _qualityReportFiles,
-      onFilesChanged: (files) {
-        setState(() {
-          _qualityReportFiles = files;
-        });
-      },
+    return BlocProvider.value(
+      value: _qualityReportCubit,
+      child: BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+        builder: (context, states) {
+          return FileUploadWidget(
+            title: '质量验收报告',
+            maxFiles: 1,
+            states: states,
+            onAdd: (files) => _qualityReportCubit.addFiles(files),
+            onRemove: (uniqueId) => _qualityReportCubit.removeFile(uniqueId),
+            onRetry: (uniqueId) => _qualityReportCubit.retryUpload(uniqueId),
+          );
+        },
+      ),
     );
   }
 
@@ -355,18 +381,27 @@ class _InstallViewState extends State<InstallView> {
   bool _canSubmit(List<MaterialVO> materials) {
     if (materials.isEmpty || _isSubmitting) return false;
 
-    // 检查每个材料是否都有两张照片和桩号
+    // 检查每个材料的照片和桩号
     for (final material in materials) {
       final materialId = material.materialId;
-      final photos = _materialPhotos[materialId] ?? [];
+      final photoCubit = _materialPhotoCubits[materialId];
+      if (photoCubit == null) return false; // Cubit还未创建
+
+      final photoStates = photoCubit.state;
       final stakeNumber = _materialStakeNumbers[materialId] ?? '';
 
-      if (photos.length < 2 || stakeNumber.trim().isEmpty) {
+      if (photoStates.length < 2 || stakeNumber.trim().isEmpty) {
         return false;
+      }
+      if (photoStates.any((s) => s.status != UploadStatus.success)) {
+        return false; // 有照片未上传成功
       }
     }
 
-    if (_qualityReportFiles.isEmpty) {
+    // 检查质量验收报告
+    final reportStates = _qualityReportCubit.state;
+    if (reportStates.isEmpty ||
+        reportStates.any((s) => s.status != UploadStatus.success)) {
       return false;
     }
 
@@ -374,6 +409,18 @@ class _InstallViewState extends State<InstallView> {
   }
 
   void _submitInstall(BuildContext context, List<MaterialVO> materials) {
+    // 增加上传状态检查
+    final allPhotoCubits = _materialPhotoCubits.values.toList();
+    final allCubits = [...allPhotoCubits, _qualityReportCubit];
+    final isUploading = allCubits
+        .expand((cubit) => cubit.state)
+        .any((s) => s.status == UploadStatus.uploading);
+
+    if (isUploading) {
+      context.showInfoToast('文件仍在上传中，请稍候...');
+      return;
+    }
+
     if (!_canSubmit(materials)) {
       context.showErrorToast('请确保所有材料都已上传2张照片、填写了桩号，并上传了质量验收报告');
       return;
@@ -381,29 +428,30 @@ class _InstallViewState extends State<InstallView> {
 
     setState(() => _isSubmitting = true);
 
-    // 构建包含桩号和照片信息的材料列表
+    // 构建包含桩号和照片URL的材料列表
     final List<MaterialVO> updatedMaterials = materials.map((material) {
       final materialId = material.materialId;
-      final photos = _materialPhotos[materialId] ?? [];
+      final photoStates = _materialPhotoCubits[materialId]!.state;
       final stakeNumber = _materialStakeNumbers[materialId] ?? '';
 
       return material.copyWith(
         installPileNo: stakeNumber,
-        installImageUrl1: photos.isNotEmpty ? photos[0].path : null,
-        installImageUrl2: photos.length > 1 ? photos[1].path : null,
+        installImageUrl1: photoStates.isNotEmpty
+            ? photoStates[0].uploadResult?.fileUrl
+            : null,
+        installImageUrl2: photoStates.length > 1
+            ? photoStates[1].uploadResult?.fileUrl
+            : null,
       );
     }).toList();
 
-    // 构建所有照片附件（仅用于质量验收报告）
-    final List<AttachmentVO> allAttachments = [];
+    // 获取质量验收报告的URL
+    final reportResult = _qualityReportCubit.state.first.uploadResult;
 
     final request = DoInstallVo(
       materialList: updatedMaterials,
-      imageList: allAttachments, // 照片信息已包含在材料列表中，此处保持空列表
-      installQualityUrl: _qualityReportFiles.isNotEmpty
-          ? _qualityReportFiles.first.path
-          : null,
-      // onlyInstall: true,
+      imageList: const [], // 照片信息已在materialList中
+      installQualityUrl: reportResult?.fileUrl,
       signOutId: widget.signOutId != null
           ? int.tryParse(widget.signOutId!)
           : null,

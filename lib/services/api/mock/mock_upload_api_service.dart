@@ -39,17 +39,26 @@ class MockUploadApiService implements UploadApiService {
 
       final fileName = file.path.split('/').last;
       final fileSize = await file.length();
-      final fileId = 'mock_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(1000)}';
-      
+      final fileId =
+          'mock_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(1000)}';
+
       // 模拟文件 URL
-      final fileUrl = 'https://mock.example.com/files/$fileId${fileName.substring(fileName.lastIndexOf('.'))}';
+      final fileUrl =
+          'https://mock.example.com/files/$fileId${fileName.substring(fileName.lastIndexOf('.'))}';
 
       final uploadResult = UploadResult(
-        fileId: fileId,
-        fileName: fileName,
         fileUrl: fileUrl,
-        fileSize: fileSize,
-        fileType: _getFileType(fileName),
+        fileMd5: 'mock_md5_$fileId',
+        filePath: file.path,
+        domain: 'mock.example.com',
+        scene: 'mock_scene',
+        size: fileSize,
+        mtime: DateTime.now().millisecondsSinceEpoch,
+        src: 'mock_src',
+        retmsg: 'Success',
+        retcode: 0,
+        fileName: fileName,
+        fileType: _getFileType(fileName) ?? 'application/octet-stream',
         uploadTime: DateTime.now(),
       );
 
@@ -79,7 +88,7 @@ class MockUploadApiService implements UploadApiService {
 
       for (int i = 0; i < files.length; i++) {
         final file = files[i];
-        
+
         // 单个文件的进度回调
         void onFileProgress(double progress) {
           if (onProgress != null) {
@@ -89,7 +98,7 @@ class MockUploadApiService implements UploadApiService {
         }
 
         final result = await uploadFile(file, onProgress: onFileProgress);
-        
+
         if (result.isSuccess) {
           results.add(result.data!);
         } else {
@@ -100,7 +109,7 @@ class MockUploadApiService implements UploadApiService {
             data: null,
           );
         }
-        
+
         completed++;
       }
 
@@ -128,9 +137,11 @@ class MockUploadApiService implements UploadApiService {
       'gif': 'image/gif',
       'pdf': 'application/pdf',
       'doc': 'application/msword',
-      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'docx':
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'xls': 'application/vnd.ms-excel',
-      'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'xlsx':
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'txt': 'text/plain',
     };
     return supportedTypes[extension];

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-08 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-28 16:15:36
+ * @LastEditTime: 2025-08-05 11:30:00
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -10,38 +10,42 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 
 class FileUploadWidget extends StatefulWidget {
   const FileUploadWidget({
     super.key,
     required this.title,
-    required this.onFilesChanged,
+    required this.states,
+    required this.onAdd,
+    required this.onRemove,
+    required this.onRetry,
     this.allowedExtensions = const ['pdf', 'doc', 'docx'],
     this.maxFiles = 5,
-    this.initialFiles = const [],
   });
 
   final String title;
-  final Function(List<File>) onFilesChanged;
+  final List<FileUploadState> states;
+  final Function(List<File>) onAdd;
+  final Function(String uniqueId) onRemove;
+  final Function(String uniqueId) onRetry;
   final List<String> allowedExtensions;
   final int maxFiles;
-  final List<File> initialFiles;
 
   @override
   State<FileUploadWidget> createState() => _FileUploadWidgetState();
 }
 
 class _FileUploadWidgetState extends State<FileUploadWidget> {
-  List<File> _files = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _files = List.from(widget.initialFiles);
-  }
-
   Future<void> _pickFiles() async {
     final context = this.context;
+    if (widget.states.length >= widget.maxFiles) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('最多只能上传 ${widget.maxFiles} 个文件')),
+      );
+      return;
+    }
+
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -50,18 +54,11 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
       );
 
       if (result != null) {
-        final List<File> newFiles = result.paths
+        final newFiles = result.paths
             .where((path) => path != null)
             .map((path) => File(path!))
             .toList();
-
-        setState(() {
-          _files.addAll(newFiles);
-          if (_files.length > widget.maxFiles) {
-            _files = _files.take(widget.maxFiles).toList();
-          }
-        });
-        widget.onFilesChanged(_files);
+        widget.onAdd(newFiles);
       }
     } catch (e) {
       if (context.mounted) {
@@ -70,13 +67,6 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
         ).showSnackBar(SnackBar(content: Text('选择文件失败: $e')));
       }
     }
-  }
-
-  void _removeFile(int index) {
-    setState(() {
-      _files.removeAt(index);
-    });
-    widget.onFilesChanged(_files);
   }
 
   String _getFileExtension(String fileName) {
@@ -124,7 +114,7 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
             ),
             const SizedBox(width: 8),
             Text(
-              '(${_files.length}/${widget.maxFiles})',
+              '(${widget.states.length}/${widget.maxFiles})',
               style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
           ],
@@ -132,100 +122,153 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
         const SizedBox(height: 12),
         _buildFileList(),
         const SizedBox(height: 12),
-        if (_files.length < widget.maxFiles) _buildAddFileButton(),
+        if (widget.states.length < widget.maxFiles) _buildAddFileButton(),
       ],
     );
   }
 
   Widget _buildFileList() {
-    if (_files.isEmpty) {
+    if (widget.states.isEmpty) {
       return const SizedBox.shrink();
     }
 
     return Column(
-      children: _files.asMap().entries.map((entry) {
-        final index = entry.key;
-        final file = entry.value;
-        return _buildFileItem(file, index);
+      children: widget.states.map((state) {
+        return _buildFileItem(state);
       }).toList(),
     );
   }
 
-  Widget _buildFileItem(File file, int index) {
-    final fileName = file.path.split('/').last;
+  Widget _buildFileItem(FileUploadState state) {
+    final fileName = state.file.path.split('/').last;
     final extension = _getFileExtension(fileName);
     final fileIcon = _getFileIcon(extension);
     final fileColor = _getFileColor(extension);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.grey[50],
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey[300]!),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Icon(fileIcon, size: 24, color: fileColor),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  fileName,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          Row(
+            children: [
+              Icon(fileIcon, size: 24, color: fileColor),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      fileName,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _getStatusText(state),
+                      style: TextStyle(
+                          fontSize: 12, color: _getStatusColor(state)),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '${extension.toUpperCase()} 文件',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+              if (state.status != UploadStatus.uploading)
+                IconButton(
+                  onPressed: () => widget.onRemove(state.uniqueId),
+                  icon: const Icon(Icons.close, size: 18, color: Colors.red),
                 ),
-              ],
+              if (state.status == UploadStatus.failure)
+                IconButton(
+                  onPressed: () => widget.onRetry(state.uniqueId),
+                  icon: const Icon(Icons.refresh, size: 18, color: Colors.blue),
+                ),
+            ],
+          ),
+          if (state.status == UploadStatus.uploading) ...[
+            const SizedBox(height: 8),
+            LinearProgressIndicator(
+              value: state.progress > 0 ? state.progress : null,
+              backgroundColor: Colors.grey[300],
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
             ),
-          ),
-          IconButton(
-            onPressed: () => _removeFile(index),
-            icon: const Icon(Icons.close, size: 18, color: Colors.red),
-          ),
+          ],
         ],
       ),
     );
   }
 
+  String _getStatusText(FileUploadState state) {
+    switch (state.status) {
+      case UploadStatus.uploading:
+        final percent = (state.progress * 100).toStringAsFixed(0);
+        return '正在上传... $percent%';
+      case UploadStatus.success:
+        return '上传成功';
+      case UploadStatus.failure:
+        return '上传失败: ${state.errorMessage ?? '未知错误'}';
+      default:
+        final fileName = state.file.path.split('/').last;
+        final extension = _getFileExtension(fileName);
+        return '${extension.toUpperCase()} 文件';
+    }
+  }
+
+  Color _getStatusColor(FileUploadState state) {
+    switch (state.status) {
+      case UploadStatus.uploading:
+        return Colors.blue;
+      case UploadStatus.success:
+        return Colors.green;
+      case UploadStatus.failure:
+        return Colors.red;
+      default:
+        return Colors.grey[600]!;
+    }
+  }
+
   Widget _buildAddFileButton() {
+    final bool canAdd = widget.states.length < widget.maxFiles;
     return GestureDetector(
-      onTap: _pickFiles,
+      onTap: canAdd ? _pickFiles : null,
       child: DottedBorder(
         borderType: BorderType.RRect,
         radius: const Radius.circular(8),
         dashPattern: const [8, 4],
-        color: Colors.blue,
+        color: canAdd ? Colors.blue : Colors.grey,
         strokeWidth: 2,
         child: Container(
           width: double.infinity,
           height: 60,
           decoration: BoxDecoration(
-            color: Colors.blue.withValues(alpha: 0.05),
+            color: canAdd
+                ? Colors.blue.withOpacity(0.05)
+                : Colors.grey.withOpacity(0.05),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.cloud_upload, size: 24, color: Colors.blue[600]),
+              Icon(
+                Icons.cloud_upload,
+                size: 24,
+                color: canAdd ? Colors.blue[600] : Colors.grey[600],
+              ),
               const SizedBox(width: 8),
               Text(
                 '点击上传文件',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.blue[600],
+                  color: canAdd ? Colors.blue[600] : Colors.grey[600],
                   fontWeight: FontWeight.w500,
                 ),
               ),

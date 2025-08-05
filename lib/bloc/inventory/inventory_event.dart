@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 
@@ -34,8 +33,8 @@ class InventoryMaterialsCompared extends InventoryEvent {
 
 /// 暂存待上传的照片
 class InventoryPhotosUpdated extends InventoryEvent {
-  final File? photo1;
-  final File? photo2;
+  final String? photo1;
+  final String? photo2;
   const InventoryPhotosUpdated({this.photo1, this.photo2});
 }
 

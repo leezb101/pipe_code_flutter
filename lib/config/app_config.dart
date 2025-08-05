@@ -110,14 +110,11 @@ class AppConfig {
       case Environment.development:
         // 上传文件接口可能与业务接口使用不同的 base URL
         // 默认情况下与 apiBaseUrl 相同，但可以根据需要单独配置
-        if (apiBaseUrl.contains('10.3.3') || apiBaseUrl.contains('10.3.2')) {
-          return 'http://10.3.6.235/m'; // 本地开发环境
-        }
-        return apiBaseUrl;
+        return 'http://10.3.6.235'; // 本地开发环境
       case Environment.staging:
-        return apiBaseUrl;
+        return 'http://10.3.6.235'; // 本地开发环境
       case Environment.production:
-        return apiBaseUrl;
+        return 'http://10.3.6.235'; // 本地开发环境
     }
   }
 

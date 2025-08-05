@@ -36,39 +36,69 @@ abstract class UploadApiService {
 
 /// 文件上传结果
 class UploadResult {
-  final String fileId;
-  final String fileName;
   final String fileUrl;
-  final int fileSize;
-  final String? fileType;
+  final String fileMd5;
+  final String filePath;
+  final String domain;
+  final String scene;
+  final int size;
+  final int mtime;
+  final String src;
+  final String retmsg;
+  final int retcode;
+  final String fileName;
+  final String fileType;
   final DateTime uploadTime;
 
   UploadResult({
-    required this.fileId,
-    required this.fileName,
     required this.fileUrl,
-    required this.fileSize,
-    this.fileType,
+    required this.fileMd5,
+    required this.filePath,
+    required this.domain,
+    required this.scene,
+    required this.size,
+    required this.mtime,
+    required this.src,
+    required this.retmsg,
+    required this.retcode,
+    required this.fileName,
+    required this.fileType,
     required this.uploadTime,
   });
 
   factory UploadResult.fromJson(Map<String, dynamic> json) {
     return UploadResult(
-      fileId: json['fileId'] as String,
-      fileName: json['fileName'] as String,
-      fileUrl: json['fileUrl'] as String,
-      fileSize: json['fileSize'] as int,
-      fileType: json['fileType'] as String?,
-      uploadTime: DateTime.parse(json['uploadTime'] as String),
+      fileUrl: json['url'] ?? '',
+      fileMd5: json['md5'] ?? '',
+      filePath: json['path'] ?? '',
+      domain: json['domain'] ?? '',
+      scene: json['scene'] ?? '',
+      size: json['size'] ?? 0,
+      mtime: json['mtime'] ?? 0,
+      src: json['src'] ?? '',
+      retmsg: json['retmsg'] ?? '',
+      retcode: json['retcode'] ?? -1,
+      fileName: json['fileName'] ?? '',
+      fileType: json['fileType'] ?? '',
+      uploadTime: json['uploadTime'] != null
+          ? DateTime.parse(json['uploadTime'])
+          : DateTime.now(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'fileId': fileId,
+      'url': fileUrl,
+      'md5': fileMd5,
+      'path': filePath,
+      'domain': domain,
+      'scene': scene,
+      'size': size,
+      'mtime': mtime,
+      'src': src,
+      'retmsg': retmsg,
+      'retcode': retcode,
       'fileName': fileName,
-      'fileUrl': fileUrl,
-      'fileSize': fileSize,
       'fileType': fileType,
       'uploadTime': uploadTime.toIso8601String(),
     };
