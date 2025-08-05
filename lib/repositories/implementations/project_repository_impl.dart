@@ -13,7 +13,6 @@ import 'package:pipe_code_flutter/services/storage_service.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/project_repository.dart';
 
 class ProjectRepositoryImpl implements ProjectRepository {
-  final ApiServiceInterface _apiService;
   final StorageService _storageService;
 
   // 项目相关的内存缓存
@@ -24,8 +23,7 @@ class ProjectRepositoryImpl implements ProjectRepository {
   ProjectRepositoryImpl({
     required ApiServiceInterface apiService,
     required StorageService storageService,
-  })  : _apiService = apiService,
-        _storageService = storageService;
+  }) : _storageService = storageService;
 
   @override
   Future<void> saveCurrentUserRoleInfo(

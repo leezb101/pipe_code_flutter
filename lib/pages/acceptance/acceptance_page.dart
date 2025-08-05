@@ -38,6 +38,13 @@ class AcceptancePage extends StatefulWidget {
 }
 
 class _AcceptancePageState extends State<AcceptancePage> {
+  // 静态常量 BoxShadow，避免重复创建
+  static const BoxShadow _acceptancePageBoxShadow = BoxShadow(
+    color: Color(0x1A000000), // 0.1 opacity black
+    blurRadius: 8,
+    offset: Offset(0, -2),
+  );
+
   // 为每个上传组件创建一个Cubit
   late final FileUploadCubit _acceptancePhotosCubit;
   late final FileUploadCubit _inspectionReportsCubit;
@@ -588,13 +595,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        boxShadow: const [_acceptancePageBoxShadow],
       ),
       child: SafeArea(
         child: Column(
@@ -755,7 +756,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
               type: 1, // 1 for image
               name: state.uploadResult!.fileName,
               url: state.uploadResult!.fileUrl,
-              attachFormat: state.uploadResult!.fileType ?? 'jpg',
+              attachFormat: state.uploadResult!.fileType,
             ),
           ),
     );
@@ -770,7 +771,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
               type: 2, // 2 for inspection report file
               name: state.uploadResult!.fileName,
               url: state.uploadResult!.fileUrl,
-              attachFormat: state.uploadResult!.fileType ?? 'pdf',
+              attachFormat: state.uploadResult!.fileType,
             ),
           ),
     );
@@ -785,7 +786,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
               type: 3, // 3 for acceptance report file
               name: state.uploadResult!.fileName,
               url: state.uploadResult!.fileUrl,
-              attachFormat: state.uploadResult!.fileType ?? 'pdf',
+              attachFormat: state.uploadResult!.fileType,
             ),
           ),
     );

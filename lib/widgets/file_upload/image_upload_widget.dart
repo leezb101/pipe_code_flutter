@@ -45,9 +45,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   Future<void> _pickImages() async {
     final context = this.context;
     if (widget.states.length >= widget.maxImages) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('最多只能上传 ${widget.maxImages} 张图片')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('最多只能上传 ${widget.maxImages} 张图片')));
       return;
     }
     try {
@@ -61,8 +61,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
       }
     }
   }
@@ -70,9 +71,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   Future<void> _takePicture() async {
     final context = this.context;
     if (widget.states.length >= widget.maxImages) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('最多只能上传 ${widget.maxImages} 张图片')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('最多只能上传 ${widget.maxImages} 张图片')));
       return;
     }
     try {
@@ -86,8 +87,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('拍照失败: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('拍照失败: $e')));
       }
     }
   }
@@ -215,7 +217,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
             '(至少${widget.requiredPhotoCount}张)',
             style: TextStyle(fontSize: 14, color: Colors.red[600]),
           ),
-        ]
+        ],
       ],
     );
   }
@@ -243,7 +245,8 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
         children: [
           // Image container
           GestureDetector(
-            onTap: () => (state.status == UploadStatus.success ||
+            onTap: () =>
+                (state.status == UploadStatus.success ||
                     state.status == UploadStatus.initial)
                 ? _previewImages(index)
                 : null,
@@ -270,9 +273,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
             ),
           ),
           // Overlay for upload status
-          Positioned.fill(
-            child: _buildStatusOverlay(state),
-          ),
+          Positioned.fill(child: _buildStatusOverlay(state)),
           // Remove button
           if (state.status != UploadStatus.uploading)
             Positioned(
@@ -337,7 +338,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
                 const Icon(Icons.error_outline, color: Colors.red, size: 28),
                 const SizedBox(height: 4),
                 GestureDetector(
-                  onTap: () => widget.onRetry(state.uniqueId),
+                  onTap: () {
+                    widget.onRetry(state.uniqueId);
+                  },
                   child: const Text(
                     '重试',
                     style: TextStyle(color: Colors.white, fontSize: 12),
@@ -348,17 +351,20 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
           ),
         );
       case UploadStatus.success:
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.4),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Center(
-            child: Icon(Icons.check_circle, color: Colors.white, size: 32),
+        // 用 IgnorePointer 避免 overlay 拦截手势，保证图片可点击预览
+        return IgnorePointer(
+          ignoring: true,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: .4),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Center(
+              child: Icon(Icons.check_circle, color: Colors.white, size: 32),
+            ),
           ),
         );
       case UploadStatus.initial:
-      default:
         return const SizedBox.shrink();
     }
   }

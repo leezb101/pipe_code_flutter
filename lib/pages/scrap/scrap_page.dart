@@ -6,7 +6,6 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -56,35 +55,39 @@ class _ScrapPageState extends State<ScrapPage> {
     if (widget.materials != null) {
       // 从MaterialInfoForBusiness初始化
       context.read<ScrapBloc>().add(
-            InitializeScrapSubmission(materialInfoForBusiness: widget.materials!),
-          );
+        InitializeScrapSubmission(materialInfoForBusiness: widget.materials!),
+      );
     } else if (widget.codes != null) {
       // 从扫码结果初始化
       _scannedCodes.addAll(widget.codes!); // 保存初始的扫码
       context.read<ScrapBloc>().add(
-            InitializeScrapFromCodes(codes: widget.codes!),
-          );
+        InitializeScrapFromCodes(codes: widget.codes!),
+      );
     }
   }
 
   void _submitScrap() {
     final uploadStates = _imageUploadCubit.state;
-    final isUploading =
-        uploadStates.any((s) => s.status == UploadStatus.uploading);
+    final isUploading = uploadStates.any(
+      (s) => s.status == UploadStatus.uploading,
+    );
     if (isUploading) {
       context.showInfoToast('照片仍在上传中，请稍候...');
       return;
     }
 
-    final hasFailures =
-        uploadStates.any((s) => s.status == UploadStatus.failure);
+    final hasFailures = uploadStates.any(
+      (s) => s.status == UploadStatus.failure,
+    );
     if (hasFailures) {
       context.showErrorToast('有图片上传失败，请重试或删除。');
       return;
     }
 
     final photoUrls = uploadStates
-        .where((s) => s.status == UploadStatus.success && s.uploadResult != null)
+        .where(
+          (s) => s.status == UploadStatus.success && s.uploadResult != null,
+        )
         .map((state) => state.uploadResult!.fileUrl)
         .toList();
 

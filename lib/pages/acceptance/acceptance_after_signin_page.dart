@@ -487,7 +487,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
             type: 1,
             name: state.uploadResult!.fileName,
             url: state.uploadResult!.fileUrl,
-            attachFormat: state.uploadResult!.fileType ?? 'jpg',
+            attachFormat: state.uploadResult!.fileType,
           );
         })
         .toList();

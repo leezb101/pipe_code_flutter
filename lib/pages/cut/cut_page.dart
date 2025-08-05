@@ -171,7 +171,6 @@ class _CutViewState extends State<CutView> {
 
   // Placeholder for Original Material Section
   Widget _buildOriginalMaterialSection(BuildContext context, CutState state) {
-    final photoPath = state.originalMaterialPhotoPath;
     return Card(
       elevation: 2,
       child: Padding(

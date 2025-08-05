@@ -8,15 +8,13 @@
 import 'package:pipe_code_flutter/models/common/result.dart';
 import 'package:pipe_code_flutter/models/install/install_detail_vo.dart';
 import 'package:pipe_code_flutter/models/install/do_install_vo.dart';
-import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/install_api_service.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/install_repository.dart';
 
 class InstallRepositoryImpl implements InstallRepository {
   final InstallApiService _installApiService;
-  final CommonQueryApiService _commonQueryApiService;
 
-  InstallRepositoryImpl(this._installApiService, this._commonQueryApiService);
+  InstallRepositoryImpl(this._installApiService);
 
   @override
   Future<Result<InstallDetailVo>> getInstallDetail(int id) async {

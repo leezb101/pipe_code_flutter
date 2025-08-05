@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -465,7 +464,7 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
             type: 1,
             name: state.uploadResult!.fileName,
             url: state.uploadResult!.fileUrl,
-            attachFormat: state.uploadResult!.fileType ?? 'jpg',
+            attachFormat: state.uploadResult!.fileType,
           );
         })
         .toList();

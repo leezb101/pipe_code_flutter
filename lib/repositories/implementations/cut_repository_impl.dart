@@ -27,10 +27,10 @@ class CutRepositoryImpl implements CutRepository {
     } else {
       // Check for the specific tip case (code -1)
       if (result.code == -1) {
-        throw TipException(result.msg ?? '操作提示');
+        throw TipException(result.msg);
       }
       // For all other errors, throw a general exception.
-      throw GetCutTipsException(result.msg ?? '获取切割提示失败');
+      throw GetCutTipsException(result.msg);
     }
   }
 
@@ -39,7 +39,7 @@ class CutRepositoryImpl implements CutRepository {
     final result = await _apiService.doCut(request);
 
     if (!result.isSuccess) {
-      throw DoCutException(result.msg ?? '执行切割操作失败');
+      throw DoCutException(result.msg);
     }
   }
 }

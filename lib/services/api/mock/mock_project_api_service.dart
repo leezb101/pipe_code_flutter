@@ -22,7 +22,6 @@ import '../../../utils/mock_data_generator.dart';
 class MockProjectApiService implements ProjectApiService {
   static const Duration _defaultDelay = Duration(milliseconds: 800);
   static final List<ProjectListItem> _mockProjects = [];
-  static final List<ProjectDetail> _mockProjectDetails = [];
   static int _nextId = 1;
 
   static void _initializeMockData() {

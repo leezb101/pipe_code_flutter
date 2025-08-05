@@ -102,8 +102,7 @@ class RepositoryFactory {
   /// 创建并返回一个 [InstallRepository] 实例。
   static InstallRepository createInstallRepository() {
     final installApiService = ApiServiceFactory.createInstallApiService();
-    final commonQueryApiService = ApiServiceFactory.createCommonQueryService();
-    return InstallRepositoryImpl(installApiService, commonQueryApiService);
+    return InstallRepositoryImpl(installApiService);
   }
 
   /// 创建并返回一个 [ListRepository] 实例。

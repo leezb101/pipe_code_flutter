@@ -8,17 +8,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import '../../repositories/interfaces/acceptance_repository.dart';
-import '../../repositories/interfaces/material_handle_repository.dart';
 import '../../utils/logger.dart';
 import 'acceptance_event.dart';
 import 'acceptance_state.dart';
 
 class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
   final AcceptanceRepository _repository;
-  final MaterialHandleRepository _materialHandleRepository;
 
-  AcceptanceBloc(this._repository, this._materialHandleRepository)
-    : super(const AcceptanceInitial()) {
+  AcceptanceBloc(this._repository) : super(const AcceptanceInitial()) {
     on<LoadAcceptanceDetail>(_onLoadAcceptanceDetail);
     on<SubmitAcceptance>(_onSubmitAcceptance);
     on<AuditAcceptance>(_onAuditAcceptance);

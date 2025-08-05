@@ -5,7 +5,6 @@
  * @LastEditTime: 2025-07-28 16:09:04
  * @copyright: Copyright © 2025 高新供水.
  */
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -45,10 +44,10 @@ class _SignoutPageState extends State<SignoutPage> {
     super.initState();
     _imageUploadCubit = FileUploadCubit();
     context.read<SignoutBloc>().add(
-          LoadWarehouseInfo(
-            materialId: widget.materials.normals.first.baseInfo.materialId,
-          ),
-        );
+      LoadWarehouseInfo(
+        materialId: widget.materials.normals.first.baseInfo.materialId,
+      ),
+    );
   }
 
   @override
@@ -280,7 +279,6 @@ class _SignoutPageState extends State<SignoutPage> {
   }
 
   Widget _buildWarehouseSection(SignoutReady state) {
-    final signoutDetail = state.signoutDetail;
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -591,15 +589,17 @@ class _SignoutPageState extends State<SignoutPage> {
 
   void _handleSubmit(SignoutReady state) {
     final uploadStates = _imageUploadCubit.state;
-    final isUploading =
-        uploadStates.any((s) => s.status == UploadStatus.uploading);
+    final isUploading = uploadStates.any(
+      (s) => s.status == UploadStatus.uploading,
+    );
     if (isUploading) {
       context.showInfoToast('照片仍在上传中，请稍候...');
       return;
     }
 
-    final hasFailures =
-        uploadStates.any((s) => s.status == UploadStatus.failure);
+    final hasFailures = uploadStates.any(
+      (s) => s.status == UploadStatus.failure,
+    );
     if (hasFailures) {
       context.showErrorToast('有图片上传失败，请重试或删除。');
       return;
@@ -609,12 +609,14 @@ class _SignoutPageState extends State<SignoutPage> {
         .where(
           (s) => s.status == UploadStatus.success && s.uploadResult != null,
         )
-        .map((state) => AttachmentVO(
-              type: 1, // 1 for image
-              name: state.uploadResult!.fileName,
-              url: state.uploadResult!.fileUrl,
-              attachFormat: state.uploadResult!.fileType ?? 'jpg',
-            ))
+        .map(
+          (state) => AttachmentVO(
+            type: 1, // 1 for image
+            name: state.uploadResult!.fileName,
+            url: state.uploadResult!.fileUrl,
+            attachFormat: state.uploadResult!.fileType,
+          ),
+        )
         .toList();
 
     final selectedUserIds = _getSelectedUserIds(state);

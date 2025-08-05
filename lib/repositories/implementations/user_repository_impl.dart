@@ -11,7 +11,6 @@ import 'package:pipe_code_flutter/services/storage_service.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/user_repository.dart';
 
 class UserRepositoryImpl implements UserRepository {
-  final ApiServiceInterface _apiService;
   final StorageService _storageService;
 
   // 内存缓存，避免频繁读取存储
@@ -22,8 +21,7 @@ class UserRepositoryImpl implements UserRepository {
   UserRepositoryImpl({
     required ApiServiceInterface apiService,
     required StorageService storageService,
-  })  : _apiService = apiService,
-        _storageService = storageService;
+  }) : _storageService = storageService;
 
   @override
   Future<WxLoginVO?> loadUserFromStorage() async {

@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +10,6 @@ import '../../bloc/install/install_event.dart';
 import '../../bloc/install/install_state.dart';
 import '../../models/install/do_install_vo.dart';
 import '../../models/acceptance/material_vo.dart';
-import '../../models/acceptance/attachment_vo.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
 import '../../models/qr_scan/qr_scan_type.dart';
 import '../../widgets/common_state_widgets.dart' as common;

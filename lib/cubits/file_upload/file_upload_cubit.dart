@@ -14,14 +14,13 @@ import 'file_upload_state.dart';
 class FileUploadCubit extends Cubit<List<FileUploadState>> {
   final UploadApiService _uploadApiService;
 
-  FileUploadCubit()
-      : _uploadApiService = getIt<UploadApiService>(),
-        super([]);
+  FileUploadCubit() : _uploadApiService = getIt<UploadApiService>(), super([]);
 
   /// 添加文件并立即开始上传
   Future<void> addFiles(List<File> files) async {
-    final newUploadStates =
-        files.map((file) => FileUploadState.fromFile(file)).toList();
+    final newUploadStates = files
+        .map((file) => FileUploadState.fromFile(file))
+        .toList();
 
     // 先将文件以initial状态添加到UI
     emit([...state, ...newUploadStates]);
@@ -40,8 +39,12 @@ class FileUploadCubit extends Cubit<List<FileUploadState>> {
     final currentState = state[stateIndex];
 
     // 更新状态为uploading
-    _updateState(uniqueId,
-        status: UploadStatus.uploading, progress: 0.0, errorMessage: null);
+    _updateState(
+      uniqueId,
+      status: UploadStatus.uploading,
+      progress: 0.0,
+      errorMessage: null,
+    );
 
     final result = await _uploadApiService.uploadFile(
       currentState.file,
@@ -61,7 +64,7 @@ class FileUploadCubit extends Cubit<List<FileUploadState>> {
       _updateState(
         uniqueId,
         status: UploadStatus.failure,
-        errorMessage: result.msg ?? '上传失败',
+        errorMessage: result.msg,
       );
     }
   }

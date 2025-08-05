@@ -24,7 +24,7 @@ class ReturnRepositoryImpl implements ReturnRepository {
     if (result.isSuccess && result.data != null) {
       return result.data!;
     } else {
-      throw GetReturnDetailException(result.msg ?? '获取退库详情失败');
+      throw GetReturnDetailException(result.msg);
     }
   }
 
@@ -33,7 +33,7 @@ class ReturnRepositoryImpl implements ReturnRepository {
     final result = await _apiService.doReturn(request);
 
     if (!result.isSuccess) {
-      throw DoReturnException(result.msg ?? '执行退库操作失败');
+      throw DoReturnException(result.msg);
     }
   }
 }

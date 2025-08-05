@@ -132,24 +132,6 @@ class RecordsRepositoryImpl implements RecordsRepository {
     return response.data!.records.map((todo) => TodoRecordItem(todo)).toList();
   }
 
-  Future<List<RecordItem>> _getProjectInitRecords({
-    int pageNum = 1,
-    int pageSize = 10,
-  }) async {
-    final response = await _apiService.getProjectInitRecords(
-      pageNum: pageNum,
-      pageSize: pageSize,
-    );
-
-    if (!response.isSuccess) {
-      throw Exception(response.msg.isNotEmpty ? response.msg : '获取项目列表失败');
-    }
-
-    return response.data!.records
-        .map((record) => ProjectRecordItem(record))
-        .toList();
-  }
-
   @override
   Future<List<RecordItem>> getProjectAuditRecords({
     int pageNum = 1,

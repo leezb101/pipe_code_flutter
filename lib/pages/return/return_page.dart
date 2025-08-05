@@ -493,15 +493,17 @@ class _ReturnPageState extends State<ReturnPage> {
     }
 
     final uploadStates = _imageUploadCubit.state;
-    final isUploading =
-        uploadStates.any((s) => s.status == UploadStatus.uploading);
+    final isUploading = uploadStates.any(
+      (s) => s.status == UploadStatus.uploading,
+    );
     if (isUploading) {
       context.showInfoToast('照片仍在上传中，请稍候...');
       return;
     }
 
-    final hasFailures =
-        uploadStates.any((s) => s.status == UploadStatus.failure);
+    final hasFailures = uploadStates.any(
+      (s) => s.status == UploadStatus.failure,
+    );
     if (hasFailures) {
       context.showErrorToast('有图片上传失败，请重试或删除。');
       return;
@@ -511,18 +513,20 @@ class _ReturnPageState extends State<ReturnPage> {
         .where(
           (s) => s.status == UploadStatus.success && s.uploadResult != null,
         )
-        .map((state) => AttachmentVO(
-              type: 1, // 1 for image
-              name: state.uploadResult!.fileName,
-              url: state.uploadResult!.fileUrl,
-              attachFormat: state.uploadResult!.fileType ?? 'jpg',
-            ))
+        .map(
+          (state) => AttachmentVO(
+            type: 1, // 1 for image
+            name: state.uploadResult!.fileName,
+            url: state.uploadResult!.fileUrl,
+            attachFormat: state.uploadResult!.fileType,
+          ),
+        )
         .toList();
 
     // 通过BLoC提交退库申请
-    context
-        .read<ReturnBloc>()
-        .add(UpdateImageList(imageList: photoAttachments));
+    context.read<ReturnBloc>().add(
+      UpdateImageList(imageList: photoAttachments),
+    );
     context.read<ReturnBloc>().add(const SubmitReturn());
   }
 
