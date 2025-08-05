@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
 import '../../bloc/install/install_bloc.dart';
@@ -19,6 +18,8 @@ import '../../widgets/common_state_widgets.dart' as common;
 import '../../utils/toast_utils.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_state.dart';
+import 'package:pipe_code_flutter/widgets/file_upload/file_upload_widget.dart';
+import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 
 class InstallPage extends StatelessWidget {
   final String? signOutId;
@@ -55,16 +56,15 @@ class InstallView extends StatefulWidget {
 }
 
 class _InstallViewState extends State<InstallView> {
-  final ImagePicker _picker = ImagePicker();
   bool _isSubmitting = false;
 
   // 存储每个材料的照片和桩号
-  final Map<int, List<XFile>> _materialPhotos = {};
+  final Map<int, List<File>> _materialPhotos = {};
   final Map<int, String> _materialStakeNumbers = {};
   final Map<int, TextEditingController> _stakeNumberControllers = {};
 
   // 质量验收报告
-  String? _qualityReportUrl;
+  List<File> _qualityReportFiles = [];
 
   @override
   void dispose() {
@@ -225,25 +225,16 @@ class _InstallViewState extends State<InstallView> {
             const SizedBox(height: 16),
 
             // 安装照片部分
-            const Text(
-              '安装照片',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                // 第一张照片
-                _buildPhotoSlot(materialId, 0, photos),
-                const SizedBox(width: 12),
-                // 第二张照片
-                _buildPhotoSlot(materialId, 1, photos),
-                const Spacer(),
-                // 拍照按钮
-                OutlinedButton(
-                  onPressed: () => _takePhoto(materialId),
-                  child: const Text('拍照'),
-                ),
-              ],
+            ImageUploadWidget(
+              title: '安装照片',
+              maxImages: 2,
+              requiredPhotoCount: 2,
+              initialImages: _materialPhotos[materialId] ?? [],
+              onImagesChanged: (images) {
+                setState(() {
+                  _materialPhotos[materialId] = images;
+                });
+              },
             ),
             const SizedBox(height: 16),
 
@@ -259,6 +250,7 @@ class _InstallViewState extends State<InstallView> {
                   child: TextField(
                     controller: _stakeNumberControllers[materialId],
                     decoration: const InputDecoration(
+                      hintText: '请输入桩号',
                       border: OutlineInputBorder(),
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: 12,
@@ -266,7 +258,9 @@ class _InstallViewState extends State<InstallView> {
                       ),
                     ),
                     onChanged: (value) {
-                      _materialStakeNumbers[materialId] = value;
+                      setState(() {
+                        _materialStakeNumbers[materialId] = value;
+                      });
                     },
                   ),
                 ),
@@ -278,133 +272,68 @@ class _InstallViewState extends State<InstallView> {
     );
   }
 
-  Widget _buildPhotoSlot(int materialId, int photoIndex, List<XFile> photos) {
-    final hasPhoto = photos.length > photoIndex;
-
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.grey.shade50,
-      ),
-      child: hasPhoto
-          ? Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    File(photos[photoIndex].path),
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  right: -4,
-                  top: -4,
-                  child: IconButton(
-                    onPressed: () => _removePhoto(materialId, photoIndex),
-                    icon: const Icon(Icons.close),
-                    iconSize: 16,
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(24, 24),
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : const Icon(Icons.camera_alt, color: Colors.grey, size: 32),
-    );
-  }
-
   Widget _buildQualityReportSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _qualityReportUrl != null ? 'XXX安装质量验收报告.pdf' : '安装质量验收报告:',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                OutlinedButton(
-                  onPressed: _uploadQualityReport,
-                  child: const Text('上传附件'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+    return FileUploadWidget(
+      title: '质量验收报告',
+      maxFiles: 1,
+      initialFiles: _qualityReportFiles,
+      onFilesChanged: (files) {
+        setState(() {
+          _qualityReportFiles = files;
+        });
+      },
     );
   }
 
   Widget _buildScanButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () => _navigateToQrScan(context),
+    return Center(
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.qr_code_scanner),
+        label: const Text('继续扫码添加'),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          backgroundColor: Colors.blue,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
         ),
-        child: const Text(
-          '扫码安装',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
+        onPressed: () => _navigateToQrScan(context),
       ),
     );
   }
 
   Widget _buildActionButtons(BuildContext context, List<MaterialVO> materials) {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: () => context.pop(),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: const Text('返回'),
+    final canSubmit = _canSubmit(materials);
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: canSubmit ? Colors.green : Colors.grey,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: _canSubmit(materials)
-                ? () => _submitInstall(context, materials)
-                : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: _isSubmitting
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('提交'),
-          ),
-        ),
-      ],
+        onPressed: canSubmit ? () => _submitInstall(context, materials) : null,
+        child: _isSubmitting
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
+              )
+            : const Text(
+                '提交',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+      ),
     );
   }
 
@@ -423,47 +352,6 @@ class _InstallViewState extends State<InstallView> {
     });
   }
 
-  Future<void> _takePhoto(int materialId) async {
-    try {
-      final XFile? photo = await _picker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 80,
-      );
-
-      if (photo != null && context.mounted) {
-        setState(() {
-          _materialPhotos[materialId] = (_materialPhotos[materialId] ?? [])
-            ..add(photo);
-        });
-      }
-    } catch (e) {
-      if (context.mounted) {
-        context.showErrorToast('拍照失败: $e');
-      }
-    }
-  }
-
-  void _removePhoto(int materialId, int photoIndex) {
-    setState(() {
-      final photos = _materialPhotos[materialId];
-      if (photos != null && photoIndex < photos.length) {
-        photos.removeAt(photoIndex);
-      }
-    });
-  }
-
-  void _uploadQualityReport() {
-    // TODO: 实现文件上传逻辑
-    setState(() {
-      _qualityReportUrl = 'dummy_report_url.pdf';
-    });
-    if (mounted) {
-      context.showSuccessToast('质量验收报告上传成功');
-    }
-  }
-
   bool _canSubmit(List<MaterialVO> materials) {
     if (materials.isEmpty || _isSubmitting) return false;
 
@@ -478,11 +366,18 @@ class _InstallViewState extends State<InstallView> {
       }
     }
 
+    if (_qualityReportFiles.isEmpty) {
+      return false;
+    }
+
     return true;
   }
 
   void _submitInstall(BuildContext context, List<MaterialVO> materials) {
-    if (!_canSubmit(materials)) return;
+    if (!_canSubmit(materials)) {
+      context.showErrorToast('请确保所有材料都已上传2张照片、填写了桩号，并上传了质量验收报告');
+      return;
+    }
 
     setState(() => _isSubmitting = true);
 
@@ -505,7 +400,9 @@ class _InstallViewState extends State<InstallView> {
     final request = DoInstallVo(
       materialList: updatedMaterials,
       imageList: allAttachments, // 照片信息已包含在材料列表中，此处保持空列表
-      installQualityUrl: _qualityReportUrl,
+      installQualityUrl: _qualityReportFiles.isNotEmpty
+          ? _qualityReportFiles.first.path
+          : null,
       // onlyInstall: true,
       signOutId: widget.signOutId != null
           ? int.tryParse(widget.signOutId!)

@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-08-03
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-04 15:43:05
+ * @LastEditTime: 2025-08-04 18:30:00
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:pipe_code_flutter/bloc/scrap/scrap_bloc.dart';
 import 'package:pipe_code_flutter/bloc/scrap/scrap_event.dart';
 import 'package:pipe_code_flutter/bloc/scrap/scrap_state.dart';
@@ -20,6 +19,7 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 
 class ScrapPage extends StatefulWidget {
   final MaterialInfoForBusiness? materials;
@@ -32,8 +32,7 @@ class ScrapPage extends StatefulWidget {
 }
 
 class _ScrapPageState extends State<ScrapPage> {
-  final ImagePicker _picker = ImagePicker();
-  final List<File> _photos = [];
+  List<File> _photos = [];
 
   // 保存已经扫描过的原始码，用于去重
   final Set<String> _scannedCodes = <String>{};
@@ -48,48 +47,22 @@ class _ScrapPageState extends State<ScrapPage> {
     if (widget.materials != null) {
       // 从MaterialInfoForBusiness初始化
       context.read<ScrapBloc>().add(
-        InitializeScrapSubmission(materialInfoForBusiness: widget.materials!),
-      );
+            InitializeScrapSubmission(materialInfoForBusiness: widget.materials!),
+          );
     } else if (widget.codes != null) {
       // 从扫码结果初始化
       _scannedCodes.addAll(widget.codes!); // 保存初始的扫码
       context.read<ScrapBloc>().add(
-        InitializeScrapFromCodes(codes: widget.codes!),
-      );
+            InitializeScrapFromCodes(codes: widget.codes!),
+          );
     }
-  }
-
-  Future<void> _pickImage() async {
-    try {
-      final XFile? image = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 80,
-      );
-
-      if (image != null) {
-        final file = File(image.path);
-        setState(() {
-          _photos.add(file);
-        });
-
-        if (mounted) {
-          // 通知bloc添加照片
-          context.read<ScrapBloc>().add(AddScrapPhoto(photoPath: image.path));
-        }
-      }
-    } catch (e) {
-      if (mounted) ToastUtils.showError(context, '拍照失败: $e');
-    }
-  }
-
-  void _removePhoto(int index) {
-    setState(() {
-      _photos.removeAt(index);
-    });
-    context.read<ScrapBloc>().add(RemoveScrapPhoto(index: index));
   }
 
   void _submitScrap() {
+    // 更新bloc中的照片列表
+    final photoPaths = _photos.map((p) => p.path).toList();
+    context.read<ScrapBloc>().add(UpdateScrapPhotos(photoPaths: photoPaths));
+    // 触发提交
     context.read<ScrapBloc>().add(const SubmitScrap());
   }
 
@@ -204,7 +177,15 @@ class _ScrapPageState extends State<ScrapPage> {
                 const SizedBox(height: 24),
 
                 // 照片部分
-                _buildPhotoSection(state),
+                ImageUploadWidget(
+                  title: '照片',
+                  maxImages: 6,
+                  onImagesChanged: (images) {
+                    setState(() {
+                      _photos = images;
+                    });
+                  },
+                ),
                 const SizedBox(height: 100), // 为底部按钮留出空间
               ],
             ),
@@ -403,126 +384,6 @@ class _ScrapPageState extends State<ScrapPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPhotoSection(ScrapSubmissionReady state) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.camera_alt, size: 24, color: Colors.green[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '照片',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                // 已有照片
-                ...state.photoUrls.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final photoPath = entry.value;
-
-                  return Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.file(
-                            File(photoPath),
-                            width: 120,
-                            height: 120,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: GestureDetector(
-                            onTap: () => _removePhoto(index),
-                            child: Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-
-                // 添加照片按钮
-                if (state.photoUrls.length < 6)
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.grey[400]!,
-                          style: BorderStyle.solid,
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.camera_alt,
-                            size: 32,
-                            color: Colors.grey[600],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '拍照',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:pipe_code_flutter/bloc/cut/cut_bloc.dart';
 import 'package:pipe_code_flutter/bloc/cut/cut_event.dart';
 import 'package:pipe_code_flutter/bloc/cut/cut_state.dart';
@@ -14,6 +13,7 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 
 class CutPage extends StatelessWidget {
   const CutPage({super.key});
@@ -52,7 +52,6 @@ class CutView extends StatefulWidget {
 }
 
 class _CutViewState extends State<CutView> {
-  final ImagePicker _picker = ImagePicker();
   final TextEditingController _descriptionController = TextEditingController();
   // A map to hold controllers for each new item's length
   final Map<int, TextEditingController> _lengthControllers = {};
@@ -91,7 +90,7 @@ class _CutViewState extends State<CutView> {
             context.showErrorToast(state.errorMessage!);
           } else if (state.status == CutStatus.tip &&
               state.tipMessage != null) {
-            _showTipDialog(state.tipMessage!);
+            _showTipDialog(state.tipMessage as String);
           }
         },
         builder: (context, state) {
@@ -157,6 +156,7 @@ class _CutViewState extends State<CutView> {
 
   // Placeholder for Original Material Section
   Widget _buildOriginalMaterialSection(BuildContext context, CutState state) {
+    final photoPath = state.originalMaterialPhotoPath;
     return Card(
       elevation: 2,
       child: Padding(
@@ -177,16 +177,17 @@ class _CutViewState extends State<CutView> {
               const Divider(),
               _buildInfoDetails(state.originalMaterialInfo!),
               const SizedBox(height: 16),
-              _buildPhotoPicker(
-                context: context,
+              ImageUploadWidget(
                 title: '原耗材照片',
-                photoPath: state.originalMaterialPhotoPath,
-                onTakePhoto: () => _takePhoto(
-                  context,
-                  (path) => context.read<CutBloc>().add(
-                    CutOriginalPhotoUpdated(path),
-                  ),
-                ),
+                maxImages: 1,
+                initialImages: photoPath != null ? [File(photoPath)] : [],
+                onImagesChanged: (images) {
+                  context.read<CutBloc>().add(
+                    CutOriginalPhotoUpdated(
+                      images.isNotEmpty ? images.first.path : '',
+                    ),
+                  );
+                },
               ),
             ],
           ],
@@ -235,6 +236,7 @@ class _CutViewState extends State<CutView> {
     NewCutMaterialItem item,
     int index,
   ) {
+    final photoPath = item.photoPath;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -282,16 +284,18 @@ class _CutViewState extends State<CutView> {
           },
         ),
         const SizedBox(height: 12),
-        _buildPhotoPicker(
-          context: context,
+        ImageUploadWidget(
           title: '截管后照片',
-          photoPath: item.photoPath,
-          onTakePhoto: () => _takePhoto(
-            context,
-            (path) => context.read<CutBloc>().add(
-              CutNewItemPhotoUpdated(index: index, photoPath: path),
-            ),
-          ),
+          maxImages: 1,
+          initialImages: photoPath != null ? [File(photoPath)] : [],
+          onImagesChanged: (images) {
+            context.read<CutBloc>().add(
+              CutNewItemPhotoUpdated(
+                index: index,
+                photoPath: images.isNotEmpty ? images.first.path : '',
+              ),
+            );
+          },
         ),
       ],
     );
@@ -337,27 +341,27 @@ class _CutViewState extends State<CutView> {
 
   // --- Helper Methods ---
 
-  void _scanOriginalMaterial(BuildContext context) {
+  void _scanOriginalMaterial(BuildContext context) async {
     final config = QrScanConfig(
       scanType: QrScanType.pipeCopy,
       title: '原耗材扫码',
       scanMode: QrScanMode.single,
     );
     // We now await the result from the scan page.
-    context.pushNamed('qr-scan', extra: config).then((result) {
-      // The result comes from QrScanPage popping with the scanned codes.
-      if (result != null && result is List<QrScanResult> && result.isNotEmpty) {
-        final qrCode = result.first.code;
-        // With the raw QR code, we now ask the MaterialHandleCubit to fetch the data.
-        // The BlocListener<MaterialHandleCubit> will then handle the success/failure state.
-        if (context.mounted) {
-          context.read<MaterialHandleCubit>().getMaterialInfoFromQr(qrCode);
-        }
-      }
-    });
+    final result = await context.pushNamed('qr-scan', extra: config);
+
+    if (!context.mounted) return;
+
+    // The result comes from QrScanPage popping with the scanned codes.
+    if (result != null && result is List<QrScanResult> && result.isNotEmpty) {
+      final qrCode = result.first.code;
+      // With the raw QR code, we now ask the MaterialHandleCubit to fetch the data.
+      // The BlocListener<MaterialHandleCubit> will then handle the success/failure state.
+      context.read<MaterialHandleCubit>().getMaterialInfoFromQr(qrCode);
+    }
   }
 
-  void _scanNewMaterials(BuildContext context) {
+  void _scanNewMaterials(BuildContext context) async {
     final existingCodes = context
         .read<CutBloc>()
         .state
@@ -370,12 +374,14 @@ class _CutViewState extends State<CutView> {
       scanMode: QrScanMode.batch,
       existingCodesToExclude: existingCodes,
     );
-    context.pushNamed('qr-scan', extra: config).then((result) {
-      if (result != null && result is List<QrScanResult> && result.isNotEmpty) {
-        final qrCodes = result.map((r) => r.code).toList();
-        context.read<CutBloc>().add(CutNewMaterialsScanned(qrCodes));
-      }
-    });
+    final result = await context.pushNamed('qr-scan', extra: config);
+
+    if (!context.mounted) return;
+
+    if (result != null && result is List<QrScanResult> && result.isNotEmpty) {
+      final qrCodes = result.map((r) => r.code).toList();
+      context.read<CutBloc>().add(CutNewMaterialsScanned(qrCodes));
+    }
   }
 
   Widget _buildInfoDetails(MaterialInfoForBusiness info) {
@@ -400,11 +406,11 @@ class _CutViewState extends State<CutView> {
         _buildInfoRow('规格型号:', info.normals[0].baseInfo.spec ?? 'N/A'),
         _buildInfoRow(
           '管节长:',
-          '${info.normals.first.extendedFields['len'] ?? 'N/A'}mm',
+          '${info.normals.first.extendedFields['len']?.toString() ?? 'N/A'}mm',
         ),
         _buildInfoRow(
           '生产日期:',
-          info.normals.first.extendedFields['produceDate'] ?? 'N/A',
+          info.normals.first.extendedFields['produceDate']?.toString() ?? 'N/A',
         ),
       ],
     );
@@ -421,59 +427,6 @@ class _CutViewState extends State<CutView> {
         ],
       ),
     );
-  }
-
-  Widget _buildPhotoPicker({
-    required BuildContext context,
-    required String title,
-    required String? photoPath,
-    required VoidCallback onTakePhoto,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        if (photoPath != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Image.file(
-              File(photoPath),
-              height: 150,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
-        OutlinedButton.icon(
-          onPressed: onTakePhoto,
-          icon: const Icon(Icons.camera_alt),
-          label: Text(photoPath == null ? '拍照上传' : '重新拍照'),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 40),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _takePhoto(
-    BuildContext context,
-    Function(String) onPhotoTaken,
-  ) async {
-    try {
-      final XFile? photo = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 80,
-        maxWidth: 1920,
-      );
-      if (photo != null) {
-        onPhotoTaken(photo.path);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        context.showErrorToast('拍照失败: $e');
-      }
-    }
   }
 
   void _updateLengthControllers(List<NewCutMaterialItem> items) {

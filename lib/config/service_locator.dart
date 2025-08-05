@@ -32,6 +32,7 @@ import 'package:pipe_code_flutter/repositories/repository_factory.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/identification_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/upload_api_service.dart';
 import 'package:pipe_code_flutter/services/api_service_factory.dart';
 import 'package:pipe_code_flutter/services/qr_scan_service.dart';
 import 'package:pipe_code_flutter/services/storage_service.dart';
@@ -72,6 +73,9 @@ Future<void> setupServiceLocator({
   );
   getIt.registerLazySingleton<ScrapApiService>(
     () => ApiServiceFactory.createScrapService(),
+  );
+  getIt.registerLazySingleton<UploadApiService>(
+    () => ApiServiceFactory.createUploadService(),
   );
 
   // QR Scan Service

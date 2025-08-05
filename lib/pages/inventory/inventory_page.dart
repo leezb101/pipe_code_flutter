@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-08-03 
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-03 17:03:32
+ * @LastEditTime: 2025-08-04 18:35:00
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_event.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_state.dart';
@@ -24,6 +23,7 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 
 class InventoryPage extends StatefulWidget {
   final int taskId;
@@ -35,9 +35,7 @@ class InventoryPage extends StatefulWidget {
 }
 
 class _InventoryPageState extends State<InventoryPage> {
-  final ImagePicker _picker = ImagePicker();
-  File? _photo1;
-  File? _photo2;
+  List<File> _photos = [];
 
   @override
   void initState() {
@@ -64,35 +62,13 @@ class _InventoryPageState extends State<InventoryPage> {
 
         // 使用MaterialHandleCubit查询物料信息
         await context.read<MaterialHandleCubit>().getMaterialInfoFromQrList(
-          qrCodes,
-        );
+              qrCodes,
+            );
       }
     } catch (e) {
       if (mounted) {
         context.showErrorToast('扫码失败: $e');
       }
-    }
-  }
-
-  Future<void> _pickImage(int photoNumber) async {
-    final XFile? image = await _picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 80,
-    );
-
-    if (image != null) {
-      setState(() {
-        if (photoNumber == 1) {
-          _photo1 = File(image.path);
-        } else {
-          _photo2 = File(image.path);
-        }
-      });
-
-      // 更新Bloc状态
-      context.read<InventoryBloc>().add(
-        InventoryPhotosUpdated(photo1: _photo1, photo2: _photo2),
-      );
     }
   }
 
@@ -104,10 +80,14 @@ class _InventoryPageState extends State<InventoryPage> {
       return;
     }
 
-    if (_photo1 == null || _photo2 == null) {
-      context.showErrorToast('请先上传两张照片');
+    if (_photos.length < 2) {
+      context.showErrorToast('请上传两张盘点照片');
       return;
     }
+
+    context.read<InventoryBloc>().add(
+          InventoryPhotosUpdated(photo1: _photos[0], photo2: _photos[1]),
+        );
 
     context.read<InventoryBloc>().add(InventorySubmitted());
   }
@@ -191,7 +171,24 @@ class _InventoryPageState extends State<InventoryPage> {
           const SizedBox(height: 16),
           _buildScanButton(state),
           const SizedBox(height: 16),
-          _buildPhotosSection(),
+          ImageUploadWidget(
+            title: '盘点照片',
+            maxImages: 2,
+            requiredPhotoCount: 2,
+            onImagesChanged: (images) {
+              setState(() {
+                _photos = images;
+              });
+              if (images.length == 2) {
+                context.read<InventoryBloc>().add(
+                      InventoryPhotosUpdated(
+                        photo1: images[0],
+                        photo2: images[1],
+                      ),
+                    );
+              }
+            },
+          ),
           const SizedBox(height: 24),
           _buildSubmitButton(state),
         ],
@@ -490,76 +487,9 @@ class _InventoryPageState extends State<InventoryPage> {
     );
   }
 
-  Widget _buildPhotosSection() {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.camera_alt, size: 24, color: Colors.purple[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '盘点照片',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildPhotoCard('照片 1', _photo1, () => _pickImage(1)),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildPhotoCard('照片 2', _photo2, () => _pickImage(2)),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPhotoCard(String title, File? photo, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 120,
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: photo != null
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(photo, fit: BoxFit.cover),
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.camera_alt, size: 32, color: Colors.grey[400]),
-                  const SizedBox(height: 4),
-                  Text(
-                    title,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-
   Widget _buildSubmitButton(InventoryState state) {
     final isSubmitting = state.submissionStatus == SubmissionStatus.loading;
-    final canSubmit =
-        state.inventoryDetail != null && _photo1 != null && _photo2 != null;
+    final canSubmit = state.inventoryDetail != null && _photos.length >= 2;
 
     return SizedBox(
       width: double.infinity,

@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
 import '../../bloc/acceptance/acceptance_bloc.dart';
 import '../../bloc/acceptance/acceptance_event.dart';
@@ -21,6 +20,7 @@ import '../../widgets/common_state_widgets.dart' as common;
 import '../../utils/toast_utils.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_state.dart';
+import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 
 class AcceptanceAfterSigninPage extends StatelessWidget {
   final int acceptanceId;
@@ -79,8 +79,7 @@ class AcceptanceAfterSigninView extends StatefulWidget {
 }
 
 class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
-  final List<XFile> _warehousePhotos = [];
-  final ImagePicker _picker = ImagePicker();
+  List<File> _warehousePhotos = [];
   bool _isSubmitting = false;
 
   @override
@@ -181,7 +180,15 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
           const SizedBox(height: 16),
           _buildScanButton(context),
           const SizedBox(height: 16),
-          _buildWarehousePhotos(),
+          ImageUploadWidget(
+            title: '入库照片',
+            requiredPhotoCount: 2,
+            onImagesChanged: (images) {
+              setState(() {
+                _warehousePhotos = images;
+              });
+            },
+          ),
           const SizedBox(height: 16),
           _buildWarehouseInfo(acceptanceInfo),
           const SizedBox(height: 16),
@@ -286,88 +293,6 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
-    );
-  }
-
-  Widget _buildWarehousePhotos() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                Text(
-                  '入库照片',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  ' (至少2张)',
-                  style: TextStyle(fontSize: 14, color: Colors.red),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (_warehousePhotos.isNotEmpty) ...[
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _warehousePhotos.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final photo = entry.value;
-                  return _buildPhotoPreview(photo, index);
-                }).toList(),
-              ),
-              const SizedBox(height: 12),
-            ],
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _takePhoto,
-                icon: const Icon(Icons.camera_alt),
-                label: const Text('拍照'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPhotoPreview(XFile photo, int index) {
-    return Stack(
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.file(File(photo.path), fit: BoxFit.cover),
-          ),
-        ),
-        Positioned(
-          right: -4,
-          top: -4,
-          child: IconButton(
-            onPressed: () => _removePhoto(index),
-            icon: const Icon(Icons.close),
-            iconSize: 16,
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              minimumSize: const Size(24, 24),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -506,34 +431,6 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     return allMaterialScanned && hasEnoughPhotos && !_isSubmitting;
   }
 
-  Future<void> _takePhoto() async {
-    final context = this.context;
-    try {
-      final XFile? photo = await _picker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 80,
-      );
-
-      if (photo != null) {
-        setState(() {
-          _warehousePhotos.add(photo);
-        });
-      }
-    } catch (e) {
-      if (context.mounted) {
-        context.showErrorToast('拍照失败: $e');
-      }
-    }
-  }
-
-  void _removePhoto(int index) {
-    setState(() {
-      _warehousePhotos.removeAt(index);
-    });
-  }
-
   void _submitSignin(
     BuildContext context,
     AcceptanceInfoVO acceptanceInfo,
@@ -548,7 +445,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
         type: 1,
         name: 'warehouse_photo_${entry.key + 1}.jpg',
         url: entry.value.path,
-        attachFormat: '', // Image type
+        attachFormat: 'jpg', // Image type
       );
     }).toList();
 

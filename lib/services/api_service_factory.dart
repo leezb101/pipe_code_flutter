@@ -56,6 +56,9 @@ import 'api/mock/mock_acceptance_api_service.dart';
 import 'api/interfaces/cut_api_service.dart';
 import 'api/implementations/cut_api_service_impl.dart';
 import 'api/mock/mock_cut_api_service.dart';
+import 'api/interfaces/upload_api_service.dart';
+import 'api/implementations/upload_api_service_impl.dart';
+import 'api/mock/mock_upload_api_service.dart';
 
 class ApiServiceFactory {
   static ApiServiceInterface create() {
@@ -193,6 +196,15 @@ class ApiServiceFactory {
     }
   }
 
+  static UploadApiService createUploadService() {
+    if (AppConfig.isMockEnabled) {
+      return MockUploadApiService();
+    } else {
+      final dio = _createUploadDio();
+      return UploadApiServiceImpl(dio);
+    }
+  }
+
   static Dio _createDio() {
     final dio = Dio();
 
@@ -246,6 +258,31 @@ class ApiServiceFactory {
         },
       ),
     );
+
+    return dio;
+  }
+
+  static Dio _createUploadDio() {
+    final dio = Dio();
+
+    // Base configuration for upload service
+    dio.options.baseUrl = AppConfig.uploadBaseUrl;
+    dio.options.connectTimeout = AppConfig.apiTimeout;
+    dio.options.receiveTimeout = AppConfig.apiTimeout;
+    dio.options.headers.addAll(AppConfig.defaultHeaders);
+
+    // Add authentication interceptor
+    dio.interceptors.add(AuthInterceptor());
+
+    // Add enhanced network logging interceptor in development
+    if (AppConfig.isDevelopment) {
+      dio.interceptors.add(NetworkLogger.createNetworkInterceptor());
+
+      Logger.info(
+        'Upload Dio configured with base URL: ${AppConfig.uploadBaseUrl}',
+        tag: 'NETWORK',
+      );
+    }
 
     return dio;
   }

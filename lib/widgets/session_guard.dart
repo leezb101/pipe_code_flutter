@@ -107,15 +107,15 @@ class _SessionGuardState extends State<SessionGuard> {
 
   /// 根据会话状态构建内容
   Widget _buildSessionContent(BuildContext context, SessionState sessionState) {
-    switch (sessionState.runtimeType) {
-      case SessionInitial _:
+    switch (sessionState) {
+      case SessionInitial():
         return _buildLoadingView('正在初始化...');
 
-      case SessionLoading _:
+      case SessionLoading():
         return _buildLoadingView('正在加载...');
 
-      case SessionIdentitySelectionRequired _:
-        final state = sessionState as SessionIdentitySelectionRequired;
+      case SessionIdentitySelectionRequired():
+        final state = sessionState;
         return IdentitySelector(
           wxLoginVO: state.wxLoginVO,
           onProjectParticipantSelected: () {
@@ -128,8 +128,8 @@ class _SessionGuardState extends State<SessionGuard> {
           },
         );
 
-      case SessionProjectSelectionRequired _:
-        final state = sessionState as SessionProjectSelectionRequired;
+      case SessionProjectSelectionRequired():
+        final state = sessionState;
         return ProjectSelector(
           wxLoginVO: state.wxLoginVO,
           availableProjects: state.availableProjects,
@@ -143,17 +143,17 @@ class _SessionGuardState extends State<SessionGuard> {
           },
         );
 
-      case SessionStorekeeperEstablished _:
-      case SessionProjectEstablished _:
+      case SessionStorekeeperEstablished():
+      case SessionProjectEstablished():
         // 会话已建立，显示主界面
         return widget.child;
 
-      case SessionNoProjectsAvailable _:
-        final state = sessionState as SessionNoProjectsAvailable;
+      case SessionNoProjectsAvailable():
+        final state = sessionState;
         return _buildNoProjectsView(context, state);
 
-      case SessionError _:
-        final state = sessionState as SessionError;
+      case SessionError():
+        final state = sessionState;
         return _buildErrorView(context, state.error);
 
       default:

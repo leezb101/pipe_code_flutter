@@ -26,15 +26,14 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
   }) : _scrapRepository = scrapRepository,
        _materialHandleRepository = materialHandleRepository,
        super(const ScrapInitial()) {
-    on<LoadScrapDetail>(_onLoadScrapDetail);
     on<InitializeScrapSubmission>(_onInitializeScrapSubmission);
     on<InitializeScrapFromCodes>(_onInitializeScrapFromCodes);
     on<AppendMaterialsFromCodes>(_onAppendMaterialsFromCodes);
     on<RemoveMaterialsFromCodes>(_onRemoveMaterialsFromCodes);
-    on<AddScrapPhoto>(_onAddScrapPhoto);
-    on<RemoveScrapPhoto>(_onRemoveScrapPhoto);
-    on<UpdateMaterialQuantity>(_onUpdateMaterialQuantity);
+    on<UpdateScrapPhotos>(_onUpdateScrapPhotos);
     on<SubmitScrap>(_onSubmitScrap);
+    on<LoadScrapDetail>(_onLoadScrapDetail);
+    on<UpdateMaterialQuantity>(_onUpdateMaterialQuantity);
     on<ClearScrapData>(_onClearScrapData);
   }
 
@@ -275,49 +274,18 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
     }
   }
 
-  /// 添加照片
-  Future<void> _onAddScrapPhoto(
-    AddScrapPhoto event,
+  /// 更新照片列表
+  Future<void> _onUpdateScrapPhotos(
+    UpdateScrapPhotos event,
     Emitter<ScrapState> emit,
   ) async {
     if (state is ScrapSubmissionReady) {
       final currentState = state as ScrapSubmissionReady;
-
-      // 限制最多6张照片
-      if (currentState.photoUrls.length >= 6) {
-        emit(const ScrapError(message: '最多只能添加6张照片'));
-        return;
-      }
-
-      final updatedPhotos = List<String>.from(currentState.photoUrls)
-        ..add(event.photoPath);
-
-      emit(currentState.copyWith(photoUrls: updatedPhotos));
+      emit(currentState.copyWith(photoUrls: event.photoPaths));
       Logger.info(
-        'Photo added, total photos: ${updatedPhotos.length}',
+        'Photo list updated, total photos: ${event.photoPaths.length}',
         tag: 'ScrapBloc',
       );
-    }
-  }
-
-  /// 删除照片
-  Future<void> _onRemoveScrapPhoto(
-    RemoveScrapPhoto event,
-    Emitter<ScrapState> emit,
-  ) async {
-    if (state is ScrapSubmissionReady) {
-      final currentState = state as ScrapSubmissionReady;
-
-      if (event.index >= 0 && event.index < currentState.photoUrls.length) {
-        final updatedPhotos = List<String>.from(currentState.photoUrls)
-          ..removeAt(event.index);
-
-        emit(currentState.copyWith(photoUrls: updatedPhotos));
-        Logger.info(
-          'Photo removed, total photos: ${updatedPhotos.length}',
-          tag: 'ScrapBloc',
-        );
-      }
     }
   }
 

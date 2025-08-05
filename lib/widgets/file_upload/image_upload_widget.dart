@@ -2,7 +2,7 @@
  * @Author: LeeZB
  * @Date: 2025-07-08 15:00:00
  * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-28 16:15:52
+ * @LastEditTime: 2025-08-04 18:00:00
  * @copyright: Copyright © 2025 高新供水.
  */
 
@@ -15,16 +15,20 @@ import 'image_preview_widget.dart';
 class ImageUploadWidget extends StatefulWidget {
   const ImageUploadWidget({
     super.key,
-    required this.title,
+    this.title,
     required this.onImagesChanged,
     this.maxImages = 9,
+    this.requiredPhotoCount,
     this.initialImages = const [],
+    this.label,
   });
 
-  final String title;
+  final String? title;
   final Function(List<File>) onImagesChanged;
   final int maxImages;
+  final int? requiredPhotoCount;
   final List<File> initialImages;
+  final String? label;
 
   @override
   State<ImageUploadWidget> createState() => _ImageUploadWidgetState();
@@ -40,14 +44,33 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
     _images = List.from(widget.initialImages);
   }
 
+  @override
+  void didUpdateWidget(covariant ImageUploadWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Allow external changes to update the internal list of images.
+    if (widget.initialImages != oldWidget.initialImages) {
+      setState(() {
+        _images = List.from(widget.initialImages);
+      });
+    }
+  }
+
   Future<void> _pickImages() async {
     final context = this.context;
+    if (_images.length >= widget.maxImages) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('最多只能上传 ${widget.maxImages} 张图片')),
+      );
+      return;
+    }
     try {
-      final List<XFile> pickedFiles = await _picker.pickMultiImage();
+      final List<XFile> pickedFiles = await _picker.pickMultiImage(
+        imageQuality: 80,
+        maxWidth: 1920,
+      );
       if (pickedFiles.isNotEmpty) {
-        final List<File> newImages = pickedFiles
-            .map((file) => File(file.path))
-            .toList();
+        final List<File> newImages =
+            pickedFiles.map((file) => File(file.path)).toList();
         setState(() {
           _images.addAll(newImages);
           if (_images.length > widget.maxImages) {
@@ -58,33 +81,36 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
       }
     }
   }
 
   Future<void> _takePicture() async {
     final context = this.context;
+    if (_images.length >= widget.maxImages) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('最多只能上传 ${widget.maxImages} 张图片')),
+      );
+      return;
+    }
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.camera,
+        imageQuality: 80,
+        maxWidth: 1920,
       );
       if (pickedFile != null) {
         setState(() {
           _images.add(File(pickedFile.path));
-          if (_images.length > widget.maxImages) {
-            _images = _images.take(widget.maxImages).toList();
-          }
         });
         widget.onImagesChanged(_images);
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('拍照失败: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('拍照失败: $e')));
       }
     }
   }
@@ -142,6 +168,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
                     _takePicture();
                   },
                 ),
+                const Divider(),
                 ListTile(
                   leading: const Icon(Icons.close, color: Colors.grey),
                   title: const Text('取消'),
@@ -159,36 +186,73 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[200]!),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              widget.title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '(${_images.length}/${widget.maxImages})',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            ),
+            if (widget.title != null && widget.title!.isNotEmpty) ...[
+              _buildTitle(),
+              const SizedBox(height: 12),
+            ],
+            _buildImageGrid(),
           ],
         ),
-        const SizedBox(height: 12),
-        _buildImageGrid(),
+      ),
+    );
+  }
+
+  Widget _buildTitle() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (widget.label != null) ...[
+          Text(
+            widget.label!,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+        if (widget.title != null)
+          Text(
+            widget.title!,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+        const SizedBox(width: 8),
+        Text(
+          '(${_images.length}/${widget.maxImages})',
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+        ),
+        if (widget.requiredPhotoCount != null &&
+            widget.requiredPhotoCount! > 0) ...[
+          const SizedBox(width: 8),
+          Text(
+            '(至少${widget.requiredPhotoCount}张)',
+            style: TextStyle(fontSize: 14, color: Colors.red[600]),
+          ),
+        ]
       ],
     );
   }
 
   Widget _buildImageGrid() {
     return Wrap(
-      spacing: 6,
-      runSpacing: 8,
+      spacing: 12,
+      runSpacing: 12,
       children: [
         ..._images.asMap().entries.map((entry) {
           final index = entry.key;
@@ -201,56 +265,61 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   }
 
   Widget _buildImageItem(File image, int index) {
-    return Stack(
-      children: [
-        GestureDetector(
-          onTap: () => _previewImages(index),
-          child: Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.file(
-                image,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.broken_image, color: Colors.grey),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-        Positioned(
-          top: 4,
-          right: 4,
-          child: GestureDetector(
-            onTap: () => _removeImage(index),
+    return Hero(
+      tag: 'image_upload_${image.path}_$index',
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          GestureDetector(
+            onTap: () => _previewImages(index),
             child: Container(
-              width: 24,
-              height: 24,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
-                color: Colors.red,
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                border: Border.all(color: Colors.grey[300]!),
               ),
-              child: const Icon(Icons.close, size: 16, color: Colors.white),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  image,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
-        ),
-      ],
+          Positioned(
+            top: -8,
+            right: -8,
+            child: GestureDetector(
+              onTap: () => _removeImage(index),
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.close, size: 16, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -260,28 +329,28 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
       child: DottedBorder(
         borderType: BorderType.RRect,
         radius: const Radius.circular(12),
-        dashPattern: const [8, 4],
-        color: Colors.blue,
-        strokeWidth: 2,
+        dashPattern: const [6, 4],
+        color: Colors.grey[400]!,
+        strokeWidth: 1.5,
         child: Container(
-          width: 100,
-          height: 100,
+          width: 80,
+          height: 80,
           decoration: BoxDecoration(
-            color: Colors.blue.withValues(alpha: 0.05),
+            color: Colors.grey[50],
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.add_photo_alternate,
+                Icons.camera_alt_outlined,
                 size: 32,
-                color: Colors.blue[600],
+                color: Colors.grey[600],
               ),
               const SizedBox(height: 4),
               Text(
-                '添加图片',
-                style: TextStyle(fontSize: 12, color: Colors.blue[600]),
+                '添加照片',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
           ),

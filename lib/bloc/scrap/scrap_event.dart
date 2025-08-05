@@ -1,14 +1,14 @@
 /*
  * @Author: LeeZB
  * @Date: 2025-08-03
- * @LastEditors: LeeZB
- * @LastEditTime: 2025-08-03
+ * @LastEditors: Leezb101 leezb101@126.com
+ * @LastEditTime: 2025-08-04 19:00:00
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:equatable/equatable.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 
-abstract class ScrapEvent extends Equatable {
+sealed class ScrapEvent extends Equatable {
   const ScrapEvent();
 
   @override
@@ -25,7 +25,7 @@ class LoadScrapDetail extends ScrapEvent {
   List<Object?> get props => [scrapId];
 }
 
-/// 初始化报废申请（从扫码结果或MaterialInfoForBusiness初始化）
+/// 初始化报废申请（从MaterialInfoForBusiness初始化）
 class InitializeScrapSubmission extends ScrapEvent {
   final MaterialInfoForBusiness materialInfoForBusiness;
 
@@ -55,24 +55,24 @@ class AppendMaterialsFromCodes extends ScrapEvent {
   List<Object?> get props => [codes];
 }
 
-/// 添加照片
-class AddScrapPhoto extends ScrapEvent {
-  final String photoPath;
+/// 通过扫码删除材料
+class RemoveMaterialsFromCodes extends ScrapEvent {
+  final List<String> codes;
 
-  const AddScrapPhoto({required this.photoPath});
+  const RemoveMaterialsFromCodes({required this.codes});
 
   @override
-  List<Object?> get props => [photoPath];
+  List<Object?> get props => [codes];
 }
 
-/// 删除照片
-class RemoveScrapPhoto extends ScrapEvent {
-  final int index;
+/// 更新整个照片列表
+class UpdateScrapPhotos extends ScrapEvent {
+  final List<String> photoPaths;
 
-  const RemoveScrapPhoto({required this.index});
+  const UpdateScrapPhotos({required this.photoPaths});
 
   @override
-  List<Object?> get props => [index];
+  List<Object?> get props => [photoPaths];
 }
 
 /// 更新物料数量
@@ -92,16 +92,6 @@ class UpdateMaterialQuantity extends ScrapEvent {
 /// 提交报废申请
 class SubmitScrap extends ScrapEvent {
   const SubmitScrap();
-}
-
-/// 通过扫码删除材料
-class RemoveMaterialsFromCodes extends ScrapEvent {
-  final List<String> codes;
-
-  const RemoveMaterialsFromCodes({required this.codes});
-
-  @override
-  List<Object?> get props => [codes];
 }
 
 /// 清空所有数据，重置状态
