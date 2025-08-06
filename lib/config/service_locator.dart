@@ -12,6 +12,7 @@ import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
 import 'package:pipe_code_flutter/bloc/cut/cut_bloc.dart';
+import 'package:pipe_code_flutter/bloc/material_detail/material_detail_cubit.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/auth_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/cut_repository.dart';
@@ -20,6 +21,7 @@ import 'package:pipe_code_flutter/repositories/interfaces/enum_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/install_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/inventory_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/list_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_detail_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/project_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/records_repository.dart';
@@ -134,6 +136,10 @@ Future<void> setupServiceLocator({
   getIt.registerLazySingleton<ScrapRepository>(
     () => RepositoryFactory.createScrapRepository(),
   );
+
+  getIt.registerLazySingleton<MaterialDetailRepository>(
+    () => RepositoryFactory.createMaterialDetailRepository(),
+  );
   // Wait for async singletons to be ready before registering dependent Blocs
   await getIt.isReady<AuthRepository>();
   await getIt.isReady<ProjectRepository>();
@@ -175,6 +181,7 @@ Future<void> setupServiceLocator({
   getIt.registerFactory<CutBloc>(
     () => CutBloc(cutRepository: getIt<CutRepository>()),
   );
+  getIt.registerFactory<MaterialDetailCubit>(() => MaterialDetailCubit());
   getIt.registerFactory<InventoryBloc>(
     () => InventoryBloc(
       inventoryRepository: getIt<InventoryRepository>(),

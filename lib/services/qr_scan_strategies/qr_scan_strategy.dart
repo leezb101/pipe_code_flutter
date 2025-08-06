@@ -11,7 +11,6 @@ import '../../models/material/material_info_for_business.dart';
 import '../../repositories/interfaces/material_handle_repository.dart';
 import '../../utils/logger.dart';
 import '../../config/service_locator.dart';
-import '../api_service_factory.dart';
 
 abstract class QrScanStrategy {
   Future<QrScanProcessResult?> process(List<QrScanResult> results, {Map<String, dynamic>? context});
@@ -529,41 +528,37 @@ class IdentificationStrategy implements QrScanStrategy {
     Logger.qrScan('扫描时间: ${result.scannedAt}', deviceCode: result.code);
 
     try {
-      // 调用扫码识别API
-      final identificationService =
-          ApiServiceFactory.createIdentificationService();
-      final apiResult = await identificationService.scanMaterialIdentification(
-        result.code,
-      );
-
-      if (apiResult.isSuccess && apiResult.data != null) {
-        Logger.qrScan(
-          '识别成功 - 类型: ${apiResult.data!.materialType.name}, 分组: ${apiResult.data!.materialGroup.name}, 编码: ${apiResult.data!.materialCode}',
-          deviceCode: result.code,
-        );
-
-        // 返回导航到材料详情页面
-        return QrScanProcessResult(
-          success: true,
-          navigationData: QrScanNavigationData(
-            route: '/material-detail',
-            data: {'identificationData': apiResult.data},
-          ),
-        );
-      } else {
-        Logger.qrScan('识别失败: ${apiResult.msg}', deviceCode: result.code);
+      // 简化验证：只检查二维码格式有效性，不获取详细数据
+      if (result.code.trim().isEmpty) {
         return QrScanProcessResult(
           success: false,
-          errorMessage: apiResult.msg.isNotEmpty ? apiResult.msg : '识别失败',
+          errorMessage: '二维码内容为空',
         );
       }
+
+      // 基本格式验证（可根据需要添加更多验证规则）
+      if (result.code.length < 3) {
+        return QrScanProcessResult(
+          success: false,
+          errorMessage: '二维码内容格式无效',
+        );
+      }
+
+      Logger.qrScan('扫码识别验证通过 - 编码: ${result.code}', deviceCode: result.code);
+
+      // 直接返回二维码字符串，让 MaterialDetailCubit 处理数据获取
+      return QrScanProcessResult(
+        success: true,
+        navigationData: QrScanNavigationData(
+          route: '/material-detail',
+          data: {'materialCode': result.code},
+        ),
+      );
     } catch (e) {
-      Logger.qrScan('识别API调用异常: $e', deviceCode: result.code);
+      Logger.qrScan('扫码识别处理异常: $e', deviceCode: result.code);
       return QrScanProcessResult(
         success: false,
-        errorMessage: e.toString().contains('网络')
-            ? e.toString()
-            : '识别服务异常，请稍后重试',
+        errorMessage: '扫码处理失败: ${e.toString()}',
       );
     }
   }

@@ -18,6 +18,7 @@ part 'scan_identification_response.g.dart';
 class ScanIdentificationData extends Equatable {
   const ScanIdentificationData({
     required this.info,
+    this.factorySourceQr,
     this.projectName,
     required this.projectId,
     this.projectAddress,
@@ -35,6 +36,8 @@ class ScanIdentificationData extends Equatable {
 
   /// 材料详细信息
   final MaterialInfo info;
+
+  final String? factorySourceQr;
 
   /// 项目名称
   final String? projectName;
@@ -93,6 +96,7 @@ class ScanIdentificationData extends Equatable {
   @override
   List<Object?> get props => [
     info,
+    factorySourceQr,
     projectName,
     projectId,
     projectAddress,

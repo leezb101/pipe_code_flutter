@@ -10,6 +10,7 @@ ScanIdentificationData _$ScanIdentificationDataFromJson(
   Map<String, dynamic> json,
 ) => ScanIdentificationData(
   info: MaterialInfo.fromJson(json['info'] as Map<String, dynamic>),
+  factorySourceQr: json['factorySourceQr'] as String?,
   projectName: json['projectName'] as String?,
   projectId: (json['projectId'] as num).toInt(),
   projectAddress: json['projectAddress'] as String?,
@@ -29,6 +30,7 @@ Map<String, dynamic> _$ScanIdentificationDataToJson(
   ScanIdentificationData instance,
 ) => <String, dynamic>{
   'info': instance.info,
+  'factorySourceQr': instance.factorySourceQr,
   'projectName': instance.projectName,
   'projectId': instance.projectId,
   'projectAddress': instance.projectAddress,

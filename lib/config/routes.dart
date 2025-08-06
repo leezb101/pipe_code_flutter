@@ -50,7 +50,6 @@ import '../pages/material/material_detail_page.dart';
 import '../pages/return/return_page.dart';
 import '../pages/return/return_detail_page.dart';
 import '../bloc/return/return_bloc.dart';
-import '../models/material/scan_identification_response.dart';
 import '../pages/inventory/inventory_list_page.dart';
 import '../pages/inventory/inventory_page.dart';
 import '../pages/inventory/inventory_detail_page.dart';
@@ -325,12 +324,11 @@ final GoRouter appRouter = GoRouter(
             if (data == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            final identificationData =
-                data['identificationData'] as ScanIdentificationData?;
-            if (identificationData == null) {
-              return const Scaffold(body: Center(child: Text('材料信息错误')));
+            final materialCode = data['materialCode'] as String?;
+            if (materialCode == null || materialCode.trim().isEmpty) {
+              return const Scaffold(body: Center(child: Text('二维码内容无效')));
             }
-            return MaterialDetailPage(identificationData: identificationData);
+            return MaterialDetailPage(materialCode: materialCode);
           },
         ),
         GoRoute(

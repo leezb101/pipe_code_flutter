@@ -7,8 +7,10 @@
  */
 
 import 'package:pipe_code_flutter/repositories/implementations/inventory_repository_impl.dart';
+import 'package:pipe_code_flutter/repositories/implementations/material_detail_repository_impl.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/inventory_repository.dart';
 import 'package:pipe_code_flutter/repositories/implementations/return_repository_impl.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_detail_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/return_repository.dart';
 import 'package:pipe_code_flutter/services/api_service_factory.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
@@ -178,5 +180,15 @@ class RepositoryFactory {
   static ScrapRepository createScrapRepository() {
     final scrapApiService = ApiServiceFactory.createScrapService();
     return ScrapRepositoryImpl(scrapApiService);
+  }
+
+  static MaterialDetailRepository createMaterialDetailRepository() {
+    final cutApiService = ApiServiceFactory.createCutService();
+    final identificationApiService =
+        ApiServiceFactory.createIdentificationService();
+    return MaterialDetailRepositoryImpl(
+      identificationApiService,
+      cutApiService,
+    );
   }
 }

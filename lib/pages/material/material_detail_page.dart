@@ -8,59 +8,127 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/material/scan_identification_response.dart';
 import '../../models/material/material_info_base.dart';
 import '../../utils/toast_utils.dart';
+import '../../bloc/material_detail/material_detail_cubit.dart';
+import '../../bloc/material_detail/material_detail_state.dart';
 
-class MaterialDetailPage extends StatefulWidget {
-  const MaterialDetailPage({super.key, required this.identificationData});
+class MaterialDetailPage extends StatelessWidget {
+  const MaterialDetailPage({super.key, required this.materialCode});
 
-  final ScanIdentificationData identificationData;
+  final String materialCode;
 
-  @override
-  State<MaterialDetailPage> createState() => _MaterialDetailPageState();
-}
-
-class _MaterialDetailPageState extends State<MaterialDetailPage> {
   @override
   Widget build(BuildContext context) {
-    final data = widget.identificationData;
+    return BlocProvider(
+      create: (context) =>
+          MaterialDetailCubit()..loadMaterialDetail(materialCode),
+      child: const MaterialDetailView(),
+    );
+  }
+}
 
+class MaterialDetailView extends StatelessWidget {
+  const MaterialDetailView({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<MaterialDetailCubit, MaterialDetailState>(
+      builder: (context, state) {
+        if (state is MaterialDetailLoading) {
+          return _buildLoadingState();
+        } else if (state is MaterialDetailError) {
+          return _buildErrorState(state, context);
+        } else if (state is MaterialDetailLoaded) {
+          return _buildLoadedState(state, context);
+        } else {
+          return _buildInitialLoadingState();
+        }
+      },
+    );
+  }
+
+  Widget _buildLoadingState() {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('材料详情'),
-        actions: [
-          IconButton(
-            onPressed: _copyAllInfo,
-            icon: const Icon(Icons.copy),
-            tooltip: '复制全部信息',
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      appBar: AppBar(title: const Text('材料详情')),
+      body: const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Widget _buildInitialLoadingState() {
+    return Scaffold(
+      appBar: AppBar(title: const Text('材料详情')),
+      body: const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Widget _buildErrorState(MaterialDetailError state, BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('材料详情')),
+      body: Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildSummaryCard(data),
+            Text(state.message),
             const SizedBox(height: 16),
-            _buildProjectInfo(data),
-            const SizedBox(height: 16),
-            _buildBasicInfo(data.info.baseInfo),
-            const SizedBox(height: 16),
-            if (data.info.extendedFields.isNotEmpty) ...[
-              _buildExtendedInfo(data.info.extendedFields),
-              const SizedBox(height: 16),
-            ],
-            _buildLocationInfo(data),
+            ElevatedButton(
+              onPressed: () {
+                // For now, we'll just pop the page since we don't have the materialCode
+                // In a real implementation, we'd store the materialCode in the BLoC state
+                Navigator.of(context).pop();
+              },
+              child: const Text('返回'),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSummaryCard(ScanIdentificationData data) {
+  Widget _buildLoadedState(MaterialDetailLoaded state, BuildContext context) {
+    final data = state.materialDetail;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('材料详情'),
+        actions: [
+          IconButton(
+            onPressed: () => _copyAllInfo(data, context),
+            icon: const Icon(Icons.copy),
+            tooltip: '复制全部信息',
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () => context
+            .read<MaterialDetailCubit>()
+            .refreshMaterialDetail(data.info.baseInfo.materialCode!),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSummaryCard(data, context),
+              const SizedBox(height: 16),
+              _buildProjectInfo(data, context),
+              const SizedBox(height: 16),
+              _buildBasicInfo(data.info.baseInfo, context),
+              const SizedBox(height: 16),
+              if (data.info.extendedFields.isNotEmpty) ...[
+                _buildExtendedInfo(data.info.extendedFields, context),
+                const SizedBox(height: 16),
+              ],
+              _buildLocationInfo(data, context),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(ScanIdentificationData data, BuildContext context) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -97,9 +165,9 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildInfoRow('材料编码', data.materialCode),
+            _buildInfoRow('材料编码', data.materialCode, context),
             if (data.info.baseInfo.spec != null)
-              _buildInfoRow('规格', data.info.baseInfo.spec!),
+              _buildInfoRow('规格', data.info.baseInfo.spec!, context),
             if (data.cut)
               Chip(
                 label: const Text('已切割'),
@@ -111,7 +179,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _viewCuttingRecord,
+                  onPressed: () => _viewCuttingRecord(data, context),
                   icon: const Icon(Icons.account_tree),
                   label: const Text('查看截管记录'),
                   style: ElevatedButton.styleFrom(
@@ -127,7 +195,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     );
   }
 
-  Widget _buildProjectInfo(ScanIdentificationData data) {
+  Widget _buildProjectInfo(ScanIdentificationData data, BuildContext context) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -141,18 +209,18 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            _buildInfoRow('项目ID', data.projectId.toString()),
+            _buildInfoRow('项目ID', data.projectId.toString(), context),
             if (data.projectName != null)
-              _buildInfoRow('项目名称', data.projectName!),
+              _buildInfoRow('项目名称', data.projectName!, context),
             if (data.projectAddress != null)
-              _buildInfoRow('项目地址', data.projectAddress!),
+              _buildInfoRow('项目地址', data.projectAddress!, context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBasicInfo(MaterialInfoBase baseInfo) {
+  Widget _buildBasicInfo(MaterialInfoBase baseInfo, BuildContext context) {
     final basicFields = [
       ('材料编码', baseInfo.materialCode),
       ('发货单号', baseInfo.deliveryNumber),
@@ -186,7 +254,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
             ),
             const SizedBox(height: 12),
             ...nonEmptyFields.map(
-              (field) => _buildInfoRow(field.$1, field.$2!),
+              (field) => _buildInfoRow(field.$1, field.$2!, context),
             ),
           ],
         ),
@@ -194,7 +262,10 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     );
   }
 
-  Widget _buildExtendedInfo(Map<String, dynamic> extendedFields) {
+  Widget _buildExtendedInfo(
+    Map<String, dynamic> extendedFields,
+    BuildContext context,
+  ) {
     final nonEmptyFields = extendedFields.entries
         .where(
           (entry) => entry.value != null && entry.value.toString().isNotEmpty,
@@ -220,6 +291,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
               (entry) => _buildInfoRow(
                 _formatFieldName(entry.key),
                 entry.value.toString(),
+                context,
               ),
             ),
           ],
@@ -228,7 +300,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     );
   }
 
-  Widget _buildLocationInfo(ScanIdentificationData data) {
+  Widget _buildLocationInfo(ScanIdentificationData data, BuildContext context) {
     if (data.lat == null && data.lng == null && data.img == null) {
       return const SizedBox.shrink();
     }
@@ -247,17 +319,17 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
             ),
             const SizedBox(height: 12),
             if (data.lat != null && data.lng != null) ...[
-              _buildInfoRow('纬度', data.lat!.toStringAsFixed(6)),
-              _buildInfoRow('经度', data.lng!.toStringAsFixed(6)),
+              _buildInfoRow('纬度', data.lat!.toStringAsFixed(6), context),
+              _buildInfoRow('经度', data.lng!.toStringAsFixed(6), context),
             ],
-            if (data.img != null) _buildInfoRow('图片', data.img!),
+            if (data.img != null) _buildInfoRow('图片', data.img!, context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -274,7 +346,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
           ),
           Expanded(
             child: GestureDetector(
-              onLongPress: () => _copyToClipboard(value),
+              onLongPress: () => _copyToClipboard(value, context),
               child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
             ),
           ),
@@ -335,13 +407,12 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     return fieldMap[fieldName] ?? fieldName;
   }
 
-  void _copyToClipboard(String text) {
+  void _copyToClipboard(String text, BuildContext context) {
     Clipboard.setData(ClipboardData(text: text));
     context.showSuccessToast('已复制到剪贴板');
   }
 
-  void _copyAllInfo() {
-    final data = widget.identificationData;
+  void _copyAllInfo(ScanIdentificationData data, BuildContext context) {
     final buffer = StringBuffer();
 
     // 基本信息
@@ -417,10 +488,10 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     context.showSuccessToast('材料详情已复制到剪贴板');
   }
 
-  void _viewCuttingRecord() {
+  void _viewCuttingRecord(ScanIdentificationData data, BuildContext context) {
     context.pushNamed(
       'pipe-cutting-record',
-      queryParameters: {'materialCode': widget.identificationData.materialCode},
+      queryParameters: {'materialCode': data.materialCode},
     );
   }
 }
