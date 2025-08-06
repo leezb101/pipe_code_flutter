@@ -69,18 +69,18 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
 
   void _expandAllNodes() {
     final allNodes = <PipeCuttingTreeNode>[];
-    
+
     void collectNodes(PipeCuttingTreeNode node) {
       allNodes.add(node);
       for (final child in node.children) {
         collectNodes(child);
       }
     }
-    
+
     for (final root in treeController.roots) {
       collectNodes(root);
     }
-    
+
     for (final node in allNodes) {
       if (node.children.isNotEmpty) {
         treeController.expand(node);
@@ -117,9 +117,9 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
           children: [
             Text(
               '截管记录树状图',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -147,7 +147,9 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
   }
 
   Widget _buildTreeNode(
-      BuildContext context, TreeEntry<PipeCuttingTreeNode> entry) {
+    BuildContext context,
+    TreeEntry<PipeCuttingTreeNode> entry,
+  ) {
     return TreeIndentation(
       entry: entry,
       guide: IndentGuide.connectingLines(
@@ -161,7 +163,9 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
   }
 
   Widget _buildNodeContent(
-      BuildContext context, TreeEntry<PipeCuttingTreeNode> entry) {
+    BuildContext context,
+    TreeEntry<PipeCuttingTreeNode> entry,
+  ) {
     final node = entry.node;
     final hasChildren = node.children.isNotEmpty;
 
@@ -181,7 +185,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
           boxShadow: node.isCurrent
               ? [
                   BoxShadow(
-                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    color: Theme.of(context).primaryColor.withValues(alpha: .3),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -211,9 +215,9 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
                     const SizedBox(height: 4),
                     Text(
                       node.subtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                     ),
                   ],
                 ],
@@ -233,27 +237,21 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
           child: Text(
             node.displayText,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight:
-                      node.isCurrent ? FontWeight.bold : FontWeight.normal,
-                  color:
-                      node.isCurrent ? Theme.of(context).primaryColor : null,
-                ),
+              fontWeight: node.isCurrent ? FontWeight.bold : FontWeight.normal,
+              color: node.isCurrent ? Theme.of(context).primaryColor : null,
+            ),
           ),
         ),
         if (node.isCurrent) ...[
           const SizedBox(width: 8),
-          Icon(
-            Icons.star,
-            size: 16,
-            color: Theme.of(context).primaryColor,
-          ),
+          Icon(Icons.star, size: 16, color: Theme.of(context).primaryColor),
           const SizedBox(width: 4),
           Text(
             '当前',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
+              color: Theme.of(context).primaryColor,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ],
@@ -333,9 +331,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
-          Expanded(
-            child: Text(value),
-          ),
+          Expanded(child: Text(value)),
         ],
       ),
     );
