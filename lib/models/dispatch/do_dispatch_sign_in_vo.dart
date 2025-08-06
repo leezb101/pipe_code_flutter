@@ -33,7 +33,7 @@ class DoDispatchSignInVo extends Equatable {
   @override
   List<Object?> get props => [dispatchId, materialList, imageList];
 
-  copyWith({
+  DoDispatchSignInVo copyWith({
     int? dispatchId,
     List<MaterialVO>? materialList,
     List<AttachmentVO>? imageList,

@@ -63,7 +63,7 @@ class DispatchDetailVo extends Equatable {
     toWarehouseUsers,
   ];
 
-  copyWith({
+  DispatchDetailVo copyWith({
     List<MaterialVO>? materialList,
     List<AttachmentVO>? imageList,
     int? fromProjectId,

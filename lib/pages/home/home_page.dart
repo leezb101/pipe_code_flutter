@@ -1065,7 +1065,7 @@ class _HomePageState extends State<HomePage> {
 
     if (menuItem.isPageMenu && menuItem.route != null) {
       final result = await context.push(menuItem.route!);
-      if (result == true) {
+      if (result == true && context.mounted) {
         final recordsBloc = context.read<RecordsBloc>();
         // 刷新待办
         recordsBloc.add(RefreshRecords(recordType: RecordType.todo));

@@ -19,7 +19,7 @@ abstract class SessionState extends Equatable {
   @override
   List<Object?> get props => [];
 
-  get user => null;
+  Object? get user => null;
 }
 
 /// 会话初始状态

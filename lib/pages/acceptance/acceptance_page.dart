@@ -822,7 +822,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
 
   void _handleConfirmAcceptance() {
     // Collect selected user IDs for push notifications
-    final selectedUserIds = <int>[];
     _userPushStates.forEach((key, value) {
       if (value != null && value) {
         // In real implementation, map user names to IDs

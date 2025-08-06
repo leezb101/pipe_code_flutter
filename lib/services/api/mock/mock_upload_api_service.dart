@@ -28,6 +28,9 @@ class MockUploadApiService implements UploadApiService {
     File file, {
     void Function(double progress)? onProgress,
   }) async {
+    if (_authToken == null) {
+      return Result<UploadResult>(code: -1, msg: '未设置认证令牌', data: null);
+    }
     try {
       // 模拟上传进度
       for (int i = 0; i <= 10; i++) {

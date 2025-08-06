@@ -254,8 +254,8 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
           height: 60,
           decoration: BoxDecoration(
             color: canAdd
-                ? Colors.blue.withOpacity(0.05)
-                : Colors.grey.withOpacity(0.05),
+                ? Colors.blue.withValues(alpha: 0.05)
+                : Colors.grey.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(

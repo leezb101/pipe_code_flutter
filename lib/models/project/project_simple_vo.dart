@@ -25,7 +25,7 @@ class ProjectSimpleVo extends Equatable {
   @override
   List<Object?> get props => [id, name];
 
-  copyWith({int? id, String? name}) {
+  ProjectSimpleVo copyWith({int? id, String? name}) {
     return ProjectSimpleVo(id: id ?? this.id, name: name ?? this.name);
   }
 }

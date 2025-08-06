@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/models/records/record_item.dart';
+import 'package:pipe_code_flutter/models/user/wx_login_vo.dart';
 import '../../bloc/session/session_bloc.dart';
 import '../../bloc/session/session_state.dart';
 import '../../bloc/session/session_event.dart';
@@ -56,7 +57,7 @@ class _RecordsListPageState extends State<RecordsListPage>
 
     if (sessionState is SessionStorekeeperEstablished ||
         sessionState is SessionProjectEstablished) {
-      isStoreKeeper = sessionState.user.storekeeper;
+      isStoreKeeper = (sessionState.user as WxLoginVO).storekeeper;
     }
 
     List<RecordType> tabs = [];

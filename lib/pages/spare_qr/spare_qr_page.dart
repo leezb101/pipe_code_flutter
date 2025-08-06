@@ -297,9 +297,12 @@ class _SpareQrPageState extends State<SpareQrPage> {
                         ),
                         onPressed: () async {
                           try {
-                            final shareResult = await Share.shareXFiles([
-                              XFile(state.filePath),
-                            ]);
+                            final shareResult = await SharePlus.instance.share(
+                              ShareParams(
+                                text: '备用二维码',
+                                files: [XFile(state.filePath)],
+                              ),
+                            );
                             if (shareResult.status ==
                                 ShareResultStatus.success) {
                               if (context.mounted) {

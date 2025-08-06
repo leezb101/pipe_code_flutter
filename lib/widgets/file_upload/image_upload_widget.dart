@@ -291,7 +291,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
                     border: Border.all(color: Colors.white, width: 1.5),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -311,7 +311,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
       case UploadStatus.uploading:
         return Container(
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
@@ -329,7 +329,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
       case UploadStatus.failure:
         return Container(
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
