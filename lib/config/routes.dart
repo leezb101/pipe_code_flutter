@@ -47,13 +47,14 @@ import '../models/qr_scan/qr_scan_config.dart';
 import '../models/project/project_initiation.dart';
 import '../models/records/record_type.dart';
 import '../pages/material/material_detail_page.dart';
+import '../pages/material/pipe_cutting_record_page.dart';
+import '../bloc/material_detail/material_detail_cubit.dart';
 import '../pages/return/return_page.dart';
 import '../pages/return/return_detail_page.dart';
 import '../bloc/return/return_bloc.dart';
 import '../pages/inventory/inventory_list_page.dart';
 import '../pages/inventory/inventory_page.dart';
 import '../pages/inventory/inventory_detail_page.dart';
-import '../pages/material/pipe_cutting_record_page.dart';
 import 'service_locator.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -328,8 +329,35 @@ final GoRouter appRouter = GoRouter(
             if (materialCode == null || materialCode.trim().isEmpty) {
               return const Scaffold(body: Center(child: Text('二维码内容无效')));
             }
-            return MaterialDetailPage(materialCode: materialCode);
+            return BlocProvider(
+              create: (context) => MaterialDetailCubit()..loadMaterialDetail(materialCode),
+              child: const MaterialDetailView(),
+            );
           },
+          routes: [
+            GoRoute(
+              path: 'pipe-cutting-record',
+              name: 'pipe-cutting-record',
+              builder: (context, state) {
+                final materialId = state.uri.queryParameters['materialId'];
+                final cubit = state.extra as MaterialDetailCubit?;
+
+                if (materialId == null) {
+                  return const Scaffold(
+                      body: Center(child: Text('参数错误: materialId 缺失')));
+                }
+                if (cubit == null) {
+                  return const Scaffold(
+                      body: Center(child: Text('参数错误: Cubit 未提供')));
+                }
+
+                return BlocProvider.value(
+                  value: cubit,
+                  child: PipeCuttingRecordPage(materialId: materialId),
+                );
+              },
+            ),
+          ],
         ),
         GoRoute(
           path: '/project-initiation',
@@ -489,17 +517,6 @@ final GoRouter appRouter = GoRouter(
               create: (context) => getIt<ScrapBloc>(),
               child: ScrapDetailPage(scrapId: scrapId),
             );
-          },
-        ),
-        GoRoute(
-          path: '/pipe-cutting-record',
-          name: 'pipe-cutting-record',
-          builder: (context, state) {
-            final materialCode = state.uri.queryParameters['materialCode'];
-            if (materialCode == null) {
-              return const Scaffold(body: Center(child: Text('参数错误')));
-            }
-            return PipeCuttingRecordPage(materialCode: materialCode);
           },
         ),
       ],

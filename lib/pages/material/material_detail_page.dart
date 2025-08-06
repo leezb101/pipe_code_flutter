@@ -23,11 +23,7 @@ class MaterialDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          MaterialDetailCubit()..loadMaterialDetail(materialCode),
-      child: const MaterialDetailView(),
-    );
+    return const MaterialDetailView();
   }
 }
 
@@ -491,7 +487,8 @@ class MaterialDetailView extends StatelessWidget {
   void _viewCuttingRecord(ScanIdentificationData data, BuildContext context) {
     context.pushNamed(
       'pipe-cutting-record',
-      queryParameters: {'materialCode': data.materialCode},
+      queryParameters: {'materialId': data.info.baseInfo.materialId.toString()},
+      extra: context.read<MaterialDetailCubit>(),
     );
   }
 }
