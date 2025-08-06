@@ -146,90 +146,117 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
     );
   }
 
-  Widget _buildTreeNode(BuildContext context, TreeEntry<PipeCuttingTreeNode> entry) {
+  Widget _buildTreeNode(
+      BuildContext context, TreeEntry<PipeCuttingTreeNode> entry) {
+    return TreeIndentation(
+      entry: entry,
+      guide: IndentGuide.connectingLines(
+        color: Theme.of(context).colorScheme.outline,
+        thickness: 1.5,
+        origin: 0.5,
+        roundCorners: true,
+      ),
+      child: _buildNodeContent(context, entry),
+    );
+  }
+
+  Widget _buildNodeContent(
+      BuildContext context, TreeEntry<PipeCuttingTreeNode> entry) {
     final node = entry.node;
-    final isExpanded = entry.isExpanded;
     final hasChildren = node.children.isNotEmpty;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      child: InkWell(
-        onTap: () {
-          if (hasChildren) {
-            treeController.toggleExpansion(node);
-          }
-          _showNodeDetails(context, node);
-        },
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: _getNodeColor(node),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: _getNodeBorderColor(node),
-              width: node.isCurrent ? 2 : 1,
-            ),
-            boxShadow: node.isCurrent ? [
-              BoxShadow(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ] : null,
+    return InkWell(
+      onTap: () => _showNodeDetails(context, node),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: _getNodeColor(node),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: _getNodeBorderColor(node),
+            width: node.isCurrent ? 2 : 1,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  if (hasChildren) ...[
-                    Icon(
-                      isExpanded ? Icons.expand_more : Icons.chevron_right,
-                      size: 20,
-                      color: Colors.grey[600],
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  Expanded(
-                    child: Text(
-                      node.displayText,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: node.isCurrent ? FontWeight.bold : FontWeight.normal,
-                        color: node.isCurrent ? Theme.of(context).primaryColor : null,
-                      ),
-                    ),
+          boxShadow: node.isCurrent
+              ? [
+                  BoxShadow(
+                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
-                  if (node.isCurrent) ...[
-                    Icon(
-                      Icons.star,
-                      size: 16,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                    const SizedBox(width: 4),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (hasChildren)
+              GestureDetector(
+                onTap: () => treeController.toggleExpansion(node),
+                child: Icon(
+                  entry.isExpanded ? Icons.expand_more : Icons.chevron_right,
+                  size: 20,
+                  color: Colors.grey[600],
+                ),
+              ),
+            if (hasChildren) const SizedBox(width: 8),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildNodeTitle(context, node),
+                  if (node.subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 4),
                     Text(
-                      '当前',
+                      node.subtitle,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                            color: Colors.grey[600],
+                          ),
                     ),
                   ],
                 ],
               ),
-              if (node.subtitle.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  node.subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ],
-          ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildNodeTitle(BuildContext context, PipeCuttingTreeNode node) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: Text(
+            node.displayText,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight:
+                      node.isCurrent ? FontWeight.bold : FontWeight.normal,
+                  color:
+                      node.isCurrent ? Theme.of(context).primaryColor : null,
+                ),
+          ),
+        ),
+        if (node.isCurrent) ...[
+          const SizedBox(width: 8),
+          Icon(
+            Icons.star,
+            size: 16,
+            color: Theme.of(context).primaryColor,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '当前',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).primaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ],
+      ],
     );
   }
 
