@@ -35,14 +35,3 @@ Map<String, dynamic> _$MaterialInfoBaseToJson(MaterialInfoBase instance) =>
       'pressLvl': instance.pressLvl,
       'weight': instance.weight,
     };
-
-MaterialInfo _$MaterialInfoFromJson(Map<String, dynamic> json) => MaterialInfo(
-  baseInfo: MaterialInfoBase.fromJson(json['baseInfo'] as Map<String, dynamic>),
-  extendedFields: json['extendedFields'] as Map<String, dynamic>? ?? const {},
-);
-
-Map<String, dynamic> _$MaterialInfoToJson(MaterialInfo instance) =>
-    <String, dynamic>{
-      'baseInfo': instance.baseInfo,
-      'extendedFields': instance.extendedFields,
-    };

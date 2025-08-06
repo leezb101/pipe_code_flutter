@@ -85,7 +85,6 @@ class MaterialInfoBase extends Equatable {
 
 /// 完整材料信息
 /// 支持动态字段，包含基础字段和扩展字段
-@JsonSerializable()
 class MaterialInfo extends Equatable {
   const MaterialInfo({required this.baseInfo, this.extendedFields = const {}});
 

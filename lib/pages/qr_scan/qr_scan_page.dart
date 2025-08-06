@@ -59,7 +59,9 @@ class _QrScanPageState extends State<QrScanPage> {
     _initialConfig = widget.config;
 
     Logger.debug('【11111】QrScanPage initialized with config: $_initialConfig');
-    _controller = MobileScannerController();
+    _controller = MobileScannerController(
+      autoStart: false, // 禁用自动启动，手动控制初始化
+    );
 
     // 重置本地状态，确保是干净的开始
     _sessionScannedCodes.clear();
@@ -70,8 +72,8 @@ class _QrScanPageState extends State<QrScanPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<QrScanBloc>().add(InitializeScan(_initialConfig));
-      // 确保扫码器启动
-      _controller?.start();
+      // 等待控制器初始化完成后再启动
+      _startScannerWhenReady();
     });
   }
 
@@ -86,6 +88,18 @@ class _QrScanPageState extends State<QrScanPage> {
     super.dispose();
   }
 
+  Future<void> _startScannerWhenReady() async {
+    if (_controller == null) return;
+    
+    try {
+      // 等待控制器初始化完成
+      await _controller!.start();
+    } catch (e) {
+      Logger.error('Failed to start scanner: $e');
+      // 如果启动失败，可以重试或显示错误
+    }
+  }
+
   void _controlScanner(QrScanState state) {
     if (_controller == null) {
       return;
@@ -94,7 +108,7 @@ class _QrScanPageState extends State<QrScanPage> {
     switch (state.status) {
       case QrScanStatus.scanning:
         if (!_isTemporarilyPaused) {
-          _controller?.start();
+          _startScannerWhenReady();
         }
         break;
       case QrScanStatus.processing:
@@ -102,7 +116,7 @@ class _QrScanPageState extends State<QrScanPage> {
         _controller?.stop();
         break;
       case QrScanStatus.initial:
-        _controller?.start();
+        _startScannerWhenReady();
         break;
       case QrScanStatus.error:
       case QrScanStatus.completed:
@@ -219,7 +233,7 @@ class _QrScanPageState extends State<QrScanPage> {
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (mounted && !_hasReturned) {
         _isTemporarilyPaused = false;
-        _controller?.start();
+        _startScannerWhenReady();
       }
     });
   }

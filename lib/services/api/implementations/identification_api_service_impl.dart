@@ -26,8 +26,9 @@ class IdentificationApiServiceImpl implements IdentificationApiService {
     try {
       Logger.api('扫码识别请求开始 - Code: $code');
 
-      final response = await _dio.get(
-        '${AppConfig.apiBaseUrl}/scan/single/$code',
+      final response = await _dio.post(
+        '${AppConfig.apiBaseUrl}/scan/single',
+        data: {'code': code},
         options: Options(
           headers: {
             'Accept': 'application/json',
@@ -41,7 +42,8 @@ class IdentificationApiServiceImpl implements IdentificationApiService {
       if (response.statusCode == 200 && response.data != null) {
         return Result.safeFromJson(
           response.data,
-          (json) => ScanIdentificationData.fromJson(json as Map<String, dynamic>),
+          (json) =>
+              ScanIdentificationData.fromJson(json as Map<String, dynamic>),
           'ScanIdentificationData',
         );
       } else {
@@ -79,11 +81,7 @@ class IdentificationApiServiceImpl implements IdentificationApiService {
     } catch (e) {
       Logger.api('扫码识别请求失败 - 其他异常: ${e.toString()}');
 
-      return Result(
-        code: -1,
-        msg: '扫码识别失败，请稍后再试',
-        data: null,
-      );
+      return Result(code: -1, msg: '扫码识别失败，请稍后再试', data: null);
     }
   }
 }
