@@ -35,3 +35,13 @@ class GetCutTipsException extends BusinessException {
 class DoCutException extends BusinessException {
   DoCutException(super.message);
 }
+
+/// 获取材料详情失败时抛出的异常
+class GetMaterialDetailException extends BusinessException {
+  GetMaterialDetailException(super.message);
+}
+
+/// 获取截管记录失败时抛出的异常
+class GetCuttingHistoryException extends BusinessException {
+  GetCuttingHistoryException(super.message);
+}

@@ -10,6 +10,7 @@ import 'package:pipe_code_flutter/services/api/interfaces/cut_api_service.dart';
 
 import '../../../models/common/result.dart';
 import '../../../models/cut/cut_request_vo.dart';
+import '../../../models/cut/pipe_cutting_record.dart';
 
 class CutApiServiceImpl extends BaseApiService implements CutApiService {
   CutApiServiceImpl(super.dio);
@@ -52,6 +53,31 @@ class CutApiServiceImpl extends BaseApiService implements CutApiService {
       }
     } else {
       return Result(code: -1, msg: '切割失败，请重试');
+    }
+  }
+
+  @override
+  Future<Result<PipeCuttingRecord>> getCuttingHistory(String materialId) async {
+    try {
+      final response = await dio.get('/cut/his/$materialId');
+      
+      if (response.statusCode == 200) {
+        final result = Result.safeFromJson(
+          response.data,
+          (json) => PipeCuttingRecord.fromJson(json as Map<String, dynamic>),
+          'CuttingHistory',
+        );
+
+        if (result.isSuccess && result.data != null) {
+          return Result(code: 0, msg: 'success', data: result.data);
+        } else {
+          return Result(code: result.code, msg: result.msg, data: null);
+        }
+      } else {
+        return Result(code: -1, msg: '获取截管记录失败，请重试', data: null);
+      }
+    } catch (e) {
+      return Result(code: -1, msg: '网络错误：${e.toString()}', data: null);
     }
   }
 }

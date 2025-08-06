@@ -54,6 +54,7 @@ import '../models/material/scan_identification_response.dart';
 import '../pages/inventory/inventory_list_page.dart';
 import '../pages/inventory/inventory_page.dart';
 import '../pages/inventory/inventory_detail_page.dart';
+import '../pages/material/pipe_cutting_record_page.dart';
 import 'service_locator.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -490,6 +491,17 @@ final GoRouter appRouter = GoRouter(
               create: (context) => getIt<ScrapBloc>(),
               child: ScrapDetailPage(scrapId: scrapId),
             );
+          },
+        ),
+        GoRoute(
+          path: '/pipe-cutting-record',
+          name: 'pipe-cutting-record',
+          builder: (context, state) {
+            final materialCode = state.uri.queryParameters['materialCode'];
+            if (materialCode == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return PipeCuttingRecordPage(materialCode: materialCode);
           },
         ),
       ],

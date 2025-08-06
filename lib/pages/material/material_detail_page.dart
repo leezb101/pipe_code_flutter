@@ -8,6 +8,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../../models/material/scan_identification_response.dart';
 import '../../models/material/material_info_base.dart';
 import '../../utils/toast_utils.dart';
@@ -105,6 +106,21 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
                 backgroundColor: Colors.orange.withValues(alpha: 0.2),
                 labelStyle: const TextStyle(color: Colors.orange),
               ),
+            if (data.cut) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _viewCuttingRecord,
+                  icon: const Icon(Icons.account_tree),
+                  label: const Text('查看截管记录'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -399,5 +415,12 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
 
     Clipboard.setData(ClipboardData(text: buffer.toString()));
     context.showSuccessToast('材料详情已复制到剪贴板');
+  }
+
+  void _viewCuttingRecord() {
+    context.pushNamed(
+      'pipe-cutting-record',
+      queryParameters: {'materialCode': widget.identificationData.materialCode},
+    );
   }
 }
