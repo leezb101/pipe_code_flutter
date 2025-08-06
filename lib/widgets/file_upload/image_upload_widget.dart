@@ -376,11 +376,12 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
     return GestureDetector(
       onTap: canAdd ? _showImageOptions : null,
       child: DottedBorder(
-        borderType: BorderType.RRect,
-        radius: const Radius.circular(12),
-        dashPattern: const [6, 4],
-        color: canAdd ? Colors.grey[400]! : Colors.grey[300]!,
-        strokeWidth: 1.5,
+        options: RoundedRectDottedBorderOptions(
+          radius: const Radius.circular(12),
+          dashPattern: const [6, 4],
+          color: canAdd ? Colors.grey[400]! : Colors.grey[300]!,
+          strokeWidth: 1.5,
+        ),
         child: Container(
           width: 80,
           height: 80,

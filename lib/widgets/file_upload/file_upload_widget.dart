@@ -40,9 +40,9 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
   Future<void> _pickFiles() async {
     final context = this.context;
     if (widget.states.length >= widget.maxFiles) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('最多只能上传 ${widget.maxFiles} 个文件')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('最多只能上传 ${widget.maxFiles} 个文件')));
       return;
     }
 
@@ -177,7 +177,9 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
                     Text(
                       _getStatusText(state),
                       style: TextStyle(
-                          fontSize: 12, color: _getStatusColor(state)),
+                        fontSize: 12,
+                        color: _getStatusColor(state),
+                      ),
                     ),
                   ],
                 ),
@@ -241,11 +243,12 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
     return GestureDetector(
       onTap: canAdd ? _pickFiles : null,
       child: DottedBorder(
-        borderType: BorderType.RRect,
-        radius: const Radius.circular(8),
-        dashPattern: const [8, 4],
-        color: canAdd ? Colors.blue : Colors.grey,
-        strokeWidth: 2,
+        options: RoundedRectDottedBorderOptions(
+          radius: const Radius.circular(8),
+          dashPattern: const [8, 4],
+          color: canAdd ? Colors.blue : Colors.grey,
+          strokeWidth: 2,
+        ),
         child: Container(
           width: double.infinity,
           height: 60,
