@@ -110,34 +110,31 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
   Widget _buildHeader() {
     return Card(
       margin: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '截管记录树状图',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
               '材料编码: ${widget.cuttingRecord.materialCode}',
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             if (widget.cuttingRecord.name.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text(
                 '材料名称: ${widget.cuttingRecord.name}',
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
             if (widget.cuttingRecord.spec != null) ...[
               const SizedBox(height: 4),
               Text(
                 '规格: ${widget.cuttingRecord.spec}',
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium!.copyWith(color: Colors.grey[600]),
               ),
             ],
           ],
@@ -195,16 +192,27 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (hasChildren)
-              GestureDetector(
-                onTap: () => treeController.toggleExpansion(node),
-                child: Icon(
-                  entry.isExpanded ? Icons.expand_more : Icons.chevron_right,
-                  size: 20,
-                  color: Colors.grey[600],
-                ),
-              ),
-            if (hasChildren) const SizedBox(width: 8),
+            SizedBox(
+              width: 44,
+              height: 44,
+              child: hasChildren
+                  ? Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => treeController.toggleExpansion(node),
+                        borderRadius: BorderRadius.circular(22),
+                        child: Icon(
+                          entry.isExpanded
+                              ? Icons.expand_more
+                              : Icons.chevron_right,
+                          size: 20,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 4),
             Flexible(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,52 +267,77 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
   }
 
   Color _getNodeColor(PipeCuttingTreeNode node) {
+    final colorScheme = Theme.of(context).colorScheme;
     if (node.isCurrent) {
-      return Theme.of(context).primaryColor.withValues(alpha: 0.1);
+      return colorScheme.primary.withOpacity(0.1);
     }
     if (node.isRoot) {
-      return Colors.blue.withValues(alpha: 0.1);
+      return colorScheme.secondary.withOpacity(0.1);
     }
-    return Colors.grey.withValues(alpha: 0.05);
+    return colorScheme.surface.withOpacity(0.5);
   }
 
   Color _getNodeBorderColor(PipeCuttingTreeNode node) {
+    final colorScheme = Theme.of(context).colorScheme;
     if (node.isCurrent) {
-      return Theme.of(context).primaryColor;
+      return colorScheme.primary;
     }
     if (node.isRoot) {
-      return Colors.blue;
+      return colorScheme.secondary;
     }
-    return Colors.grey[300]!;
+    return colorScheme.outline;
   }
 
   void _showNodeDetails(BuildContext context, PipeCuttingTreeNode node) {
+    final details = [
+      ('显示文本', node.displayText),
+      ('材料ID', node.materialId.toString()),
+      ('根节点ID', node.rootId.toString()),
+      if (node.parentId != null) ('父节点ID', node.parentId!),
+      if (node.len != null && node.len!.isNotEmpty) ('长度', node.len!),
+      if (node.cutTime != null && node.cutTime!.isNotEmpty)
+        ('切割时间', node.cutTime!),
+      if (node.cutUserName != null && node.cutUserName!.isNotEmpty)
+        ('操作人', node.cutUserName!),
+      ('操作人ID', node.cutUserId.toString()),
+      if (node.cutUserPhone != null && node.cutUserPhone!.isNotEmpty)
+        ('联系电话', node.cutUserPhone!),
+      if (node.currentId != null && node.currentId!.isNotEmpty)
+        ('当前ID', node.currentId!),
+      ('层级', node.level.toString()),
+      ('子节点数量', node.children.length.toString()),
+    ];
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(node.displayText),
-        content: SingleChildScrollView(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Padding(
+          padding: const EdgeInsets.only(left: 24, top: 24, right: 24),
+          child: Text('节点详情', style: Theme.of(context).textTheme.titleLarge),
+        ),
+        titlePadding: EdgeInsets.zero,
+        contentPadding: EdgeInsets.zero,
+        content: SizedBox(
+          width: double.maxFinite,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildDetailRow('材料ID', node.materialId.toString()),
-              _buildDetailRow('根节点ID', node.rootId.toString()),
-              if (node.parentId != null)
-                _buildDetailRow('父节点ID', node.parentId!),
-              if (node.len != null && node.len!.isNotEmpty)
-                _buildDetailRow('长度', node.len!),
-              if (node.cutTime != null && node.cutTime!.isNotEmpty)
-                _buildDetailRow('切割时间', node.cutTime!),
-              if (node.cutUserName != null && node.cutUserName!.isNotEmpty)
-                _buildDetailRow('操作人', node.cutUserName!),
-              _buildDetailRow('操作人ID', node.cutUserId.toString()),
-              if (node.cutUserPhone != null && node.cutUserPhone!.isNotEmpty)
-                _buildDetailRow('联系电话', node.cutUserPhone!),
-              if (node.currentId != null && node.currentId!.isNotEmpty)
-                _buildDetailRow('当前ID', node.currentId!),
-              _buildDetailRow('层级', node.level.toString()),
-              _buildDetailRow('子节点数量', node.children.length.toString()),
+              if (node.img != null && node.img!.isNotEmpty)
+                _buildImagePreview(context, node.img!),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: details.length,
+                  itemBuilder: (context, index) {
+                    final detail = details[index];
+                    return _buildDetailRow(detail.$1, detail.$2);
+                  },
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1, indent: 24, endIndent: 24),
+                ),
+              ),
             ],
           ),
         ),
@@ -320,19 +353,86 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 80,
+          Text(
+            label,
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(width: 16),
+          Flexible(
             child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              value,
+              textAlign: TextAlign.end,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),
-          Expanded(child: Text(value)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImagePreview(BuildContext context, String imageUrl) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
+      child: GestureDetector(
+        onTap: () => _showFullScreenImage(context, imageUrl),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.network(
+            imageUrl,
+            height: 150,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                height: 150,
+                alignment: Alignment.center,
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) => Container(
+              height: 150,
+              color: Colors.grey[200],
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 40),
+                  SizedBox(height: 8),
+                  Text('图片加载失败'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFullScreenImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.8),
+      builder: (context) => GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: InteractiveViewer(
+          panEnabled: true,
+          minScale: 0.5,
+          maxScale: 4,
+          child: Image.network(imageUrl),
+        ),
       ),
     );
   }
