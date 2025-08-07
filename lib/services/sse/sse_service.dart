@@ -6,8 +6,7 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
+import 'package:eventflux/eventflux.dart';
 import 'package:pipe_code_flutter/config/app_config.dart';
 import 'package:pipe_code_flutter/models/notification/sse_message_vo.dart';
 import 'package:pipe_code_flutter/models/notification/notification_message_vo.dart';
@@ -25,28 +24,21 @@ enum SseConnectionState {
 }
 
 /// SSE服务
-/// 基于HTTP Client实现的服务端事件流连接服务
+/// 基于EventFlux实现的服务端事件流连接服务
 class SseService {
   static const String _tag = 'SSE_SERVICE';
-  
-  HttpClient? _httpClient;
-  HttpClientRequest? _request;
-  HttpClientResponse? _response;
-  StreamSubscription? _responseSubscription;
-  Timer? _reconnectTimer;
-  Timer? _heartbeatTimer;
-  
+
+  EventFlux? _eventFlux;
+  StreamSubscription<EventFluxData>? _messageSubscription;
+
   SseConnectionState _connectionState = SseConnectionState.disconnected;
   String? _lastEventId;
   DateTime? _lastMessageTime;
   int _retryCount = 0;
-  
+
   // 连接配置
-  static const Duration _connectionTimeout = Duration(seconds: 30);
-  static const Duration _heartbeatInterval = Duration(seconds: 30);
-  static const Duration _reconnectDelay = Duration(seconds: 5);
   static const int _maxRetryCount = 5;
-  
+
   // 消息处理回调
   void Function(NotificationMessageVO)? _onMessageReceived;
   void Function(SseConnectionState)? _onConnectionStateChanged;
@@ -107,48 +99,45 @@ class SseService {
       final sseUrl = _buildSseUrl();
       Logger.info('Connecting to SSE: $sseUrl', tag: _tag);
 
-      // 创建HTTP客户端
-      _httpClient = HttpClient();
-      
-      // 创建请求
-      final uri = Uri.parse(sseUrl);
-      _request = await _httpClient!.getUrl(uri);
-      
-      // 设置请求头
-      _request!.headers.set('Accept', 'text/event-stream');
-      _request!.headers.set('Cache-Control', 'no-cache');
-      _request!.headers.set('Connection', 'keep-alive');
-      
-      // 添加认证头
-      authHeaders.forEach((key, value) {
-        _request!.headers.set(key, value);
-      });
+      // 创建EventFlux实例
+      _eventFlux = EventFlux.spawn();
 
-      // 发送请求
-      _response = await _request!.close().timeout(_connectionTimeout);
+      // 建立连接
+      _eventFlux!.connect(
+        EventFluxConnectionType.get,
+        sseUrl,
+        header: authHeaders,
+        onSuccessCallback: (response) {
+          _updateConnectionState(SseConnectionState.connected);
+          Logger.info('SSE connection established successfully', tag: _tag);
 
-      // 检查响应状态
-      if (_response!.statusCode != 200) {
-        throw Exception('HTTP ${_response!.statusCode}: ${_response!.reasonPhrase}');
-      }
+          // 开始监听消息流
+          _startListeningToMessages(response);
+        },
+        onConnectionClose: () {
+          Logger.info('SSE connection closed', tag: _tag);
+          _updateConnectionState(SseConnectionState.disconnected);
+        },
+        onError: (error) {
+          final errorMessage = 'SSE connection error: ${error.toString()}';
+          Logger.error(errorMessage, tag: _tag);
+          _updateConnectionState(SseConnectionState.error);
+          _onError?.call(errorMessage);
+        },
+        autoReconnect: true,
+        reconnectConfig: ReconnectConfig(
+          mode: ReconnectMode.linear,
+          interval: const Duration(seconds: 5),
+          maxAttempts: _maxRetryCount,
+        ),
+      );
 
-      // 开始处理响应流
-      _startProcessingResponse();
-
-      // 启动心跳检测
-      _startHeartbeat();
-
-      _updateConnectionState(SseConnectionState.connected);
-      Logger.info('SSE connection established successfully', tag: _tag);
       return true;
     } catch (e) {
       final error = 'Failed to connect to SSE: ${e.toString()}';
       Logger.error(error, tag: _tag);
       _updateConnectionState(SseConnectionState.error);
       _onError?.call(error);
-      
-      // 尝试重连
-      _scheduleReconnect();
       return false;
     }
   }
@@ -162,28 +151,13 @@ class SseService {
     Logger.info('Disconnecting SSE connection', tag: _tag);
     _updateConnectionState(SseConnectionState.disconnected);
 
-    // 取消订阅
-    await _responseSubscription?.cancel();
-    _responseSubscription = null;
+    // 取消消息订阅
+    await _messageSubscription?.cancel();
+    _messageSubscription = null;
 
-    // 关闭响应
-    _response?.detachSocket().then((socket) {
-      socket.destroy();
-    });
-    _response = null;
-
-    // 关闭请求
-    _request = null;
-
-    // 关闭HTTP客户端
-    _httpClient?.close();
-    _httpClient = null;
-
-    // 停止定时器
-    _reconnectTimer?.cancel();
-    _reconnectTimer = null;
-    _heartbeatTimer?.cancel();
-    _heartbeatTimer = null;
+    // 断开EventFlux连接
+    _eventFlux?.disconnect();
+    _eventFlux = null;
 
     // 重置状态
     _retryCount = 0;
@@ -199,165 +173,78 @@ class SseService {
     return connect();
   }
 
-  /// 开始处理响应流
-  void _startProcessingResponse() {
-    if (_response == null) return;
-
-    _responseSubscription = _response!
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen(
-          (line) => _processSseLine(line),
-          onError: (error) => _handleSseError(error),
-          onDone: () => _handleSseDone(),
-        );
-  }
-
-  /// 处理SSE行数据
-  void _processSseLine(String line) {
-    if (line.trim().isEmpty) {
-      // 空行表示消息结束，处理累积的数据
-      _processAccumulatedData();
-      return;
-    }
-
-    // 解析SSE字段
-    if (line.startsWith('data: ')) {
-      _currentData = line.substring(6);
-    } else if (line.startsWith('event: ')) {
-      _currentEventType = line.substring(7);
-    } else if (line.startsWith('id: ')) {
-      _lastEventId = line.substring(4);
-    } else if (line.startsWith('retry: ')) {
-      // 处理重试时间
-      final retryMs = int.tryParse(line.substring(7));
-      if (retryMs != null) {
-        // 可以根据服务器建议的重试时间调整
-      }
-    }
-  }
-
-  String? _currentEventType;
-  String? _currentData;
-
-  /// 处理累积的数据
-  void _processAccumulatedData() {
-    if (_currentEventType != null && _currentData != null) {
-      try {
-        Logger.debug('Received SSE event: $_currentEventType', tag: _tag);
-
-        // 更新最后消息时间
-        _lastMessageTime = DateTime.now();
-
-        // 创建SSE消息对象
-        final sseMessage = SseMessageVO(
-          id: _lastEventId ?? DateTime.now().millisecondsSinceEpoch.toString(),
-          event: _currentEventType!,
-          data: _currentData!,
-          timestamp: _lastMessageTime,
-        );
-
-        // 解析消息
-        final parser = MessageParserFactory.getParser(_currentEventType!);
-        if (parser == null) {
-          Logger.warning('No parser found for event type: $_currentEventType', tag: _tag);
-          return;
-        }
-
-        final parseResult = parser.parse(sseMessage);
-        if (parseResult.isFailure) {
-          Logger.warning('Failed to parse message: ${parseResult.error}', tag: _tag);
-          return;
-        }
-
-        // 检查消息是否已过期
-        if (parseResult.message!.isExpired) {
-          Logger.debug('Message expired, skipping: ${parseResult.message!.id}', tag: _tag);
-          return;
-        }
-
-        // 回调处理消息
-        _onMessageReceived?.call(parseResult.message!);
-
-        // 重置重试计数
-        _retryCount = 0;
-      } catch (e) {
-        Logger.error('Error processing SSE message: ${e.toString()}', tag: _tag);
-        _onError?.call('Failed to process SSE message: ${e.toString()}');
-      } finally {
-        // 重置累积数据
-        _currentEventType = null;
-        _currentData = null;
-      }
-    }
-  }
-
-  /// 处理SSE错误
-  void _handleSseError(dynamic error) {
-    final errorMessage = error.toString();
-    Logger.error('SSE connection error: $errorMessage', tag: _tag);
-    
-    _updateConnectionState(SseConnectionState.error);
-    _onError?.call('SSE connection error: $errorMessage');
-    
-    // 尝试重连
-    _scheduleReconnect();
-  }
-
-  /// 处理SSE连接完成
-  void _handleSseDone() {
-    Logger.info('SSE connection closed', tag: _tag);
-    
-    _updateConnectionState(SseConnectionState.disconnected);
-    
-    // 如果不是主动断开，尝试重连
-    if (_connectionState != SseConnectionState.disconnected) {
-      _scheduleReconnect();
-    }
-  }
-
-  /// 安排重连
-  void _scheduleReconnect() {
-    if (_retryCount >= _maxRetryCount) {
-      Logger.error('Max retry count reached, stopping reconnection', tag: _tag);
-      _updateConnectionState(SseConnectionState.disconnected);
-      _onError?.call('Failed to reconnect after $_maxRetryCount attempts');
-      return;
-    }
-
-    _retryCount++;
-    final delay = _reconnectDelay * _retryCount;
-    
-    Logger.info(
-      'Scheduling reconnect attempt $_retryCount in ${delay.inSeconds} seconds',
-      tag: _tag,
+  /// 开始监听消息流
+  void _startListeningToMessages(EventFluxResponse? response) {
+    _messageSubscription = response?.stream?.listen(
+      (data) {
+        _processSseMessage(data);
+      },
+      onError: (error) {
+        final errorMessage = 'SSE message error: ${error.toString()}';
+        Logger.error(errorMessage, tag: _tag);
+        _onError?.call(errorMessage);
+      },
+      onDone: () {
+        Logger.info('SSE message stream closed', tag: _tag);
+        _updateConnectionState(SseConnectionState.disconnected);
+      },
     );
-
-    _updateConnectionState(SseConnectionState.reconnecting);
-    
-    _reconnectTimer = Timer(delay, () async {
-      await connect();
-    });
   }
 
-  /// 启动心跳检测
-  void _startHeartbeat() {
-    _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(_heartbeatInterval, (timer) {
-      if (_connectionState == SseConnectionState.connected) {
-        final now = DateTime.now();
-        if (_lastMessageTime != null) {
-          final timeSinceLastMessage = now.difference(_lastMessageTime!);
-          if (timeSinceLastMessage > _heartbeatInterval * 2) {
-            Logger.warning(
-              'No message received for ${timeSinceLastMessage.inSeconds} seconds, reconnecting...',
-              tag: _tag,
-            );
-            _scheduleReconnect();
-          }
-        }
+  /// 处理SSE消息
+  void _processSseMessage(EventFluxData data) {
+    try {
+      Logger.debug('Received SSE message: ${data.data}', tag: _tag);
+
+      // 更新最后消息时间
+      _lastMessageTime = DateTime.now();
+
+      // EventFlux已经解析了SSE格式，我们直接处理数据
+      // 使用EventFluxData中的event和data字段
+      final sseMessage = SseMessageVO(
+        id: data.id,
+        event: data.event,
+        data: data.data,
+        timestamp: _lastMessageTime,
+      );
+
+      // 解析消息
+      final parser = MessageParserFactory.getParser(sseMessage.event);
+      if (parser == null) {
+        Logger.warning(
+          'No parser found for event type: ${sseMessage.event}',
+          tag: _tag,
+        );
+        return;
       }
-    });
+
+      final parseResult = parser.parse(sseMessage);
+      if (parseResult.isFailure) {
+        Logger.warning(
+          'Failed to parse message: ${parseResult.error}',
+          tag: _tag,
+        );
+        return;
+      }
+
+      // 检查消息是否已过期
+      if (parseResult.message!.isExpired) {
+        Logger.debug(
+          'Message expired, skipping: ${parseResult.message!.id}',
+          tag: _tag,
+        );
+        return;
+      }
+
+      // 回调处理消息
+      _onMessageReceived?.call(parseResult.message!);
+
+      // 重置重试计数
+      _retryCount = 0;
+    } catch (e) {
+      Logger.error('Error processing SSE message: ${e.toString()}', tag: _tag);
+      _onError?.call('Failed to process SSE message: ${e.toString()}');
+    }
   }
 
   /// 更新连接状态
@@ -375,18 +262,18 @@ class SseService {
   /// 构建SSE URL
   String _buildSseUrl() {
     final baseUrl = AppConfig.sseBaseUrl;
-    
+
     // 构建查询参数
     final queryParams = <String, String>{};
-    
+
     // 添加时间戳防止缓存
     queryParams['timestamp'] = DateTime.now().millisecondsSinceEpoch.toString();
-    
+
     // 构建URL
     final queryString = queryParams.entries
         .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
         .join('&');
-    
+
     return '$baseUrl?$queryString';
   }
 

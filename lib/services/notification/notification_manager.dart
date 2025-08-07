@@ -71,7 +71,7 @@ class NotificationManager {
       'totalMessagesProcessed': _totalMessagesProcessed,
       'totalMessagesFailed': _totalMessagesFailed,
       'successRate': _totalMessagesReceived > 0 
-          ? (_totalMessagesProcessed / _totalMessagesReceived * 100).toStringAsFixed(2) + '%'
+          ? '${(_totalMessagesProcessed / _totalMessagesReceived * 100).toStringAsFixed(2)}%'
           : '0%',
       'startTime': _startTime?.toIso8601String(),
       'lastActivityTime': _lastActivityTime?.toIso8601String(),

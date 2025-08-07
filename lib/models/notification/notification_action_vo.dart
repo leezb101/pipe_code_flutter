@@ -139,12 +139,12 @@ class UiActionVO extends Equatable {
 
 /// 操作方法常量
 class NotificationActionMethods {
-  static const String HTTP_GET = 'HTTP_GET';
-  static const String HTTP_POST = 'HTTP_POST';
-  static const String HTTP_PUT = 'HTTP_PUT';
-  static const String HTTP_DELETE = 'HTTP_DELETE';
-  static const String UI_NAVIGATE = 'UI_NAVIGATE';
-  static const String UI_DIALOG = 'UI_DIALOG';
-  static const String UI_TOAST = 'UI_TOAST';
-  static const String UI_REFRESH = 'UI_REFRESH';
+  static const String httpGet = 'HTTP_GET';
+  static const String httpPost = 'HTTP_POST';
+  static const String httpPut = 'HTTP_PUT';
+  static const String httpDelete = 'HTTP_DELETE';
+  static const String uiNavigate = 'UI_NAVIGATE';
+  static const String uiDialog = 'UI_DIALOG';
+  static const String uiToast = 'UI_TOAST';
+  static const String uiRefresh = 'UI_REFRESH';
 }
