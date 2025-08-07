@@ -108,33 +108,130 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
   }
 
   Widget _buildHeader() {
-    return Card(
+    return Container(
       margin: const EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: Theme.of(context).colorScheme.surfaceContainer,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.blue[400]!,
+            Colors.blue[600]!,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '材料编码: ${widget.cuttingRecord.materialCode}',
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.account_tree,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '截管记录',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '材料编码: ${widget.cuttingRecord.materialCode}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            if (widget.cuttingRecord.name.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                '材料名称: ${widget.cuttingRecord.name}',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
-            if (widget.cuttingRecord.spec != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                '规格: ${widget.cuttingRecord.spec}',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium!.copyWith(color: Colors.grey[600]),
+            if (widget.cuttingRecord.name.isNotEmpty || widget.cuttingRecord.spec != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (widget.cuttingRecord.name.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.label,
+                            color: Colors.white70,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '材料名称: ${widget.cuttingRecord.name}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    if (widget.cuttingRecord.spec != null) ...[
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.straighten,
+                            color: Colors.white70,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '规格: ${widget.cuttingRecord.spec}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ],
           ],
@@ -168,64 +265,75 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
 
     return InkWell(
       onTap: () => _showNodeDetails(context, node),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: _getNodeColor(node),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: _getNodeBorderColor(node),
-            width: node.isCurrent ? 2 : 1,
+            width: node.isCurrent ? 2.5 : 1,
           ),
-          boxShadow: node.isCurrent
-              ? [
-                  BoxShadow(
-                    color: Theme.of(context).primaryColor.withValues(alpha: .3),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+            if (node.isCurrent)
+              BoxShadow(
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.25),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-              width: 44,
-              height: 44,
+              width: 48,
+              height: 48,
               child: hasChildren
                   ? Material(
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () => treeController.toggleExpansion(node),
-                        borderRadius: BorderRadius.circular(22),
-                        child: Icon(
-                          entry.isExpanded
-                              ? Icons.expand_more
-                              : Icons.chevron_right,
-                          size: 20,
-                          color: Colors.grey[600],
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: Icon(
+                            entry.isExpanded
+                                ? Icons.keyboard_arrow_down
+                                : Icons.keyboard_arrow_right,
+                            size: 24,
+                            color: Colors.grey[700],
+                          ),
                         ),
                       ),
                     )
                   : null,
             ),
-            const SizedBox(width: 4),
-            Flexible(
+            const SizedBox(width: 12),
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildNodeTitle(context, node),
                   if (node.subtitle.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       node.subtitle,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ],
@@ -246,19 +354,37 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
             node.displayText,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontWeight: node.isCurrent ? FontWeight.bold : FontWeight.normal,
-              color: node.isCurrent ? Theme.of(context).primaryColor : null,
+              color: node.isCurrent ? Colors.blue[700] : Colors.grey[800],
+              fontSize: node.isCurrent ? 16 : 14,
             ),
           ),
         ),
         if (node.isCurrent) ...[
           const SizedBox(width: 8),
-          Icon(Icons.star, size: 16, color: Theme.of(context).primaryColor),
-          const SizedBox(width: 4),
-          Text(
-            '当前',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).primaryColor,
-              fontWeight: FontWeight.bold,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.blue[500],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.location_on,
+                  size: 14,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '当前',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -267,25 +393,23 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
   }
 
   Color _getNodeColor(PipeCuttingTreeNode node) {
-    final colorScheme = Theme.of(context).colorScheme;
     if (node.isCurrent) {
-      return colorScheme.primary.withOpacity(0.1);
+      return Colors.blue[50]!;
     }
     if (node.isRoot) {
-      return colorScheme.secondary.withOpacity(0.1);
+      return Colors.orange[50]!;
     }
-    return colorScheme.surface.withOpacity(0.5);
+    return Colors.grey[50]!;
   }
 
   Color _getNodeBorderColor(PipeCuttingTreeNode node) {
-    final colorScheme = Theme.of(context).colorScheme;
     if (node.isCurrent) {
-      return colorScheme.primary;
+      return Colors.blue[400]!;
     }
     if (node.isRoot) {
-      return colorScheme.secondary;
+      return Colors.orange[400]!;
     }
-    return colorScheme.outline;
+    return Colors.grey[300]!;
   }
 
   void _showNodeDetails(BuildContext context, PipeCuttingTreeNode node) {
@@ -310,113 +434,308 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Padding(
-          padding: const EdgeInsets.only(left: 24, top: 24, right: 24),
-          child: Text('节点详情', style: Theme.of(context).textTheme.titleLarge),
-        ),
-        titlePadding: EdgeInsets.zero,
-        contentPadding: EdgeInsets.zero,
-        content: SizedBox(
-          width: double.maxFinite,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          constraints: const BoxConstraints(maxHeight: 600),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (node.img != null && node.img!.isNotEmpty)
-                _buildImagePreview(context, node.img!),
-              Flexible(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: details.length,
-                  itemBuilder: (context, index) {
-                    final detail = details[index];
-                    return _buildDetailRow(detail.$1, detail.$2);
-                  },
-                  separatorBuilder: (context, index) =>
-                      const Divider(height: 1, indent: 24, endIndent: 24),
+              // Header
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.blue[400]!,
+                      Colors.blue[600]!,
+                    ],
+                  ),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.info,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        '节点详情',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (node.img != null && node.img!.isNotEmpty)
+                        _buildImagePreview(context, node.img!),
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: details.length,
+                          itemBuilder: (context, index) {
+                            final detail = details[index];
+                            return _buildDetailRow(detail.$1, detail.$2);
+                          },
+                          separatorBuilder: (context, index) =>
+                              const Divider(height: 1, indent: 16, endIndent: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Footer
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(20),
+                  ),
+                ),
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[600],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    '关闭',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('关闭'),
-          ),
-        ],
       ),
     );
   }
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(width: 16),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: Theme.of(context).textTheme.bodyLarge,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.label,
+                  size: 16,
+                  color: Colors.grey[600],
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                value,
+                textAlign: TextAlign.end,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[800],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildImagePreview(BuildContext context, String imageUrl) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
-      child: GestureDetector(
-        onTap: () => _showFullScreenImage(context, imageUrl),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.network(
-            imageUrl,
-            height: 150,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                height: 150,
-                alignment: Alignment.center,
-                child: CircularProgressIndicator(
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                      : null,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.image,
+                size: 16,
+                color: Colors.grey[600],
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '相关图片',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
                 ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) => Container(
-              height: 150,
-              color: Colors.grey[200],
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, color: Colors.red, size: 40),
-                  SizedBox(height: 8),
-                  Text('图片加载失败'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () => _showFullScreenImage(context, imageUrl),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  imageUrl,
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      height: 180,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.blue[400]!,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            '加载中...',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 180,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red[100],
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          child: Icon(
+                            Icons.broken_image,
+                            color: Colors.red[400],
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          '图片加载失败',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '点击重试',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -424,14 +743,114 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
   void _showFullScreenImage(BuildContext context, String imageUrl) {
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.8),
-      builder: (context) => GestureDetector(
-        onTap: () => Navigator.of(context).pop(),
-        child: InteractiveViewer(
-          panEnabled: true,
-          minScale: 0.5,
-          maxScale: 4,
-          child: Image.network(imageUrl),
+      barrierColor: Colors.black.withValues(alpha: 0.85),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            // InteractiveViewer for zooming
+            Positioned.fill(
+              child: InteractiveViewer(
+                panEnabled: true,
+                minScale: 0.5,
+                maxScale: 4,
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                  : null,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.blue[400]!,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              '加载中...',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) => Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.broken_image,
+                            color: Colors.red[400],
+                            size: 48,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            '图片加载失败',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Close button
+            Positioned(
+              top: 40,
+              right: 20,
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.black87,
+                    size: 24,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
