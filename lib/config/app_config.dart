@@ -95,9 +95,9 @@ class AppConfig {
       case Environment.development:
         // return 'https://dev-api.example.com';
         // return 'http://10.2.220.12:8775/m';
-        // return 'http://10.3.3.213:8775/m'; // 孙煊
-        // return 'http://10.3.2.223:8775/m'; // 和宇翔
-        return 'http://10.3.6.235/m';
+        return 'http://10.3.3.213:8775/m'; // 孙煊
+      // return 'http://10.3.2.223:8775/m'; // 和宇翔
+      // return 'http://10.3.6.235/m';
       case Environment.staging:
         return 'https://staging-api.example.com';
       case Environment.production:
@@ -120,7 +120,22 @@ class AppConfig {
 
   static String get uploadUrl => '$uploadBaseUrl/group1/upload';
 
+  static String get sseBaseUrl {
+    switch (_environment) {
+      case Environment.development:
+        return '$apiBaseUrl/cmm/sse/rt';
+      case Environment.staging:
+        return '$apiBaseUrl/cmm/sse/rt';
+      case Environment.production:
+        return '$apiBaseUrl/cmm/sse/rt';
+    }
+  }
+
   static Duration get apiTimeout => const Duration(seconds: 100);
+  static Duration get sseTimeout => const Duration(seconds: 30);
+  static Duration get sseHeartbeatInterval => const Duration(seconds: 30);
+  static Duration get sseReconnectDelay => const Duration(seconds: 5);
+  static int get sseMaxRetryCount => 5;
 
   static Map<String, String> get defaultHeaders => {
     'Content-Type': 'application/json',

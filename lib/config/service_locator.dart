@@ -38,6 +38,8 @@ import 'package:pipe_code_flutter/services/api/interfaces/upload_api_service.dar
 import 'package:pipe_code_flutter/services/api_service_factory.dart';
 import 'package:pipe_code_flutter/services/qr_scan_service.dart';
 import 'package:pipe_code_flutter/services/storage_service.dart';
+import 'package:pipe_code_flutter/services/notification/background_handler.dart';
+import 'package:pipe_code_flutter/services/notification/notification_manager.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -82,6 +84,14 @@ Future<void> setupServiceLocator({
 
   // QR Scan Service
   getIt.registerLazySingleton<QrScanService>(() => QrScanServiceImpl());
+
+  // Notification Services
+  getIt.registerSingleton<NotificationManager>(
+    NotificationManager.instance,
+  );
+  getIt.registerSingleton<BackgroundNotificationHandler>(
+    BackgroundNotificationHandler.instance,
+  );
 
   // Repositories (using RepositoryFactory)
   getIt.registerLazySingleton<AcceptanceRepository>(

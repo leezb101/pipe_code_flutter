@@ -9,6 +9,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/records/record_item.dart';
 import '../../repositories/interfaces/auth_repository.dart';
 import '../../models/user/wx_login_vo.dart';
+import '../../services/notification/notification_manager.dart';
+import '../../utils/logger.dart';
 import 'session_event.dart';
 import 'session_state.dart';
 
@@ -195,6 +197,11 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
             ),
           );
           _pendingProjectId = null;
+          
+          // 启动通知系统 (仅当用户为自有人员时)
+          if (wxLoginVO.own) {
+            _startNotificationSystem(wxLoginVO);
+          }
         } else {
           emit(const SessionError(error: '无法获取用户登录信息'));
         }
@@ -300,6 +307,23 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
       add(SessionInitializeRequested(wxLoginVO: currentState.wxLoginVO));
     } else if (currentState is SessionIdentitySelectionRequired) {
       add(SessionInitializeRequested(wxLoginVO: currentState.wxLoginVO));
+    }
+  }
+
+  /// 启动通知系统
+  Future<void> _startNotificationSystem(WxLoginVO wxLoginVO) async {
+    try {
+      if (wxLoginVO.own) {
+        Logger.info('Starting notification system for user: ${wxLoginVO.name}', tag: 'SESSION_BLOC');
+        final notificationManager = NotificationManager.instance;
+        final success = await notificationManager.start();
+        
+        if (!success) {
+          Logger.warning('Failed to start notification system for user: ${wxLoginVO.name}', tag: 'SESSION_BLOC');
+        }
+      }
+    } catch (e) {
+      Logger.error('Error starting notification system: ${e.toString()}', tag: 'SESSION_BLOC');
     }
   }
 }
