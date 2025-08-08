@@ -8,8 +8,9 @@ import 'package:pipe_code_flutter/repositories/interfaces/records_repository.dar
 class RecordsRepositoryImpl implements RecordsRepository {
   final RecordsApiService _apiService;
   final TodoApiService _todoApiService;
-  final Map<RecordType, List<RecordItem>> _cache = {};
-  final Map<RecordType, DateTime> _cacheTimestamps = {};
+  // Composite cache scoped by userId + projectId + recordType
+  final Map<String, List<RecordItem>> _cache = {};
+  final Map<String, DateTime> _cacheTimestamps = {};
   final Duration _cacheTimeout = const Duration(minutes: 5);
 
   RecordsRepositoryImpl(this._apiService, this._todoApiService);
@@ -24,12 +25,13 @@ class RecordsRepositoryImpl implements RecordsRepository {
     bool forceRefresh = false,
   }) async {
     try {
-      if (!forceRefresh && _isCacheValid(recordType) && pageNum == 1) {
+  final cacheKey = _makeCacheKey(recordType, userId: userId, projectId: projectId);
+  if (!forceRefresh && _isCacheValidByKey(cacheKey) && pageNum == 1) {
         Logger.info(
           'Returning cached records for $recordType',
           tag: 'RecordsRepository',
         );
-        return _cache[recordType] ?? [];
+        return _cache[cacheKey] ?? [];
       }
 
       Logger.info(
@@ -70,8 +72,8 @@ class RecordsRepositoryImpl implements RecordsRepository {
       }
 
       if (pageNum == 1) {
-        _cache[recordType] = records;
-        _cacheTimestamps[recordType] = DateTime.now();
+        _cache[cacheKey] = records;
+        _cacheTimestamps[cacheKey] = DateTime.now();
       }
 
       Logger.info(
@@ -85,12 +87,13 @@ class RecordsRepositoryImpl implements RecordsRepository {
         tag: 'RecordsRepository',
       );
 
-      if (pageNum == 1 && _cache.containsKey(recordType)) {
+  final cacheKey = _makeCacheKey(recordType, userId: userId, projectId: projectId);
+  if (pageNum == 1 && _cache.containsKey(cacheKey)) {
         Logger.info(
           'Returning cached records due to error',
           tag: 'RecordsRepository',
         );
-        return _cache[recordType] ?? [];
+        return _cache[cacheKey] ?? [];
       }
 
       rethrow;
@@ -163,18 +166,31 @@ class RecordsRepositoryImpl implements RecordsRepository {
     }
   }
 
-  bool _isCacheValid(RecordType recordType) {
-    final timestamp = _cacheTimestamps[recordType];
+  bool _isCacheValidByKey(String key) {
+    final timestamp = _cacheTimestamps[key];
     if (timestamp == null) return false;
-
     return DateTime.now().difference(timestamp) < _cacheTimeout;
+  }
+
+  String _makeCacheKey(
+    RecordType recordType, {
+    int? userId,
+    int? projectId,
+  }) {
+    final uid = userId?.toString() ?? 'u0';
+    final pid = projectId?.toString() ?? 'p0';
+    return '$uid@$pid#${recordType.name}';
   }
 
   @override
   void clearCache([RecordType? recordType]) {
     if (recordType != null) {
-      _cache.remove(recordType);
-      _cacheTimestamps.remove(recordType);
+      // Remove all keys matching the recordType regardless of user/project
+      final keysToRemove = _cache.keys.where((k) => k.endsWith('#${recordType.name}')).toList();
+      for (final k in keysToRemove) {
+        _cache.remove(k);
+        _cacheTimestamps.remove(k);
+      }
       Logger.info('Cleared cache for $recordType', tag: 'RecordsRepository');
     } else {
       _cache.clear();
@@ -185,8 +201,8 @@ class RecordsRepositoryImpl implements RecordsRepository {
 
   @override
   void updateCache(RecordType recordType, List<RecordItem> records) {
-    _cache[recordType] = records;
-    _cacheTimestamps[recordType] = DateTime.now();
+    // Without user/project context, update cannot determine scope; do nothing.
+    // Prefer using getRecords which writes cache with full key.
     Logger.info(
       'Updated cache for $recordType with ${records.length} records',
       tag: 'RecordsRepository',
@@ -194,15 +210,25 @@ class RecordsRepositoryImpl implements RecordsRepository {
   }
 
   @override
-  List<RecordItem>? getCachedRecords(RecordType recordType) {
-    if (_isCacheValid(recordType)) {
-      return _cache[recordType];
+  List<RecordItem>? getCachedRecords(
+    RecordType recordType, {
+    int? userId,
+    int? projectId,
+  }) {
+    final key = _makeCacheKey(recordType, userId: userId, projectId: projectId);
+  if (_isCacheValidByKey(key)) {
+      return _cache[key];
     }
     return null;
   }
 
   @override
-  bool hasCachedData(RecordType recordType) {
-    return _isCacheValid(recordType) && _cache.containsKey(recordType);
+  bool hasCachedData(
+    RecordType recordType, {
+    int? userId,
+    int? projectId,
+  }) {
+    final key = _makeCacheKey(recordType, userId: userId, projectId: projectId);
+  return _isCacheValidByKey(key) && _cache.containsKey(key);
   }
 }

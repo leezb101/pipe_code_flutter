@@ -38,11 +38,13 @@ class LoadRecords extends RecordsEvent {
 
 class SwitchTab extends RecordsEvent {
   final RecordType recordType;
+  final int? projectId;
+  final int? userId;
 
-  const SwitchTab(this.recordType);
+  const SwitchTab(this.recordType, {this.projectId, this.userId});
 
   @override
-  List<Object> get props => [recordType];
+  List<Object?> get props => [recordType, projectId, userId];
 }
 
 class RefreshRecords extends RecordsEvent {

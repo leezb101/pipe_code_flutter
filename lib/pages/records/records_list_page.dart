@@ -54,14 +54,28 @@ class _RecordsListPageState extends State<RecordsListPage>
       final currentTab = bloc.currentTab;
       if (currentTab == RecordType.todo ||
           currentTab == RecordType.warehouseTodo) {
-        bloc.add(RefreshRecords(recordType: currentTab));
+        final ids = _resolveIds(context.read<SessionBloc>().state);
+        bloc.add(
+          RefreshRecords(
+            recordType: currentTab,
+            userId: ids.$1,
+            projectId: ids.$2,
+          ),
+        );
       }
     });
 
     // 首次进入时自动加载默认tab（如待办）
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<RecordsBloc>().add(LoadRecords(recordType: _initialTab));
+        final ids = _resolveIds(context.read<SessionBloc>().state);
+        context.read<RecordsBloc>().add(
+              LoadRecords(
+                recordType: _initialTab,
+                userId: ids.$1,
+                projectId: ids.$2,
+              ),
+            );
       }
     });
   }
@@ -118,19 +132,40 @@ class _RecordsListPageState extends State<RecordsListPage>
       if (bloc.state is RecordsLoaded) {
         final state = bloc.state as RecordsLoaded;
         if (state.hasMoreData && !state.isLoadingMore) {
-          bloc.add(LoadMoreRecords(recordType: state.currentTab));
+          final ids = _resolveIds(context.read<SessionBloc>().state);
+          bloc.add(
+            LoadMoreRecords(
+              recordType: state.currentTab,
+              userId: ids.$1,
+              projectId: ids.$2,
+            ),
+          );
         }
       }
     }
   }
 
   void _onTabSelected(RecordType recordType) {
-    context.read<RecordsBloc>().add(SwitchTab(recordType));
+    final ids = _resolveIds(context.read<SessionBloc>().state);
+    context.read<RecordsBloc>().add(
+      SwitchTab(
+        recordType,
+        userId: ids.$1,
+        projectId: ids.$2,
+      ),
+    );
   }
 
   void _onRefresh() {
     final bloc = context.read<RecordsBloc>();
-    bloc.add(RefreshRecords(recordType: bloc.currentTab));
+    final ids = _resolveIds(context.read<SessionBloc>().state);
+    bloc.add(
+      RefreshRecords(
+        recordType: bloc.currentTab,
+        userId: ids.$1,
+        projectId: ids.$2,
+      ),
+    );
   }
 
   void _onRecordTap(BuildContext context, RecordItem record) {
@@ -230,6 +265,13 @@ class _RecordsListPageState extends State<RecordsListPage>
         if (previous.runtimeType != current.runtimeType) {
           return true;
         }
+        // 条件三：同类型会话下，项目发生切换时触发（例如从项目A切到项目B）
+        if (previous is SessionProjectEstablished &&
+            current is SessionProjectEstablished) {
+          if (previous.project.projectId != current.project.projectId) {
+            return true;
+          }
+        }
         return false;
       },
       // `listener` 专门用于处理副作用，如导航、弹窗、刷新其他Bloc等
@@ -249,15 +291,26 @@ class _RecordsListPageState extends State<RecordsListPage>
           });
         }
 
-        // 处理会话身份切换，这需要重置Tabs并重新加载记录
-        if (_lastSessionState?.runtimeType != sessionState.runtimeType) {
+    // 处理会话身份切换或项目切换，这需要重置Tabs并重新加载记录
+    final last = _lastSessionState;
+    final typeChanged = last?.runtimeType != sessionState.runtimeType;
+    final projectChanged = last is SessionProjectEstablished &&
+      sessionState is SessionProjectEstablished &&
+      last.project.projectId != sessionState.project.projectId;
+    if (typeChanged || projectChanged) {
           if (mounted) {
             setState(() {
               _setupTabsBySession(sessionState);
               // 重置 RecordsBloc 状态，并加载新身份下的默认Tab
+              final ids = _resolveIds(sessionState);
+              // 强制刷新以绕开缓存
               context.read<RecordsBloc>().add(
-                LoadRecords(recordType: _initialTab),
-              );
+                    RefreshRecords(
+                      recordType: _initialTab,
+                      userId: ids.$1,
+                      projectId: ids.$2,
+                    ),
+                  );
             });
           }
         }
@@ -342,6 +395,20 @@ class _RecordsListPageState extends State<RecordsListPage>
         return const SizedBox.shrink();
       },
     );
+  }
+
+  /// 解析当前会话中的 userId (int?) 和 projectId (int?)
+  (int?, int?) _resolveIds(SessionState sessionState) {
+    int? uid;
+    int? pid;
+    if (sessionState is SessionProjectEstablished) {
+      // WxLoginVO.id is String per model, convert to int if numeric
+      uid = int.tryParse(sessionState.user.id);
+      pid = sessionState.project.projectId;
+    } else if (sessionState is SessionStorekeeperEstablished) {
+      uid = int.tryParse(sessionState.user.id);
+    }
+    return (uid, pid);
   }
 
   Widget _buildRecordsList(

@@ -27,7 +27,11 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     Emitter<RecordsState> emit,
   ) async {
     try {
-      final cachedRecords = _repository.getCachedRecords(event.recordType);
+      final cachedRecords = _repository.getCachedRecords(
+        event.recordType,
+        userId: event.userId,
+        projectId: event.projectId,
+      );
 
       if (event.pageNum == 1) {
         emit(
@@ -41,7 +45,7 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
         emit(currentState.copyWith(isLoadingMore: true));
       }
 
-      final records = await _repository.getRecords(
+  final records = await _repository.getRecords(
         recordType: event.recordType,
         projectId: event.projectId,
         userId: event.userId,
@@ -88,7 +92,11 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     } catch (e) {
       Logger.error('Failed to load records: $e', tag: 'RecordsBloc');
 
-      final cachedRecords = _repository.getCachedRecords(event.recordType);
+      final cachedRecords = _repository.getCachedRecords(
+        event.recordType,
+        userId: event.userId,
+        projectId: event.projectId,
+      );
 
       if (event.pageNum == 1) {
         emit(
@@ -107,8 +115,11 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
 
   Future<void> _onSwitchTab(SwitchTab event, Emitter<RecordsState> emit) async {
     Logger.info('Switching to tab: ${event.recordType}', tag: 'RecordsBloc');
-
-    final cachedRecords = _repository.getCachedRecords(event.recordType);
+    final cachedRecords = _repository.getCachedRecords(
+      event.recordType,
+      userId: event.userId,
+      projectId: event.projectId,
+    );
     final pageSize = 10; // 与LoadRecords默认pageSize保持一致
     if (cachedRecords != null && cachedRecords.isNotEmpty) {
       emit(
@@ -120,7 +131,13 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
         ),
       );
     } else {
-      add(LoadRecords(recordType: event.recordType));
+      add(
+        LoadRecords(
+          recordType: event.recordType,
+          userId: event.userId,
+          projectId: event.projectId,
+        ),
+      );
     }
   }
 

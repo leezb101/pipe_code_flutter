@@ -22,7 +22,17 @@ abstract class RecordsRepository {
 
   void updateCache(RecordType recordType, List<RecordItem> records);
 
-  List<RecordItem>? getCachedRecords(RecordType recordType);
+  /// Get cached records scoped by account and project for a given type.
+  List<RecordItem>? getCachedRecords(
+    RecordType recordType, {
+    int? userId,
+    int? projectId,
+  });
 
-  bool hasCachedData(RecordType recordType);
+  /// Check if scoped cache exists and is valid for the given composite key.
+  bool hasCachedData(
+    RecordType recordType, {
+    int? userId,
+    int? projectId,
+  });
 }

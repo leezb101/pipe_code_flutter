@@ -15,6 +15,8 @@ import '../bloc/auth/auth_state.dart';
 import '../bloc/auth/auth_event.dart';
 import '../bloc/user/user_bloc.dart';
 import '../bloc/user/user_event.dart';
+import 'package:get_it/get_it.dart';
+import '../repositories/interfaces/records_repository.dart';
 import 'identity_selector.dart';
 import 'project_selector.dart';
 
@@ -64,9 +66,17 @@ class _SessionGuardState extends State<SessionGuard> {
               context.read<UserBloc>().add(
                 UserSetData(wxLoginVO: authState.wxLoginVO),
               );
+              // 登录成功后清理所有记录缓存（确保账户隔离）
+              try {
+                GetIt.instance<RecordsRepository>().clearCache();
+              } catch (_) {}
             } else if (authState is AuthUnauthenticated) {
               // 未认证，清除会话
               context.read<SessionBloc>().add(const SessionClearRequested());
+              // 退出登录时清理所有记录缓存
+              try {
+                GetIt.instance<RecordsRepository>().clearCache();
+              } catch (_) {}
             }
           },
         ),
