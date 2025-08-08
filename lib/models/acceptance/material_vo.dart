@@ -6,6 +6,7 @@ part 'material_vo.g.dart';
 @JsonSerializable()
 class MaterialVO extends Equatable {
   final int materialId;
+  @JsonKey(defaultValue: '')
   final String materialName;
   final int num;
   final String? installPileNo;
@@ -28,13 +29,13 @@ class MaterialVO extends Equatable {
 
   @override
   List<Object?> get props => [
-        materialId,
-        materialName,
-        num,
-        installPileNo,
-        installImageUrl1,
-        installImageUrl2,
-      ];
+    materialId,
+    materialName,
+    num,
+    installPileNo,
+    installImageUrl1,
+    installImageUrl2,
+  ];
 
   MaterialVO copyWith({
     int? materialId,

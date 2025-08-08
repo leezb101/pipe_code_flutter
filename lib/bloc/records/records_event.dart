@@ -27,13 +27,13 @@ class LoadRecords extends RecordsEvent {
 
   @override
   List<Object?> get props => [
-        recordType,
-        projectId,
-        userId,
-        pageNum,
-        pageSize,
-        forceRefresh,
-      ];
+    recordType,
+    projectId,
+    userId,
+    pageNum,
+    pageSize,
+    forceRefresh,
+  ];
 }
 
 class SwitchTab extends RecordsEvent {
@@ -50,7 +50,19 @@ class RefreshRecords extends RecordsEvent {
   final int? projectId;
   final int? userId;
 
-  const RefreshRecords({
+  const RefreshRecords({required this.recordType, this.projectId, this.userId});
+
+  @override
+  List<Object?> get props => [recordType, projectId, userId];
+}
+
+/// 内部事件：用于去抖后真正执行刷新
+class DebouncedRefreshRecords extends RecordsEvent {
+  final RecordType recordType;
+  final int? projectId;
+  final int? userId;
+
+  const DebouncedRefreshRecords({
     required this.recordType,
     this.projectId,
     this.userId,

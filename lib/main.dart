@@ -28,6 +28,7 @@ import 'cubits/list_cubit.dart';
 import 'repositories/interfaces/auth_repository.dart';
 import 'repositories/interfaces/user_repository.dart';
 import 'repositories/interfaces/list_repository.dart';
+import 'widgets/notification/floating_todo_banner.dart';
 
 void main() async {
   if (kDebugMode) {
@@ -144,6 +145,10 @@ class MyApp extends StatelessWidget {
             ),
           ),
           routerConfig: appRouter,
+          builder: (context, child) {
+            // Globally host floating todo banner on top of all pages
+            return FloatingTodoBannerHost(child: child ?? const SizedBox());
+          },
         ),
       ),
     );

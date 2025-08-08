@@ -6,11 +6,14 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'dart:async';
+import 'dart:convert';
 import 'package:eventflux/eventflux.dart';
 import 'package:pipe_code_flutter/config/app_config.dart';
 import 'package:pipe_code_flutter/models/notification/sse_message_vo.dart';
 import 'package:pipe_code_flutter/models/notification/notification_message_vo.dart';
 import 'package:pipe_code_flutter/services/notification/message_parser.dart';
+import 'package:pipe_code_flutter/services/notification/event_type_converter.dart';
+import 'package:pipe_code_flutter/services/notification/notification_center.dart';
 import 'package:pipe_code_flutter/services/sse/sse_auth_helper.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 
@@ -199,20 +202,29 @@ class SseService {
       // 更新最后消息时间
       _lastMessageTime = DateTime.now();
 
+      final dataContent = jsonDecode(data.data) as Map<String, dynamic>;
       // EventFlux已经解析了SSE格式，我们直接处理数据
       // 使用EventFluxData中的event和data字段
+      // 将后端的事件类型（可能为int）转换为语义化字符串，供解析器选择
+      final rawType = dataContent['type'];
+      final convertedType = EventTypeConverter.convert(
+        rawType,
+        hint: data.event,
+      );
+
       final sseMessage = SseMessageVO(
-        id: data.id,
-        event: data.event,
-        data: data.data,
+        msgId: data.id,
+        type: rawType is int ? rawType : int.tryParse(rawType.toString()) ?? -1,
+        name: data.event,
+        extra: dataContent['extra'] as Map<String, dynamic>?,
         timestamp: _lastMessageTime,
       );
 
       // 解析消息
-      final parser = MessageParserFactory.getParser(sseMessage.event);
+      final parser = MessageParserFactory.getParser(convertedType);
       if (parser == null) {
         Logger.warning(
-          'No parser found for event type: ${sseMessage.event}',
+          'No parser found for event type: ${sseMessage.type}',
           tag: _tag,
         );
         return;
@@ -237,7 +249,13 @@ class SseService {
       }
 
       // 回调处理消息
-      _onMessageReceived?.call(parseResult.message!);
+      final msg = parseResult.message!;
+      _onMessageReceived?.call(msg);
+
+      // 将todo消息发布到全局通知中心（用于批量刷新与浮窗）
+      if (msg.type.toLowerCase() == 'todo') {
+        NotificationCenter.instance.publish(msg);
+      }
 
       // 重置重试计数
       _retryCount = 0;
