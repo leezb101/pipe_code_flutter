@@ -20,8 +20,8 @@ class ScrapDetailVO extends Equatable {
   final List<AttachmentVO> attachmentList;
 
   const ScrapDetailVO({
-    this.materialList = const [],
-    this.attachmentList = const [],
+    required this.materialList,
+    required this.attachmentList,
   });
 
   factory ScrapDetailVO.fromJson(Map<String, dynamic> json) =>

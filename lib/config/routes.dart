@@ -55,6 +55,7 @@ import '../bloc/return/return_bloc.dart';
 import '../pages/inventory/inventory_list_page.dart';
 import '../pages/inventory/inventory_page.dart';
 import '../pages/inventory/inventory_detail_page.dart';
+import '../pages/notification/pending_todo_list_page.dart';
 import 'service_locator.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -330,7 +331,8 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('二维码内容无效')));
             }
             return BlocProvider(
-              create: (context) => MaterialDetailCubit()..loadMaterialDetail(materialCode),
+              create: (context) =>
+                  MaterialDetailCubit()..loadMaterialDetail(materialCode),
               child: const MaterialDetailView(),
             );
           },
@@ -344,11 +346,13 @@ final GoRouter appRouter = GoRouter(
 
                 if (materialId == null) {
                   return const Scaffold(
-                      body: Center(child: Text('参数错误: materialId 缺失')));
+                    body: Center(child: Text('参数错误: materialId 缺失')),
+                  );
                 }
                 if (cubit == null) {
                   return const Scaffold(
-                      body: Center(child: Text('参数错误: Cubit 未提供')));
+                    body: Center(child: Text('参数错误: Cubit 未提供')),
+                  );
                 }
 
                 return BlocProvider.value(
@@ -526,6 +530,11 @@ final GoRouter appRouter = GoRouter(
       path: '/developer-settings',
       name: 'developer-settings',
       builder: (context, state) => const DeveloperSettingsPage(),
+    ),
+    GoRoute(
+      path: '/pending-todo',
+      name: 'pending-todo',
+      builder: (context, state) => const PendingTodoListPage(),
     ),
   ],
 );

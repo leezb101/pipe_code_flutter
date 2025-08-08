@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:pipe_code_flutter/models/notification/sse_message_vo.dart';
 import 'package:pipe_code_flutter/models/notification/notification_message_vo.dart';
 import 'package:pipe_code_flutter/services/notification/event_type_converter.dart';
+import 'package:pipe_code_flutter/models/notification/todo_subtype.dart';
 
 /// 消息解析结果
 class MessageParseResult {
@@ -261,13 +262,46 @@ class TodoMessageParser implements MessageParser {
         );
       }
 
-      // 先返回一个最小可用的占位消息，后续再细化字段结构
+      // 细分子类型（基于后端事件码 int）
+      final subtype = todoSubtypeFromCode(sseMessage.type);
+
+      // 从extra提取关键数据
+      final extra = sseMessage.extra ?? const <String, dynamic>{};
+      final name = _asString(extra['name']);
+      final id = _asInt(extra['id']);
+      final todoType = _asInt(extra['todoType']);
+      final todoName = _asString(extra['todoName']);
+      final businessId = _asInt(extra['businessId']);
+      final projectId = _asInt(extra['projectId']);
+      final projectName = _asString(extra['projectName']);
+      final projectCode = _asString(extra['projectCode']);
+      final finishStatus = _asInt(extra['finishStatus']);
+      final launchUser = _asString(extra['launchUser']);
+      final launchName = _asString(extra['launchName']);
+      final title = _asString(extra['title']) ?? subtype.displayName;
+      final content = _asString(extra['content']) ?? sseMessage.name;
+
+      // 构造消息，metadata携带路由所需参数
       final message = NotificationMessageVO(
         id: sseMessage.msgId,
         type: 'todo',
-        title: '待办提醒',
-        content: sseMessage.name.isNotEmpty ? sseMessage.name : '您有新的待办事项',
+        title: title.isNotEmpty ? title : '待办提醒',
+        content: content.isNotEmpty ? content : '您有新的待办事项',
         createdAt: sseMessage.timestamp ?? DateTime.now(),
+        metadata: {
+          'todoSubtype': subtype.name,
+          if (name != null) 'name': name,
+          if (id != null) 'id': id,
+          if (todoType != null) 'todoType': todoType,
+          if (todoName != null) 'todoName': todoName,
+          if (finishStatus != null) 'finishStatus': finishStatus,
+          if (launchUser != null) 'launchUser': launchUser,
+          if (launchName != null) 'launchName': launchName,
+          if (businessId != null) 'businessId': businessId,
+          if (projectId != null) 'projectId': projectId,
+          if (projectName != null) 'projectName': projectName,
+          if (projectCode != null) 'projectCode': projectCode,
+        },
       );
 
       return MessageParseResult.success(message);
@@ -280,4 +314,16 @@ class TodoMessageParser implements MessageParser {
 
   @override
   bool supports(String eventType) => eventType.toLowerCase() == 'todo';
+
+  int? _asInt(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return v;
+    return int.tryParse(v.toString());
+  }
+
+  String? _asString(dynamic v) {
+    if (v == null) return null;
+    final s = v.toString().trim();
+    return s.isEmpty ? null : s;
+  }
 }

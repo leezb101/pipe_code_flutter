@@ -13,6 +13,7 @@ import 'package:pipe_code_flutter/models/notification/sse_message_vo.dart';
 import 'package:pipe_code_flutter/models/notification/notification_message_vo.dart';
 import 'package:pipe_code_flutter/services/notification/message_parser.dart';
 import 'package:pipe_code_flutter/services/notification/event_type_converter.dart';
+import 'package:pipe_code_flutter/services/notification/notification_center.dart';
 import 'package:pipe_code_flutter/services/sse/sse_auth_helper.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 
@@ -248,7 +249,13 @@ class SseService {
       }
 
       // 回调处理消息
-      _onMessageReceived?.call(parseResult.message!);
+      final msg = parseResult.message!;
+      _onMessageReceived?.call(msg);
+
+      // 将todo消息发布到全局通知中心（用于批量刷新与浮窗）
+      if (msg.type.toLowerCase() == 'todo') {
+        NotificationCenter.instance.publish(msg);
+      }
 
       // 重置重试计数
       _retryCount = 0;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/models/records/record_item.dart';
@@ -13,6 +14,8 @@ import '../../models/records/record_type.dart';
 import '../../widgets/expandable_tab_bar.dart';
 import '../../widgets/record_list_item.dart';
 import '../../widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/services/notification/notification_center.dart';
+import 'package:pipe_code_flutter/models/notification/notification_message_vo.dart';
 
 class RecordsListPage extends StatefulWidget {
   final RecordType? initialTab;
@@ -29,6 +32,7 @@ class _RecordsListPageState extends State<RecordsListPage>
   late List<RecordType> _allTabs;
   late RecordType _initialTab;
   SessionState? _lastSessionState;
+  StreamSubscription<List<NotificationMessageVO>>? _todoStreamSub;
 
   @override
   bool get wantKeepAlive => true;
@@ -42,6 +46,17 @@ class _RecordsListPageState extends State<RecordsListPage>
     final sessionState = context.read<SessionBloc>().state;
     _setupTabsBySession(sessionState);
     _lastSessionState = sessionState;
+
+    // 订阅全局待办通知：聚合后的批量事件到来时刷新当前tab（若是待办类）
+    _todoStreamSub = NotificationCenter.instance.todoStream.listen((batch) {
+      if (!mounted || batch.isEmpty) return;
+      final bloc = context.read<RecordsBloc>();
+      final currentTab = bloc.currentTab;
+      if (currentTab == RecordType.todo ||
+          currentTab == RecordType.warehouseTodo) {
+        bloc.add(RefreshRecords(recordType: currentTab));
+      }
+    });
 
     // 首次进入时自动加载默认tab（如待办）
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -91,6 +106,7 @@ class _RecordsListPageState extends State<RecordsListPage>
 
   @override
   void dispose() {
+    _todoStreamSub?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
