@@ -110,7 +110,7 @@ class _FloatingTodoBannerHostState extends State<FloatingTodoBannerHost>
           // open pending list via GoRouter with global navigatorKey
           final ctx = navigatorKey.currentContext;
           if (ctx != null) {
-            GoRouter.of(ctx).goNamed('pending-todo');
+            GoRouter.of(ctx).pushNamed('pending-todo');
           }
         },
         icon: const Icon(Icons.inbox),

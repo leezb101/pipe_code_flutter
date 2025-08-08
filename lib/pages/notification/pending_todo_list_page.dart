@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:pipe_code_flutter/models/notification/notification_message_vo.dart';
 import 'package:pipe_code_flutter/services/notification/notification_center.dart';
 import 'package:pipe_code_flutter/services/notification/todo_navigator.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/config/routes.dart';
 
 class PendingTodoListPage extends StatefulWidget {
   const PendingTodoListPage({super.key});
@@ -39,6 +41,18 @@ class _PendingTodoListPageState extends State<PendingTodoListPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('无法跳转，已从待处理移除')));
+      // 失败时引导返回：优先返回上一个页面；若无法返回则跳到主页面
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (!mounted) return;
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          final ctx = navigatorKey.currentContext;
+          if (ctx != null && ctx.mounted) {
+            GoRouter.of(ctx).goNamed('main');
+          }
+        }
+      });
     }
   }
 

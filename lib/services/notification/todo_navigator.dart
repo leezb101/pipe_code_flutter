@@ -129,7 +129,7 @@ class TodoNavigator {
             // }
           }
 
-          if (!switched) {
+          if (!switched && ctx.mounted) {
             ScaffoldMessenger.of(ctx).showSnackBar(
               SnackBar(
                 content: Text(
