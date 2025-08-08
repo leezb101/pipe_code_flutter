@@ -8,6 +8,7 @@
 import 'dart:convert';
 import 'package:pipe_code_flutter/models/notification/sse_message_vo.dart';
 import 'package:pipe_code_flutter/models/notification/notification_message_vo.dart';
+import 'package:pipe_code_flutter/services/notification/event_type_converter.dart';
 
 /// 消息解析结果
 class MessageParseResult {
@@ -15,13 +16,9 @@ class MessageParseResult {
   final NotificationMessageVO? message;
   final String? error;
 
-  MessageParseResult.success(this.message)
-      : isSuccess = true,
-        error = null;
+  MessageParseResult.success(this.message) : isSuccess = true, error = null;
 
-  MessageParseResult.failure(this.error)
-      : isSuccess = false,
-        message = null;
+  MessageParseResult.failure(this.error) : isSuccess = false, message = null;
 
   bool get isFailure => !isSuccess;
 }
@@ -42,24 +39,34 @@ class JsonMessageParser implements MessageParser {
   @override
   MessageParseResult parse(SseMessageVO sseMessage) {
     try {
-      if (!supports(sseMessage.event)) {
-        return MessageParseResult.failure('Unsupported event type: ${sseMessage.event}');
+      // 统一将类型转换为字符串以便解析器处理
+      final eventType = EventTypeConverter.convert(
+        sseMessage.type,
+        hint: sseMessage.name,
+      );
+
+      if (!supports(eventType)) {
+        return MessageParseResult.failure(
+          'Unsupported event type: ${sseMessage.type}',
+        );
       }
 
       // 解析JSON数据
-      final Map<String, dynamic> jsonData = _parseJsonData(sseMessage.data);
-      
+      final Map<String, dynamic> jsonData = _parseJsonData(sseMessage.name);
+
       // 验证必需字段
       if (!_validateRequiredFields(jsonData)) {
-        return MessageParseResult.failure('Missing required fields in message data');
+        return MessageParseResult.failure(
+          'Missing required fields in message data',
+        );
       }
 
       // 构建通知消息对象
       final message = NotificationMessageVO.fromJson(jsonData);
-      
+
       // 设置默认值
       final messageWithDefaults = message.copyWith(
-        id: message.id.isNotEmpty ? message.id : sseMessage.id,
+        id: message.id.isNotEmpty ? message.id : sseMessage.msgId,
         createdAt: message.createdAt ?? DateTime.now(),
       );
 
@@ -108,21 +115,21 @@ class JsonMessageParser implements MessageParser {
   Map<String, dynamic> _parseKeyValueFormat(String data) {
     final result = <String, dynamic>{};
     final lines = data.split('\n');
-    
+
     for (final line in lines) {
       final trimmedLine = line.trim();
       if (trimmedLine.isEmpty) continue;
-      
+
       final parts = trimmedLine.split(':');
       if (parts.length >= 2) {
         final key = parts[0].trim();
         final value = parts.sublist(1).join(':').trim();
-        
+
         // 尝试解析值类型
         result[key] = _parseValue(value);
       }
     }
-    
+
     return result;
   }
 
@@ -131,35 +138,39 @@ class JsonMessageParser implements MessageParser {
     if (value.startsWith('"') && value.endsWith('"')) {
       return value.substring(1, value.length - 1);
     }
-    
+
     if (value.toLowerCase() == 'true') return true;
     if (value.toLowerCase() == 'false') return false;
-    
+
     if (value.startsWith('[') && value.endsWith(']')) {
-      return value.substring(1, value.length - 1).split(',').map((e) => e.trim()).toList();
+      return value
+          .substring(1, value.length - 1)
+          .split(',')
+          .map((e) => e.trim())
+          .toList();
     }
-    
+
     if (int.tryParse(value) != null) {
       return int.parse(value);
     }
-    
+
     if (double.tryParse(value) != null) {
       return double.parse(value);
     }
-    
+
     return value;
   }
 
   /// 验证必需字段
   bool _validateRequiredFields(Map<String, dynamic> jsonData) {
     const requiredFields = ['type', 'title', 'content'];
-    
+
     for (final field in requiredFields) {
       if (!jsonData.containsKey(field) || jsonData[field] == null) {
         return false;
       }
     }
-    
+
     return true;
   }
 }
@@ -170,16 +181,22 @@ class TextMessageParser implements MessageParser {
   @override
   MessageParseResult parse(SseMessageVO sseMessage) {
     try {
-      if (!supports(sseMessage.event)) {
-        return MessageParseResult.failure('Unsupported event type: ${sseMessage.event}');
+      final eventType = EventTypeConverter.convert(
+        sseMessage.type,
+        hint: sseMessage.name,
+      );
+      if (!supports(eventType)) {
+        return MessageParseResult.failure(
+          'Unsupported event type: ${sseMessage.type}',
+        );
       }
 
       // 创建简单的通知消息
       final message = NotificationMessageVO(
-        id: sseMessage.id,
+        id: sseMessage.msgId,
         type: 'text',
         title: '系统通知',
-        content: sseMessage.data,
+        content: sseMessage.name,
         createdAt: DateTime.now(),
       );
 
@@ -193,12 +210,7 @@ class TextMessageParser implements MessageParser {
 
   @override
   bool supports(String eventType) {
-    const supportedTypes = {
-      'text',
-      'log',
-      'debug',
-      'info',
-    };
+    const supportedTypes = {'text', 'log', 'debug', 'info'};
     return supportedTypes.contains(eventType.toLowerCase());
   }
 }
@@ -209,6 +221,7 @@ class MessageParserFactory {
   static final List<MessageParser> _parsers = [
     JsonMessageParser(),
     TextMessageParser(),
+    TodoMessageParser(),
   ];
 
   /// 获取支持指定事件类型的解析器
@@ -230,4 +243,41 @@ class MessageParserFactory {
 
   /// 获取所有注册的解析器
   static List<MessageParser> get allParsers => List.unmodifiable(_parsers);
+}
+
+/// 待办消息解析器
+/// 匹配事件类型：'todo'（由事件类型转换器将1~6的整型code映射而来）
+class TodoMessageParser implements MessageParser {
+  @override
+  MessageParseResult parse(SseMessageVO sseMessage) {
+    try {
+      final eventType = EventTypeConverter.convert(
+        sseMessage.type,
+        hint: sseMessage.name,
+      );
+      if (!supports(eventType)) {
+        return MessageParseResult.failure(
+          'Unsupported event type for todo: ${sseMessage.type}',
+        );
+      }
+
+      // 先返回一个最小可用的占位消息，后续再细化字段结构
+      final message = NotificationMessageVO(
+        id: sseMessage.msgId,
+        type: 'todo',
+        title: '待办提醒',
+        content: sseMessage.name.isNotEmpty ? sseMessage.name : '您有新的待办事项',
+        createdAt: sseMessage.timestamp ?? DateTime.now(),
+      );
+
+      return MessageParseResult.success(message);
+    } catch (e) {
+      return MessageParseResult.failure(
+        'Failed to parse todo message: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  bool supports(String eventType) => eventType.toLowerCase() == 'todo';
 }

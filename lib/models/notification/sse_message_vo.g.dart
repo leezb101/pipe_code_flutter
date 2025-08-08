@@ -7,18 +7,18 @@ part of 'sse_message_vo.dart';
 // **************************************************************************
 
 SseMessageVO _$SseMessageVOFromJson(Map<String, dynamic> json) => SseMessageVO(
-  id: json['id'] as String,
-  event: json['event'] as String,
-  data: json['data'] as String,
-  timestamp: json['timestamp'] == null
-      ? null
-      : DateTime.parse(json['timestamp'] as String),
+  msgId: json['msgId'] as String,
+  type: (json['type'] as num).toInt(),
+  name: json['name'] as String,
+  extra: json['extra'] as Map<String, dynamic>?,
+  timestamp: SseMessageVO._timestampFromJson(json['timestamp']),
 );
 
 Map<String, dynamic> _$SseMessageVOToJson(SseMessageVO instance) =>
     <String, dynamic>{
-      'id': instance.id,
-      'event': instance.event,
-      'data': instance.data,
+      'msgId': instance.msgId,
+      'type': instance.type,
+      'name': instance.name,
+      'extra': instance.extra,
       'timestamp': instance.timestamp?.toIso8601String(),
     };
