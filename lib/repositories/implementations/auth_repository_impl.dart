@@ -23,8 +23,8 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({
     required ApiServiceInterface apiService,
     required StorageService storageService,
-  })  : _apiService = apiService,
-        _storageService = storageService;
+  }) : _apiService = apiService,
+       _storageService = storageService;
 
   @override
   Future<Result<WxLoginVO>> loginWithPassword(
@@ -106,14 +106,22 @@ class AuthRepositoryImpl implements AuthRepository {
       final result = await _apiService.auth.selectProject(projectId);
 
       if (result.isSuccess && result.data != null) {
-        // 保存项目选择信息
-        await _storageService.saveString(
+        // 迁移旧数据（一次性）并按用户隔离保存项目选择信息
+        await _storageService.migrateProjectRelatedKeys();
+
+        // 保存到用户隔离的key
+        await _storageService.setUserString(
           'last_selected_project_id',
           projectId.toString(),
         );
-        await _storageService.saveString(
+        // 同步记录选择时间戳（毫秒）用于TTL控制（60天）
+        await _storageService.setUserInt(
+          'last_selected_project_id_ts',
+          DateTime.now().millisecondsSinceEpoch,
+        );
+        await _storageService.setUserString(
           'current_project_role_info',
-          result.data!.toJson().toString(),
+          _storageService.encodeJsonString(result.data!.toJson()),
         );
       }
 
@@ -167,6 +175,8 @@ class AuthRepositoryImpl implements AuthRepository {
       // 清除本地数据
       await _storageService.clearAuthToken();
       await _storageService.clearUserData();
+      // 清理用户隔离数据（保留 last_selected_project_id 以优化回访体验）
+      await _storageService.removeUserKey('current_project_role_info');
       await _storageService.remove('last_selected_project_id');
       await _storageService.remove('current_project_role_info');
       _apiService.auth.clearAuthToken();
@@ -175,6 +185,39 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<String?> getLastSelectedProjectId() async {
+    // 优先读取用户隔离key并检查TTL（60天）
+    const ttlDays = 60;
+    final scoped = _storageService.getUserString('last_selected_project_id');
+    if (scoped != null) {
+      final ts = _storageService.getUserInt('last_selected_project_id_ts');
+      if (ts != null) {
+        final savedAt = DateTime.fromMillisecondsSinceEpoch(ts);
+        final isExpired = DateTime.now().difference(savedAt).inDays > ttlDays;
+        if (isExpired) {
+          // 过期即清除并返回null
+          await _storageService.removeUserKey('last_selected_project_id');
+          await _storageService.removeUserKey('last_selected_project_id_ts');
+          return null;
+        }
+      }
+      return scoped;
+    }
+
+    // scoped 不存在时尝试迁移旧键，再读一次（旧键无时间戳则视为无TTL，迁移后开始记录）
+    await _storageService.migrateLegacyKeyToUserScoped(
+      'last_selected_project_id',
+    );
+    final migrated = _storageService.getUserString('last_selected_project_id');
+    if (migrated != null) {
+      // 对于迁移过来的旧值，写入当前时间为起点
+      await _storageService.setUserInt(
+        'last_selected_project_id_ts',
+        DateTime.now().millisecondsSinceEpoch,
+      );
+      return migrated;
+    }
+
+    // 最后兜底读取旧全局键
     return _storageService.getString('last_selected_project_id');
   }
 

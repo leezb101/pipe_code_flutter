@@ -51,6 +51,67 @@ class StorageService {
 
   bool get isLoggedIn => getAuthToken() != null;
 
+  // -------------------------
+  // User-scoped helpers
+  // -------------------------
+  /// Try to get current logged-in user's id from saved user_data or user_id key.
+  String? getCurrentUserId() {
+    // Prefer user_data.id
+    final userData = getUserData();
+    final idFromUserData = userData != null
+        ? (userData['id']?.toString())
+        : null;
+    if (idFromUserData != null && idFromUserData.isNotEmpty) {
+      return idFromUserData;
+    }
+
+    // Fallback to explicit user_id key if present
+    final id = getUserId();
+    if (id != null && id.isNotEmpty) return id;
+    return null;
+  }
+
+  /// Build a user-scoped key. If [userId] is null, returns the base key.
+  String userScopedKey(String baseKey, {String? userId}) {
+    final uid = userId ?? getCurrentUserId();
+    if (uid == null || uid.isEmpty) return baseKey;
+    return 'user:$uid:$baseKey';
+  }
+
+  /// Set a value for a user-scoped String key.
+  Future<void> setUserString(
+    String baseKey,
+    String value, {
+    String? userId,
+  }) async {
+    await setString(userScopedKey(baseKey, userId: userId), value);
+  }
+
+  /// Get a value for a user-scoped String key.
+  String? getUserString(String baseKey, {String? userId}) {
+    return getString(userScopedKey(baseKey, userId: userId));
+  }
+
+  /// Remove a user-scoped key.
+  Future<void> removeUserKey(String baseKey, {String? userId}) async {
+    await remove(userScopedKey(baseKey, userId: userId));
+  }
+
+  /// Check existence of a user-scoped key.
+  bool containsUserKey(String baseKey, {String? userId}) {
+    return containsKey(userScopedKey(baseKey, userId: userId));
+  }
+
+  /// Set a value for a user-scoped Int key.
+  Future<void> setUserInt(String baseKey, int value, {String? userId}) async {
+    await setInt(userScopedKey(baseKey, userId: userId), value);
+  }
+
+  /// Get a value for a user-scoped Int key.
+  int? getUserInt(String baseKey, {String? userId}) {
+    return getInt(userScopedKey(baseKey, userId: userId));
+  }
+
   // Generic storage methods
   Future<void> setString(String key, String value) async {
     await _prefs.setString(key, value);
@@ -114,5 +175,61 @@ class StorageService {
 
   Future<void> saveBool(String key, bool value) async {
     await setBool(key, value);
+  }
+
+  // -------------------------
+  // Migration helpers (legacy -> user scoped)
+  // -------------------------
+  /// Migrate a single legacy key to user-scoped key if scoped key doesn't exist yet.
+  Future<void> migrateLegacyKeyToUserScoped(
+    String baseKey, {
+    String? userId,
+  }) async {
+    final uid = userId ?? getCurrentUserId();
+    final legacy = getString(baseKey);
+    final scopedKey = userScopedKey(baseKey, userId: uid);
+    final hasScoped = containsKey(scopedKey);
+    if (legacy != null && !hasScoped) {
+      await setString(scopedKey, legacy);
+      // Remove legacy to avoid cross-user leakage
+      await remove(baseKey);
+    }
+  }
+
+  /// Convenience: migrate common project-related keys.
+  Future<void> migrateProjectRelatedKeys({String? userId}) async {
+    // Keys we care about for per-user isolation
+    const keys = <String>[
+      'current_project_id',
+      'current_user_role_info',
+      'last_selected_project_id',
+      // NOTE: some versions may have written this unused key;
+      // migrate the raw string anyway for completeness.
+      'current_project_role_info',
+    ];
+    for (final k in keys) {
+      await migrateLegacyKeyToUserScoped(k, userId: userId);
+    }
+  }
+
+  // -------------------------
+  // User remembered info management
+  // -------------------------
+  /// Clear remembered info for current user (non-sensitive preferences),
+  /// e.g., last_selected_project_id and its timestamp. Optionally pass extra
+  /// base keys to clear along with the defaults.
+  Future<void> clearUserRememberedInfo({
+    List<String> extraBaseKeys = const [],
+  }) async {
+    final keys = <String>{
+      'last_selected_project_id',
+      'last_selected_project_id_ts',
+      ...extraBaseKeys,
+    };
+    for (final k in keys) {
+      await removeUserKey(k);
+      // Also clear legacy global key just in case
+      await remove(k);
+    }
   }
 }

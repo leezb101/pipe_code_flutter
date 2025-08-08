@@ -8,6 +8,8 @@ import '../../bloc/user/user_bloc.dart';
 import '../../bloc/user/user_event.dart';
 import '../../bloc/user/user_state.dart';
 import '../../config/app_config.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/services/storage_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -33,6 +35,11 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         title: const Text('Profile'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.cleaning_services_outlined),
+            tooltip: '清除此用户在本机记住的信息',
+            onPressed: () => _showClearRememberedInfoDialog(context),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => _showLogoutDialog(context),
@@ -180,6 +187,37 @@ class _ProfilePageState extends State<ProfilePage> {
               onPressed: () {
                 Navigator.of(context).pop();
                 context.read<AuthBloc>().add(AuthLogoutRequested());
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showClearRememberedInfoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('清除记住的信息'),
+          content: const Text('这将清除此用户在本机保存的项目选择等偏好信息，是否继续？'),
+          actions: [
+            TextButton(
+              child: const Text('取消'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text('清除'),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                final storage = getIt<StorageService>();
+                await storage.clearUserRememberedInfo();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('已清除本机记住的信息')));
+                }
               },
             ),
           ],

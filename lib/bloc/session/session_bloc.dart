@@ -154,6 +154,33 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
           return;
         }
 
+        // 尝试按上次选择自动进入项目（与非仓管登录流程保持一致）
+        final lastSelectedProjectId = await _authRepository
+            .getLastSelectedProjectId();
+        if (lastSelectedProjectId != null) {
+          final projectId = int.tryParse(lastSelectedProjectId);
+          if (projectId != null) {
+            final hasValidProject = availableProjects.any(
+              (project) => project.projectId == projectId,
+            );
+
+            if (hasValidProject) {
+              if (_pendingTodoRecord != null) {
+                add(
+                  SessionSelectProjectWithPendingNavigation(
+                    projectId: projectId,
+                    pendingTodoRecord: _pendingTodoRecord!,
+                  ),
+                );
+              } else {
+                add(SessionProjectSelected(projectId: projectId));
+              }
+              return;
+            }
+          }
+        }
+
+        // 未命中自动进入，进入项目选择页
         emit(
           SessionProjectSelectionRequired(
             wxLoginVO: wxLoginVO,
@@ -197,7 +224,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
             ),
           );
           _pendingProjectId = null;
-          
+
           // 启动通知系统 (仅当用户为自有人员时)
           if (wxLoginVO.own) {
             _startNotificationSystem(wxLoginVO);
@@ -314,16 +341,25 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
   Future<void> _startNotificationSystem(WxLoginVO wxLoginVO) async {
     try {
       if (wxLoginVO.own) {
-        Logger.info('Starting notification system for user: ${wxLoginVO.name}', tag: 'SESSION_BLOC');
+        Logger.info(
+          'Starting notification system for user: ${wxLoginVO.name}',
+          tag: 'SESSION_BLOC',
+        );
         final notificationManager = NotificationManager.instance;
         final success = await notificationManager.start();
-        
+
         if (!success) {
-          Logger.warning('Failed to start notification system for user: ${wxLoginVO.name}', tag: 'SESSION_BLOC');
+          Logger.warning(
+            'Failed to start notification system for user: ${wxLoginVO.name}',
+            tag: 'SESSION_BLOC',
+          );
         }
       }
     } catch (e) {
-      Logger.error('Error starting notification system: ${e.toString()}', tag: 'SESSION_BLOC');
+      Logger.error(
+        'Error starting notification system: ${e.toString()}',
+        tag: 'SESSION_BLOC',
+      );
     }
   }
 }

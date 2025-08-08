@@ -30,11 +30,15 @@ class ProjectRepositoryImpl implements ProjectRepository {
     CurrentUserOnProjectRoleInfo roleInfo,
   ) async {
     try {
-      await _storageService.setString(
+      // 确保进行一次迁移
+      await _storageService.migrateProjectRelatedKeys();
+
+      // 使用用户隔离key保存
+      await _storageService.setUserString(
         'current_user_role_info',
         _storageService.encodeJsonString(roleInfo.toJson()),
       );
-      await _storageService.setString(
+      await _storageService.setUserString(
         'current_project_id',
         roleInfo.currentProjectId.toString(),
       );
@@ -55,9 +59,18 @@ class ProjectRepositoryImpl implements ProjectRepository {
         return _cachedCurrentUserRoleInfo;
       }
 
-      final roleInfoString = _storageService.getString(
+      // 优先读用户隔离key，不存在则尝试迁移后再读一次
+      String? roleInfoString = _storageService.getUserString(
         'current_user_role_info',
       );
+      if (roleInfoString == null) {
+        await _storageService.migrateLegacyKeyToUserScoped(
+          'current_user_role_info',
+        );
+        roleInfoString =
+            _storageService.getUserString('current_user_role_info') ??
+            _storageService.getString('current_user_role_info');
+      }
       if (roleInfoString != null) {
         final roleInfoData = Map<String, dynamic>.from(
           _storageService.decodeJsonString(roleInfoString),
@@ -85,22 +98,31 @@ class ProjectRepositoryImpl implements ProjectRepository {
   @override
   Future<bool> isFirstLogin() async {
     final hasProjectSelection =
+        _storageService.getUserString('current_project_id') != null ||
         _storageService.getString('current_project_id') != null;
     return !hasProjectSelection;
   }
 
   @override
   Future<String?> getLastSelectedProjectId() async {
-    return _storageService.getString('current_project_id');
+    final scoped = _storageService.getUserString('current_project_id');
+    if (scoped != null) return scoped;
+    await _storageService.migrateLegacyKeyToUserScoped('current_project_id');
+    return _storageService.getUserString('current_project_id') ??
+        _storageService.getString('current_project_id');
   }
 
   @override
   Future<void> saveLastSelectedProjectId(String projectId) async {
-    await _storageService.setString('current_project_id', projectId);
+    await _storageService.setUserString('current_project_id', projectId);
   }
 
   @override
   Future<void> clearProjectData() async {
+    // 清除用户隔离key
+    await _storageService.removeUserKey('current_user_role_info');
+    await _storageService.removeUserKey('current_project_id');
+    // 兜底清除遗留全局key
     await _storageService.remove('current_user_role_info');
     await _storageService.remove('current_project_id');
     _clearProjectCache();
@@ -123,6 +145,7 @@ class ProjectRepositoryImpl implements ProjectRepository {
 
   @override
   String? get currentProjectId =>
+      _storageService.getUserString('current_project_id') ??
       _storageService.getString('current_project_id');
 
   @override
