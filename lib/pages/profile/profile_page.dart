@@ -10,6 +10,7 @@ import '../../bloc/user/user_state.dart';
 import '../../config/app_config.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/services/storage_service.dart';
+import 'package:pipe_code_flutter/services/sse/sse_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -49,6 +50,8 @@ class _ProfilePageState extends State<ProfilePage> {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthUnauthenticated) {
+            // Ensure SSE is fully disconnected when user logs out
+            getIt<SseService>().disconnect();
             context.pushReplacementNamed('login');
           }
         },

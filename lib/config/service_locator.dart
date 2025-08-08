@@ -40,6 +40,7 @@ import 'package:pipe_code_flutter/services/qr_scan_service.dart';
 import 'package:pipe_code_flutter/services/storage_service.dart';
 import 'package:pipe_code_flutter/services/notification/background_handler.dart';
 import 'package:pipe_code_flutter/services/notification/notification_manager.dart';
+import 'package:pipe_code_flutter/services/sse/sse_service.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -67,6 +68,11 @@ Future<void> setupServiceLocator({
   getIt.registerLazySingleton<StorageService>(
     () => StorageService(getIt<SharedPreferences>()),
   );
+  // SSE Service
+  getIt.registerLazySingleton<SseService>(
+    () => SseService(),
+    dispose: (service) => service.dispose(),
+  );
 
   // API Services needed by Blocs or other services directly
   getIt.registerLazySingleton<CommonQueryApiService>(
@@ -86,9 +92,7 @@ Future<void> setupServiceLocator({
   getIt.registerLazySingleton<QrScanService>(() => QrScanServiceImpl());
 
   // Notification Services
-  getIt.registerSingleton<NotificationManager>(
-    NotificationManager.instance,
-  );
+  getIt.registerSingleton<NotificationManager>(NotificationManager.instance);
   getIt.registerSingleton<BackgroundNotificationHandler>(
     BackgroundNotificationHandler.instance,
   );

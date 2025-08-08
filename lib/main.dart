@@ -29,6 +29,7 @@ import 'repositories/interfaces/auth_repository.dart';
 import 'repositories/interfaces/user_repository.dart';
 import 'repositories/interfaces/list_repository.dart';
 import 'widgets/notification/floating_todo_banner.dart';
+import 'services/sse/sse_service.dart';
 
 void main() async {
   if (kDebugMode) {
@@ -91,9 +92,19 @@ class MyApp extends StatelessWidget {
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthUnauthenticated) {
+            // Tear down SSE connection when user logs out or auth expires
+            getIt<SseService>().disconnect();
             context.read<UserBloc>().add(const UserClearData());
             context.read<ProjectBloc>().add(const ProjectClearData());
             context.read<InventoryBloc>().add(InventoryReset());
+          }
+          if (state is AuthLoginSuccess) {
+            // Establish SSE connection with fresh credentials after login
+            getIt<SseService>().connect();
+          }
+          if (state is AuthTokenRefreshed) {
+            // Refresh SSE connection path on token refresh as well
+            getIt<SseService>().reconnect();
           }
         },
         child: MaterialApp.router(

@@ -12,6 +12,7 @@ import 'package:pipe_code_flutter/services/notification/notification_dispatcher.
 import 'package:pipe_code_flutter/services/sse/sse_auth_helper.dart';
 import 'package:pipe_code_flutter/services/sse/sse_service.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
 
 /// 通知管理器状态
 enum NotificationManagerState {
@@ -27,16 +28,16 @@ enum NotificationManagerState {
 /// 负责协调SSE连接、消息处理和通知分发的中心组件
 class NotificationManager {
   static const String _tag = 'NOTIFICATION_MANAGER';
-  
+
   static NotificationManager? _instance;
-  
+
   final SseService _sseService;
   final NotificationDispatcher _dispatcher;
-  
+
   NotificationManagerState _state = NotificationManagerState.idle;
   Timer? _healthCheckTimer;
   Timer? _authRefreshTimer;
-  
+
   // 统计信息
   int _totalMessagesReceived = 0;
   int _totalMessagesProcessed = 0;
@@ -51,8 +52,8 @@ class NotificationManager {
   }
 
   NotificationManager._internal()
-      : _sseService = SseService(),
-        _dispatcher = NotificationDispatcher() {
+    : _sseService = getIt<SseService>(),
+      _dispatcher = NotificationDispatcher() {
     _initialize();
   }
 
@@ -70,13 +71,13 @@ class NotificationManager {
       'totalMessagesReceived': _totalMessagesReceived,
       'totalMessagesProcessed': _totalMessagesProcessed,
       'totalMessagesFailed': _totalMessagesFailed,
-      'successRate': _totalMessagesReceived > 0 
+      'successRate': _totalMessagesReceived > 0
           ? '${(_totalMessagesProcessed / _totalMessagesReceived * 100).toStringAsFixed(2)}%'
           : '0%',
       'startTime': _startTime?.toIso8601String(),
       'lastActivityTime': _lastActivityTime?.toIso8601String(),
-      'uptime': _startTime != null 
-          ? '${DateTime.now().difference(_startTime!)}' 
+      'uptime': _startTime != null
+          ? '${DateTime.now().difference(_startTime!)}'
           : '0s',
       'sseConnection': _sseService.getConnectionStats(),
       'registeredHandlers': _dispatcher.registeredHandlers,
@@ -98,9 +99,12 @@ class NotificationManager {
 
   /// 启动通知系统
   Future<bool> start() async {
-    if (_state == NotificationManagerState.running || 
+    if (_state == NotificationManagerState.running ||
         _state == NotificationManagerState.starting) {
-      Logger.warning('Notification manager is already starting or running', tag: _tag);
+      Logger.warning(
+        'Notification manager is already starting or running',
+        tag: _tag,
+      );
       return true;
     }
 
@@ -161,7 +165,7 @@ class NotificationManager {
 
   /// 停止通知系统
   Future<void> stop() async {
-    if (_state == NotificationManagerState.stopped || 
+    if (_state == NotificationManagerState.stopped ||
         _state == NotificationManagerState.stopping) {
       return;
     }
@@ -230,11 +234,11 @@ class NotificationManager {
     );
 
     // 根据连接状态调整管理器状态
-    if (connectionState == SseConnectionState.connected && 
+    if (connectionState == SseConnectionState.connected &&
         _state == NotificationManagerState.starting) {
       _updateState(NotificationManagerState.running);
-    } else if (connectionState == SseConnectionState.error && 
-               _state == NotificationManagerState.running) {
+    } else if (connectionState == SseConnectionState.error &&
+        _state == NotificationManagerState.running) {
       _updateState(NotificationManagerState.error);
     }
   }
@@ -242,7 +246,7 @@ class NotificationManager {
   /// 处理错误
   void _handleError(String error) {
     Logger.error('Notification manager error: $error', tag: _tag);
-    
+
     if (_state == NotificationManagerState.running) {
       _updateState(NotificationManagerState.error);
     }
@@ -276,7 +280,10 @@ class NotificationManager {
         // 检查认证状态
         final isAuthValid = await SseAuthHelper.isAuthenticated();
         if (!isAuthValid) {
-          Logger.warning('Authentication expired during health check', tag: _tag);
+          Logger.warning(
+            'Authentication expired during health check',
+            tag: _tag,
+          );
           await stop();
         }
 
@@ -310,7 +317,10 @@ class NotificationManager {
         }
       }
     } catch (e) {
-      Logger.error('Failed to refresh authentication: ${e.toString()}', tag: _tag);
+      Logger.error(
+        'Failed to refresh authentication: ${e.toString()}',
+        tag: _tag,
+      );
     }
   }
 
@@ -328,7 +338,10 @@ class NotificationManager {
   /// 注册通知处理器
   void registerHandler(NotificationHandler handler) {
     _dispatcher.registerHandler(handler);
-    Logger.info('Registered notification handler: ${handler.handlerId}', tag: _tag);
+    Logger.info(
+      'Registered notification handler: ${handler.handlerId}',
+      tag: _tag,
+    );
   }
 
   /// 注销通知处理器
@@ -359,7 +372,6 @@ class NotificationManager {
   /// 释放资源
   void dispose() {
     stop();
-    _sseService.dispose();
     _dispatcher.dispose();
     _instance = null;
     Logger.info('Notification manager disposed', tag: _tag);
