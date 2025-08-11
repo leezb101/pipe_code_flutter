@@ -598,105 +598,9 @@ class _AcceptancePageState extends State<AcceptancePage> {
         boxShadow: const [_acceptancePageBoxShadow],
       ),
       child: SafeArea(
-        child: Column(
+        child: Row(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _handleScanAcceptance,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                    ),
-                    child: const Text(
-                      '提交报验',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _handleSupplementReport,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                    ),
-                    child: const Text(
-                      '补录返告',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _handleProcessReturn,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.orange,
-                      side: const BorderSide(color: Colors.orange),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      '处理退库',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _handleConfirmAcceptance,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                    ),
-                    child: const Text(
-                      '验收确认',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
+            Expanded(
               child: OutlinedButton(
                 onPressed: _handleReturn,
                 style: OutlinedButton.styleFrom(
@@ -710,6 +614,28 @@ class _AcceptancePageState extends State<AcceptancePage> {
                 child: const Text(
                   '返回',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _handleScanAcceptance,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: const Text(
+                  '提交报验',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
@@ -808,36 +734,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
     ).showSnackBar(const SnackBar(content: Text('正在提交验收数据...')));
   }
 
-  void _handleSupplementReport() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('补录返告功能')));
-  }
-
-  void _handleProcessReturn() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('处理退库功能')));
-  }
-
-  void _handleConfirmAcceptance() {
-    // Collect selected user IDs for push notifications
-    _userPushStates.forEach((key, value) {
-      if (value != null && value) {
-        // In real implementation, map user names to IDs
-      }
-    });
-
-    // ScaffoldMessenger.of(
-    //   context,
-    // ).showSnackBar(const SnackBar(content: Text('验收确认成功')));
-    context.showSuccessToast('验收确认成功');
-    // Navigator.of(context).pop();
-    // 使用GoRouter返回到主页面
-    // context.pop();
-    _handleReturn();
-  }
-
+  
   void _handleReturn() {
     context.pop();
     // Navigator.of(context).pop();
