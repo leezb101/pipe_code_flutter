@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
 import '../../bloc/dispatch/dispatch_bloc.dart';
 import '../../bloc/records/records_bloc.dart';
 import '../../bloc/records/records_event.dart';
@@ -20,6 +19,7 @@ import 'package:pipe_code_flutter/bloc/material_handle/material_handle_state.dar
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
+import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 
 class DispatchAfterSigninPage extends StatelessWidget {
   final int dispatchId;
@@ -403,19 +403,21 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
 
   void _navigateToQrScan(BuildContext context) {
     final materialCubit = context.read<MaterialHandleCubit>();
-    // 导航到扫码逻辑保持不变，但返回结果后处理方式不同
-    final config = QrScanConfig(
+    final flow = RepositoryProvider.of<QrScanFlowService>(context);
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.append,
+      currentCodes: const [], // 这里无需去重，由后端匹配
       scanType: QrScanType.materialInbound,
+      batch: false,
+      context: const {'source': 'dispatchAfterSignin'},
       title: '扫码入库',
     );
-
-    context.pushNamed('qr-scan', extra: config).then((result) {
-      if (!context.mounted) return;
-      if (result != null &&
-          result is List<QrScanResult> &&
-          result.first.code.isNotEmpty) {
-        final qrCode = result.first.code;
-        materialCubit.getMaterialInfoFromQr(qrCode);
+    final config = flow.buildConfig(request);
+    context.push<List<dynamic>>('/qr-scan', extra: config).then((raw) {
+      if (!mounted) return;
+      final res = flow.normalize(request, raw);
+      for (final code in res.addedCodes) {
+        materialCubit.getMaterialInfoFromQr(code);
       }
     });
   }

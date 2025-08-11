@@ -32,6 +32,7 @@ class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
     on<SubmitReturn>(_onSubmitReturn);
     on<ResetState>(_onResetState);
     on<LoadReturnDetail>(_onLoadReturnDetail);
+    on<UpdateReturnMaterials>(_onUpdateReturnMaterials);
   }
 
   // 处理加载扫码物料信息事件
@@ -186,5 +187,19 @@ class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
         ),
       );
     }
+  }
+
+  // 处理动态更新退库物料（追加 / 移除）
+  Future<void> _onUpdateReturnMaterials(
+    UpdateReturnMaterials event,
+    Emitter<ReturnState> emit,
+  ) async {
+    final currentDetail = state.returnDetail;
+    if (currentDetail == null) return; // 无详情不处理
+    emit(
+      state.copyWith(
+        returnDetail: currentDetail.copyWith(materialList: event.materials),
+      ),
+    );
   }
 }

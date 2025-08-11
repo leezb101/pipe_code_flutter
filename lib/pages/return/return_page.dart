@@ -14,10 +14,14 @@ import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import '../../models/acceptance/attachment_vo.dart';
-import '../../models/material/material_info_base.dart';
 import '../../widgets/file_upload/image_upload_widget.dart';
 import '../../bloc/return/return_bloc.dart';
 import '../../utils/go_router_popuntil.dart';
+import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
+import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
+import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
+    show QrScanOperation; // enum only
+import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
 
 class ReturnPage extends StatefulWidget {
   const ReturnPage({super.key, required this.materials});
@@ -136,19 +140,35 @@ class _ReturnPageState extends State<ReturnPage> {
                     color: Colors.black87,
                   ),
                 ),
+                const Spacer(),
+                // 添加追加与移除扫码按钮
+                IconButton(
+                  tooltip: '追加扫码',
+                  icon: const Icon(Icons.qr_code_scanner, color: Colors.blue),
+                  onPressed: _scanAppendMaterials,
+                ),
+                IconButton(
+                  tooltip: '移除扫码',
+                  icon: const Icon(Icons.qr_code_2, color: Colors.red),
+                  onPressed: _scanRemoveMaterials,
+                ),
               ],
             ),
             const SizedBox(height: 16),
-            ...widget.materials.normals.map(
-              (material) => _buildMaterialItem(material),
-            ),
+            ...?context
+                .read<ReturnBloc>()
+                .state
+                .returnDetail
+                ?.materialList
+                ?.map((m) => _buildMaterialItemFromVO(m)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMaterialItem(MaterialInfo material) {
+  // 通过 MaterialVO 构造展示（追加/移除后的实时列表）
+  Widget _buildMaterialItemFromVO(MaterialVO vo) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -173,7 +193,7 @@ class _ReturnPageState extends State<ReturnPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  material.baseInfo.prodNm ?? '无',
+                  vo.materialName,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -182,7 +202,7 @@ class _ReturnPageState extends State<ReturnPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  material.baseInfo.materialCode ?? '无',
+                  'ID: ${vo.materialId}',
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
@@ -195,7 +215,7 @@ class _ReturnPageState extends State<ReturnPage> {
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
-              '1个',
+              '${vo.num}个',
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -532,5 +552,82 @@ class _ReturnPageState extends State<ReturnPage> {
 
   void _handleReturn() {
     context.pop();
+  }
+
+  // --- 扫码追加/移除逻辑集成 QrScanFlowService ---
+  Future<void> _scanAppendMaterials() async {
+    final flow = RepositoryProvider.of<QrScanFlowService>(
+      context,
+      listen: false,
+    );
+    final currentList =
+        context.read<ReturnBloc>().state.returnDetail?.materialList ?? [];
+    final currentCodes = currentList
+        .map((m) => m.materialName) // 这里假设 materialName 代表扫描码（缺真实字段）
+        .where((e) => e.isNotEmpty)
+        .toList();
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.append,
+      currentCodes: currentCodes,
+      scanType: QrScanType.returnMaterial,
+      batch: true,
+      title: '追加退库物料',
+      context: const {'source': 'returnPage_append'},
+    );
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final res = flow.normalize(request, raw);
+    if (!mounted) return;
+    if (res.addedCodes.isEmpty) {
+      if (res.duplicates.isNotEmpty) {
+        context.showInfoToast('全部为已存在的物料码');
+      }
+      return;
+    }
+    final newVOs = res.addedCodes.map(
+      (c) => MaterialVO(materialId: 0, materialName: c, num: 1),
+    );
+    context.read<ReturnBloc>().add(
+      UpdateReturnMaterials(materials: [...currentList, ...newVOs]),
+    );
+    context.showSuccessToast('已追加 ${res.addedCodes.length} 个');
+  }
+
+  Future<void> _scanRemoveMaterials() async {
+    final flow = RepositoryProvider.of<QrScanFlowService>(
+      context,
+      listen: false,
+    );
+    final currentList =
+        context.read<ReturnBloc>().state.returnDetail?.materialList ?? [];
+    final currentCodes = currentList
+        .map((m) => m.materialName)
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (currentCodes.isEmpty) {
+      context.showInfoToast('当前无可移除的物料');
+      return;
+    }
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.remove,
+      currentCodes: currentCodes,
+      scanType: QrScanType.returnMaterial,
+      batch: true,
+      title: '移除退库物料',
+      context: const {'source': 'returnPage_remove'},
+    );
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final res = flow.normalize(request, raw);
+    if (!mounted) return;
+    if (res.removedCodes.isEmpty) {
+      context.showInfoToast('未匹配到可移除的码');
+      return;
+    }
+    final remaining = currentList
+        .where((m) => !res.removedCodes.contains(m.materialName))
+        .toList();
+    context.read<ReturnBloc>().add(UpdateReturnMaterials(materials: remaining));
+    context.showSuccessToast('已移除 ${res.removedCodes.length} 个');
   }
 }

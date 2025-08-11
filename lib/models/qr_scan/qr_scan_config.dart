@@ -11,6 +11,9 @@ import 'qr_scan_type.dart';
 
 part 'qr_scan_config.g.dart';
 
+/// 扫码操作类型：首次(初始化)、追加、移除
+enum QrScanOperation { initial, append, remove }
+
 @JsonSerializable()
 class QrScanConfig extends Equatable {
   const QrScanConfig({
@@ -19,7 +22,7 @@ class QrScanConfig extends Equatable {
     this.title,
     this.existingCodesToExclude,
     this.context,
-    this.isRemoveOperation = false,
+    QrScanOperation this.operation = QrScanOperation.initial,
   });
 
   final QrScanType scanType;
@@ -30,11 +33,16 @@ class QrScanConfig extends Equatable {
   /// 额外的上下文信息，用于策略判断调用来源
   final Map<String, dynamic>? context;
 
-  /// 是否为删除操作（如删除材料等），为true时不进行重复扫描检查
-  final bool isRemoveOperation;
+  /// 语义化的扫码操作类型
+  @JsonKey(defaultValue: QrScanOperation.initial)
+  final QrScanOperation operation;
 
-  factory QrScanConfig.fromJson(Map<String, dynamic> json) =>
-      _$QrScanConfigFromJson(json);
+  factory QrScanConfig.fromJson(Map<String, dynamic> json) {
+    final cfg = _$QrScanConfigFromJson(json);
+    // 兼容旧版本：没有 operation 字段但 isRemoveOperation = true 的情况
+    // 旧字段 isRemoveOperation 已删除；兼容逻辑可忽略或根据需要添加
+    return cfg;
+  }
 
   Map<String, dynamic> toJson() => _$QrScanConfigToJson(this);
 
@@ -72,6 +80,28 @@ class QrScanConfig extends Equatable {
 
   bool get supportsBatch => scanMode == QrScanMode.batch;
 
+  /// 是否删除操作
+  bool get isRemove => operation == QrScanOperation.remove;
+
+  QrScanConfig copyWith({
+    QrScanType? scanType,
+    QrScanMode? scanMode,
+    String? title,
+    List<String>? existingCodesToExclude,
+    Map<String, dynamic>? context,
+    QrScanOperation? operation,
+  }) {
+    return QrScanConfig(
+      scanType: scanType ?? this.scanType,
+      scanMode: scanMode ?? this.scanMode,
+      title: title ?? this.title,
+      existingCodesToExclude:
+          existingCodesToExclude ?? this.existingCodesToExclude,
+      context: context ?? this.context,
+      operation: operation ?? this.operation,
+    );
+  }
+
   @override
   List<Object?> get props => [
     scanType,
@@ -79,6 +109,6 @@ class QrScanConfig extends Equatable {
     title,
     existingCodesToExclude,
     context,
-    isRemoveOperation,
+    operation,
   ];
 }

@@ -8,8 +8,9 @@ import 'package:pipe_code_flutter/bloc/cut/cut_state.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_state.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
+import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
+import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
+    show QrScanOperation; // only enum
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
@@ -431,45 +432,54 @@ class _CutViewState extends State<CutView> {
   // --- Helper Methods ---
 
   void _scanOriginalMaterial(BuildContext context) async {
-    final config = QrScanConfig(
-      scanType: QrScanType.pipeCopy,
-      title: '原耗材扫码',
-      scanMode: QrScanMode.single,
+    final flow = RepositoryProvider.of<QrScanFlowService>(
+      context,
+      listen: false,
     );
-    // We now await the result from the scan page.
-    final result = await context.pushNamed('qr-scan', extra: config);
-
-    if (!context.mounted) return;
-
-    // The result comes from QrScanPage popping with the scanned codes.
-    if (result != null && result is List<QrScanResult> && result.isNotEmpty) {
-      final qrCode = result.first.code;
-      // With the raw QR code, we now ask the MaterialHandleCubit to fetch the data.
-      // The BlocListener<MaterialHandleCubit> will then handle the success/failure state.
-      context.read<MaterialHandleCubit>().getMaterialInfoFromQr(qrCode);
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.initial,
+      currentCodes: const [],
+      scanType: QrScanType.pipeCopy,
+      batch: false,
+      title: '原耗材扫码',
+      context: const {'source': 'cutPage_original'},
+    );
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final res = flow.normalize(request, raw);
+    if (!mounted) return;
+    if (res.addedCodes.isNotEmpty) {
+      // 只取第一个（单码模式）
+      context.read<MaterialHandleCubit>().getMaterialInfoFromQr(
+        res.addedCodes.first,
+      );
     }
   }
 
   void _scanNewMaterials(BuildContext context) async {
-    final existingCodes = context
-        .read<CutBloc>()
-        .state
-        .newCutItems
-        .map((e) => e.qrCode)
-        .toList();
-    final config = QrScanConfig(
-      scanType: QrScanType.raw, // No specific business logic, just get strings
-      title: '新耗材扫码',
-      scanMode: QrScanMode.batch,
-      existingCodesToExclude: existingCodes,
+    final bloc = context.read<CutBloc>();
+    final existingCodes = bloc.state.newCutItems.map((e) => e.qrCode).toList();
+    final flow = RepositoryProvider.of<QrScanFlowService>(
+      context,
+      listen: false,
     );
-    final result = await context.pushNamed('qr-scan', extra: config);
-
-    if (!context.mounted) return;
-
-    if (result != null && result is List<QrScanResult> && result.isNotEmpty) {
-      final qrCodes = result.map((r) => r.code).toList();
-      context.read<CutBloc>().add(CutNewMaterialsScanned(qrCodes));
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.append,
+      currentCodes: existingCodes,
+      scanType: QrScanType.raw,
+      batch: true,
+      title: '新耗材扫码',
+      context: const {'source': 'cutPage_newMaterials'},
+    );
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final res = flow.normalize(request, raw);
+    if (!mounted) return;
+    if (res.addedCodes.isNotEmpty) {
+      bloc.add(CutNewMaterialsScanned(res.addedCodes));
+    } else if (res.duplicates.isNotEmpty) {
+      // 提示全部重复被过滤
+      context.showInfoToast('重复耗材已过滤');
     }
   }
 

@@ -18,6 +18,7 @@ import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
+import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
@@ -99,39 +100,45 @@ class _ScrapPageState extends State<ScrapPage> {
 
   // 扫码添加材料
   Future<void> _scanToAddMaterials() async {
-    final config = QrScanConfig(
+    final flow = RepositoryProvider.of<QrScanFlowService>(context);
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.append,
+      currentCodes: _scannedCodes.toList(),
       scanType: QrScanType.scrap,
-      scanMode: QrScanMode.batch,
+      batch: true,
       context: {'source': 'scrapPage'},
-      existingCodesToExclude: _scannedCodes.toList(), // 传递已扫描的原始码用于去重
     );
-    final result = await context.pushNamed('qr-scan', extra: config);
-    if (result != null && result is List) {
-      final codes = result.map((r) => r.code as String).toList();
-      if (mounted) {
-        // 更新已扫描码集合
-        _scannedCodes.addAll(codes);
-        context.read<ScrapBloc>().add(AppendMaterialsFromCodes(codes: codes));
-      }
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final result = flow.normalize(request, raw);
+    if (!mounted) return;
+    if (result.addedCodes.isNotEmpty) {
+      _scannedCodes.addAll(result.addedCodes);
+      context.read<ScrapBloc>().add(
+        AppendMaterialsFromCodes(codes: result.addedCodes),
+      );
     }
   }
 
   // 扫码删除材料
   Future<void> _scanToRemoveMaterials() async {
-    final config = QrScanConfig(
+    final flow = RepositoryProvider.of<QrScanFlowService>(context);
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.remove,
+      currentCodes: _scannedCodes.toList(),
       scanType: QrScanType.scrap,
-      scanMode: QrScanMode.batch,
+      batch: true,
       context: {'source': 'scrapPage'},
-      isRemoveOperation: true, // 明确标记为删除操作
     );
-    final result = await context.pushNamed('qr-scan', extra: config);
-    if (result != null && result is List) {
-      final codes = result.map((r) => r.code as String).toList();
-      if (mounted) {
-        context.read<ScrapBloc>().add(RemoveMaterialsFromCodes(codes: codes));
-        // 删除操作后，清空已扫描码集合，允许重新扫描被删除的材料
-        _scannedCodes.clear();
-      }
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final result = flow.normalize(request, raw);
+    if (!mounted) return;
+    if (result.removedCodes.isNotEmpty) {
+      context.read<ScrapBloc>().add(
+        RemoveMaterialsFromCodes(codes: result.removedCodes),
+      );
+      _scannedCodes.removeAll(result.removedCodes);
     }
   }
 

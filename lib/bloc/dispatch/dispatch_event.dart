@@ -84,3 +84,11 @@ class UpdateWarehouseUsersList extends DispatchEvent {
   @override
   List<Object> get props => [warehouseId];
 }
+
+/// (申请页) 直接更新物料列表（追加扫码）
+class UpdateApplicationMaterialList extends DispatchEvent {
+  final List<MaterialVO> materials;
+  const UpdateApplicationMaterialList(this.materials);
+  @override
+  List<Object> get props => [materials];
+}

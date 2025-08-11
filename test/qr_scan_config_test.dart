@@ -3,52 +3,46 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
 
 void main() {
-  group('QrScanConfig isRemoveOperation tests', () {
-    test('should default to false for isRemoveOperation', () {
+  group('QrScanConfig operation tests', () {
+    test('defaults to initial operation', () {
       final config = QrScanConfig(scanType: QrScanType.scrap);
-
-      expect(config.isRemoveOperation, false);
+      expect(config.operation, QrScanOperation.initial);
+      expect(config.isRemove, false);
     });
 
-    test('should allow setting isRemoveOperation to true', () {
+    test('explicit remove operation reflects in isRemove', () {
       final config = QrScanConfig(
         scanType: QrScanType.scrap,
-        isRemoveOperation: true,
+        operation: QrScanOperation.remove,
       );
-
-      expect(config.isRemoveOperation, true);
+      expect(config.operation, QrScanOperation.remove);
+      expect(config.isRemove, true);
     });
 
-    test('should correctly serialize and deserialize isRemoveOperation', () {
+    test('json serialize/deserialize keeps operation', () {
       final config = QrScanConfig(
-        scanType: QrScanType.scrap,
+        scanType: QrScanType.returnMaterial,
         scanMode: QrScanMode.batch,
-        context: {'source': 'scrapPageRemove'},
-        isRemoveOperation: true,
+        context: {'source': 'returnPage'},
+        operation: QrScanOperation.append,
       );
-
       final json = config.toJson();
-      final deserialized = QrScanConfig.fromJson(json);
-
-      expect(deserialized.isRemoveOperation, true);
-      expect(deserialized.scanType, QrScanType.scrap);
-      expect(deserialized.scanMode, QrScanMode.batch);
-      expect(deserialized.context?['source'], 'scrapPageRemove');
+      final restored = QrScanConfig.fromJson(json);
+      expect(restored.operation, QrScanOperation.append);
+      expect(restored.scanType, QrScanType.returnMaterial);
+      expect(restored.scanMode, QrScanMode.batch);
+      expect(restored.context?['source'], 'returnPage');
     });
 
-    test(
-      'should default to false when deserializing without isRemoveOperation field',
-      () {
-        final json = {
-          'scanType': 'scrap',
-          'scanMode': 'batch',
-          'context': {'source': 'scrapPage'},
-        };
-
-        final config = QrScanConfig.fromJson(json);
-
-        expect(config.isRemoveOperation, false);
-      },
-    );
+    test('missing operation in json defaults to initial', () {
+      final legacyJson = {
+        'scanType': 'scrap',
+        'scanMode': 'batch',
+        'context': {'source': 'legacy'},
+      };
+      final cfg = QrScanConfig.fromJson(legacyJson);
+      expect(cfg.operation, QrScanOperation.initial);
+      expect(cfg.isRemove, false);
+    });
   });
 }

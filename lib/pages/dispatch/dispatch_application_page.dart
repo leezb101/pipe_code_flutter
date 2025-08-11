@@ -16,6 +16,11 @@ import 'package:pipe_code_flutter/models/common/warehouse_vo.dart';
 import 'package:pipe_code_flutter/models/dispatch/do_dispatch_apply_vo.dart';
 
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
+import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
+    show QrScanOperation; // enum only
+import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
 
 import '../../bloc/user/user_state.dart';
 import '../../models/material/material_info_for_business.dart';
@@ -302,13 +307,7 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
           width: double.infinity,
           child: ElevatedButton.icon(
             icon: const Icon(Icons.qr_code_scanner),
-            onPressed: () {
-              // TODO: Implement scan more logic. This is complex as it requires
-              // returning to this page and merging state.
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('该功能待实现')));
-            },
+            onPressed: () => _scanMoreMaterials(context),
             label: const Text('扫码调拨'),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -382,5 +381,44 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
     );
 
     context.read<DispatchBloc>().add(SubmitDispatchApplication(request));
+  }
+
+  Future<void> _scanMoreMaterials(BuildContext context) async {
+    final flow = RepositoryProvider.of<QrScanFlowService>(
+      context,
+      listen: false,
+    );
+    final currentList = context.read<DispatchBloc>().state.materialList ?? [];
+    final currentCodes = currentList.map((m) => m.materialName).toList();
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.append,
+      currentCodes: currentCodes,
+      scanType: QrScanType.materialInbound,
+      batch: true,
+      title: '追加调拨物料',
+      context: const {'source': 'dispatchApplication'},
+    );
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final res = flow.normalize(request, raw);
+    if (!mounted) return;
+    if (res.addedCodes.isEmpty) {
+      if (res.duplicates.isNotEmpty) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('全部为重复物料, 未追加')));
+      }
+      return;
+    }
+    // 暂无物料详情接口支持，这里仅以二维码字符串构造占位 MaterialVO
+    final newMaterials = res.addedCodes.map(
+      (c) => MaterialVO(materialId: 0, materialName: c),
+    );
+    final bloc = context.read<DispatchBloc>();
+    final updated = [...(bloc.state.materialList ?? []), ...newMaterials];
+    bloc.add(UpdateApplicationMaterialList(updated as List<MaterialVO>));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('已追加 ${res.addedCodes.length} 个物料')));
   }
 }

@@ -74,3 +74,11 @@ class LoadReturnDetail extends ReturnEvent {
   @override
   List<Object?> get props => [id];
 }
+
+// 更新退库物料列表（追加或移除）
+class UpdateReturnMaterials extends ReturnEvent {
+  const UpdateReturnMaterials({required this.materials});
+  final List<MaterialVO> materials;
+  @override
+  List<Object?> get props => [materials];
+}

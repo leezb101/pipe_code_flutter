@@ -50,6 +50,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     on<UpdateScannedMaterials>(_onUpdateScannedMaterials);
     on<UpdateWarehouseUsersList>(_onUpdateWarehouseUsersList);
     on<MatchScannedMaterial>(_onMatchScannedMaterial);
+    on<UpdateApplicationMaterialList>(_onUpdateApplicationMaterialList);
   }
 
   // 处理加载调拨详情事件
@@ -76,6 +77,18 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
         ),
       );
     }
+  }
+
+  void _onUpdateApplicationMaterialList(
+    UpdateApplicationMaterialList event,
+    Emitter<DispatchState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        materialList: event.materials,
+        status: DispatchStatus.success,
+      ),
+    );
   }
 
   // 处理加载申请页数据事件

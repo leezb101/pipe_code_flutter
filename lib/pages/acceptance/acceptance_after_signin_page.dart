@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
+// Removed legacy QrScanResult import after migrating to QrScanFlowService
 import '../../bloc/acceptance/acceptance_bloc.dart';
 import '../../bloc/acceptance/acceptance_event.dart';
 import '../../bloc/acceptance/acceptance_state.dart';
@@ -9,10 +9,13 @@ import '../../bloc/records/records_bloc.dart';
 import '../../bloc/records/records_event.dart';
 import '../../models/acceptance/acceptance_info_vo.dart';
 import '../../models/acceptance/material_vo.dart';
+import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
+import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
+    show QrScanOperation;
 import '../../models/acceptance/attachment_vo.dart';
 import '../../models/acceptance/do_accept_sign_in_vo.dart';
 import '../../models/common/common_user_vo.dart';
-import '../../models/qr_scan/qr_scan_config.dart';
+// Removed direct dependency on QrScanConfig; using QrScanFlowService abstraction
 import '../../models/qr_scan/qr_scan_type.dart';
 import '../../models/records/record_type.dart';
 import '../../widgets/common_state_widgets.dart' as common;
@@ -425,20 +428,22 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
   }
 
   void _navigateToQrScan(BuildContext context) {
-    // 导航到扫码逻辑保持不变，但返回结果后处理方式不同
-    final config = QrScanConfig(
+    final flow = RepositoryProvider.of<QrScanFlowService>(context);
+    final materialCubit = context.read<MaterialHandleCubit>();
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.append,
+      currentCodes: const [],
       scanType: QrScanType.materialInbound,
+      batch: false,
+      context: const {'source': 'acceptanceAfterSignin'},
       title: '扫码入库',
     );
-
-    context.pushNamed('qr-scan', extra: config).then((result) {
-      if (result != null &&
-          result is List<QrScanResult> &&
-          result.first.code.isNotEmpty) {
-        final qrCode = result.first.code;
-        if (context.mounted) {
-          context.read<MaterialHandleCubit>().getMaterialInfoFromQr(qrCode);
-        }
+    final config = flow.buildConfig(request);
+    context.push<List<dynamic>>('/qr-scan', extra: config).then((raw) {
+      if (!mounted) return;
+      final res = flow.normalize(request, raw);
+      for (final code in res.addedCodes) {
+        materialCubit.getMaterialInfoFromQr(code);
       }
     });
   }

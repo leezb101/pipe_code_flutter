@@ -36,6 +36,20 @@ class ReturnDetailVo extends Equatable {
 
   Map<String, dynamic> toJson() => _$ReturnDetailVoToJson(this);
 
+  ReturnDetailVo copyWith({
+    List<MaterialVO>? materialList,
+    List<AttachmentVO>? imageList,
+    int? returnType,
+    String? returnRemark,
+  }) {
+    return ReturnDetailVo(
+      materialList: materialList ?? this.materialList,
+      imageList: imageList ?? this.imageList,
+      returnType: returnType ?? this.returnType,
+      returnRemark: returnRemark ?? this.returnRemark,
+    );
+  }
+
   @override
   List<Object?> get props => [
     materialList,

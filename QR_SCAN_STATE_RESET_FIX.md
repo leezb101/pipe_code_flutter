@@ -3,7 +3,7 @@
 ### 问题分析
 在复杂导航场景下，QrScanPage和QrScanBloc可能没有被正确释放，导致：
 1. 配置信息在不同页面间共享和混乱
-2. `isRemoveOperation`等字段读取到错误的缓存值
+2. 删除模式 (operation=remove) 判定字段读取到错误的缓存值（旧 isRemoveOperation 已淘汰）
 3. 扫码状态在多次进入/退出后出现混乱
 
 ### 解决方案
@@ -41,13 +41,13 @@ context.read<QrScanBloc>().add(const ResetScan());
 ### 修复的问题
 - ✅ **配置混乱**：每次进入都会获得正确的config值
 - ✅ **状态污染**：不再受之前扫码会话影响
-- ✅ **重复检测错误**：`isRemoveOperation`等字段始终读取正确值
+- ✅ **重复检测错误**：operation 删除模式判断始终读取正确值
 - ✅ **生命周期问题**：即使bloc未释放也能保证状态干净
 
 ### 验证方案
 1. 从home页面 → scrap页面 → 扫码添加 → 返回scrap → 再次扫码添加
-2. 检查`isRemoveOperation`的值是否始终正确
+2. 检查 operation 是否正确区分删除模式
 3. 检查重复扫码提示是否正常工作
-4. 验证扫码删除功能是否不受影响
+4. 验证 operation=remove 的扫码删除功能是否不受影响
 
 这种多层清理机制确保了无论bloc是否被正确释放，每次进入扫码页面都会有干净的状态。

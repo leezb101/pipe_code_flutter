@@ -90,7 +90,7 @@ class _QrScanPageState extends State<QrScanPage> {
 
   Future<void> _startScannerWhenReady() async {
     if (_controller == null) return;
-    
+
     try {
       // 等待控制器初始化完成
       await _controller!.start();
@@ -147,25 +147,17 @@ class _QrScanPageState extends State<QrScanPage> {
         // 检查是否为需要排除的重复码 (包括历史列表和本次扫描列表)
         final isDuplicateInHistory =
             widget.config.existingCodesToExclude?.contains(code) ?? false;
-        // 使用本地同步的 Set 进行当次会话的去重检查
         final isDuplicateInSession = _sessionScannedCodes.contains(code);
+        final bool removing = _initialConfig.isRemove;
 
-        // 根据操作类型决定是否需要重复扫描提示
-        final isRemoveOperation = _isRemoveOperation();
-
-        if (isDuplicateInHistory || isDuplicateInSession) {
-          // 如果是删除操作，允许扫描已存在的码，不提示重复
-          if (!isRemoveOperation) {
-            context.showErrorToast('该耗材已添加，请勿重复扫描');
-            _provideScanFeedback(); // 同样提供反馈
-            _scheduleRestartScanner(); // 重新安排扫描
-            return; // 中断处理，不继续执行后续逻辑
-          }
+        if (!removing && (isDuplicateInHistory || isDuplicateInSession)) {
+          context.showErrorToast('该耗材已添加，请勿重复扫描');
+          _provideScanFeedback();
+          _scheduleRestartScanner();
+          return;
         }
 
-        // 对于添加操作或首次扫描的码，添加到本地同步Set中
-        // 删除操作不需要添加到session set，因为它们是要被移除的
-        if (!isRemoveOperation) {
+        if (!removing) {
           _sessionScannedCodes.add(code);
         }
 
@@ -206,13 +198,7 @@ class _QrScanPageState extends State<QrScanPage> {
     return false;
   }
 
-  /// 检查当前是否为删除操作
-  bool _isRemoveOperation() {
-    Logger.warning(
-      'Checking if isRemoveOperation for initial config: $_initialConfig',
-    );
-    return _initialConfig.isRemoveOperation;
-  }
+  // 旧的 _isRemoveOperation 方法已由 QrScanConfig.isRemove 统一替代
 
   void _updateScanHistory(String code) {
     _lastScannedCode = code;
