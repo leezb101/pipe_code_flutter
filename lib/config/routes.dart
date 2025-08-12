@@ -134,16 +134,16 @@ final GoRouter appRouter = GoRouter(
           name: 'acceptance',
           builder: (context, state) {
             final data = state.extra as Map<String, dynamic>?;
-            if (data == null) {
-              return const Scaffold(body: Center(child: Text('参数错误')));
-            }
-            final materials = data['materialInfo'] as MaterialInfoForBusiness?;
-            if (materials == null) {
-              return const Scaffold(body: Center(child: Text('参数错误')));
-            }
+            final materials = data?['materialInfo'] as MaterialInfoForBusiness?;
+            final codes = data?['codes'] as List<String>?;
+            final isBatch = (data?['isBatch'] as bool?) ?? false;
             return BlocProvider(
               create: (context) => getIt<AcceptanceBloc>(),
-              child: AcceptancePage(materials: materials),
+              child: AcceptancePage(
+                materials: materials,
+                initialCodes: codes,
+                initialIsBatch: isBatch,
+              ),
             );
           },
         ),

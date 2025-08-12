@@ -20,7 +20,7 @@ import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dar
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
     show QrScanOperation; // enum only
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
+// QrScanType removed
 
 import '../../bloc/user/user_state.dart';
 import '../../models/material/material_info_for_business.dart';
@@ -393,10 +393,10 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
     final request = QrScanFlowRequest(
       operation: QrScanOperation.append,
       currentCodes: currentCodes,
-      scanType: QrScanType.materialInbound,
       batch: true,
       title: '追加调拨物料',
       context: const {'source': 'dispatchApplication'},
+      skipValidation: true,
     );
     final config = flow.buildConfig(request);
     final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);

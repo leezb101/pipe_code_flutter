@@ -6,26 +6,29 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
-enum QrScanType {
-  // inbound('入库'),
-  signout('出库'),
-  transfer('调拨'),
-  inventory('盘点'),
-  pipeCopy('截管复制'),
-  identification('扫码识别'),
-  returnMaterial('退库'),
-  acceptance('验收'),
-  materialInbound('物料入库'),
-  install('扫码安装'),
-  scrap('报废'),
-  raw('原始扫码');
+// enum QrScanType {
+//   // inbound('入库'),
+//   signout('出库'),
+//   transfer('调拨'),
+//   inventory('盘点'),
+//   pipeCopy('截管复制'),
+//   identification('扫码识别'),
+//   returnMaterial('退库'),
+//   acceptance('验收'),
+//   materialInbound('物料入库'),
+//   install('扫码安装'),
+//   scrap('报废'),
+//   @Deprecated(
+//     'Use explicit flags like skipValidation and provide titles instead of relying on raw type',
+//   )
+//   raw('原始扫码');
 
-  /// 扫码类型枚举
+//   /// 扫码类型枚举
 
-  const QrScanType(this.displayName);
+//   const QrScanType(this.displayName);
 
-  final String displayName;
-}
+//   final String displayName;
+// }
 
 enum QrScanMode {
   single('单个扫码'),

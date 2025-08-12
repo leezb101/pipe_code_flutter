@@ -5,6 +5,7 @@ import '../../models/common/accept_user_info_vo.dart';
 import '../../models/common/warehouse_user_info_vo.dart';
 import '../../models/records/record_list_response.dart';
 import '../../models/common/warehouse_vo.dart';
+import '../../models/material/material_info_base.dart';
 
 abstract class AcceptanceState extends Equatable {
   const AcceptanceState();
@@ -136,4 +137,14 @@ class WarehouseListLoaded extends AcceptanceState {
 
   @override
   List<Object?> get props => [warehouseList];
+}
+
+// Materials resolved from QR codes for AcceptancePage initialization
+class AcceptanceMaterialsResolved extends AcceptanceState {
+  final List<MaterialInfo> materials;
+  final String? message;
+  const AcceptanceMaterialsResolved({required this.materials, this.message});
+
+  @override
+  List<Object?> get props => [materials, message];
 }

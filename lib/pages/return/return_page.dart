@@ -21,7 +21,7 @@ import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
     show QrScanOperation; // enum only
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
+// QrScanType removed
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
 
@@ -569,7 +569,6 @@ class _ReturnPageState extends State<ReturnPage> {
     final request = QrScanFlowRequest(
       operation: QrScanOperation.append,
       currentCodes: currentCodes,
-      scanType: QrScanType.returnMaterial,
       batch: true,
       title: '追加退库物料',
       context: const {
@@ -626,7 +625,6 @@ class _ReturnPageState extends State<ReturnPage> {
     final request = QrScanFlowRequest(
       operation: QrScanOperation.remove,
       currentCodes: currentCodes,
-      scanType: QrScanType.returnMaterial,
       batch: true,
       title: '移除退库物料',
       context: const {

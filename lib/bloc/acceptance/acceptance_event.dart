@@ -124,3 +124,37 @@ class BulkUnmatchMaterials extends AcceptanceEvent {
   @override
   List<Object?> get props => [materialIds];
 }
+
+// ========== QR Scan → Material resolution (AcceptancePage) ==========
+// Standalone scan finished → navigate to AcceptancePage with codes; bloc resolves materials
+class InitializeMaterialsFromCodes extends AcceptanceEvent {
+  final List<String> codes;
+
+  /// True if codes came from a batch scan session (even if length == 1)
+  final bool isBatch;
+  const InitializeMaterialsFromCodes({
+    required this.codes,
+    required this.isBatch,
+  });
+
+  @override
+  List<Object?> get props => [codes, isBatch];
+}
+
+// Embedded append: scan more codes and resolve to materials
+class AppendMaterialsByCodes extends AcceptanceEvent {
+  final List<String> codes;
+  const AppendMaterialsByCodes({required this.codes});
+
+  @override
+  List<Object?> get props => [codes];
+}
+
+// Embedded remove: scan codes to identify materials to remove
+class RemoveMaterialsByCodes extends AcceptanceEvent {
+  final List<String> codes;
+  const RemoveMaterialsByCodes({required this.codes});
+
+  @override
+  List<Object?> get props => [codes];
+}

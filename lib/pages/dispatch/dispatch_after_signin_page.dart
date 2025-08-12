@@ -10,7 +10,6 @@ import '../../models/acceptance/attachment_vo.dart';
 import '../../models/dispatch/do_dispatch_sign_in_vo.dart';
 import '../../models/common/common_user_vo.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
-import '../../models/qr_scan/qr_scan_type.dart';
 import '../../models/records/record_type.dart';
 import '../../widgets/common_state_widgets.dart' as common;
 import '../../utils/toast_utils.dart';
@@ -407,7 +406,6 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
     final request = QrScanFlowRequest(
       operation: QrScanOperation.append,
       currentCodes: const [], // 这里无需去重，由后端匹配
-      scanType: QrScanType.materialInbound,
       batch: false,
       context: const {'source': 'dispatchAfterSignin'},
       title: '扫码入库',

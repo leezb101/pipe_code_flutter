@@ -459,7 +459,14 @@ class _QrScanPageState extends State<QrScanPage> {
         : null;
 
     if (route != null && route.isNotEmpty) {
-      _handleNavigation(context, route: route, data: data);
+      final codes = state.scannedCodes.map((e) => e.code).toList();
+      final isBatch = state.config?.supportsBatch == true;
+      final merged = <String, dynamic>{
+        if (data != null) ...data,
+        'codes': codes,
+        'isBatch': isBatch,
+      };
+      _handleNavigation(context, route: route, data: merged);
       return;
     }
 

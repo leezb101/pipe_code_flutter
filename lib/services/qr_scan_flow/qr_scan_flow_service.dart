@@ -1,6 +1,6 @@
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
+// QrScanType removed; rely on explicit titles and flags.
 
 /// 封装页面调用扫码的“初次/追加/移除”标准流程
 /// 最终目标：业务页面只需构造 QrScanFlowRequest，得到标准化的 QrScanFlowResult
@@ -9,7 +9,6 @@ class QrScanFlowService {
 
   /// 构造运行时需要的 config（供外层导航使用）
   QrScanConfig buildConfig(QrScanFlowRequest request) => QrScanConfig(
-    scanType: request.scanType,
     scanMode: request.batch ? QrScanMode.batch : QrScanMode.single,
     title: request.title,
     existingCodesToExclude: request.operation == QrScanOperation.append
@@ -17,6 +16,7 @@ class QrScanFlowService {
         : null,
     context: request.context,
     operation: request.operation,
+    skipValidation: request.skipValidation,
   );
 
   /// 将导航（/qr-scan）返回的 raw list 归一化
@@ -71,18 +71,18 @@ class QrScanFlowRequest {
   QrScanFlowRequest({
     required this.operation,
     required this.currentCodes,
-    required this.scanType,
     this.batch = true,
     this.title,
     this.context,
+    this.skipValidation = false,
   });
 
   final QrScanOperation operation;
   final List<String> currentCodes;
-  final QrScanType scanType;
   final bool batch;
   final String? title;
   final Map<String, dynamic>? context;
+  final bool skipValidation;
 }
 
 class QrScanFlowResult {

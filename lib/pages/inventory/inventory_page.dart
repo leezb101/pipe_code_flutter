@@ -19,7 +19,7 @@ import 'package:pipe_code_flutter/bloc/material_handle/material_handle_state.dar
 import 'package:pipe_code_flutter/models/inventory/inventory_models.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
+// QrScanType removed
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
@@ -57,11 +57,7 @@ class _InventoryPageState extends State<InventoryPage> {
   }
 
   Future<void> _startQrScan() async {
-    final config = QrScanConfig(
-      scanType: QrScanType.inventory,
-      scanMode: QrScanMode.batch,
-      title: '盘点扫码',
-    );
+    final config = QrScanConfig(scanMode: QrScanMode.batch, title: '盘点扫码');
 
     try {
       final result = await context.push('/qr-scan', extra: config);

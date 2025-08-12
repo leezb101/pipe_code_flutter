@@ -17,7 +17,6 @@ import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
@@ -104,7 +103,6 @@ class _ScrapPageState extends State<ScrapPage> {
     final request = QrScanFlowRequest(
       operation: QrScanOperation.append,
       currentCodes: _scannedCodes.toList(),
-      scanType: QrScanType.scrap,
       batch: true,
       context: const {
         'source': 'scrapPage',
@@ -130,7 +128,6 @@ class _ScrapPageState extends State<ScrapPage> {
     final request = QrScanFlowRequest(
       operation: QrScanOperation.remove,
       currentCodes: _scannedCodes.toList(),
-      scanType: QrScanType.scrap,
       batch: true,
       context: const {
         'source': 'scrapPage',

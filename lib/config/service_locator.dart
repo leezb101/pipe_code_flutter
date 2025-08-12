@@ -165,7 +165,10 @@ Future<void> setupServiceLocator({
     () => SessionBloc(authRepository: getIt<AuthRepository>()),
   );
   getIt.registerFactory<AcceptanceBloc>(
-    () => AcceptanceBloc(getIt<AcceptanceRepository>()),
+    () => AcceptanceBloc(
+      getIt<AcceptanceRepository>(),
+      getIt<MaterialHandleRepository>(),
+    ),
   );
   getIt.registerFactory<DispatchBloc>(
     () => DispatchBloc(

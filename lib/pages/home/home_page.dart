@@ -8,7 +8,7 @@ import '../../bloc/session/session_bloc.dart';
 import '../../bloc/session/session_state.dart';
 import '../../bloc/session/session_event.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
-import '../../models/qr_scan/qr_scan_type.dart';
+// QrScanType removed
 import '../../models/menu/menu_config.dart';
 import '../../models/project/project_info.dart';
 import '../../utils/toast_utils.dart';
@@ -1124,59 +1124,37 @@ class _HomePageState extends State<HomePage> {
       case MenuActions.qrScanSignout:
         _navigateToScan(
           context,
-          const QrScanConfig(
-            scanType: QrScanType.signout,
+          QrScanConfig(
             scanMode: QrScanMode.batch,
+            // title will be default; business page handles parsing
           ),
         );
         break;
       case MenuActions.qrScanTransfer:
         // _showScanModeSelection(context, QrScanType.transfer);
-        _navigateToScan(
-          context,
-          const QrScanConfig(
-            scanType: QrScanType.transfer,
-            scanMode: QrScanMode.batch,
-          ),
-        );
+        _navigateToScan(context, QrScanConfig(scanMode: QrScanMode.batch));
         break;
 
       case MenuActions.qrScanReturnMaterial:
-        _navigateToScan(
-          context,
-          const QrScanConfig(
-            scanType: QrScanType.returnMaterial,
-            scanMode: QrScanMode.batch,
-          ),
-        );
+        _navigateToScan(context, QrScanConfig(scanMode: QrScanMode.batch));
         break;
       case MenuActions.qrScanInventory:
-        _showScanModeSelection(context, QrScanType.inventory);
+        _showScanModeSelection(context, 'inventory');
         break;
       case MenuActions.qrScanAcceptance:
-        _showScanModeSelection(context, QrScanType.acceptance);
+        _showScanModeSelection(context, 'acceptance');
         break;
       case MenuActions.qrScanPipeCopy:
-        _navigateToScan(
-          context,
-          const QrScanConfig(scanType: QrScanType.pipeCopy),
-        );
+        _navigateToScan(context, QrScanConfig());
         break;
       case MenuActions.qrScanScrap:
         _navigateToScan(
           context,
-          const QrScanConfig(
-            scanType: QrScanType.scrap,
-            context: {'source': 'menu'},
-            scanMode: QrScanMode.batch,
-          ),
+          QrScanConfig(context: {'source': 'menu'}, scanMode: QrScanMode.batch),
         );
         break;
       case MenuActions.qrIdentify:
-        _navigateToScan(
-          context,
-          const QrScanConfig(scanType: QrScanType.identification),
-        );
+        _navigateToScan(context, QrScanConfig());
         break;
       case MenuActions.delegateHarvest:
       case MenuActions.delegateAccept:
@@ -1249,37 +1227,53 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 显示扫码模式选择对话框
-  void _showScanModeSelection(BuildContext context, QrScanType scanType) {
+  void _showScanModeSelection(BuildContext context, String biz) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('选择$scanType模式'),
+        title: Text('选择扫码模式'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
               leading: const Icon(Icons.qr_code, color: Colors.blue),
-              title: _getScanModeTitle(scanType, QrScanMode.single),
-              subtitle: _getScanModeSubtitle(scanType, QrScanMode.single),
+              title: _getScanModeTitle(QrScanMode.single, biz),
+              subtitle: _getScanModeSubtitle(QrScanMode.single, biz),
               onTap: () {
                 Navigator.pop(context);
-                _navigateToScan(
-                  context,
-                  QrScanConfig(scanType: scanType, scanMode: QrScanMode.single),
-                );
+                // 对验收业务，配置独立模式路由到 Acceptance 页面
+                final cfg = biz == 'acceptance'
+                    ? QrScanConfig(
+                        scanMode: QrScanMode.single,
+                        context: const {
+                          'entry': 'standalone',
+                          'route': '/acceptance',
+                          'data': <String, dynamic>{},
+                        },
+                      )
+                    : QrScanConfig(scanMode: QrScanMode.single);
+                _navigateToScan(context, cfg);
               },
             ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.qr_code_scanner, color: Colors.green),
-              title: _getScanModeTitle(scanType, QrScanMode.batch),
-              subtitle: _getScanModeSubtitle(scanType, QrScanMode.batch),
+              title: _getScanModeTitle(QrScanMode.batch, biz),
+              subtitle: _getScanModeSubtitle(QrScanMode.batch, biz),
               onTap: () {
                 Navigator.pop(context);
-                _navigateToScan(
-                  context,
-                  QrScanConfig(scanType: scanType, scanMode: QrScanMode.batch),
-                );
+                // 对验收业务，配置独立模式路由到 Acceptance 页面
+                final cfg = biz == 'acceptance'
+                    ? QrScanConfig(
+                        scanMode: QrScanMode.batch,
+                        context: const {
+                          'entry': 'standalone',
+                          'route': '/acceptance',
+                          'data': <String, dynamic>{},
+                        },
+                      )
+                    : QrScanConfig(scanMode: QrScanMode.batch);
+                _navigateToScan(context, cfg);
               },
             ),
           ],
@@ -1295,22 +1289,22 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 获取扫码模式标题
-  Widget _getScanModeTitle(QrScanType scanType, QrScanMode scanMode) {
+  Widget _getScanModeTitle(QrScanMode scanMode, String biz) {
     String title;
-    switch (scanType) {
+    switch (biz) {
       // case QrScanType.inbound:
       //   title = scanMode == QrScanMode.single ? '单码入库' : '批量入库';
       //   break;
-      case QrScanType.signout:
+      case 'signout':
         title = scanMode == QrScanMode.single ? '单个物料出库' : '批量物料出库';
         break;
-      case QrScanType.transfer:
+      case 'transfer':
         title = scanMode == QrScanMode.single ? '单个物料调拨' : '批量物料调拨';
         break;
-      case QrScanType.inventory:
+      case 'inventory':
         title = scanMode == QrScanMode.single ? '单个物料盘点' : '批量物料盘点';
         break;
-      case QrScanType.acceptance:
+      case 'acceptance':
         title = scanMode == QrScanMode.single ? '单个物料验收' : '批量物料验收';
         break;
       default:
@@ -1320,30 +1314,30 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 获取扫码模式副标题
-  Widget _getScanModeSubtitle(QrScanType scanType, QrScanMode scanMode) {
+  Widget _getScanModeSubtitle(QrScanMode scanMode, String biz) {
     String subtitle;
-    switch (scanType) {
+    switch (biz) {
       // case QrScanType.inbound:
       //   subtitle = scanMode == QrScanMode.single
       //       ? '扫描单个二维码进行入库操作'
       //       : '连续扫描多个物料码，手动结束后统一处理';
       //   break;
-      case QrScanType.signout:
+      case 'signout':
         subtitle = scanMode == QrScanMode.single
             ? '扫描单个物料进行出库操作'
             : '连续扫描多个物料进行批量出库';
         break;
-      case QrScanType.transfer:
+      case 'transfer':
         subtitle = scanMode == QrScanMode.single
             ? '扫描单个物料进行调拨操作'
             : '连续扫描多个物料进行批量调拨';
         break;
-      case QrScanType.inventory:
+      case 'inventory':
         subtitle = scanMode == QrScanMode.single
             ? '扫描单个物料进行盘点检查'
             : '连续扫描多个物料进行批量盘点';
         break;
-      case QrScanType.acceptance:
+      case 'acceptance':
         subtitle = scanMode == QrScanMode.single
             ? '扫描单个物料进行验收操作'
             : '连续扫描多个物料进行批量验收';

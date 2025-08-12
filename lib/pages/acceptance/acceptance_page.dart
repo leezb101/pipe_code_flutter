@@ -30,14 +30,20 @@ import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
     show QrScanOperation; // enum
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
-import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
-import 'package:pipe_code_flutter/config/service_locator.dart';
+// import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
+// import 'package:pipe_code_flutter/config/service_locator.dart';
 
 class AcceptancePage extends StatefulWidget {
-  const AcceptancePage({super.key, required this.materials});
+  const AcceptancePage({
+    super.key,
+    this.materials,
+    this.initialCodes,
+    this.initialIsBatch,
+  });
 
-  final MaterialInfoForBusiness materials;
+  final MaterialInfoForBusiness? materials;
+  final List<String>? initialCodes;
+  final bool? initialIsBatch;
 
   @override
   State<AcceptancePage> createState() => _AcceptancePageState();
@@ -75,6 +81,8 @@ class _AcceptancePageState extends State<AcceptancePage> {
   final Set<int> _materialIds = <int>{};
   // 可变材料列表（初始基于传入 materials.normals，后续 append 扫码追加）
   late List<MaterialInfo> _currentMaterials;
+  // Track last embedded scan operation to decide how to consume AcceptanceMaterialsResolved
+  String? _lastScanOp; // 'append' | 'remove'
 
   @override
   void initState() {
@@ -86,9 +94,23 @@ class _AcceptancePageState extends State<AcceptancePage> {
     // 初始进入（来自外部 initial 扫码页）时，将传入的 materials 视为已扫描集合，
     // 以便后续可以直接执行“扫码剔除”操作；若后续 append/remove 会继续增删。
     // 仅当当前集合还是空时才注入，避免重复。
-    _currentMaterials = [...widget.materials.normals];
+    _currentMaterials = [
+      ...(widget.materials?.normals ?? const <MaterialInfo>[]),
+    ];
     for (final m in _currentMaterials) {
       _materialIds.add(m.baseInfo.materialId);
+    }
+
+    // 如从Standalone扫码跳转而来，带有codes，则先初始化一次物料集合
+    final codes = widget.initialCodes ?? const <String>[];
+    if (codes.isNotEmpty) {
+      _lastScanOp = 'append';
+      context.read<AcceptanceBloc>().add(
+        InitializeMaterialsFromCodes(
+          codes: codes,
+          isBatch: widget.initialIsBatch ?? (codes.length > 1),
+        ),
+      );
     }
 
     // Load initial user data
@@ -174,6 +196,64 @@ class _AcceptancePageState extends State<AcceptancePage> {
               );
             }
           });
+        } else if (state is AcceptanceMaterialsResolved) {
+          // This state carries a fresh list from scan results; merge or remove based on page intent
+          final fetched = state.materials;
+          if ((_lastScanOp ?? 'append') == 'append') {
+            int appendCount = 0;
+            int duplicate = 0;
+            setState(() {
+              for (final m in fetched) {
+                final id = m.baseInfo.materialId;
+                if (_materialIds.contains(id)) {
+                  duplicate++;
+                  return; // continue;
+                }
+                _materialIds.add(id);
+                _currentMaterials.add(m);
+                appendCount++;
+              }
+            });
+            if (appendCount > 0) {
+              context.showSuccessToast('新增 $appendCount 个');
+            } else {
+              context.showInfoToast('暂无可新增物料');
+            }
+            if (duplicate > 0) {
+              context.showInfoToast('有 $duplicate 个重复，已忽略');
+            }
+          } else {
+            // remove
+            final idsToRemove = fetched
+                .map((m) => m.baseInfo.materialId)
+                .toSet();
+            if (idsToRemove.isEmpty) {
+              context.showInfoToast('未解析到可剔除物料');
+            } else {
+              int removed = 0;
+              final existingIds = _currentMaterials
+                  .map((m) => m.baseInfo.materialId)
+                  .toSet();
+              setState(() {
+                _currentMaterials.removeWhere((m) {
+                  final hit = idsToRemove.contains(m.baseInfo.materialId);
+                  if (hit) {
+                    _materialIds.remove(m.baseInfo.materialId);
+                    removed++;
+                  }
+                  return hit;
+                });
+              });
+              final unmatched = idsToRemove.difference(existingIds).length;
+              if (removed > 0) {
+                context.showSuccessToast('已剔除 $removed 个');
+              }
+              if (unmatched > 0) {
+                context.showInfoToast('有 $unmatched 个未在页面，已忽略');
+              }
+            }
+          }
+          _lastScanOp = null;
         }
       },
       child: Scaffold(
@@ -688,7 +768,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
   }
 
   void _handleScanAcceptance() {
-    final materialVOList = widget.materials.normals
+    final materialVOList = _currentMaterials
         .map(
           (e) => MaterialVO(
             materialId: e.baseInfo.materialId,
@@ -836,7 +916,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
     final request = QrScanFlowRequest(
       operation: QrScanOperation.append,
       currentCodes: currentCodes,
-      scanType: QrScanType.acceptance,
       batch: true,
       context: const {
         'source': 'acceptancePage_append',
@@ -849,31 +928,12 @@ class _AcceptancePageState extends State<AcceptancePage> {
     final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
     if (!mounted) return;
     final res = flow.normalize(request, raw);
-    if (res.addedCodes.isEmpty) return; // 无新增扫码
-    try {
-      final repo = getIt<MaterialHandleRepository>();
-      final rsp = await repo.scanBatchToQueryAll(res.addedCodes);
-      if (rsp.isSuccess && rsp.data != null) {
-        final fetched = rsp.data!.normals;
-        int appendCount = 0;
-        setState(() {
-          for (final m in fetched) {
-            final id = m.baseInfo.materialId;
-            if (_materialIds.contains(id)) continue; // 已存在
-            _materialIds.add(id);
-            _currentMaterials.add(m);
-            appendCount++;
-          }
-        });
-        context.showSuccessToast('新增 $appendCount 个');
-      } else {
-        context.showInfoToast('新增码未查到物料信息');
-      }
-    } catch (e) {
-      // ignore: avoid_print
-      print('[AcceptancePage] fetch materials failed: $e');
-      context.showErrorToast('获取物料信息失败');
-    }
+    if (res.addedCodes.isEmpty) return;
+    // Delegate code resolution to bloc
+    _lastScanOp = 'append';
+    context.read<AcceptanceBloc>().add(
+      AppendMaterialsByCodes(codes: res.addedCodes),
+    );
   }
 
   // 扫码剔除：
@@ -886,7 +946,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
       operation: QrScanOperation.remove,
       // 不再依赖前端已有码集合过滤，传空表示全部交给后端解析
       currentCodes: const <String>[],
-      scanType: QrScanType.acceptance,
       batch: true,
       context: const {
         'source': 'acceptancePage_remove',
@@ -900,37 +959,10 @@ class _AcceptancePageState extends State<AcceptancePage> {
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.removedCodes.isEmpty) return;
-    try {
-      final repo = getIt<MaterialHandleRepository>();
-      final rsp = await repo.scanBatchToQueryAll(res.removedCodes);
-      if (rsp.isSuccess && rsp.data != null) {
-        final idsToRemove = rsp.data!.normals
-            .map((m) => m.baseInfo.materialId)
-            .toSet();
-        if (idsToRemove.isEmpty) {
-          context.showInfoToast('未解析到可剔除物料');
-          return;
-        }
-        int removed = 0;
-        setState(() {
-          _currentMaterials.removeWhere((m) {
-            final hit = idsToRemove.contains(m.baseInfo.materialId);
-            if (hit) {
-              _materialIds.remove(m.baseInfo.materialId);
-              removed++;
-            }
-            return hit;
-          });
-        });
-        context.showSuccessToast('已剔除 $removed 个');
-      } else {
-        context.showInfoToast('未匹配到可剔除的码');
-      }
-    } catch (e) {
-      // ignore: avoid_print
-      print('[AcceptancePage] remove fetch failed: $e');
-      context.showErrorToast('剔除失败');
-    }
+    _lastScanOp = 'remove';
+    context.read<AcceptanceBloc>().add(
+      RemoveMaterialsByCodes(codes: res.removedCodes),
+    );
   }
 
   // 已移除高亮及匹配辅助逻辑，直接基于 _currentMaterials 操作。

@@ -16,7 +16,6 @@ import '../../models/acceptance/attachment_vo.dart';
 import '../../models/acceptance/do_accept_sign_in_vo.dart';
 import '../../models/common/common_user_vo.dart';
 // Removed direct dependency on QrScanConfig; using QrScanFlowService abstraction
-import '../../models/qr_scan/qr_scan_type.dart';
 import '../../models/records/record_type.dart';
 import '../../widgets/common_state_widgets.dart' as common;
 import '../../utils/toast_utils.dart';
@@ -433,7 +432,6 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     final request = QrScanFlowRequest(
       operation: QrScanOperation.append,
       currentCodes: const [],
-      scanType: QrScanType.materialInbound,
       batch: false,
       context: const {'source': 'acceptanceAfterSignin'},
       title: '扫码入库',

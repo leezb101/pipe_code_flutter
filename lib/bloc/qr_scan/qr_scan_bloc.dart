@@ -8,7 +8,6 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/qr_scan/qr_scan_result.dart';
-import '../../models/qr_scan/qr_scan_type.dart';
 import '../../services/qr_scan_service.dart';
 import 'qr_scan_event.dart';
 import 'qr_scan_state.dart';
@@ -73,9 +72,9 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
     Emitter<QrScanState> emit,
   ) async {
     try {
-      // For 'raw' type, we skip validation and always treat it as valid.
+      // Prefer explicit flag to skip validation.
       final bool isValid;
-      if (state.config?.scanType == QrScanType.raw) {
+      if (state.config?.skipValidation == true) {
         isValid = true;
       } else {
         isValid = await _qrScanService.validateCode(event.code);

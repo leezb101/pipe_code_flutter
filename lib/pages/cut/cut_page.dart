@@ -11,7 +11,6 @@ import 'package:pipe_code_flutter/models/material/material_info_for_business.dar
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
     show QrScanOperation; // only enum
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
@@ -439,7 +438,6 @@ class _CutViewState extends State<CutView> {
     final request = QrScanFlowRequest(
       operation: QrScanOperation.initial,
       currentCodes: const [],
-      scanType: QrScanType.pipeCopy,
       batch: false,
       title: '原耗材扫码',
       context: const {'source': 'cutPage_original'},
@@ -466,10 +464,10 @@ class _CutViewState extends State<CutView> {
     final request = QrScanFlowRequest(
       operation: QrScanOperation.append,
       currentCodes: existingCodes,
-      scanType: QrScanType.raw,
       batch: true,
       title: '新耗材扫码',
       context: const {'source': 'cutPage_newMaterials'},
+      skipValidation: true,
     );
     final config = flow.buildConfig(request);
     final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);

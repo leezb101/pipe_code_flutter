@@ -11,7 +11,6 @@ import '../../bloc/install/install_state.dart';
 import '../../models/install/do_install_vo.dart';
 import '../../models/acceptance/material_vo.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
-import '../../models/qr_scan/qr_scan_type.dart';
 import '../../widgets/common_state_widgets.dart' as common;
 import '../../utils/toast_utils.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
@@ -363,7 +362,7 @@ class _InstallViewState extends State<InstallView> {
 
   void _navigateToQrScan(BuildContext context) {
     final materialCubit = context.read<MaterialHandleCubit>();
-    final config = QrScanConfig(scanType: QrScanType.install, title: '扫码安装');
+    final config = QrScanConfig(title: '扫码安装');
 
     context.pushNamed('qr-scan', extra: config).then((result) {
       if (mounted &&

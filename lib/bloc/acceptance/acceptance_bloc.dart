@@ -7,15 +7,19 @@
  */
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
+import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import '../../repositories/interfaces/acceptance_repository.dart';
+import '../../repositories/interfaces/material_handle_repository.dart';
 import '../../utils/logger.dart';
 import 'acceptance_event.dart';
 import 'acceptance_state.dart';
 
 class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
   final AcceptanceRepository _repository;
+  final MaterialHandleRepository _materialHandleRepository;
 
-  AcceptanceBloc(this._repository) : super(const AcceptanceInitial()) {
+  AcceptanceBloc(this._repository, this._materialHandleRepository)
+    : super(const AcceptanceInitial()) {
     on<LoadAcceptanceDetail>(_onLoadAcceptanceDetail);
     on<SubmitAcceptance>(_onSubmitAcceptance);
     on<AuditAcceptance>(_onAuditAcceptance);
@@ -30,6 +34,9 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     on<MatchScannedMaterial>(_onMatchScannedMaterial);
     on<UnmatchScannedMaterial>(_onUnmatchScannedMaterial);
     on<BulkUnmatchMaterials>(_onBulkUnmatchMaterials);
+    on<InitializeMaterialsFromCodes>(_onInitializeMaterialsFromCodes);
+    on<AppendMaterialsByCodes>(_onAppendMaterialsByCodes);
+    on<RemoveMaterialsByCodes>(_onRemoveMaterialsByCodes);
   }
 
   Future<void> _onLoadAcceptanceDetail(
@@ -443,6 +450,90 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           matchMessage: '已剔除 ${event.materialIds.length} 个',
         ),
       );
+    }
+  }
+
+  // ========== QR Scan integration ==========
+  Future<void> _onInitializeMaterialsFromCodes(
+    InitializeMaterialsFromCodes event,
+    Emitter<AcceptanceState> emit,
+  ) async {
+    // Resolve codes and initialize current materials list for AcceptancePage
+    try {
+      if (event.codes.isEmpty) return;
+      final rsp = event.isBatch
+          ? await _materialHandleRepository.scanBatchToQueryAll(event.codes)
+          : await _materialHandleRepository.scanSingleToQueryAll(
+              event.codes.first,
+            );
+      if (rsp.isSuccess && rsp.data != null) {
+        final MaterialInfoForBusiness bundle = rsp.data!;
+        emit(
+          AcceptanceMaterialsResolved(
+            materials: bundle.normals,
+            // unique token to ensure state changes are observed even with same materials
+            message: 'init@${DateTime.now().microsecondsSinceEpoch}',
+          ),
+        );
+      } else {
+        emit(AcceptanceError(message: rsp.msg));
+      }
+    } catch (e) {
+      Logger.error(
+        'Initialize materials from codes failed: $e',
+        tag: 'AcceptanceBloc',
+      );
+      emit(const AcceptanceError(message: '解析扫码列表失败'));
+    }
+  }
+
+  Future<void> _onAppendMaterialsByCodes(
+    AppendMaterialsByCodes event,
+    Emitter<AcceptanceState> emit,
+  ) async {
+    try {
+      if (event.codes.isEmpty) return;
+      final rsp = await _materialHandleRepository.scanBatchToQueryAll(
+        event.codes,
+      );
+      if (rsp.isSuccess && rsp.data != null) {
+        emit(
+          AcceptanceMaterialsResolved(
+            materials: rsp.data!.normals,
+            message: 'append@${DateTime.now().microsecondsSinceEpoch}',
+          ),
+        );
+      } else {
+        emit(const AcceptanceError(message: '新增码未查到物料信息'));
+      }
+    } catch (e) {
+      Logger.error('Append by codes failed: $e', tag: 'AcceptanceBloc');
+      emit(const AcceptanceError(message: '获取物料信息失败'));
+    }
+  }
+
+  Future<void> _onRemoveMaterialsByCodes(
+    RemoveMaterialsByCodes event,
+    Emitter<AcceptanceState> emit,
+  ) async {
+    try {
+      if (event.codes.isEmpty) return;
+      final rsp = await _materialHandleRepository.scanBatchToQueryAll(
+        event.codes,
+      );
+      if (rsp.isSuccess && rsp.data != null) {
+        emit(
+          AcceptanceMaterialsResolved(
+            materials: rsp.data!.normals,
+            message: 'remove@${DateTime.now().microsecondsSinceEpoch}',
+          ),
+        );
+      } else {
+        emit(const AcceptanceError(message: '未匹配到可剔除的码'));
+      }
+    } catch (e) {
+      Logger.error('Remove by codes failed: $e', tag: 'AcceptanceBloc');
+      emit(const AcceptanceError(message: '剔除失败'));
     }
   }
 }
