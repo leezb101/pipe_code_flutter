@@ -22,6 +22,8 @@ import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dar
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
     show QrScanOperation; // enum only
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
 
 class ReturnPage extends StatefulWidget {
   const ReturnPage({super.key, required this.materials});
@@ -562,35 +564,54 @@ class _ReturnPageState extends State<ReturnPage> {
     );
     final currentList =
         context.read<ReturnBloc>().state.returnDetail?.materialList ?? [];
-    final currentCodes = currentList
-        .map((m) => m.materialName) // 这里假设 materialName 代表扫描码（缺真实字段）
-        .where((e) => e.isNotEmpty)
-        .toList();
+    // 不维护原始码集合，传空数组使 normalize 视所有扫码为新增
+    final currentCodes = <String>[];
     final request = QrScanFlowRequest(
       operation: QrScanOperation.append,
       currentCodes: currentCodes,
       scanType: QrScanType.returnMaterial,
       batch: true,
       title: '追加退库物料',
-      context: const {'source': 'returnPage_append'},
+      context: const {
+        'source': 'returnPage_append',
+        'entry': 'embedded',
+        'operation': 'append',
+      },
     );
     final config = flow.buildConfig(request);
     final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
     final res = flow.normalize(request, raw);
     if (!mounted) return;
-    if (res.addedCodes.isEmpty) {
-      if (res.duplicates.isNotEmpty) {
-        context.showInfoToast('全部为已存在的物料码');
+    if (res.addedCodes.isEmpty) return;
+    try {
+      final repo = getIt<MaterialHandleRepository>();
+      final rsp = await repo.scanBatchToQueryAll(res.addedCodes);
+      if (rsp.isSuccess && rsp.data != null) {
+        // 将获取到的真实物料追加（基于 materialId 去重）
+        final existingIds = currentList.map((m) => m.materialId).toSet();
+        final fetched = rsp.data!.normals;
+        final appended = <MaterialVO>[];
+        for (final m in fetched) {
+          final id = m.baseInfo.materialId;
+          if (existingIds.contains(id)) continue;
+          appended.add(
+            MaterialVO(
+              materialId: id,
+              materialName: m.baseInfo.prodNm ?? '',
+              num: 1,
+            ),
+          );
+        }
+        context.read<ReturnBloc>().add(
+          UpdateReturnMaterials(materials: [...currentList, ...appended]),
+        );
+        context.showSuccessToast('已追加 ${appended.length} 个');
+      } else {
+        context.showInfoToast('未查到新增物料');
       }
-      return;
+    } catch (e) {
+      context.showErrorToast('获取物料失败');
     }
-    final newVOs = res.addedCodes.map(
-      (c) => MaterialVO(materialId: 0, materialName: c, num: 1),
-    );
-    context.read<ReturnBloc>().add(
-      UpdateReturnMaterials(materials: [...currentList, ...newVOs]),
-    );
-    context.showSuccessToast('已追加 ${res.addedCodes.length} 个');
   }
 
   Future<void> _scanRemoveMaterials() async {
@@ -600,34 +621,50 @@ class _ReturnPageState extends State<ReturnPage> {
     );
     final currentList =
         context.read<ReturnBloc>().state.returnDetail?.materialList ?? [];
-    final currentCodes = currentList
-        .map((m) => m.materialName)
-        .where((e) => e.isNotEmpty)
-        .toList();
-    if (currentCodes.isEmpty) {
-      context.showInfoToast('当前无可移除的物料');
-      return;
-    }
+    // 不基于前端 currentCodes 过滤，传空使所有扫码进入 removedCodes
+    final currentCodes = <String>[];
     final request = QrScanFlowRequest(
       operation: QrScanOperation.remove,
       currentCodes: currentCodes,
       scanType: QrScanType.returnMaterial,
       batch: true,
       title: '移除退库物料',
-      context: const {'source': 'returnPage_remove'},
+      context: const {
+        'source': 'returnPage_remove',
+        'entry': 'embedded',
+        'operation': 'remove',
+      },
     );
     final config = flow.buildConfig(request);
     final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
     final res = flow.normalize(request, raw);
     if (!mounted) return;
-    if (res.removedCodes.isEmpty) {
-      context.showInfoToast('未匹配到可移除的码');
-      return;
+    if (res.removedCodes.isEmpty) return;
+    try {
+      final repo = getIt<MaterialHandleRepository>();
+      final rsp = await repo.scanBatchToQueryAll(res.removedCodes);
+      if (rsp.isSuccess && rsp.data != null) {
+        final idsToRemove = rsp.data!.normals
+            .map((m) => m.baseInfo.materialId)
+            .toSet();
+        if (idsToRemove.isEmpty) {
+          context.showInfoToast('未匹配到可移除的物料');
+          return;
+        }
+        final remaining = currentList
+            .where((m) => !idsToRemove.contains(m.materialId))
+            .toList();
+        context.read<ReturnBloc>().add(
+          UpdateReturnMaterials(materials: remaining),
+        );
+        context.showSuccessToast(
+          '已移除 ${currentList.length - remaining.length} 个',
+        );
+      } else {
+        context.showInfoToast('未匹配到可移除的码');
+      }
+    } catch (e) {
+      context.showErrorToast('移除失败');
     }
-    final remaining = currentList
-        .where((m) => !res.removedCodes.contains(m.materialName))
-        .toList();
-    context.read<ReturnBloc>().add(UpdateReturnMaterials(materials: remaining));
-    context.showSuccessToast('已移除 ${res.removedCodes.length} 个');
   }
 }

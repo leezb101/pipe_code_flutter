@@ -6,31 +6,9 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
-import '../models/qr_scan/qr_scan_result.dart';
-import 'qr_scan_strategies/qr_scan_strategy.dart';
-
 abstract class QrScanService {
   Future<bool> validateCode(String code);
-  // Future<QrScanProcessResult?> processInbound(List<QrScanResult> results);
-  Future<QrScanProcessResult?> processSignout(List<QrScanResult> results);
-  Future<QrScanProcessResult?> processTransfer(List<QrScanResult> results);
-  Future<QrScanProcessResult?> processInventory(List<QrScanResult> results);
-  Future<QrScanProcessResult?> processPipeCopy(List<QrScanResult> results);
-  Future<QrScanProcessResult?> processIdentification(
-    List<QrScanResult> results,
-  );
-  Future<QrScanProcessResult?> processReturnMaterial(
-    List<QrScanResult> results,
-  );
-  Future<QrScanProcessResult?> processAcceptance(List<QrScanResult> results);
-  Future<QrScanProcessResult?> processMaterialInbound(
-    List<QrScanResult> results,
-  );
-  Future<QrScanProcessResult?> processScrap(
-    List<QrScanResult> results, {
-    Map<String, dynamic>? context,
-  });
-  Future<QrScanProcessResult?> processInstall(List<QrScanResult> results);
+  // Scanning is decoupled from business; service only validates code format now.
 }
 
 class QrScanServiceImpl implements QrScanService {
@@ -49,88 +27,5 @@ class QrScanServiceImpl implements QrScanService {
     return true;
   }
 
-  // @override
-  // Future<QrScanProcessResult?> processInbound(
-  //   List<QrScanResult> results,
-  // ) async {
-  //   final strategy = InboundStrategy();
-  //   return strategy.process(results);
-  // }
-
-  @override
-  Future<QrScanProcessResult?> processSignout(
-    List<QrScanResult> results,
-  ) async {
-    final strategy = SignoutStrategy();
-    return strategy.process(results);
-  }
-
-  @override
-  Future<QrScanProcessResult?> processTransfer(
-    List<QrScanResult> results,
-  ) async {
-    final strategy = TransferStrategy();
-    return strategy.process(results);
-  }
-
-  @override
-  Future<QrScanProcessResult?> processInventory(
-    List<QrScanResult> results,
-  ) async {
-    final strategy = InventoryStrategy();
-    return strategy.process(results);
-  }
-
-  @override
-  Future<QrScanProcessResult?> processPipeCopy(
-    List<QrScanResult> results,
-  ) async {
-    final strategy = PipeCopyStrategy();
-    return strategy.process(results);
-  }
-
-  @override
-  Future<QrScanProcessResult?> processIdentification(
-    List<QrScanResult> results,
-  ) async {
-    final strategy = IdentificationStrategy();
-    return strategy.process(results);
-  }
-
-  @override
-  Future<QrScanProcessResult?> processReturnMaterial(
-    List<QrScanResult> results,
-  ) {
-    final strategy = ReturnMaterialStrategy();
-    return strategy.process(results);
-  }
-
-  @override
-  Future<QrScanProcessResult?> processAcceptance(List<QrScanResult> results) {
-    final strategy = AcceptanceStrategy();
-    return strategy.process(results);
-  }
-
-  @override
-  Future<QrScanProcessResult?> processMaterialInbound(
-    List<QrScanResult> results,
-  ) {
-    final strategy = MaterialInboundStrategy();
-    return strategy.process(results);
-  }
-
-  @override
-  Future<QrScanProcessResult?> processScrap(
-    List<QrScanResult> results, {
-    Map<String, dynamic>? context,
-  }) async {
-    final strategy = ScrapStrategy();
-    return strategy.process(results, context: context);
-  }
-
-  @override
-  Future<QrScanProcessResult?> processInstall(List<QrScanResult> results) {
-    final strategy = InstallStrategy();
-    return strategy.process(results);
-  }
+  // No more processXxx calls here.
 }

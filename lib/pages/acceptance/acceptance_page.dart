@@ -27,6 +27,12 @@ import '../../utils/go_router_popuntil.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
+import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
+import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
+    show QrScanOperation; // enum
+import 'package:pipe_code_flutter/models/qr_scan/qr_scan_type.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
 
 class AcceptancePage extends StatefulWidget {
   const AcceptancePage({super.key, required this.materials});
@@ -63,6 +69,12 @@ class _AcceptancePageState extends State<AcceptancePage> {
 
   // 推送选择状态
   final Map<String, bool?> _userPushStates = {};
+  // 不再保留所有原始二维码与后端一一匹配（后端返回无法与原始码稳定对应），
+  // 仅在追加/移除时做批量查询并基于 materialId 进行集合运算。
+  // 若需要简单的前端去重，维护一个当前 materialId 集合即可。
+  final Set<int> _materialIds = <int>{};
+  // 可变材料列表（初始基于传入 materials.normals，后续 append 扫码追加）
+  late List<MaterialInfo> _currentMaterials;
 
   @override
   void initState() {
@@ -70,6 +82,14 @@ class _AcceptancePageState extends State<AcceptancePage> {
     _acceptancePhotosCubit = FileUploadCubit();
     _inspectionReportsCubit = FileUploadCubit();
     _acceptanceReportsCubit = FileUploadCubit();
+
+    // 初始进入（来自外部 initial 扫码页）时，将传入的 materials 视为已扫描集合，
+    // 以便后续可以直接执行“扫码剔除”操作；若后续 append/remove 会继续增删。
+    // 仅当当前集合还是空时才注入，避免重复。
+    _currentMaterials = [...widget.materials.normals];
+    for (final m in _currentMaterials) {
+      _materialIds.add(m.baseInfo.materialId);
+    }
 
     // Load initial user data
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -222,8 +242,28 @@ class _AcceptancePageState extends State<AcceptancePage> {
               ],
             ),
             const SizedBox(height: 16),
-            ...widget.materials.normals.map(
-              (material) => _buildMaterialItem(material),
+            ..._currentMaterials.map(_buildMaterialItem),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _scanAppendMaterials,
+                    child: const Text('继续扫码'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _scanRemoveMaterials,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.redAccent),
+                    ),
+                    child: const Text('扫码剔除'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -632,10 +672,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
                 ),
                 child: const Text(
                   '提交报验',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -734,7 +771,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
     ).showSnackBar(const SnackBar(content: Text('正在提交验收数据...')));
   }
 
-  
   void _handleReturn() {
     context.pop();
     // Navigator.of(context).pop();
@@ -788,4 +824,114 @@ class _AcceptancePageState extends State<AcceptancePage> {
 
     return selectedUserIds;
   }
+
+  // 批量继续扫码追加材料：
+  //  1. 通过扫码获取一组二维码（不做前端去重）
+  //  2. 调用 scanBatchToQueryAll 获取完整物料实体
+  //  3. 基于 materialId 去重追加
+  Future<void> _scanAppendMaterials() async {
+    final flow = RepositoryProvider.of<QrScanFlowService>(context);
+    // 不再依赖 currentCodes 做前端排重，传空数组让 normalize 全部视为新增
+    final currentCodes = <String>[];
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.append,
+      currentCodes: currentCodes,
+      scanType: QrScanType.acceptance,
+      batch: true,
+      context: const {
+        'source': 'acceptancePage_append',
+        'entry': 'embedded',
+        'operation': 'append',
+      },
+      title: '继续扫码',
+    );
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    if (!mounted) return;
+    final res = flow.normalize(request, raw);
+    if (res.addedCodes.isEmpty) return; // 无新增扫码
+    try {
+      final repo = getIt<MaterialHandleRepository>();
+      final rsp = await repo.scanBatchToQueryAll(res.addedCodes);
+      if (rsp.isSuccess && rsp.data != null) {
+        final fetched = rsp.data!.normals;
+        int appendCount = 0;
+        setState(() {
+          for (final m in fetched) {
+            final id = m.baseInfo.materialId;
+            if (_materialIds.contains(id)) continue; // 已存在
+            _materialIds.add(id);
+            _currentMaterials.add(m);
+            appendCount++;
+          }
+        });
+        context.showSuccessToast('新增 $appendCount 个');
+      } else {
+        context.showInfoToast('新增码未查到物料信息');
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('[AcceptancePage] fetch materials failed: $e');
+      context.showErrorToast('获取物料信息失败');
+    }
+  }
+
+  // 扫码剔除：
+  //  1. 扫到一组待移除二维码
+  //  2. 调用 scanBatchToQueryAll 获取对应 materialId 集合
+  //  3. 依据 materialId 从 _currentMaterials 中剔除
+  Future<void> _scanRemoveMaterials() async {
+    final flow = RepositoryProvider.of<QrScanFlowService>(context);
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.remove,
+      // 不再依赖前端已有码集合过滤，传空表示全部交给后端解析
+      currentCodes: const <String>[],
+      scanType: QrScanType.acceptance,
+      batch: true,
+      context: const {
+        'source': 'acceptancePage_remove',
+        'entry': 'embedded',
+        'operation': 'remove',
+      },
+      title: '扫码剔除',
+    );
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    if (!mounted) return;
+    final res = flow.normalize(request, raw);
+    if (res.removedCodes.isEmpty) return;
+    try {
+      final repo = getIt<MaterialHandleRepository>();
+      final rsp = await repo.scanBatchToQueryAll(res.removedCodes);
+      if (rsp.isSuccess && rsp.data != null) {
+        final idsToRemove = rsp.data!.normals
+            .map((m) => m.baseInfo.materialId)
+            .toSet();
+        if (idsToRemove.isEmpty) {
+          context.showInfoToast('未解析到可剔除物料');
+          return;
+        }
+        int removed = 0;
+        setState(() {
+          _currentMaterials.removeWhere((m) {
+            final hit = idsToRemove.contains(m.baseInfo.materialId);
+            if (hit) {
+              _materialIds.remove(m.baseInfo.materialId);
+              removed++;
+            }
+            return hit;
+          });
+        });
+        context.showSuccessToast('已剔除 $removed 个');
+      } else {
+        context.showInfoToast('未匹配到可剔除的码');
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('[AcceptancePage] remove fetch failed: $e');
+      context.showErrorToast('剔除失败');
+    }
+  }
+
+  // 已移除高亮及匹配辅助逻辑，直接基于 _currentMaterials 操作。
 }

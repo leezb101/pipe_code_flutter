@@ -106,7 +106,11 @@ class _ScrapPageState extends State<ScrapPage> {
       currentCodes: _scannedCodes.toList(),
       scanType: QrScanType.scrap,
       batch: true,
-      context: {'source': 'scrapPage'},
+      context: const {
+        'source': 'scrapPage',
+        'entry': 'embedded',
+        'operation': 'append',
+      },
     );
     final config = flow.buildConfig(request);
     final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
@@ -128,7 +132,11 @@ class _ScrapPageState extends State<ScrapPage> {
       currentCodes: _scannedCodes.toList(),
       scanType: QrScanType.scrap,
       batch: true,
-      context: {'source': 'scrapPage'},
+      context: const {
+        'source': 'scrapPage',
+        'entry': 'embedded',
+        'operation': 'remove',
+      },
     );
     final config = flow.buildConfig(request);
     final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);

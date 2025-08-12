@@ -20,7 +20,6 @@ import '../../bloc/qr_scan/qr_scan_event.dart';
 import '../../bloc/qr_scan/qr_scan_state.dart';
 import '../../config/app_config.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
-import '../../services/qr_scan_strategies/qr_scan_strategy.dart';
 import '../../widgets/qr_scan/scanned_codes_list.dart';
 import '../../utils/toast_utils.dart';
 
@@ -148,18 +147,15 @@ class _QrScanPageState extends State<QrScanPage> {
         final isDuplicateInHistory =
             widget.config.existingCodesToExclude?.contains(code) ?? false;
         final isDuplicateInSession = _sessionScannedCodes.contains(code);
-        final bool removing = _initialConfig.isRemove;
 
-        if (!removing && (isDuplicateInHistory || isDuplicateInSession)) {
+        if (isDuplicateInHistory || isDuplicateInSession) {
           context.showErrorToast('该耗材已添加，请勿重复扫描');
           _provideScanFeedback();
           _scheduleRestartScanner();
           return;
         }
 
-        if (!removing) {
-          _sessionScannedCodes.add(code);
-        }
+        _sessionScannedCodes.add(code);
 
         // 震动反馈
         _provideScanFeedback();
@@ -441,14 +437,33 @@ class _QrScanPageState extends State<QrScanPage> {
       return;
     }
 
-    // 检查是否有导航数据需要处理
-    if (state.processResult?.navigationData != null) {
-      _handleNavigation(context, state.processResult!.navigationData!);
+    final entry = state.config?.context != null
+        ? state.config!.context!['entry'] as String?
+        : null;
+
+    if (entry == 'embedded') {
+      // 业务内嵌模式：一律返回结果给调用页面
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted && context.mounted && !_hasReturned) {
+          _popWithResult(context, state.scannedCodes);
+        }
+      });
       return;
     }
 
-    // 如果没有导航数据，则返回扫码结果
-    Future.delayed(const Duration(milliseconds: 500), () {
+    final route = state.config?.context != null
+        ? state.config!.context!['route'] as String?
+        : null;
+    final data = state.config?.context != null
+        ? state.config!.context!['data'] as Map<String, dynamic>?
+        : null;
+
+    if (route != null && route.isNotEmpty) {
+      _handleNavigation(context, route: route, data: data);
+      return;
+    }
+
+    Future.delayed(const Duration(milliseconds: 200), () {
       if (mounted && context.mounted && !_hasReturned) {
         _popWithResult(context, state.scannedCodes);
       }
@@ -456,9 +471,10 @@ class _QrScanPageState extends State<QrScanPage> {
   }
 
   void _handleNavigation(
-    BuildContext context,
-    QrScanNavigationData navigationData,
-  ) {
+    BuildContext context, {
+    required String route,
+    Map<String, dynamic>? data,
+  }) {
     if (_hasReturned) {
       return;
     }
@@ -466,7 +482,7 @@ class _QrScanPageState extends State<QrScanPage> {
     _hasReturned = true;
 
     Logger.debug(
-      '【22222】QrScanPage will be destroyed and replaced by ${navigationData.route} with data: ${navigationData.data}',
+      '【22222】QrScanPage will be destroyed and replaced by $route with data: $data',
     );
 
     // 在导航前清理bloc状态
@@ -474,7 +490,7 @@ class _QrScanPageState extends State<QrScanPage> {
 
     // 🎯 使用pushReplacement：销毁QrScanPage，直接替换为业务页面
     // 这样导航栈变成：Home → BusinessPage（QrScanPage被完全销毁）
-    context.pushReplacement(navigationData.route, extra: navigationData.data);
+    context.pushReplacement(route, extra: data);
   }
 
   void _popWithResult(BuildContext context, List<QrScanResult> result) {

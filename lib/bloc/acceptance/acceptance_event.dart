@@ -107,3 +107,20 @@ class MatchScannedMaterial extends AcceptanceEvent {
   @override
   List<Object?> get props => [scannedMaterial];
 }
+
+class UnmatchScannedMaterial extends AcceptanceEvent {
+  final MaterialInfoForBusiness scannedMaterial;
+  const UnmatchScannedMaterial({required this.scannedMaterial});
+
+  @override
+  List<Object?> get props => [scannedMaterial];
+}
+
+// 批量剔除（仅使用 materialId 列表，无需完整MaterialInfo）
+class BulkUnmatchMaterials extends AcceptanceEvent {
+  final List<int> materialIds;
+  const BulkUnmatchMaterials({required this.materialIds});
+
+  @override
+  List<Object?> get props => [materialIds];
+}

@@ -28,6 +28,8 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     on<LoadWarehouseList>(_onLoadWarehouseList);
     // on<ScanMaterialForSignin>(_onScanMaterialForSignin);
     on<MatchScannedMaterial>(_onMatchScannedMaterial);
+    on<UnmatchScannedMaterial>(_onUnmatchScannedMaterial);
+    on<BulkUnmatchMaterials>(_onBulkUnmatchMaterials);
   }
 
   Future<void> _onLoadAcceptanceDetail(
@@ -386,6 +388,61 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     } else {
       // 如果当前状态不是AcceptanceDetailLoaded，发出错误状态
       emit(AcceptanceError(message: "无法匹配材料，当前状态不正确"));
+    }
+  }
+
+  void _onUnmatchScannedMaterial(
+    UnmatchScannedMaterial event,
+    Emitter<AcceptanceState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is AcceptanceDetailLoaded) {
+      try {
+        final scannedId =
+            event.scannedMaterial.normals.first.baseInfo.materialId;
+        final existing = currentState.acceptanceInfo.materialList.firstWhere(
+          (m) => m.materialId.toString() == scannedId.toString(),
+        );
+        final isMatched = currentState.matchedMaterials.any(
+          (m) => m.materialId == existing.materialId,
+        );
+        if (!isMatched) {
+          emit(
+            currentState.copyWith(
+              matchMessage: '物料${existing.materialName} 未在已扫描列表中',
+            ),
+          );
+          return;
+        }
+        final newSet = Set<MaterialVO>.from(currentState.matchedMaterials)
+          ..removeWhere((m) => m.materialId == existing.materialId);
+        emit(
+          currentState.copyWith(
+            matchedMaterials: newSet,
+            matchMessage: '已移除物料${existing.materialName}',
+          ),
+        );
+      } catch (e) {
+        emit(currentState.copyWith(matchMessage: '当前验收单不包含扫描到的物料'));
+      }
+    }
+  }
+
+  void _onBulkUnmatchMaterials(
+    BulkUnmatchMaterials event,
+    Emitter<AcceptanceState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is AcceptanceDetailLoaded) {
+      final newSet = currentState.matchedMaterials
+          .where((m) => !event.materialIds.contains(m.materialId))
+          .toSet();
+      emit(
+        currentState.copyWith(
+          matchedMaterials: newSet,
+          matchMessage: '已剔除 ${event.materialIds.length} 个',
+        ),
+      );
     }
   }
 }

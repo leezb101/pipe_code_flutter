@@ -30,12 +30,14 @@ class QrScanFlowService {
     switch (request.operation) {
       case QrScanOperation.initial:
       case QrScanOperation.append:
-        final added = codes
-            .where((c) => !request.currentCodes.contains(c))
-            .toList();
-        final duplicates = codes
-            .where((c) => request.currentCodes.contains(c))
-            .toList();
+        // 如果调用方未提供 currentCodes（无法做码级去重，例如页面不保留原始码），则全部视为新增
+        final bool noDedupBasis = request.currentCodes.isEmpty;
+        final added = noDedupBasis
+            ? codes
+            : codes.where((c) => !request.currentCodes.contains(c)).toList();
+        final duplicates = noDedupBasis
+            ? const <String>[]
+            : codes.where((c) => request.currentCodes.contains(c)).toList();
         return QrScanFlowResult(
           operation: request.operation,
           addedCodes: added,
@@ -45,12 +47,14 @@ class QrScanFlowService {
           rawResults: qrResults,
         );
       case QrScanOperation.remove:
-        final removed = codes
-            .where((c) => request.currentCodes.contains(c))
-            .toList();
-        final skipped = codes
-            .where((c) => !request.currentCodes.contains(c))
-            .toList();
+        // 同理，如果没有 currentCodes 依据，则全部作为待移除集合交给上层再做 materialId 对比
+        final bool noFilterBasis = request.currentCodes.isEmpty;
+        final removed = noFilterBasis
+            ? codes
+            : codes.where((c) => request.currentCodes.contains(c)).toList();
+        final skipped = noFilterBasis
+            ? const <String>[]
+            : codes.where((c) => !request.currentCodes.contains(c)).toList();
         return QrScanFlowResult(
           operation: request.operation,
           addedCodes: const [],
