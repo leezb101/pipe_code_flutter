@@ -213,15 +213,19 @@ class _AcceptanceConfirmationPageState
 
   Widget _buildAttachmentsSection(AcceptanceInfoVO acceptanceInfo) {
     // 筛选不同类型的附件
-    final acceptancePhotos = acceptanceInfo.imageList
-        .where((item) => item.type == 3)
-        .toList();
-    final reportDocuments = acceptanceInfo.imageList
-        .where((item) => item.type == 1)
-        .toList();
-    final acceptanceReports = acceptanceInfo.imageList
-        .where((item) => item.type == 2)
-        .toList();
+    final acceptancePhotos = acceptanceInfo.imageList.toList();
+    final reportDocumentUrl = acceptanceInfo.sendAcceptUrl;
+    final acceptanceReportUrl = acceptanceInfo.acceptReportUrl;
+    final reportDocumentName = reportDocumentUrl
+        ?.split('/')
+        .last
+        .split('?')
+        .first;
+    final acceptanceReportName = acceptanceReportUrl
+        ?.split('/')
+        .last
+        .split('?')
+        .first;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,9 +237,9 @@ class _AcceptanceConfirmationPageState
         const SizedBox(height: 12),
         _buildPhotosRow(acceptancePhotos),
         const SizedBox(height: 20),
-        _buildDocumentInfo('报验单', reportDocuments),
+        _buildDocumentInfo('报验单', reportDocumentName, reportDocumentUrl),
         const SizedBox(height: 12),
-        _buildDocumentInfo('验收报告', acceptanceReports),
+        _buildDocumentInfo('验收报告', acceptanceReportName, acceptanceReportUrl),
       ],
     );
   }
@@ -320,7 +324,7 @@ class _AcceptanceConfirmationPageState
     );
   }
 
-  Widget _buildDocumentInfo(String label, List<AttachmentVO> documents) {
+  Widget _buildDocumentInfo(String label, String? name, String? documentUrl) {
     return Row(
       children: [
         Text(
@@ -329,11 +333,21 @@ class _AcceptanceConfirmationPageState
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Text(
-            documents.isNotEmpty ? documents.first.name ?? '' : '暂无$label',
-            style: TextStyle(
-              fontSize: 16,
-              color: documents.isNotEmpty ? Colors.black : Colors.grey.shade600,
+          child: InkWell(
+            onTap: () {
+              if (documentUrl?.isNotEmpty == true) {
+                // 通过documentUrl打开一个预览地址，一般为PDF
+                context.push('/pdf-preview', extra: documentUrl);
+              }
+            },
+            child: Text(
+              name?.isNotEmpty == true ? name! : '暂无$label',
+              style: TextStyle(
+                fontSize: 18,
+                color: documentUrl?.isNotEmpty == true
+                    ? Colors.blueAccent
+                    : Colors.grey.shade600,
+              ),
             ),
           ),
         ),
@@ -535,5 +549,12 @@ class _AcceptanceConfirmationPageState
         ),
       ),
     );
+  }
+
+  void launchUrlString(String s) {
+    // 这里可以使用url_launcher包来打开链接
+    // 例如：launchUrl(Uri.parse(s));
+    // 但为了简化示例，这里仅打印链接
+    debugPrint('打开链接: $s');
   }
 }

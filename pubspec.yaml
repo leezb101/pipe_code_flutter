@@ -56,10 +56,10 @@ dependencies:
 
   # Utilities
   equatable: ^2.0.5
+  permission_handler: ^12.0.1
 
   # QR Scanner
   mobile_scanner: ^7.0.1
-
   # File handling
   image_picker: ^1.0.7
   file_picker: ^10.2.1
@@ -67,11 +67,13 @@ dependencies:
   path_provider: ^2.1.5
   open_file_plus: ^3.4.1+1
   share_plus: ^11.0.0
+  flutter_pdfview: ^1.4.1+1
 
   # Encryption
   encrypt: ^5.0.3
   pointycastle: ^3.9.1
   flutter_fancy_tree_view: ^1.6.0
+  http: ^1.5.0
 
 dev_dependencies:
   flutter_test:

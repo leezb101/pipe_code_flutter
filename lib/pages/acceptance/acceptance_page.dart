@@ -23,7 +23,6 @@ import '../../bloc/acceptance/acceptance_event.dart';
 import '../../bloc/acceptance/acceptance_state.dart';
 import '../../models/acceptance/do_accept_vo.dart';
 import '../../models/acceptance/material_vo.dart';
-import '../../utils/go_router_popuntil.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
@@ -75,14 +74,9 @@ class _AcceptancePageState extends State<AcceptancePage> {
 
   // 推送选择状态
   final Map<String, bool?> _userPushStates = {};
-  // 不再保留所有原始二维码与后端一一匹配（后端返回无法与原始码稳定对应），
-  // 仅在追加/移除时做批量查询并基于 materialId 进行集合运算。
-  // 若需要简单的前端去重，维护一个当前 materialId 集合即可。
+  // 旧的本地列表与去重集合保留以便降级使用；主流程已切换到 Bloc 的 AcceptanceEditingState
   final Set<int> _materialIds = <int>{};
-  // 可变材料列表（初始基于传入 materials.normals，后续 append 扫码追加）
   late List<MaterialInfo> _currentMaterials;
-  // Track last embedded scan operation to decide how to consume AcceptanceMaterialsResolved
-  String? _lastScanOp; // 'append' | 'remove'
 
   @override
   void initState() {
@@ -101,10 +95,9 @@ class _AcceptancePageState extends State<AcceptancePage> {
       _materialIds.add(m.baseInfo.materialId);
     }
 
-    // 如从Standalone扫码跳转而来，带有codes，则先初始化一次物料集合
+    // 如从Standalone扫码跳转而来，带有codes，则先让bloc解析，再用编辑态初始化
     final codes = widget.initialCodes ?? const <String>[];
     if (codes.isNotEmpty) {
-      _lastScanOp = 'append';
       context.read<AcceptanceBloc>().add(
         InitializeMaterialsFromCodes(
           codes: codes,
@@ -112,6 +105,11 @@ class _AcceptancePageState extends State<AcceptancePage> {
         ),
       );
     }
+
+    // 用传入 materials 作为编辑态初始值
+    context.read<AcceptanceBloc>().add(
+      InitializeEditingMaterials(initial: _currentMaterials),
+    );
 
     // Load initial user data
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -156,6 +154,10 @@ class _AcceptancePageState extends State<AcceptancePage> {
               _userPushStates['construction_${user.name}'] = user.messageTo;
             }
           });
+        } else if (state is WarehouseListLoaded) {
+          setState(() {
+            _warehouseList = state.warehouseList;
+          });
         } else if (state is WarehouseUsersLoaded) {
           setState(() {
             _warehouseUsers = state.warehouseUserInfo.warehouseUsers;
@@ -164,96 +166,26 @@ class _AcceptancePageState extends State<AcceptancePage> {
               _userPushStates['warehouse_${user.name}'] = user.messageTo;
             }
           });
-        } else if (state is WarehouseListLoaded) {
-          setState(() {
-            _warehouseList = state.warehouseList;
-            // Set default selection to first warehouse if available
-            if (_warehouseList.isNotEmpty) {
-              _selectedWarehouseId = _warehouseList.first.id;
-
-              // 如果当前是独立仓库模式，自动获取默认仓库的人员
-              if (_storageType == 'independent') {
-                context.read<AcceptanceBloc>().add(
-                  LoadWarehouseUsers(warehouseId: _warehouseList.first.id),
-                );
-              }
-            }
-          });
-        } else if (state is AcceptanceError) {
-          context.showErrorToast(state.message);
-          // ScaffoldMessenger.of(
-          //   context,
-          // ).showSnackBar(SnackBar(content: Text(state.message)));
-        } else if (state is AcceptanceSubmitted) {
-          // 通过GoRouter返回MainPage
-          context.showSuccessToast('提交成功，即将返回', isGlobal: true);
-          Future.delayed(const Duration(seconds: 2), () {
-            if (context.mounted) {
-              GoRouter.of(context).popUntil(
-                predicate: (route) {
-                  return route.name == '/';
-                },
-              );
-            }
-          });
         } else if (state is AcceptanceMaterialsResolved) {
-          // This state carries a fresh list from scan results; merge or remove based on page intent
-          final fetched = state.materials;
-          if ((_lastScanOp ?? 'append') == 'append') {
-            int appendCount = 0;
-            int duplicate = 0;
-            setState(() {
-              for (final m in fetched) {
-                final id = m.baseInfo.materialId;
-                if (_materialIds.contains(id)) {
-                  duplicate++;
-                  return; // continue;
-                }
-                _materialIds.add(id);
-                _currentMaterials.add(m);
-                appendCount++;
-              }
-            });
-            if (appendCount > 0) {
-              context.showSuccessToast('新增 $appendCount 个');
+          // 将解析结果作为编辑态初始值注入（用于 initialCodes 路径）
+          context.read<AcceptanceBloc>().add(
+            InitializeEditingMaterials(initial: state.materials),
+          );
+        } else if (state is AcceptanceEditingState) {
+          // 编辑态下的反馈消息
+          if (state.message != null && state.message!.isNotEmpty) {
+            // 简单判断文案分别提示
+            final msg = state.message!;
+            if (msg.contains('新增') || msg.contains('追加')) {
+              context.showSuccessToast(msg);
+            } else if (msg.contains('剔除') || msg.contains('移除')) {
+              context.showSuccessToast(msg);
             } else {
-              context.showInfoToast('暂无可新增物料');
+              context.showInfoToast(msg);
             }
-            if (duplicate > 0) {
-              context.showInfoToast('有 $duplicate 个重复，已忽略');
-            }
-          } else {
-            // remove
-            final idsToRemove = fetched
-                .map((m) => m.baseInfo.materialId)
-                .toSet();
-            if (idsToRemove.isEmpty) {
-              context.showInfoToast('未解析到可剔除物料');
-            } else {
-              int removed = 0;
-              final existingIds = _currentMaterials
-                  .map((m) => m.baseInfo.materialId)
-                  .toSet();
-              setState(() {
-                _currentMaterials.removeWhere((m) {
-                  final hit = idsToRemove.contains(m.baseInfo.materialId);
-                  if (hit) {
-                    _materialIds.remove(m.baseInfo.materialId);
-                    removed++;
-                  }
-                  return hit;
-                });
-              });
-              final unmatched = idsToRemove.difference(existingIds).length;
-              if (removed > 0) {
-                context.showSuccessToast('已剔除 $removed 个');
-              }
-              if (unmatched > 0) {
-                context.showInfoToast('有 $unmatched 个未在页面，已忽略');
-              }
-            }
+            // 清理一次消息，避免后续无关状态变更时重复弹出
+            context.read<AcceptanceBloc>().add(const ClearEditingMessage());
           }
-          _lastScanOp = null;
         }
       },
       child: Scaffold(
@@ -304,48 +236,55 @@ class _AcceptancePageState extends State<AcceptancePage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        child: BlocBuilder<AcceptanceBloc, AcceptanceState>(
+          builder: (context, state) {
+            final materials = state is AcceptanceEditingState
+                ? state.currentMaterials
+                : _currentMaterials;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.inventory, size: 24, color: Colors.blue[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '材料清单',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ..._currentMaterials.map(_buildMaterialItem),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _scanAppendMaterials,
-                    child: const Text('继续扫码'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _scanRemoveMaterials,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.redAccent),
+                Row(
+                  children: [
+                    Icon(Icons.inventory, size: 24, color: Colors.blue[600]),
+                    const SizedBox(width: 8),
+                    const Text(
+                      '材料清单',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
                     ),
-                    child: const Text('扫码剔除'),
-                  ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ...materials.map(_buildMaterialItem),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _scanAppendMaterials,
+                        child: const Text('继续扫码'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _scanRemoveMaterials,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.redAccent),
+                        ),
+                        child: const Text('扫码剔除'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -768,7 +707,12 @@ class _AcceptancePageState extends State<AcceptancePage> {
   }
 
   void _handleScanAcceptance() {
-    final materialVOList = _currentMaterials
+    // 优先从编辑态取材；否则退回到本地集合
+    final currentState = context.read<AcceptanceBloc>().state;
+    final sourceMaterials = currentState is AcceptanceEditingState
+        ? currentState.currentMaterials
+        : _currentMaterials;
+    final materialVOList = sourceMaterials
         .map(
           (e) => MaterialVO(
             materialId: e.baseInfo.materialId,
@@ -804,40 +748,26 @@ class _AcceptancePageState extends State<AcceptancePage> {
           ),
     );
     // 2. 报验单
-    allAttachments.addAll(
-      _inspectionReportsCubit.state
-          .where(
-            (s) => s.status == UploadStatus.success && s.uploadResult != null,
-          )
-          .map(
-            (state) => AttachmentVO(
-              type: 2, // 2 for inspection report file
-              name: state.uploadResult!.fileName,
-              url: state.uploadResult!.fileUrl,
-              attachFormat: state.uploadResult!.fileType,
-            ),
-          ),
-    );
+    final String? sendAcceptUrl = _inspectionReportsCubit.state
+        .firstWhere(
+          (s) => s.status == UploadStatus.success && s.uploadResult != null,
+        )
+        .uploadResult
+        ?.fileUrl;
     // 3. 验收报告
-    allAttachments.addAll(
-      _acceptanceReportsCubit.state
-          .where(
-            (s) => s.status == UploadStatus.success && s.uploadResult != null,
-          )
-          .map(
-            (state) => AttachmentVO(
-              type: 3, // 3 for acceptance report file
-              name: state.uploadResult!.fileName,
-              url: state.uploadResult!.fileUrl,
-              attachFormat: state.uploadResult!.fileType,
-            ),
-          ),
-    );
+    final String? acceptReportUrl = _acceptanceReportsCubit.state
+        .firstWhere(
+          (s) => s.status == UploadStatus.success && s.uploadResult != null,
+        )
+        .uploadResult
+        ?.fileUrl;
 
     // 创建DoAcceptVO对象
     final doAcceptVO = DoAcceptVO(
       materialList: materialVOList,
       imageList: allAttachments,
+      sendAcceptUrl: sendAcceptUrl,
+      acceptReportUrl: acceptReportUrl,
       realWarehouse: realWarehouse,
       warehouseId: warehouseId,
       messageTo: selectedUserIds,
@@ -930,9 +860,8 @@ class _AcceptancePageState extends State<AcceptancePage> {
     final res = flow.normalize(request, raw);
     if (res.addedCodes.isEmpty) return;
     // Delegate code resolution to bloc
-    _lastScanOp = 'append';
     context.read<AcceptanceBloc>().add(
-      AppendMaterialsByCodes(codes: res.addedCodes),
+      AppendEditingMaterialsByCodes(codes: res.addedCodes),
     );
   }
 
@@ -959,9 +888,8 @@ class _AcceptancePageState extends State<AcceptancePage> {
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.removedCodes.isEmpty) return;
-    _lastScanOp = 'remove';
     context.read<AcceptanceBloc>().add(
-      RemoveMaterialsByCodes(codes: res.removedCodes),
+      RemoveEditingMaterialsByCodes(codes: res.removedCodes),
     );
   }
 

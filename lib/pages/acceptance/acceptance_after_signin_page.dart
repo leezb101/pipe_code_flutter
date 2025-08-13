@@ -19,8 +19,7 @@ import '../../models/common/common_user_vo.dart';
 import '../../models/records/record_type.dart';
 import '../../widgets/common_state_widgets.dart' as common;
 import '../../utils/toast_utils.dart';
-import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
-import 'package:pipe_code_flutter/bloc/material_handle/material_handle_state.dart';
+// MaterialHandleCubit no longer used here; bloc handles batch code resolution
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
@@ -42,33 +41,8 @@ class AcceptanceAfterSigninPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // return MultiBlocProvider(
-    //   providers: [
-    //     BlocProvider(
-    //       create: (context) => AcceptanceBloc(
-    //         context.read<AcceptanceRepository>(),
-    //         context.read<MaterialHandleRepository>(),
-    //       )..add(LoadAcceptanceDetail(acceptanceId: acceptanceId)),
-    //     ),
-    //     BlocProvider(create: (context) => MaterialHandleCubit()),
-    //   ],
-    // 新增使用BlocListener监听MaterialHandleCubit的结果，并触发业务bloc事件,
-    // child:
-    return BlocListener<MaterialHandleCubit, MaterialHandleState>(
-      listener: (context, materialHandleState) {
-        if (materialHandleState is MaterialHandleScanSuccess) {
-          // 扫描成功，物料信息交给AcceptanceBloc进行匹配
-          context.read<AcceptanceBloc>().add(
-            MatchScannedMaterial(
-              scannedMaterial: materialHandleState.materialInfo,
-            ),
-          );
-          // 给出一个即时反馈
-          context.showSuccessToast('扫到二维码信息，正在匹配...');
-        }
-      },
-      child: AcceptanceAfterSigninView(acceptanceId: acceptanceId),
-    );
+    // 页面直接负责导航与分发 Append/Remove 事件，仓库解析交给 AcceptanceBloc
+    return AcceptanceAfterSigninView(acceptanceId: acceptanceId);
   }
 }
 
@@ -100,7 +74,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('验收后入库')),
+      appBar: AppBar(title: _buildAppBarTitle()),
       body: BlocConsumer<AcceptanceBloc, AcceptanceState>(
         // 当状态是AcceptanceSignedIn时，不用重建UI，因为listener会处理pop，避免未知状态闪烁
         buildWhen: (previous, current) => current is! AcceptanceSignedIn,
@@ -177,6 +151,23 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     );
   }
 
+  Widget _buildAppBarTitle() {
+    return BlocBuilder<AcceptanceBloc, AcceptanceState>(
+      buildWhen: (previous, current) =>
+          current is AcceptanceDetailLoaded ||
+          current is AcceptanceLoading ||
+          current is AcceptanceError,
+      builder: (context, state) {
+        if (state is AcceptanceDetailLoaded) {
+          final matched = state.matchedMaterials.length;
+          final total = state.acceptanceInfo.materialList.length;
+          return Text('验收后入库 ($matched/$total)');
+        }
+        return const Text('验收后入库');
+      },
+    );
+  }
+
   Widget _buildContent(
     BuildContext context,
     AcceptanceInfoVO acceptanceInfo,
@@ -193,9 +184,10 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
             matchedMaterials,
           ),
           const SizedBox(height: 16),
-          _buildScanButton(context),
+          _buildScanButtons(context),
           const SizedBox(height: 16),
           BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+            bloc: _fileUploadCubit,
             builder: (context, states) {
               return ImageUploadWidget(
                 title: '入库照片',
@@ -301,22 +293,39 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     );
   }
 
-  Widget _buildScanButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () => _navigateToQrScan(context),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+  Widget _buildScanButtons(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () => _navigateToQrScanAppend(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              '扫码入库',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          ),
         ),
-        child: const Text(
-          '扫码入库',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () => _navigateToQrScanRemove(context),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              side: BorderSide(color: Colors.red.shade300),
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('扫码剔除'),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -426,13 +435,12 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     );
   }
 
-  void _navigateToQrScan(BuildContext context) {
+  void _navigateToQrScanAppend(BuildContext context) {
     final flow = RepositoryProvider.of<QrScanFlowService>(context);
-    final materialCubit = context.read<MaterialHandleCubit>();
     final request = QrScanFlowRequest(
       operation: QrScanOperation.append,
-      currentCodes: const [],
-      batch: false,
+      currentCodes: const [], // 页面不保留码级缓存，这里为空即可
+      batch: true, // 批量扫码
       context: const {'source': 'acceptanceAfterSignin'},
       title: '扫码入库',
     );
@@ -440,9 +448,32 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     context.push<List<dynamic>>('/qr-scan', extra: config).then((raw) {
       if (!mounted) return;
       final res = flow.normalize(request, raw);
-      for (final code in res.addedCodes) {
-        materialCubit.getMaterialInfoFromQr(code);
-      }
+      if (res.addedCodes.isEmpty) return;
+      // 交给业务bloc批量解析并匹配
+      context.read<AcceptanceBloc>().add(
+        AppendMaterialsByCodes(codes: res.addedCodes),
+      );
+    });
+  }
+
+  void _navigateToQrScanRemove(BuildContext context) {
+    final flow = RepositoryProvider.of<QrScanFlowService>(context);
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.remove,
+      currentCodes: const [], // 不基于现有码过滤，由业务层基于 materialId 处理
+      batch: true,
+      context: const {'source': 'acceptanceAfterSignin'},
+      title: '扫码剔除',
+    );
+    final config = flow.buildConfig(request);
+    context.push<List<dynamic>>('/qr-scan', extra: config).then((raw) {
+      if (!mounted) return;
+      final res = flow.normalize(request, raw);
+      if (res.removedCodes.isEmpty) return;
+      // 交给业务bloc批量解析并剔除
+      context.read<AcceptanceBloc>().add(
+        RemoveMaterialsByCodes(codes: res.removedCodes),
+      );
     });
   }
 

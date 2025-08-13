@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
+import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import '../../models/acceptance/do_accept_vo.dart';
 import '../../models/acceptance/do_accept_sign_in_vo.dart';
 import '../../models/acceptance/common_do_business_audit_vo.dart';
@@ -157,4 +158,37 @@ class RemoveMaterialsByCodes extends AcceptanceEvent {
 
   @override
   List<Object?> get props => [codes];
+}
+
+// ========== AcceptancePage editing flow (centralize list ops in bloc) ==========
+class InitializeEditingMaterials extends AcceptanceEvent {
+  final List<MaterialInfo> initial;
+  const InitializeEditingMaterials({required this.initial});
+
+  @override
+  List<Object?> get props => [initial];
+}
+
+class AppendEditingMaterialsByCodes extends AcceptanceEvent {
+  final List<String> codes;
+  const AppendEditingMaterialsByCodes({required this.codes});
+
+  @override
+  List<Object?> get props => [codes];
+}
+
+class RemoveEditingMaterialsByCodes extends AcceptanceEvent {
+  final List<String> codes;
+  const RemoveEditingMaterialsByCodes({required this.codes});
+
+  @override
+  List<Object?> get props => [codes];
+}
+
+// Clear transient feedback message from AcceptanceEditingState
+class ClearEditingMessage extends AcceptanceEvent {
+  const ClearEditingMessage();
+
+  @override
+  List<Object?> get props => [];
 }

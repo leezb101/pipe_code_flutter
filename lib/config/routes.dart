@@ -21,6 +21,7 @@ import 'package:pipe_code_flutter/pages/scrap/scrap_pages.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_audit_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_page.dart';
 import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
+import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
 import '../bloc/dispatch/dispatch_bloc.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/register_page.dart';
@@ -535,6 +536,17 @@ final GoRouter appRouter = GoRouter(
       path: '/pending-todo',
       name: 'pending-todo',
       builder: (context, state) => const PendingTodoListPage(),
+    ),
+    GoRoute(
+      path: '/pdf-preview',
+      name: 'pdf-preview',
+      builder: (context, state) {
+        final url = state.extra as String?;
+        if (url == null) {
+          return const Scaffold(body: Center(child: Text('参数错误')));
+        }
+        return PdfPreviewer(url: url);
+      },
     ),
   ],
 );

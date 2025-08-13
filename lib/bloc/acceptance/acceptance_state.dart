@@ -148,3 +148,32 @@ class AcceptanceMaterialsResolved extends AcceptanceState {
   @override
   List<Object?> get props => [materials, message];
 }
+
+// Editing flow state for AcceptancePage: keeps current list and dedup set
+class AcceptanceEditingState extends AcceptanceState {
+  final List<MaterialInfo> currentMaterials;
+  final Set<int> materialIds; // for quick dedup
+  final String? message; // feedback like appended/removed counts
+
+  const AcceptanceEditingState({
+    required this.currentMaterials,
+    required this.materialIds,
+    this.message,
+  });
+
+  AcceptanceEditingState copyWith({
+    List<MaterialInfo>? currentMaterials,
+    Set<int>? materialIds,
+    String? message,
+    bool clearMessage = false,
+  }) {
+    return AcceptanceEditingState(
+      currentMaterials: currentMaterials ?? this.currentMaterials,
+      materialIds: materialIds ?? this.materialIds,
+      message: clearMessage ? null : (message ?? this.message),
+    );
+  }
+
+  @override
+  List<Object?> get props => [currentMaterials, materialIds, message];
+}
