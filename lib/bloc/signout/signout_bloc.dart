@@ -215,10 +215,13 @@ class SignoutBloc extends Bloc<SignoutEvent, SignoutState> {
   ) async {
     final currentState = state;
     if (currentState is SignoutReady) {
+      // Emit auditing state so UI can show progress instead of falling back to unknown error
+      emit(const SignoutAuditing());
       final result = await _repository.auditSignout(event.request);
       if (result.isSuccess) {
         emit(SignoutAudited());
       } else {
+        // Recover to ready state with error so page stays visible and shows error via listener
         emit(currentState.copyWith(auditError: result.msg));
       }
     }

@@ -10,18 +10,39 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 class ImagePreviewWidget extends StatefulWidget {
+  /// Preview widget that supports either local [images] (File) or remote [imageUrls] (String URLs).
+  /// Exactly one of [images] or [imageUrls] must be provided.
   const ImagePreviewWidget({
     super.key,
-    required this.images,
+    this.images,
+    this.imageUrls,
     required this.initialIndex,
     this.onDelete,
     this.onImagesChanged,
-  });
+    this.onUrlsChanged,
+  }) : assert(
+         (images != null && imageUrls == null) ||
+             (images == null && imageUrls != null),
+         'Provide either images or imageUrls (one and only one).',
+       );
 
-  final List<File> images;
+  /// Local images to preview.
+  final List<File>? images;
+
+  /// Remote image URLs to preview.
+  final List<String>? imageUrls;
+
+  /// Initially selected index
   final int initialIndex;
+
+  /// Called when the delete action is confirmed for current index
   final Function(int index)? onDelete;
+
+  /// Called when local images list changes (after deletion)
   final Function(List<File>)? onImagesChanged;
+
+  /// Called when URL list changes (after deletion)
+  final Function(List<String>)? onUrlsChanged;
 
   @override
   State<ImagePreviewWidget> createState() => _ImagePreviewWidgetState();
@@ -31,12 +52,30 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
   late PageController _pageController;
   late int _currentIndex;
   List<File> _images = [];
+  List<String> _imageUrls = [];
+  late bool _useUrls;
+
+  int get _length => _useUrls ? _imageUrls.length : _images.length;
 
   @override
   void initState() {
     super.initState();
+    _useUrls = widget.imageUrls != null;
+    if (_useUrls) {
+      _imageUrls = List.from(widget.imageUrls!);
+    } else {
+      _images = List.from(widget.images!);
+    }
+
+    // Clamp initial index within bounds when possible
     _currentIndex = widget.initialIndex;
-    _images = List.from(widget.images);
+    if (_length > 0) {
+      if (_currentIndex < 0) _currentIndex = 0;
+      if (_currentIndex >= _length) _currentIndex = _length - 1;
+    } else {
+      _currentIndex = 0;
+    }
+
     _pageController = PageController(initialPage: _currentIndex);
   }
 
@@ -70,34 +109,42 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
   }
 
   void _performDelete() {
-    if (_images.isNotEmpty) {
-      setState(() {
+    if (_length == 0) return;
+
+    setState(() {
+      if (_useUrls) {
+        _imageUrls.removeAt(_currentIndex);
+      } else {
         _images.removeAt(_currentIndex);
-      });
+      }
+    });
 
-      widget.onDelete?.call(_currentIndex);
+    widget.onDelete?.call(_currentIndex);
+    if (_useUrls) {
+      widget.onUrlsChanged?.call(_imageUrls);
+    } else {
       widget.onImagesChanged?.call(_images);
-
-      if (_images.isEmpty) {
-        Navigator.pop(context);
-        return;
-      }
-
-      if (_currentIndex >= _images.length) {
-        _currentIndex = _images.length - 1;
-      }
-
-      _pageController.animateToPage(
-        _currentIndex,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
     }
+
+    if (_length == 0) {
+      Navigator.pop(context);
+      return;
+    }
+
+    if (_currentIndex >= _length) {
+      _currentIndex = _length - 1;
+    }
+
+    _pageController.animateToPage(
+      _currentIndex,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_images.isEmpty) {
+    if (_length == 0) {
       return const SizedBox.shrink();
     }
 
@@ -113,25 +160,39 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
                 _currentIndex = index;
               });
             },
-            itemCount: _images.length,
+            itemCount: _length,
             itemBuilder: (context, index) {
               return InteractiveViewer(
                 minScale: 0.5,
                 maxScale: 3.0,
                 child: Center(
-                  child: Image.file(
-                    _images[index],
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          size: 64,
-                          color: Colors.white54,
+                  child: _useUrls
+                      ? Image.network(
+                          _imageUrls[index],
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Icon(
+                                Icons.broken_image,
+                                size: 64,
+                                color: Colors.white54,
+                              ),
+                            );
+                          },
+                        )
+                      : Image.file(
+                          _images[index],
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Icon(
+                                Icons.broken_image,
+                                size: 64,
+                                color: Colors.white54,
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
               );
             },
@@ -143,7 +204,7 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
             left: 0,
             right: 0,
             child: Container(
-              height: MediaQuery.of(context).padding.top + 56,
+              height: MediaQuery.of(context).padding.top + kToolbarHeight,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -155,37 +216,62 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
                 ),
               ),
               child: SafeArea(
-                child: Row(
-                  children: [
-                    IconButton(
-                      iconSize: 36,
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close, color: Colors.white),
-                    ),
-                    Expanded(
-                      child: Text(
-                        '${_currentIndex + 1} / ${_images.length}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                child: SizedBox(
+                  height: kToolbarHeight,
+                  child: Row(
+                    children: [
+                      // Enlarged back button tap target
+                      SizedBox(
+                        width: 72,
+                        height: kToolbarHeight,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => Navigator.pop(context),
+                          child: const Center(
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    if (widget.onDelete != null)
-                      IconButton(
-                        onPressed: _deleteCurrentImage,
-                        icon: const Icon(Icons.delete, color: Colors.red),
+                      Expanded(
+                        child: Text(
+                          '${_currentIndex + 1} / ${_length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                  ],
+                      if (widget.onDelete != null)
+                        SizedBox(
+                          width: 72,
+                          height: kToolbarHeight,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _deleteCurrentImage,
+                            child: const Center(
+                              child: Icon(
+                                Icons.delete,
+                                color: Colors.red,
+                                size: 26,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
 
           // 底部缩略图导航
-          if (_images.length > 1)
+          if (_length > 1)
             Positioned(
               bottom: 0,
               left: 0,
@@ -208,7 +294,7 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: _images.length,
+                      itemCount: _length,
                       itemBuilder: (context, index) {
                         final isSelected = index == _currentIndex;
                         return GestureDetector(
@@ -234,19 +320,35 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(6),
-                              child: Image.file(
-                                _images[index],
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: Colors.grey[800],
-                                    child: const Icon(
-                                      Icons.broken_image,
-                                      color: Colors.white54,
+                              child: _useUrls
+                                  ? Image.network(
+                                      _imageUrls[index],
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Container(
+                                              color: Colors.grey[800],
+                                              child: const Icon(
+                                                Icons.broken_image,
+                                                color: Colors.white54,
+                                              ),
+                                            );
+                                          },
+                                    )
+                                  : Image.file(
+                                      _images[index],
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Container(
+                                              color: Colors.grey[800],
+                                              child: const Icon(
+                                                Icons.broken_image,
+                                                color: Colors.white54,
+                                              ),
+                                            );
+                                          },
                                     ),
-                                  );
-                                },
-                              ),
                             ),
                           ),
                         );
