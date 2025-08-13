@@ -160,7 +160,7 @@ class TodoNavigator {
         case TodoSubtype.outboundConfirm:
           GoRouter.of(
             ctx,
-          ).goNamed('dispatch-confirmation', queryParameters: {'id': idValue});
+          ).goNamed('signout-audit', queryParameters: {'id': idValue});
           return true;
         case TodoSubtype.outboundInstall:
           GoRouter.of(ctx).goNamed('install', queryParameters: {'id': idValue});
