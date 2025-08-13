@@ -102,6 +102,9 @@ class _SignoutPageState extends State<SignoutPage> {
           if (state.warehouseUsersError != null) {
             context.showErrorToast(state.warehouseUsersError!);
           }
+          if (state.submitError != null && state.submitError!.isNotEmpty) {
+            context.showErrorToast(state.submitError!);
+          }
         } else if (state is SignoutEditingState) {
           // 展示编辑态的反馈消息
           if (state.message != null && state.message!.isNotEmpty) {
@@ -120,6 +123,9 @@ class _SignoutPageState extends State<SignoutPage> {
           }
           if (state.warehouseUsersError != null) {
             context.showErrorToast(state.warehouseUsersError!);
+          }
+          if (state.submitError != null && state.submitError!.isNotEmpty) {
+            context.showErrorToast(state.submitError!);
           }
         } else if (state is SignoutDetailError) {
           context.showErrorToast(state.message);
@@ -686,45 +692,83 @@ class _SignoutPageState extends State<SignoutPage> {
         ],
       ),
       child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _handleSubmit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+        child: BlocBuilder<SignoutBloc, SignoutState>(
+          builder: (context, state) {
+            final isSubmitting =
+                (state is SignoutEditingState && state.isSubmitting) ||
+                (state is SignoutSubmitting);
+            return Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: isSubmitting ? null : _handleSubmit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
+                    child: isSubmitting
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                '提交中…',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Text(
+                            '提交',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
-                  elevation: 2,
                 ),
-                child: const Text(
-                  '提交',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _handleReturn,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.grey[600],
-                  side: BorderSide(color: Colors.grey[400]!),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _handleReturn,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.grey[600],
+                      side: BorderSide(color: Colors.grey[400]!),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      '返回',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
-                child: const Text(
-                  '返回',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
     );
