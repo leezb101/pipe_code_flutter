@@ -25,10 +25,13 @@ import 'bloc/user/user_bloc.dart';
 import 'bloc/user/user_event.dart';
 import 'bloc/project/project_bloc.dart';
 import 'bloc/project/project_event.dart';
+import 'bloc/records/records_bloc.dart';
+import 'bloc/records/records_event.dart';
 import 'cubits/list_cubit.dart';
 import 'repositories/interfaces/auth_repository.dart';
 import 'repositories/interfaces/user_repository.dart';
 import 'repositories/interfaces/list_repository.dart';
+import 'repositories/interfaces/records_repository.dart';
 import 'widgets/notification/floating_todo_banner.dart';
 import 'services/sse/sse_service.dart';
 
@@ -89,6 +92,10 @@ class MyApp extends StatelessWidget {
         BlocProvider<InventoryBloc>(
           create: (context) => getIt<InventoryBloc>(),
         ),
+        // 全局提供 RecordsBloc，供任意页面刷新记录列表使用
+        BlocProvider<RecordsBloc>(
+          create: (context) => RecordsBloc(getIt<RecordsRepository>()),
+        ),
       ],
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
@@ -98,10 +105,14 @@ class MyApp extends StatelessWidget {
             context.read<UserBloc>().add(const UserClearData());
             context.read<ProjectBloc>().add(const ProjectClearData());
             context.read<InventoryBloc>().add(InventoryReset());
+            // 退出登录时清理记录缓存，确保不同账号隔离
+            context.read<RecordsBloc>().add(const ClearRecordsCache());
           }
           if (state is AuthLoginSuccess) {
             // Establish SSE connection with fresh credentials after login
             getIt<SseService>().connect();
+            // 登录成功后也清理一次缓存，避免沿用上次残留
+            context.read<RecordsBloc>().add(const ClearRecordsCache());
           }
           if (state is AuthTokenRefreshed) {
             // Refresh SSE connection path on token refresh as well

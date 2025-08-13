@@ -210,7 +210,24 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
           const SizedBox(height: 16),
           _buildUserInfo(acceptanceInfo),
           const SizedBox(height: 32),
-          _buildActionButtons(context, acceptanceInfo, matchedMaterials),
+          // 同时监听验收详情状态与上传状态，确保按钮可用性及时更新
+          BlocBuilder<AcceptanceBloc, AcceptanceState>(
+            buildWhen: (prev, curr) => curr is AcceptanceDetailLoaded,
+            builder: (context, accState) {
+              final info = accState is AcceptanceDetailLoaded
+                  ? accState.acceptanceInfo
+                  : acceptanceInfo;
+              final matched = accState is AcceptanceDetailLoaded
+                  ? accState.matchedMaterials
+                  : matchedMaterials;
+              return BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+                bloc: _fileUploadCubit,
+                builder: (context, _) {
+                  return _buildActionButtons(context, info, matched);
+                },
+              );
+            },
+          ),
         ],
       ),
     );
@@ -330,19 +347,23 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
   }
 
   Widget _buildWarehouseInfo(AcceptanceInfoVO acceptanceInfo) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '仓库',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow('', acceptanceInfo.warehouseTypeDescription),
-          ],
+    // 左右顶格宽的card组件
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: 600),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '仓库',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              _buildInfoRow('', acceptanceInfo.warehouseTypeDescription),
+            ],
+          ),
         ),
       ),
     );
@@ -374,8 +395,8 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
   Widget _buildUserSection(String title, List<CommonUserVO> users) {
     if (users.isEmpty) return const SizedBox.shrink();
 
-    final user = users.first;
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           '$title:',
@@ -383,9 +404,28 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            '${user.name} - ${user.phone}',
-            style: const TextStyle(fontSize: 14),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              for (var user in users)
+                Row(
+                  children: [
+                    Text(
+                      '${user.name} - ${user.phone}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: user.realHandler == true
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
+                    const Spacer(),
+                    user.realHandler == true
+                        ? Icon(Icons.check_circle_outline, color: Colors.green)
+                        : const SizedBox.shrink(),
+                  ],
+                ),
+            ],
           ),
         ),
       ],
@@ -481,8 +521,14 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     AcceptanceInfoVO acceptanceInfo,
     Set<MaterialVO> matchedMaterials,
   ) {
+    // 严谨校验：按 materialId 一一匹配
+    final expectedIds = acceptanceInfo.materialList
+        .map((m) => m.materialId)
+        .toSet();
+    final matchedIds = matchedMaterials.map((m) => m.materialId).toSet();
     final allMaterialScanned =
-        matchedMaterials.length == acceptanceInfo.materialList.length;
+        expectedIds.length == matchedIds.length &&
+        matchedIds.containsAll(expectedIds);
     final uploadStates = _fileUploadCubit.state;
     final hasEnoughPhotos = uploadStates.length >= 2;
     final allPhotosUploaded = uploadStates.every(

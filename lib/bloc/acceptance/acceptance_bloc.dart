@@ -511,6 +511,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           final toAdd = currentState.acceptanceInfo.materialList
               .where((m) => scannedIds.contains(m.materialId))
               .toSet();
+
           final before = currentState.matchedMaterials.length;
           final newSet = {...currentState.matchedMaterials, ...toAdd};
           final added = newSet.length - before;

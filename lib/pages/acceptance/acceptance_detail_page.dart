@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
-import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_bloc.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_state.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
 
 class AcceptanceDetailPage extends StatefulWidget {
   final int acceptanceId;
@@ -78,6 +78,8 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
                   _buildWarehouseInfo(state.acceptanceInfo),
                   const SizedBox(height: 16),
                   _buildMaterialsList(state.acceptanceInfo),
+                  const SizedBox(height: 16),
+                  _buildAcceptancePhotos(state.acceptanceInfo),
                   const SizedBox(height: 16),
                   _buildAttachmentsList(state.acceptanceInfo),
                   const SizedBox(height: 16),
@@ -197,7 +199,29 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
   }
 
   Widget _buildAttachmentsList(AcceptanceInfoVO acceptanceInfo) {
-    if (acceptanceInfo.imageList.isEmpty) {
+    final items = <Widget>[];
+
+    if (acceptanceInfo.sendAcceptUrl != null &&
+        acceptanceInfo.sendAcceptUrl!.trim().isNotEmpty) {
+      items.add(
+        _buildSimpleAttachmentRow(
+          title: '报验单',
+          fileUrl: acceptanceInfo.sendAcceptUrl!,
+        ),
+      );
+    }
+
+    if (acceptanceInfo.acceptReportUrl != null &&
+        acceptanceInfo.acceptReportUrl!.trim().isNotEmpty) {
+      items.add(
+        _buildSimpleAttachmentRow(
+          title: '验收报告',
+          fileUrl: acceptanceInfo.acceptReportUrl!,
+        ),
+      );
+    }
+
+    if (items.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -212,16 +236,50 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            ...acceptanceInfo.imageList.map(
-              (attachment) => _buildAttachmentItem(attachment),
-            ),
+            ...items,
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAttachmentItem(AttachmentVO attachment) {
+  Widget _buildAcceptancePhotos(AcceptanceInfoVO acceptanceInfo) {
+    if (acceptanceInfo.imageList.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '验收照片',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: acceptanceInfo.imageList
+                    .map((attachment) => _buildImagePreview(attachment.url))
+                    .toList(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSimpleAttachmentRow({
+    required String title,
+    required String fileUrl,
+  }) {
+    final fileName = _extractFileName(fileUrl);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -232,25 +290,19 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
       ),
       child: Row(
         children: [
-          Icon(
-            attachment.attachFormat == 'png'
-                ? Icons.image
-                : Icons.insert_drive_file,
-            color: attachment.attachFormat == 'png'
-                ? Colors.green
-                : Colors.blue,
-          ),
+          const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  attachment.name ?? '',
+                  fileName,
                   style: const TextStyle(fontWeight: FontWeight.w500),
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  attachment.attachmentTypeDescription,
+                  title,
                   style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                 ),
               ],
@@ -258,11 +310,31 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
           ),
           IconButton(
             icon: const Icon(Icons.visibility),
-            onPressed: () => _previewAttachment(attachment),
+            onPressed: () => _openPdf(fileUrl),
           ),
         ],
       ),
     );
+  }
+
+  void _openPdf(String url) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => PdfPreviewer(url: url)));
+  }
+
+  String _extractFileName(String url) {
+    try {
+      final uri = Uri.parse(url);
+      final path = uri.path;
+      final last = path.split('/').where((s) => s.isNotEmpty).last;
+      return Uri.decodeComponent(last);
+    } catch (_) {
+      // Fallback: naive split when URL isn't strictly valid
+      final cleaned = url.split('?').first.split('#').first;
+      final parts = cleaned.split('/');
+      return parts.isNotEmpty ? parts.last : cleaned;
+    }
   }
 
   Widget _buildSignInInfo(AcceptanceInfoVO acceptanceInfo) {
@@ -474,83 +546,6 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  void _previewAttachment(AttachmentVO attachment) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    attachment.attachFormat == 'png'
-                        ? Icons.image
-                        : Icons.insert_drive_file,
-                    color: attachment.attachFormat == 'png'
-                        ? Colors.green
-                        : Colors.blue,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      attachment.name ?? '',
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              if (attachment.attachFormat == 'png' ||
-                  attachment.attachFormat == 'jpg' ||
-                  attachment.attachFormat == 'jpeg')
-                Image.network(
-                  attachment.url,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    height: 200,
-                    width: double.infinity,
-                    color: Colors.grey.shade100,
-                    child: const Icon(
-                      Icons.image_not_supported,
-                      color: Colors.grey,
-                      size: 48,
-                    ),
-                  ),
-                )
-              else
-                Container(
-                  height: 100,
-                  width: double.infinity,
-                  color: Colors.grey.shade100,
-                  child: const Icon(
-                    Icons.insert_drive_file,
-                    color: Colors.grey,
-                    size: 48,
-                  ),
-                ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('下载功能待实现')));
-                },
-                child: const Text('下载'),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
