@@ -254,16 +254,15 @@ final GoRouter appRouter = GoRouter(
           name: 'signout',
           builder: (context, state) {
             final data = state.extra as Map<String, dynamic>?;
-            if (data == null) {
-              return const Scaffold(body: Center(child: Text('参数错误')));
-            }
-            final materials = data['materialInfo'] as MaterialInfoForBusiness?;
-            if (materials == null) {
+            final codes = data != null ? data['codes'] as List<String>? : null;
+            final isBatch =
+                (data != null ? data['isBatch'] as bool? : null) ?? false;
+            if (codes == null || codes.isEmpty) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
               create: (context) => getIt<SignoutBloc>(),
-              child: SignoutPage(materials: materials),
+              child: SignoutPage(initialCodes: codes, initialIsBatch: isBatch),
             );
           },
         ),

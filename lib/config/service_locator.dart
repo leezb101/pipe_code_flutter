@@ -190,7 +190,10 @@ Future<void> setupServiceLocator({
     () => ReturnBloc(returnRepository: getIt<ReturnRepository>()),
   );
   getIt.registerFactory<SignoutBloc>(
-    () => SignoutBloc(getIt<SignoutRepository>()),
+    () => SignoutBloc(
+      getIt<SignoutRepository>(),
+      getIt<MaterialHandleRepository>(),
+    ),
   );
   getIt.registerFactory<SpareQrBloc>(
     () => SpareQrBloc(repository: getIt<SpareqrRepository>()),

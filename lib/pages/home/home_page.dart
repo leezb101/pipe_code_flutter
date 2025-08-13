@@ -1126,7 +1126,11 @@ class _HomePageState extends State<HomePage> {
           context,
           QrScanConfig(
             scanMode: QrScanMode.batch,
-            // title will be default; business page handles parsing
+            context: const {
+              'entry': 'standalone',
+              'route': '/signout',
+              'data': <String, dynamic>{},
+            },
           ),
         );
         break;
