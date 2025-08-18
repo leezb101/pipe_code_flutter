@@ -1137,6 +1137,17 @@ class _HomePageState extends State<HomePage> {
       case MenuActions.qrScanTransfer:
         // _showScanModeSelection(context, QrScanType.transfer);
         _navigateToScan(context, QrScanConfig(scanMode: QrScanMode.batch));
+        _navigateToScan(
+          context,
+          QrScanConfig(
+            scanMode: QrScanMode.batch,
+            context: const {
+              'entry': 'standalone',
+              'route': '/dispatch-application',
+              'data': <String, dynamic>{},
+            },
+          ),
+        );
         break;
 
       case MenuActions.qrScanReturnMaterial:

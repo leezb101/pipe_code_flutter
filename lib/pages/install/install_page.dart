@@ -150,17 +150,24 @@ class _InstallViewState extends State<InstallView> {
         },
         builder: (context, state) {
           if (state is InstallReady) {
-            // 在渲染后重新计算一次，确保物料列表变化能刷新按钮可用性
-            WidgetsBinding.instance.addPostFrameCallback(
-              (_) => _recomputeCanSubmit(),
-            );
+            // 确保物料列表变化后，提交按钮能及时刷新
+            WidgetsBinding.instance.addPostFrameCallback((_) => _recomputeCanSubmit());
             return _buildContent(context, state);
           }
           if (state is InstallLoading) {
             return const common.LoadingWidget(message: "加载中...");
           }
           if (state is InstallFailure) {
-            return common.ErrorWidget(message: state.error, onRetry: () {});
+            return common.ErrorWidget(
+              message: state.error,
+              onRetry: () {
+                // 重置提交中标志，并恢复到提交前的界面态
+                if (_isSubmitting) {
+                  setState(() => _isSubmitting = false);
+                }
+                context.read<InstallBloc>().add(const RestorePreviousReady());
+              },
+            );
           }
           return const Center(child: Text('未知状态'));
         },

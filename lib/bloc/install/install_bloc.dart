@@ -8,6 +8,7 @@ import 'install_state.dart';
 
 class InstallBloc extends Bloc<InstallEvent, InstallState> {
   final InstallRepository _installRepository;
+  InstallReady? _readyBeforeSubmit; // 最近一次提交前的就绪态
 
   InstallBloc({required InstallRepository installRepository})
     : _installRepository = installRepository,
@@ -15,7 +16,8 @@ class InstallBloc extends Bloc<InstallEvent, InstallState> {
     on<LoadInstallDetail>(_onLoadInstallDetail);
     on<DoInstall>(_onDoInstall);
     on<RefreshInstallDetail>(_onRefreshInstallDetail);
-    on<AppendScannedMaterial>(_onAppendScannedMaterial);
+  on<AppendScannedMaterial>(_onAppendScannedMaterial);
+  on<RestorePreviousReady>(_onRestorePreviousReady);
   }
 
   Future<void> _onLoadInstallDetail(
@@ -36,10 +38,20 @@ class InstallBloc extends Bloc<InstallEvent, InstallState> {
   }
 
   Future<void> _onDoInstall(DoInstall event, Emitter<InstallState> emit) async {
+    // 在进入提交态之前，保存当前就绪态，供失败后恢复
+    final current = state;
+    if (current is InstallReady) {
+      _readyBeforeSubmit = current;
+    }
     emit(const InstallSubmitting());
     try {
-      await _installRepository.doInstall(event.request);
-      emit(const InstallSuccess());
+      final result = await _installRepository.doInstall(event.request);
+      if (result.isSuccess) {
+        emit(const InstallSuccess());
+      } else {
+        emit(InstallFailure(result.msg));
+        return;
+      }
     } catch (e) {
       emit(InstallFailure('安装失败,请稍后重试'));
     }
@@ -112,5 +124,13 @@ class InstallBloc extends Bloc<InstallEvent, InstallState> {
         emit(newReadyState);
       }
     }
+  }
+
+  void _onRestorePreviousReady(
+    RestorePreviousReady event,
+    Emitter<InstallState> emit,
+  ) {
+    // 优先恢复提交前的就绪态，否则退回到空的就绪态
+    emit(_readyBeforeSubmit ?? const InstallReady());
   }
 }
