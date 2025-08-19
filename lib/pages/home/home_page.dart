@@ -1057,10 +1057,10 @@ class _HomePageState extends State<HomePage> {
     if (!context.mounted) return;
 
     // --- 新增截管菜单处理逻辑 ---
-    if (menuItem.id == 'cut_pipe') {
-      context.pushNamed('cut');
-      return;
-    }
+    // if (menuItem.id == 'cut_pipe') {
+    //   context.pushNamed('cut');
+    //   return;
+    // }
     // --- 结束新增逻辑 ---
 
     if (menuItem.isPageMenu && menuItem.route != null) {
@@ -1116,11 +1116,7 @@ class _HomePageState extends State<HomePage> {
       context.showErrorToast('无效的操作: $action');
       return;
     }
-
     switch (action) {
-      // case MenuActions.qrScanInbound:
-      //   _showScanModeSelection(context, QrScanType.inbound);
-      //   break;
       case MenuActions.qrScanSignout:
         _navigateToScan(
           context,
@@ -1135,7 +1131,6 @@ class _HomePageState extends State<HomePage> {
         );
         break;
       case MenuActions.qrScanTransfer:
-        // _showScanModeSelection(context, QrScanType.transfer);
         _navigateToScan(
           context,
           QrScanConfig(
@@ -1148,18 +1143,12 @@ class _HomePageState extends State<HomePage> {
           ),
         );
         break;
-
       case MenuActions.qrScanReturnMaterial:
-        _navigateToScan(context, QrScanConfig(scanMode: QrScanMode.batch));
-        break;
       case MenuActions.qrScanInventory:
         _showScanModeSelection(context, 'inventory');
         break;
       case MenuActions.qrScanAcceptance:
         _showScanModeSelection(context, 'acceptance');
-        break;
-      case MenuActions.qrScanPipeCopy:
-        _navigateToScan(context, QrScanConfig());
         break;
       case MenuActions.qrScanScrap:
         _navigateToScan(
@@ -1169,10 +1158,6 @@ class _HomePageState extends State<HomePage> {
         break;
       case MenuActions.qrIdentify:
         _navigateToScan(context, QrScanConfig());
-        break;
-      case MenuActions.delegateHarvest:
-      case MenuActions.delegateAccept:
-        context.showInfoToast('${MenuActions.getDisplayName(action)}: 功能开发中');
         break;
       default:
         context.showInfoToast('${MenuActions.getDisplayName(action)}: 功能开发中');

@@ -438,8 +438,8 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/cut',
-          name: 'cut',
+          path: '/cut-pipe',
+          name: 'cut-pipe',
           builder: (context, state) => const CutPage(),
         ),
         GoRoute(
