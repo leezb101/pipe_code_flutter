@@ -1055,14 +1055,6 @@ class _HomePageState extends State<HomePage> {
     SessionProjectEstablished state,
   ) async {
     if (!context.mounted) return;
-
-    // --- 新增截管菜单处理逻辑 ---
-    // if (menuItem.id == 'cut_pipe') {
-    //   context.pushNamed('cut');
-    //   return;
-    // }
-    // --- 结束新增逻辑 ---
-
     if (menuItem.isPageMenu && menuItem.route != null) {
       final result = await context.push(menuItem.route!);
       if (result == true && context.mounted) {
