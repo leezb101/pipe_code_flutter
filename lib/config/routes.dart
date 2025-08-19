@@ -84,26 +84,35 @@ final GoRouter appRouter = GoRouter(
           path: 'dispatch-application',
           name: 'dispatch-application',
           builder: (context, state) {
-            final config = state.extra as Map<String, dynamic>?;
-            if (config == null || config.isEmpty) {
+            final data = state.extra as Map<String, dynamic>?;
+            final codes = data?['codes'] as List<String>?;
+            if (codes == null || codes.isEmpty) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            final materialInfo =
-                config['materialInfo'] as MaterialInfoForBusiness?;
-            if (materialInfo == null) {
-              return const Scaffold(body: Center(child: Text('错误: 未提供物料信息')));
-            }
-            return MultiBlocProvider(
-              providers: [
-                BlocProvider<DispatchBloc>(
-                  create: (context) => getIt<DispatchBloc>(),
-                ),
-                BlocProvider<MaterialHandleCubit>(
-                  create: (context) => MaterialHandleCubit(),
-                ),
-              ],
-              child: DispatchApplicationPage(materials: materialInfo),
+            return BlocProvider(
+              create: (context) => getIt<DispatchBloc>(),
+              child: DispatchApplicationPage(initialCodes: codes),
             );
+            // final config = state.extra as Map<String, dynamic>?;
+            // if (config == null || config.isEmpty) {
+            //   return const Scaffold(body: Center(child: Text('参数错误')));
+            // }
+            // final materialInfo =
+            //     config['materialInfo'] as MaterialInfoForBusiness?;
+            // if (materialInfo == null) {
+            //   return const Scaffold(body: Center(child: Text('错误: 未提供物料信息')));
+            // }
+            // return MultiBlocProvider(
+            //   providers: [
+            //     BlocProvider<DispatchBloc>(
+            //       create: (context) => getIt<DispatchBloc>(),
+            //     ),
+            //     BlocProvider<MaterialHandleCubit>(
+            //       create: (context) => MaterialHandleCubit(),
+            //     ),
+            //   ],
+            //   child: DispatchApplicationPage(materials: materialInfo),
+            // );
           },
         ),
         GoRoute(

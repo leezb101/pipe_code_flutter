@@ -26,20 +26,22 @@ import '../../bloc/user/user_state.dart';
 import '../../models/material/material_info_for_business.dart';
 
 class DispatchApplicationPage extends StatelessWidget {
-  final MaterialInfoForBusiness materials;
+  // final MaterialInfoForBusiness materials;
+  final List<String> initialCodes;
 
-  const DispatchApplicationPage({super.key, required this.materials});
+  const DispatchApplicationPage({super.key, required this.initialCodes});
 
   @override
   Widget build(BuildContext context) {
     // BlocProvider is now handled by the router, so we just return the view.
-    return DispatchApplicationView(materials: materials);
+    return DispatchApplicationView(initialCodes: initialCodes);
   }
 }
 
 class DispatchApplicationView extends StatefulWidget {
-  final MaterialInfoForBusiness materials;
-  const DispatchApplicationView({super.key, required this.materials});
+  final List<String> initialCodes;
+
+  const DispatchApplicationView({super.key, required this.initialCodes});
 
   @override
   State<DispatchApplicationView> createState() =>
@@ -54,17 +56,9 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
 
   @override
   void initState() {
+    final codes = widget.initialCodes;
     context.read<DispatchBloc>().add(
-      LoadApplicationData(
-        widget.materials.normals
-            .map(
-              (e) => MaterialVO(
-                materialId: e.baseInfo.materialId,
-                materialName: e.baseInfo.prodNm ?? '',
-              ),
-            )
-            .toList(),
-      ),
+      InitializeMaterialsFromCodes(codes: codes),
     );
     super.initState();
   }
@@ -121,7 +115,7 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildMaterialList(widget.materials),
+            _buildMaterialList(state.materialList ?? []),
             const SizedBox(height: 24),
             _buildForm(context, state),
             const SizedBox(height: 24),
@@ -132,7 +126,7 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
     );
   }
 
-  Widget _buildMaterialList(MaterialInfoForBusiness materials) {
+  Widget _buildMaterialList(List<MaterialVO> materials) {
     return Card(
       elevation: 2,
       margin: EdgeInsets.zero,
@@ -148,12 +142,12 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: materials.normals.length,
+            itemCount: materials.length,
             itemBuilder: (context, index) {
-              final material = materials.normals[index];
+              final material = materials[index];
               return ListTile(
-                title: Text(material.baseInfo.prodNm ?? '未知材料'),
-                trailing: const Text('1个'),
+                title: Text(material.materialName),
+                trailing: Text('${material.num}个'),
               );
             },
             separatorBuilder: (context, index) => const Divider(height: 1),
@@ -367,15 +361,7 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
       fromProjectId: state.sourceProject!.id,
       toProjectId: _selectedTargetProject!.id,
       toWarehouseId: _selectedTargetWarehouse!.id,
-      materialList: widget.materials.normals
-          .map(
-            (m) => MaterialVO(
-              materialId: m.baseInfo.materialId,
-              materialName: m.baseInfo.prodNm ?? '未知材料',
-              num: 1,
-            ),
-          )
-          .toList(),
+      materialList: state.materialList ?? [],
       messageTo: _selectedManagerIds,
       imageList: [], // Assuming no images are attached for now
     );

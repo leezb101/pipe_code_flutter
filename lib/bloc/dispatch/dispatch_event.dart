@@ -17,6 +17,15 @@ class LoadDispatchDetail extends DispatchEvent {
   List<Object> get props => [dispatchId];
 }
 
+class InitializeMaterialsFromCodes extends DispatchEvent {
+  final List<String> codes;
+
+  const InitializeMaterialsFromCodes({required this.codes});
+
+  @override
+  List<Object> get props => [codes];
+}
+
 /// 加载调拨申请页所需的前置数据
 class LoadApplicationData extends DispatchEvent {
   final List<MaterialVO> materials;

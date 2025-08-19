@@ -24,6 +24,7 @@ import 'package:pipe_code_flutter/models/dispatch/dispatch_detail_vo.dart';
 import 'package:pipe_code_flutter/models/dispatch/do_dispatch_apply_vo.dart';
 import 'package:pipe_code_flutter/models/dispatch/do_dispatch_sign_in_vo.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 
 import '../../models/material/material_info_for_business.dart';
@@ -34,15 +35,20 @@ part 'dispatch_state.dart';
 class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
   final DispatchRepository _dispatchRepository;
   final CommonQueryApiService _commonQueryApiService;
+  final MaterialHandleRepository _materialHandleRepository;
 
   DispatchBloc({
     DispatchRepository? dispatchRepository,
     CommonQueryApiService? commonQueryApiService,
+    MaterialHandleRepository? materialHandleRepository,
   }) : _dispatchRepository = dispatchRepository ?? getIt<DispatchRepository>(),
        _commonQueryApiService =
            commonQueryApiService ?? getIt<CommonQueryApiService>(),
+       _materialHandleRepository =
+           materialHandleRepository ?? getIt<MaterialHandleRepository>(),
        super(const DispatchState()) {
     on<LoadDispatchDetail>(_onLoadDispatchDetail);
+    on<InitializeMaterialsFromCodes>(_onInitializeMaterialsFromCodes);
     on<LoadApplicationData>(_onLoadApplicationData);
     on<SubmitDispatchApplication>(_onSubmitDispatchApplication);
     on<AuditDispatch>(_onAuditDispatch);
@@ -89,6 +95,47 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
         status: DispatchStatus.success,
       ),
     );
+  }
+
+  Future<void> _onInitializeMaterialsFromCodes(
+    InitializeMaterialsFromCodes event,
+    Emitter<DispatchState> emit,
+  ) async {
+    try {
+      if (event.codes.isEmpty) return;
+      final rsp = await _materialHandleRepository.scanBatchToQueryAll(
+        event.codes,
+      );
+      if (rsp.isSuccess && rsp.data != null) {
+        final MaterialInfoForBusiness bundle = rsp.data!;
+        final ids = bundle.normals.map((m) => m.baseInfo.materialId).toSet();
+        final materialVos = bundle.normals
+            .map(
+              (m) => MaterialVO(
+                materialId: m.baseInfo.materialId,
+                materialName: m.baseInfo.prodNm ?? '',
+                num: 1,
+              ),
+            )
+            .toList();
+
+        emit(
+          state.copyWith(
+            status: DispatchStatus.success,
+            materialIds: ids,
+            materialList: materialVos,
+          ),
+        );
+        add(LoadApplicationData(materialVos));
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: DispatchStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
   }
 
   // 处理加载申请页数据事件

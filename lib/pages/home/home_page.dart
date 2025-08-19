@@ -1136,7 +1136,6 @@ class _HomePageState extends State<HomePage> {
         break;
       case MenuActions.qrScanTransfer:
         // _showScanModeSelection(context, QrScanType.transfer);
-        _navigateToScan(context, QrScanConfig(scanMode: QrScanMode.batch));
         _navigateToScan(
           context,
           QrScanConfig(
