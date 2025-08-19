@@ -111,3 +111,21 @@ class UpdateApplicationMaterialWithRemoveCodes extends DispatchEvent {
   @override
   List<Object> get props => [removingCodes];
 }
+
+/// (入库页) 通过批量二维码“继续扫码”追加匹配的物料
+class AppendSigninMatchedByCodes extends DispatchEvent {
+  final List<String> codes;
+  const AppendSigninMatchedByCodes(this.codes);
+
+  @override
+  List<Object> get props => [codes];
+}
+
+/// (入库页) 通过批量二维码“扫码剔除”移除已匹配的物料
+class RemoveSigninMatchedByCodes extends DispatchEvent {
+  final List<String> codes;
+  const RemoveSigninMatchedByCodes(this.codes);
+
+  @override
+  List<Object> get props => [codes];
+}

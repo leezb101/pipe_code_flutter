@@ -62,6 +62,8 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     on<UpdateApplicationMaterialWithRemoveCodes>(
       _onUpdateApplicationMaterialListWithRemovingCodes,
     );
+    on<AppendSigninMatchedByCodes>(_onAppendSigninMatchedByCodes);
+    on<RemoveSigninMatchedByCodes>(_onRemoveSigninMatchedByCodes);
   }
 
   // 处理加载调拨详情事件
@@ -85,6 +87,132 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
         state.copyWith(
           status: DispatchStatus.failure,
           errorMessage: result.msg,
+        ),
+      );
+    }
+  }
+
+  // 扫码辅助：批量codes -> materialId集合
+  Future<Set<int>> _scanCodesToMaterialIds(List<String> codes) async {
+    final rsp = await _materialHandleRepository.scanBatchToQueryAll(codes);
+    if (rsp.isSuccess && rsp.data != null) {
+      final MaterialInfoForBusiness bundle = rsp.data!;
+      return bundle.normals.map((m) => m.baseInfo.materialId).toSet();
+    }
+    throw Exception(rsp.msg);
+  }
+
+  // 映射: ids -> 当前调拨单中的物料列表
+  List<MaterialVO> _mapIdsToDispatchMaterials(Set<int> ids) {
+    if (state.dispatchDetail == null) return const [];
+    final byId = {
+      for (final m in state.dispatchDetail!.materialList) m.materialId: m,
+    };
+    return ids.map((id) => byId[id]).whereType<MaterialVO>().toList();
+  }
+
+  // 入库页：继续扫码（追加匹配）
+  Future<void> _onAppendSigninMatchedByCodes(
+    AppendSigninMatchedByCodes event,
+    Emitter<DispatchState> emit,
+  ) async {
+    if (event.codes.isEmpty) return;
+    if (state.dispatchDetail == null) {
+      emit(
+        state.copyWith(status: DispatchStatus.failure, errorMessage: '调拨详情未加载'),
+      );
+      return;
+    }
+    try {
+      final ids = await _scanCodesToMaterialIds(event.codes);
+      // 非本单物料
+      final dispatchIds = state.dispatchDetail!.materialList
+          .map((m) => m.materialId)
+          .toSet();
+      final invalid = ids.difference(dispatchIds);
+      // 能映射到本单的物料
+      final validIds = ids.intersection(dispatchIds);
+      final toAdd = _mapIdsToDispatchMaterials(validIds);
+
+      // 过滤重复（已匹配过）
+      final current = Set<MaterialVO>.from(state.matchedMaterials);
+      final beforeLen = current.length;
+      for (final m in toAdd) {
+        if (!current.contains(m)) {
+          current.add(m);
+        }
+      }
+      final addedCount = current.length - beforeLen;
+
+      String message = '';
+      if (addedCount > 0) message += '已新增 $addedCount 个物料';
+      if (invalid.isNotEmpty) {
+        if (message.isNotEmpty) message += '，';
+        message += '非本单物料ID: ${invalid.join(', ')}';
+      }
+
+      emit(
+        state.copyWith(
+          status: DispatchStatus.success,
+          matchedMaterials: current,
+          matchMessage: message.isNotEmpty ? message : '没有新增可匹配的物料',
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: DispatchStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  // 入库页：扫码剔除（移除已匹配）
+  Future<void> _onRemoveSigninMatchedByCodes(
+    RemoveSigninMatchedByCodes event,
+    Emitter<DispatchState> emit,
+  ) async {
+    if (event.codes.isEmpty) return;
+    if (state.dispatchDetail == null) {
+      emit(
+        state.copyWith(status: DispatchStatus.failure, errorMessage: '调拨详情未加载'),
+      );
+      return;
+    }
+    try {
+      final ids = await _scanCodesToMaterialIds(event.codes);
+      final mapped = _mapIdsToDispatchMaterials(ids);
+      final current = Set<MaterialVO>.from(state.matchedMaterials);
+
+      // 统计未匹配过但尝试移除的id
+      final matchedIds = current.map((m) => m.materialId).toSet();
+      final tryingIds = mapped.map((m) => m.materialId).toSet();
+      final notScanned = tryingIds.difference(matchedIds);
+
+      // 真正要移除的
+      final removeIds = tryingIds.intersection(matchedIds);
+      current.removeWhere((m) => removeIds.contains(m.materialId));
+
+      String message = '';
+      if (removeIds.isNotEmpty) message += '已移除 ${removeIds.length} 个物料';
+      if (notScanned.isNotEmpty) {
+        if (message.isNotEmpty) message += '，';
+        message += '未扫描过的物料ID: ${notScanned.join(', ')}';
+      }
+
+      emit(
+        state.copyWith(
+          status: DispatchStatus.success,
+          matchedMaterials: current,
+          matchMessage: message.isNotEmpty ? message : '没有可移除的物料',
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: DispatchStatus.failure,
+          errorMessage: e.toString(),
         ),
       );
     }
