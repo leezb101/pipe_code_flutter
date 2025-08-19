@@ -94,10 +94,20 @@ class UpdateWarehouseUsersList extends DispatchEvent {
   List<Object> get props => [warehouseId];
 }
 
-/// (申请页) 直接更新物料列表（追加扫码）
-class UpdateApplicationMaterialList extends DispatchEvent {
-  final List<MaterialVO> materials;
-  const UpdateApplicationMaterialList(this.materials);
+/// (申请页) 更新物料列表（追加扫码）
+class UpdateApplicationMaterialWithAppendCodes extends DispatchEvent {
+  final List<String> appendingCodes;
+  const UpdateApplicationMaterialWithAppendCodes(this.appendingCodes);
+
   @override
-  List<Object> get props => [materials];
+  List<Object> get props => [appendingCodes];
+}
+
+/// (申请页) 更新物料列表（移除扫码）
+class UpdateApplicationMaterialWithRemoveCodes extends DispatchEvent {
+  final List<String> removingCodes;
+  const UpdateApplicationMaterialWithRemoveCodes(this.removingCodes);
+
+  @override
+  List<Object> get props => [removingCodes];
 }

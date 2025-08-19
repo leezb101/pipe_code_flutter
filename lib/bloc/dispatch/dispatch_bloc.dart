@@ -56,7 +56,12 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     on<UpdateScannedMaterials>(_onUpdateScannedMaterials);
     on<UpdateWarehouseUsersList>(_onUpdateWarehouseUsersList);
     on<MatchScannedMaterial>(_onMatchScannedMaterial);
-    on<UpdateApplicationMaterialList>(_onUpdateApplicationMaterialList);
+    on<UpdateApplicationMaterialWithAppendCodes>(
+      _onUpdateApplicationMaterialListWithAppendingCodes,
+    );
+    on<UpdateApplicationMaterialWithRemoveCodes>(
+      _onUpdateApplicationMaterialListWithRemovingCodes,
+    );
   }
 
   // 处理加载调拨详情事件
@@ -85,16 +90,127 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     }
   }
 
-  void _onUpdateApplicationMaterialList(
-    UpdateApplicationMaterialList event,
+  void _onUpdateApplicationMaterialListWithAppendingCodes(
+    UpdateApplicationMaterialWithAppendCodes event,
     Emitter<DispatchState> emit,
-  ) {
-    emit(
-      state.copyWith(
-        materialList: event.materials,
-        status: DispatchStatus.success,
-      ),
-    );
+  ) async {
+    final codes = event.appendingCodes;
+    if (codes.isEmpty) return;
+    try {
+      final rsp = await _materialHandleRepository.scanBatchToQueryAll(codes);
+      if (rsp.isSuccess && rsp.data != null) {
+        final MaterialInfoForBusiness bundle = rsp.data!;
+        final appendingMaterials = bundle.normals
+            .map(
+              (m) => MaterialVO(
+                materialId: m.baseInfo.materialId,
+                materialName: m.baseInfo.prodNm ?? '',
+                num: 1,
+              ),
+            )
+            .toList();
+        final ids = appendingMaterials.map((m) => m.materialId).toSet();
+        // 先与state中的materials或者materialIds进行比对，如果发现新的物料与原state中的物料materialId一致，则不添加并toast提示有重复xx个，并从新物料中剔除，再把去重后的_materialVos添加到state
+        final existingIds = state.materialIds ?? <int>{};
+        final duplicateIds = ids.intersection(existingIds);
+        if (duplicateIds.isNotEmpty) {
+          appendingMaterials.removeWhere(
+            (m) => duplicateIds.contains(m.materialId),
+          );
+        }
+        emit(
+          state.copyWith(
+            status: DispatchStatus.failure,
+            errorMessage: duplicateIds.isNotEmpty
+                ? '已存在重复物料ID: ${duplicateIds.join(", ")}'
+                : null,
+          ),
+        );
+        final materialVos = [...?state.materialList, ...appendingMaterials];
+        final totalIds = materialVos.map((m) => m.materialId).toSet();
+
+        // 延迟2s后发送
+        await Future.delayed(const Duration(seconds: 2));
+        emit(
+          state.copyWith(
+            status: DispatchStatus.success,
+            materialIds: totalIds,
+            materialList: materialVos,
+            matchMessage: totalIds.isNotEmpty
+                ? '已添加 ${appendingMaterials.length} 个物料'
+                : null,
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(status: DispatchStatus.failure, errorMessage: rsp.msg),
+        );
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: DispatchStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onUpdateApplicationMaterialListWithRemovingCodes(
+    UpdateApplicationMaterialWithRemoveCodes event,
+    Emitter<DispatchState> emit,
+  ) async {
+    final codes = event.removingCodes;
+    if (codes.isEmpty) return;
+    try {
+      final rsp = await _materialHandleRepository.scanBatchToQueryAll(codes);
+      if (rsp.isSuccess && rsp.data != null) {
+        final MaterialInfoForBusiness bundle = rsp.data!;
+        final removingMaterials = bundle.normals
+            .map(
+              (m) => MaterialVO(
+                materialId: m.baseInfo.materialId,
+                materialName: m.baseInfo.prodNm ?? '',
+                num: 1,
+              ),
+            )
+            .toList();
+        final ids = removingMaterials.map((m) => m.materialId).toSet();
+        // 先与state中的materialIds或物料列表进行比对，如果发现新扫码的物料中存在原state中没有的id，则认为是错误扫码，不作处理，并弹出toast提示，然后将其他新扫码并匹配到原state中的物料从原state中进行移除，并弹出移除了xx个物料的toast
+        final existingIds = state.materialIds ?? <int>{};
+        final invalidIds = ids.difference(existingIds);
+        if (invalidIds.isNotEmpty) {
+          emit(
+            state.copyWith(
+              status: DispatchStatus.failure,
+              errorMessage: '扫码的物料中存在未登记的ID: ${invalidIds.join(", ")},请检查后重新扫码',
+            ),
+          );
+          return;
+        }
+        final materialVos = [...?state.materialList];
+        materialVos.removeWhere((m) => ids.contains(m.materialId));
+        emit(
+          state.copyWith(
+            status: DispatchStatus.success,
+            materialIds: materialVos.map((m) => m.materialId).toSet(),
+            materialList: materialVos,
+            matchMessage: '已移除 ${ids.length} 个物料',
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(status: DispatchStatus.failure, errorMessage: rsp.msg),
+        );
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: DispatchStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
   }
 
   Future<void> _onInitializeMaterialsFromCodes(

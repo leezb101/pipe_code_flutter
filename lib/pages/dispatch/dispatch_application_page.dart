@@ -23,7 +23,7 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
 // QrScanType removed
 
 import '../../bloc/user/user_state.dart';
-import '../../models/material/material_info_for_business.dart';
+import 'package:pipe_code_flutter/utils/toast_utils.dart';
 
 class DispatchApplicationPage extends StatelessWidget {
   // final MaterialInfoForBusiness materials;
@@ -79,20 +79,17 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
       ),
       body: BlocConsumer<DispatchBloc, DispatchState>(
         listener: (context, state) {
+          if (state.status == DispatchStatus.success &&
+              state.matchMessage != null) {
+            ToastUtils.showSuccess(context, state.matchMessage!);
+            // 清空提示信息
+          }
           if (state.status == DispatchStatus.failure) {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                SnackBar(content: Text(state.errorMessage ?? '操作失败')),
-              );
+            ToastUtils.showError(context, state.errorMessage ?? '操作失败');
           } else if (state.status == DispatchStatus.applySuccess) {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(const SnackBar(content: Text('调拨申请提交成功！')));
+            ToastUtils.showSuccess(context, '调拨申请提交成功！');
             // Pop twice to go back to the page before qr_scan_page
-            Navigator.of(context)
-              ..pop()
-              ..pop();
+            Navigator.of(context).pop();
           }
         },
         builder: (context, state) {
@@ -116,6 +113,8 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildMaterialList(state.materialList ?? []),
+            const SizedBox(height: 24),
+            _buildScanButtons(),
             const SizedBox(height: 24),
             _buildForm(context, state),
             const SizedBox(height: 24),
@@ -151,6 +150,37 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
               );
             },
             separatorBuilder: (context, index) => const Divider(height: 1),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScanButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.qr_code_scanner),
+              onPressed: () => _scanAppendMaterials(context),
+              label: const Text('继续扫码'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ElevatedButton.icon(
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all<Color>(
+                  Colors.red[400]!,
+                ),
+              ),
+              icon: const Icon(Icons.delete),
+              onPressed: () => _scanRemoveMaterials(context),
+              label: const Text('扫码剔除'),
+            ),
           ),
         ],
       ),
@@ -297,19 +327,6 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
   Widget _buildActionButtons(BuildContext context, DispatchState state) {
     return Column(
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.qr_code_scanner),
-            onPressed: () => _scanMoreMaterials(context),
-            label: const Text('扫码调拨'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              textStyle: const TextStyle(fontSize: 18),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
@@ -369,42 +386,49 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
     context.read<DispatchBloc>().add(SubmitDispatchApplication(request));
   }
 
-  Future<void> _scanMoreMaterials(BuildContext context) async {
-    final flow = RepositoryProvider.of<QrScanFlowService>(
-      context,
-      listen: false,
-    );
-    final currentList = context.read<DispatchBloc>().state.materialList ?? [];
-    final currentCodes = currentList.map((m) => m.materialName).toList();
+  Future<void> _scanAppendMaterials(BuildContext context) async {
+    final flow = RepositoryProvider.of<QrScanFlowService>(context);
     final request = QrScanFlowRequest(
       operation: QrScanOperation.append,
-      currentCodes: currentCodes,
+      currentCodes: const <String>[],
       batch: true,
-      title: '追加调拨物料',
-      context: const {'source': 'dispatchApplication'},
-      skipValidation: true,
+      context: const {
+        'source': 'dispatchApplication_append',
+        'entry': 'embedded',
+        'operation': 'append',
+      },
+      title: '继续扫码',
     );
     final config = flow.buildConfig(request);
     final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
-    final res = flow.normalize(request, raw);
     if (!mounted) return;
-    if (res.addedCodes.isEmpty) {
-      if (res.duplicates.isNotEmpty) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('全部为重复物料, 未追加')));
-      }
-      return;
-    }
-    // 暂无物料详情接口支持，这里仅以二维码字符串构造占位 MaterialVO
-    final newMaterials = res.addedCodes.map(
-      (c) => MaterialVO(materialId: 0, materialName: c),
+    final res = flow.normalize(request, raw);
+    if (res.addedCodes.isEmpty || !context.mounted) return;
+    context.read<DispatchBloc>().add(
+      UpdateApplicationMaterialWithAppendCodes(res.addedCodes),
     );
-    final bloc = context.read<DispatchBloc>();
-    final updated = [...(bloc.state.materialList ?? []), ...newMaterials];
-    bloc.add(UpdateApplicationMaterialList(updated as List<MaterialVO>));
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('已追加 ${res.addedCodes.length} 个物料')));
+  }
+
+  Future<void> _scanRemoveMaterials(BuildContext context) async {
+    final flow = RepositoryProvider.of<QrScanFlowService>(context);
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.remove,
+      currentCodes: const <String>[],
+      batch: true,
+      context: const {
+        'source': 'dispatchApplication_remove',
+        'entry': 'embedded',
+        'operation': 'remove',
+      },
+      title: '继续扫码',
+    );
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    if (!mounted) return;
+    final res = flow.normalize(request, raw);
+    if (res.removedCodes.isEmpty || !context.mounted) return;
+    context.read<DispatchBloc>().add(
+      UpdateApplicationMaterialWithRemoveCodes(res.removedCodes),
+    );
   }
 }
