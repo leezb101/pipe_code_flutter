@@ -10,8 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../constants/material_field_maps.dart';
 import '../../models/material/scan_identification_response.dart';
-import '../../models/material/material_info_base.dart';
 import '../../utils/toast_utils.dart';
 import '../../bloc/material_detail/material_detail_cubit.dart';
 import '../../bloc/material_detail/material_detail_state.dart';
@@ -110,12 +110,8 @@ class MaterialDetailView extends StatelessWidget {
               const SizedBox(height: 16),
               _buildProjectInfo(data, context),
               const SizedBox(height: 16),
-              _buildBasicInfo(data.info.baseInfo, context),
+              _buildDetailsCard(data, context),
               const SizedBox(height: 16),
-              if (data.info.extendedFields.isNotEmpty) ...[
-                _buildExtendedInfo(data.info.extendedFields, context),
-                const SizedBox(height: 16),
-              ],
               _buildLocationInfo(data, context),
             ],
           ),
@@ -167,7 +163,7 @@ class MaterialDetailView extends StatelessWidget {
             if (data.cut)
               Chip(
                 label: const Text('已切割'),
-                backgroundColor: Colors.orange.withValues(alpha: 0.2),
+                backgroundColor: Colors.orange.withOpacity(0.2),
                 labelStyle: const TextStyle(color: Colors.orange),
               ),
             if (data.cut) ...[
@@ -216,59 +212,46 @@ class MaterialDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildBasicInfo(MaterialInfoBase baseInfo, BuildContext context) {
-    final basicFields = [
-      ('材料编码', baseInfo.materialCode),
-      ('发货单号', baseInfo.deliveryNumber),
-      ('批次号', baseInfo.batchCode),
-      ('制造商', baseInfo.mfgNm),
-      ('采购方', baseInfo.purNm),
-      ('产品标准号', baseInfo.prodStdNo),
-      ('产品名称', baseInfo.prodNm),
-      ('规格', baseInfo.spec),
-      ('压力等级', baseInfo.pressLvl),
-      ('重量', baseInfo.weight),
-    ];
-
-    final nonEmptyFields = basicFields
-        .where((field) => field.$2 != null && field.$2!.isNotEmpty)
-        .toList();
-
-    if (nonEmptyFields.isEmpty) return const SizedBox.shrink();
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '基础信息',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ...nonEmptyFields.map(
-              (field) => _buildInfoRow(field.$1, field.$2!, context),
-            ),
-          ],
+  Widget _buildDetailsCard(ScanIdentificationData data, BuildContext context) {
+    final materialTypeKey = data.materialType.en;
+    if (materialTypeKey == null) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text('材料类型英文标识(en)缺失，无法匹配字段'),
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  Widget _buildExtendedInfo(
-    Map<String, dynamic> extendedFields,
-    BuildContext context,
-  ) {
-    final nonEmptyFields = extendedFields.entries
-        .where(
-          (entry) => entry.value != null && entry.value.toString().isNotEmpty,
-        )
-        .toList();
+    final fieldMap = materialFieldMaps[materialTypeKey];
 
-    if (nonEmptyFields.isEmpty) return const SizedBox.shrink();
+    if (fieldMap == null) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text('未找到与“$materialTypeKey”匹配的字段定义'),
+        ),
+      );
+    }
+
+    final allDisplayFields = <(String, String)>[];
+
+    // 基础信息和扩展信息合并处理
+    final combinedFields = {
+      ...data.info.baseInfo.toJson(),
+      ...data.info.extendedFields,
+    };
+
+    fieldMap.forEach((key, label) {
+      if (combinedFields.containsKey(key)) {
+        final value = combinedFields[key];
+        if (value != null && value.toString().isNotEmpty) {
+          allDisplayFields.add((label, value.toString()));
+        }
+      }
+    });
+
+    if (allDisplayFields.isEmpty) return const SizedBox.shrink();
 
     return Card(
       child: Padding(
@@ -277,18 +260,14 @@ class MaterialDetailView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '技术参数',
+              '详细信息',
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            ...nonEmptyFields.map(
-              (entry) => _buildInfoRow(
-                _formatFieldName(entry.key),
-                entry.value.toString(),
-                context,
-              ),
+            ...allDisplayFields.map(
+              (field) => _buildInfoRow(field.$1, field.$2, context),
             ),
           ],
         ),
@@ -332,7 +311,7 @@ class MaterialDetailView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 100,
+            width: 120, // Increased width for better label display
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -363,46 +342,6 @@ class MaterialDetailView extends StatelessWidget {
     }
   }
 
-  String _formatFieldName(String fieldName) {
-    // 简单的字段名格式化
-    final fieldMap = {
-      'matGradeParam': '材料牌号参数',
-      'posDev': '正偏差',
-      'len': '长度',
-      'graphSpherRate': '球化率',
-      'pipeGskMatBrand': '管道垫片材料品牌',
-      'extCorrProtType': '外防腐类型',
-      'extCorrProtStd': '外防腐标准',
-      'extCorrProtThk': '外防腐厚度',
-      'extCorrProtAppPerfInsp': '外防腐外观性能检验',
-      'intCorrProtType': '内防腐类型',
-      'intCorrProtStd': '内防腐标准',
-      'intCorrProtThk': '内防腐厚度',
-      'intCorrProtAppPerfInsp': '内防腐外观性能检验',
-      'chemCompInsp': '化学成分检验',
-      'mechPerfInsp': '机械性能检验',
-      'nonDsInsp': '无损检测',
-      'steelGrade': '钢材牌号',
-      'weldingType': '焊接类型',
-      'coatingType': '涂层类型',
-      'coatingThickness': '涂层厚度',
-      'hydroTestPressure': '水压试验压力',
-      'testDuration': '试验持续时间',
-      'certificateNo': '证书编号',
-      'valveType': '阀门类型',
-      'operationType': '操作类型',
-      'sealMaterial': '密封材料',
-      'bodyMaterial': '阀体材料',
-      'connectionType': '连接类型',
-      'operatingTemp': '工作温度',
-      'testPressure': '试验压力',
-      'workingPressure': '工作压力',
-      'remark': '备注',
-    };
-
-    return fieldMap[fieldName] ?? fieldName;
-  }
-
   void _copyToClipboard(String text, BuildContext context) {
     Clipboard.setData(ClipboardData(text: text));
     context.showSuccessToast('已复制到剪贴板');
@@ -410,16 +349,15 @@ class MaterialDetailView extends StatelessWidget {
 
   void _copyAllInfo(ScanIdentificationData data, BuildContext context) {
     final buffer = StringBuffer();
+    final materialTypeKey = data.materialType.en;
+    final fieldMap = materialFieldMaps[materialTypeKey];
 
-    // 基本信息
-    buffer.writeln('=== 材料详情 ===');
-    buffer.writeln('产品名称: ${data.info.baseInfo.prodNm ?? '未知'}');
+    buffer.writeln('=== 材料详情: ${data.info.baseInfo.prodNm ?? '未知'} ===');
     buffer.writeln('材料类型: ${data.materialType.name}');
     buffer.writeln('材料分组: ${data.materialGroup.name}');
     buffer.writeln('材料编码: ${data.materialCode}');
     buffer.writeln();
 
-    // 项目信息
     buffer.writeln('=== 项目信息 ===');
     buffer.writeln('项目ID: ${data.projectId}');
     if (data.projectName != null) buffer.writeln('项目名称: ${data.projectName}');
@@ -428,48 +366,24 @@ class MaterialDetailView extends StatelessWidget {
     }
     buffer.writeln();
 
-    // 基础信息
-    final baseInfo = data.info.baseInfo;
-    if (baseInfo.materialCode != null ||
-        baseInfo.deliveryNumber != null ||
-        baseInfo.batchCode != null ||
-        baseInfo.mfgNm != null ||
-        baseInfo.purNm != null) {
-      buffer.writeln('=== 基础信息 ===');
-      if (baseInfo.materialCode != null) {
-        buffer.writeln('材料编码: ${baseInfo.materialCode}');
-      }
-      if (baseInfo.deliveryNumber != null) {
-        buffer.writeln('发货单号: ${baseInfo.deliveryNumber}');
-      }
-      if (baseInfo.batchCode != null) {
-        buffer.writeln('批次号: ${baseInfo.batchCode}');
-      }
-      if (baseInfo.mfgNm != null) buffer.writeln('制造商: ${baseInfo.mfgNm}');
-      if (baseInfo.purNm != null) buffer.writeln('采购方: ${baseInfo.purNm}');
-      if (baseInfo.prodStdNo != null) {
-        buffer.writeln('产品标准号: ${baseInfo.prodStdNo}');
-      }
-      if (baseInfo.spec != null) buffer.writeln('规格: ${baseInfo.spec}');
-      if (baseInfo.pressLvl != null) {
-        buffer.writeln('压力等级: ${baseInfo.pressLvl}');
-      }
-      if (baseInfo.weight != null) buffer.writeln('重量: ${baseInfo.weight}');
-      buffer.writeln();
-    }
+    if (fieldMap != null) {
+      buffer.writeln('=== 详细信息 ===');
+      final combinedFields = {
+        ...data.info.baseInfo.toJson(),
+        ...data.info.extendedFields,
+      };
 
-    // 技术参数
-    if (data.info.extendedFields.isNotEmpty) {
-      buffer.writeln('=== 技术参数 ===');
-      data.info.extendedFields.forEach((key, value) {
-        if (value != null && value.toString().isNotEmpty) {
-          buffer.writeln('${_formatFieldName(key)}: $value');
+      fieldMap.forEach((key, label) {
+        if (combinedFields.containsKey(key)) {
+          final value = combinedFields[key];
+          if (value != null && value.toString().isNotEmpty) {
+            buffer.writeln('$label: ${value.toString()}');
+          }
         }
       });
       buffer.writeln();
     }
 
-    // 位置信息
     if (data.lat != null || data.lng != null) {
       buffer.writeln('=== 位置信息 ===');
       if (data.lat != null) {

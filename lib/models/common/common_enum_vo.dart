@@ -23,7 +23,8 @@ abstract class EnumModel<T> {
 
 /// 材料类型枚举（与 /enum/material/type 接口适配）
 class MaterialType extends EnumModel<int> {
-  const MaterialType(super.value, super.name);
+  final String? en;
+  const MaterialType(super.value, super.name, {this.en});
 
   /// 扩展：所有已知公司类型枚举
   static List<MaterialType> values = [];
@@ -31,7 +32,13 @@ class MaterialType extends EnumModel<int> {
   /// 可从接口返回的列表初始化所有枚举
   static void initFromList(List<dynamic> data) {
     values = data
-        .map((e) => MaterialType(e['code'] as int, e['msg'] as String))
+        .map(
+          (e) => MaterialType(
+            e['code'] as int,
+            e['msg'] as String,
+            en: e['en'] as String?,
+          ),
+        )
         .toList();
   }
 
@@ -43,9 +50,13 @@ class MaterialType extends EnumModel<int> {
     if (json is int) {
       return fromInt(json) ?? MaterialType(json, '未知类型'); // 容错：未定义类型
     } else if (json is Map) {
-      return MaterialType(json['code'] as int, json['msg'] as String? ?? '');
+      return MaterialType(
+        json['code'] as int,
+        json['msg'] as String? ?? '',
+        en: json['en'] as String?,
+      );
     } else {
-      throw ArgumentError('不支持的 MaterialType 格式: \$json');
+      throw ArgumentError('不支持的 MaterialType 格式: $json');
     }
   }
 

@@ -81,8 +81,20 @@ class ScanIdentificationData extends Equatable {
   final dynamic installs;
 
   /// 获取材料类型枚举
-  MaterialType get materialType =>
-      MaterialType.fromInt(type) ?? MaterialType(type, '未知类型');
+  MaterialType get materialType {
+    // 尝试从已加载的枚举列表中查找
+    var mt = MaterialType.fromInt(type);
+    if (mt != null && mt.en != null) {
+      return mt;
+    }
+    // 如果未找到，或者找到了但缺少en字段，提供一个硬编码的备用方案
+    // 以防枚举接口加载失败或数据不完整
+    if (type == 0) {
+      return const MaterialType(0, '球墨铸铁管', en: 'qiuMoZhuTie');
+    }
+    // 对于其他未定义类型，返回一个通用未知类型
+    return MaterialType(type, '未知类型');
+  }
 
   /// 获取材料分组枚举
   MaterialGroup get materialGroup =>
