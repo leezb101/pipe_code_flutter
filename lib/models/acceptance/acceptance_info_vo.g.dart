@@ -18,6 +18,7 @@ AcceptanceInfoVO _$AcceptanceInfoVOFromJson(Map<String, dynamic> json) =>
       acceptReportUrl: json['acceptReportUrl'] as String?,
       realWarehouse: json['realWarehouse'] as bool,
       warehouseId: (json['warehouseId'] as num).toInt(),
+      warehouseName: json['warehouseName'] as String?,
       warehouseUsers: (json['warehouseUsers'] as List<dynamic>)
           .map((e) => CommonUserVO.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -42,6 +43,7 @@ Map<String, dynamic> _$AcceptanceInfoVOToJson(AcceptanceInfoVO instance) =>
       'acceptReportUrl': instance.acceptReportUrl,
       'realWarehouse': instance.realWarehouse,
       'warehouseId': instance.warehouseId,
+      'warehouseName': instance.warehouseName,
       'warehouseUsers': instance.warehouseUsers,
       'supervisorUsers': instance.supervisorUsers,
       'constructionUsers': instance.constructionUsers,

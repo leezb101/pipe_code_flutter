@@ -21,6 +21,7 @@ import 'package:pipe_code_flutter/pages/scrap/scrap_pages.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_audit_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_page.dart';
 import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
+import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
 import '../bloc/dispatch/dispatch_bloc.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/register_page.dart';
@@ -83,26 +84,35 @@ final GoRouter appRouter = GoRouter(
           path: 'dispatch-application',
           name: 'dispatch-application',
           builder: (context, state) {
-            final config = state.extra as Map<String, dynamic>?;
-            if (config == null || config.isEmpty) {
+            final data = state.extra as Map<String, dynamic>?;
+            final codes = data?['codes'] as List<String>?;
+            if (codes == null || codes.isEmpty) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            final materialInfo =
-                config['materialInfo'] as MaterialInfoForBusiness?;
-            if (materialInfo == null) {
-              return const Scaffold(body: Center(child: Text('错误: 未提供物料信息')));
-            }
-            return MultiBlocProvider(
-              providers: [
-                BlocProvider<DispatchBloc>(
-                  create: (context) => getIt<DispatchBloc>(),
-                ),
-                BlocProvider<MaterialHandleCubit>(
-                  create: (context) => MaterialHandleCubit(),
-                ),
-              ],
-              child: DispatchApplicationPage(materials: materialInfo),
+            return BlocProvider(
+              create: (context) => getIt<DispatchBloc>(),
+              child: DispatchApplicationPage(initialCodes: codes),
             );
+            // final config = state.extra as Map<String, dynamic>?;
+            // if (config == null || config.isEmpty) {
+            //   return const Scaffold(body: Center(child: Text('参数错误')));
+            // }
+            // final materialInfo =
+            //     config['materialInfo'] as MaterialInfoForBusiness?;
+            // if (materialInfo == null) {
+            //   return const Scaffold(body: Center(child: Text('错误: 未提供物料信息')));
+            // }
+            // return MultiBlocProvider(
+            //   providers: [
+            //     BlocProvider<DispatchBloc>(
+            //       create: (context) => getIt<DispatchBloc>(),
+            //     ),
+            //     BlocProvider<MaterialHandleCubit>(
+            //       create: (context) => MaterialHandleCubit(),
+            //     ),
+            //   ],
+            //   child: DispatchApplicationPage(materials: materialInfo),
+            // );
           },
         ),
         GoRoute(
@@ -134,16 +144,16 @@ final GoRouter appRouter = GoRouter(
           name: 'acceptance',
           builder: (context, state) {
             final data = state.extra as Map<String, dynamic>?;
-            if (data == null) {
-              return const Scaffold(body: Center(child: Text('参数错误')));
-            }
-            final materials = data['materialInfo'] as MaterialInfoForBusiness?;
-            if (materials == null) {
-              return const Scaffold(body: Center(child: Text('参数错误')));
-            }
+            final materials = data?['materialInfo'] as MaterialInfoForBusiness?;
+            final codes = data?['codes'] as List<String>?;
+            final isBatch = (data?['isBatch'] as bool?) ?? false;
             return BlocProvider(
               create: (context) => getIt<AcceptanceBloc>(),
-              child: AcceptancePage(materials: materials),
+              child: AcceptancePage(
+                materials: materials,
+                initialCodes: codes,
+                initialIsBatch: isBatch,
+              ),
             );
           },
         ),
@@ -253,16 +263,15 @@ final GoRouter appRouter = GoRouter(
           name: 'signout',
           builder: (context, state) {
             final data = state.extra as Map<String, dynamic>?;
-            if (data == null) {
-              return const Scaffold(body: Center(child: Text('参数错误')));
-            }
-            final materials = data['materialInfo'] as MaterialInfoForBusiness?;
-            if (materials == null) {
+            final codes = data != null ? data['codes'] as List<String>? : null;
+            final isBatch =
+                (data != null ? data['isBatch'] as bool? : null) ?? false;
+            if (codes == null || codes.isEmpty) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
               create: (context) => getIt<SignoutBloc>(),
-              child: SignoutPage(materials: materials),
+              child: SignoutPage(initialCodes: codes, initialIsBatch: isBatch),
             );
           },
         ),
@@ -401,13 +410,13 @@ final GoRouter appRouter = GoRouter(
             if (data == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            final materials = data['materialInfo'] as MaterialInfoForBusiness?;
-            if (materials == null) {
+            if (data['codes'] == null ||
+                (data['codes'] as List<String>).isEmpty) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
               create: (context) => getIt<ReturnBloc>(),
-              child: ReturnPage(materials: materials),
+              child: ReturnPage(codes: data['codes'] as List<String>),
             );
           },
         ),
@@ -429,8 +438,8 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/cut',
-          name: 'cut',
+          path: '/cut-pipe',
+          name: 'cut-pipe',
           builder: (context, state) => const CutPage(),
         ),
         GoRoute(
@@ -535,6 +544,17 @@ final GoRouter appRouter = GoRouter(
       path: '/pending-todo',
       name: 'pending-todo',
       builder: (context, state) => const PendingTodoListPage(),
+    ),
+    GoRoute(
+      path: '/pdf-preview',
+      name: 'pdf-preview',
+      builder: (context, state) {
+        final url = state.extra as String?;
+        if (url == null) {
+          return const Scaffold(body: Center(child: Text('参数错误')));
+        }
+        return PdfPreviewer(url: url);
+      },
     ),
   ],
 );

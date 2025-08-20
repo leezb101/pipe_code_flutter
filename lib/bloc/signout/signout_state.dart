@@ -9,6 +9,7 @@ import 'package:equatable/equatable.dart';
 import 'package:pipe_code_flutter/models/common/warehouse_user_info_vo.dart';
 import 'package:pipe_code_flutter/models/common/warehouse_vo.dart';
 import 'package:pipe_code_flutter/models/signout/signout_info_vo.dart';
+import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 
 class SignoutState extends Equatable {
   const SignoutState();
@@ -115,4 +116,83 @@ class SignoutAuditing extends SignoutState {
 
 class SignoutAudited extends SignoutState {
   const SignoutAudited();
+}
+
+/// Editing state for SignoutPage driven by QR scanning and in-page operations
+class SignoutEditingState extends SignoutState {
+  final List<MaterialInfo> currentMaterials;
+  final Set<int> materialIds;
+  final String? message; // feedback like "新增/剔除"
+
+  // Warehouse related (mirror a subset of SignoutReady for editing page)
+  final bool isWarehouseInfoLoading;
+  final String? warehouseInfoError;
+  final WarehouseVO? warehouseInfo;
+  final bool isWarehouseUsersLoading;
+  final String? warehouseUsersError;
+  final WarehouseUserInfoVO? warehouseUsers;
+
+  // Submit status for SignoutPage
+  final bool isSubmitting;
+  final String? submitError;
+
+  const SignoutEditingState({
+    required this.currentMaterials,
+    required this.materialIds,
+    this.message,
+    this.isWarehouseInfoLoading = false,
+    this.warehouseInfoError,
+    this.warehouseInfo,
+    this.isWarehouseUsersLoading = false,
+    this.warehouseUsersError,
+    this.warehouseUsers,
+    this.isSubmitting = false,
+    this.submitError,
+  });
+
+  @override
+  List<Object?> get props => [
+    currentMaterials,
+    materialIds,
+    message,
+    isWarehouseInfoLoading,
+    warehouseInfoError,
+    warehouseInfo,
+    isWarehouseUsersLoading,
+    warehouseUsersError,
+    warehouseUsers,
+    isSubmitting,
+    submitError,
+  ];
+
+  SignoutEditingState copyWith({
+    List<MaterialInfo>? currentMaterials,
+    Set<int>? materialIds,
+    String? message,
+    bool clearMessage = false,
+    bool? isWarehouseInfoLoading,
+    String? warehouseInfoError,
+    WarehouseVO? warehouseInfo,
+    bool? isWarehouseUsersLoading,
+    String? warehouseUsersError,
+    WarehouseUserInfoVO? warehouseUsers,
+    bool? isSubmitting,
+    String? submitError,
+  }) {
+    return SignoutEditingState(
+      currentMaterials: currentMaterials ?? this.currentMaterials,
+      materialIds: materialIds ?? this.materialIds,
+      message: clearMessage ? null : (message ?? this.message),
+      isWarehouseInfoLoading:
+          isWarehouseInfoLoading ?? this.isWarehouseInfoLoading,
+      warehouseInfoError: warehouseInfoError ?? this.warehouseInfoError,
+      warehouseInfo: warehouseInfo ?? this.warehouseInfo,
+      isWarehouseUsersLoading:
+          isWarehouseUsersLoading ?? this.isWarehouseUsersLoading,
+      warehouseUsersError: warehouseUsersError ?? this.warehouseUsersError,
+      warehouseUsers: warehouseUsers ?? this.warehouseUsers,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
+      submitError: submitError ?? this.submitError,
+    );
+  }
 }

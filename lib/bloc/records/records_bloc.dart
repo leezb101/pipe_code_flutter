@@ -45,7 +45,7 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
         emit(currentState.copyWith(isLoadingMore: true));
       }
 
-  final records = await _repository.getRecords(
+      final paged = await _repository.getRecordsWithMeta(
         recordType: event.recordType,
         projectId: event.projectId,
         userId: event.userId,
@@ -53,13 +53,14 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
         pageSize: event.pageSize,
         forceRefresh: event.forceRefresh,
       );
+      final records = paged.records;
 
       if (records.isEmpty && event.pageNum == 1) {
         emit(RecordsEmpty(event.recordType));
         return;
       }
 
-      final hasMoreData = records.length >= event.pageSize;
+      final hasMoreData = paged.meta.hasMore;
 
       if (event.pageNum == 1) {
         emit(

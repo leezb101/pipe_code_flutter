@@ -133,9 +133,9 @@ class AppConfig {
 
   static Duration get apiTimeout => const Duration(seconds: 100);
   static Duration get sseTimeout => const Duration(seconds: 300);
-  static Duration get sseHeartbeatInterval => const Duration(seconds: 300);
+  static Duration get sseHeartbeatInterval => const Duration(seconds: 120);
   static Duration get sseReconnectDelay => const Duration(seconds: 5);
-  static int get sseMaxRetryCount => 3;
+  static int get sseMaxRetryCount => 100;
 
   static Map<String, String> get defaultHeaders => {
     'Content-Type': 'application/json',

@@ -20,7 +20,6 @@ import '../../bloc/qr_scan/qr_scan_event.dart';
 import '../../bloc/qr_scan/qr_scan_state.dart';
 import '../../config/app_config.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
-import '../../services/qr_scan_strategies/qr_scan_strategy.dart';
 import '../../widgets/qr_scan/scanned_codes_list.dart';
 import '../../utils/toast_utils.dart';
 
@@ -90,7 +89,7 @@ class _QrScanPageState extends State<QrScanPage> {
 
   Future<void> _startScannerWhenReady() async {
     if (_controller == null) return;
-    
+
     try {
       // 等待控制器初始化完成
       await _controller!.start();
@@ -147,27 +146,16 @@ class _QrScanPageState extends State<QrScanPage> {
         // 检查是否为需要排除的重复码 (包括历史列表和本次扫描列表)
         final isDuplicateInHistory =
             widget.config.existingCodesToExclude?.contains(code) ?? false;
-        // 使用本地同步的 Set 进行当次会话的去重检查
         final isDuplicateInSession = _sessionScannedCodes.contains(code);
 
-        // 根据操作类型决定是否需要重复扫描提示
-        final isRemoveOperation = _isRemoveOperation();
-
         if (isDuplicateInHistory || isDuplicateInSession) {
-          // 如果是删除操作，允许扫描已存在的码，不提示重复
-          if (!isRemoveOperation) {
-            context.showErrorToast('该耗材已添加，请勿重复扫描');
-            _provideScanFeedback(); // 同样提供反馈
-            _scheduleRestartScanner(); // 重新安排扫描
-            return; // 中断处理，不继续执行后续逻辑
-          }
+          context.showErrorToast('该耗材已添加，请勿重复扫描');
+          _provideScanFeedback();
+          _scheduleRestartScanner();
+          return;
         }
 
-        // 对于添加操作或首次扫描的码，添加到本地同步Set中
-        // 删除操作不需要添加到session set，因为它们是要被移除的
-        if (!isRemoveOperation) {
-          _sessionScannedCodes.add(code);
-        }
+        _sessionScannedCodes.add(code);
 
         // 震动反馈
         _provideScanFeedback();
@@ -206,13 +194,7 @@ class _QrScanPageState extends State<QrScanPage> {
     return false;
   }
 
-  /// 检查当前是否为删除操作
-  bool _isRemoveOperation() {
-    Logger.warning(
-      'Checking if isRemoveOperation for initial config: $_initialConfig',
-    );
-    return _initialConfig.isRemoveOperation;
-  }
+  // 旧的 _isRemoveOperation 方法已由 QrScanConfig.isRemove 统一替代
 
   void _updateScanHistory(String code) {
     _lastScannedCode = code;
@@ -455,14 +437,40 @@ class _QrScanPageState extends State<QrScanPage> {
       return;
     }
 
-    // 检查是否有导航数据需要处理
-    if (state.processResult?.navigationData != null) {
-      _handleNavigation(context, state.processResult!.navigationData!);
+    final entry = state.config?.context != null
+        ? state.config!.context!['entry'] as String?
+        : null;
+
+    if (entry == 'embedded') {
+      // 业务内嵌模式：一律返回结果给调用页面
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted && context.mounted && !_hasReturned) {
+          _popWithResult(context, state.scannedCodes);
+        }
+      });
       return;
     }
 
-    // 如果没有导航数据，则返回扫码结果
-    Future.delayed(const Duration(milliseconds: 500), () {
+    final route = state.config?.context != null
+        ? state.config!.context!['route'] as String?
+        : null;
+    final data = state.config?.context != null
+        ? state.config!.context!['data'] as Map<String, dynamic>?
+        : null;
+
+    if (route != null && route.isNotEmpty) {
+      final codes = state.scannedCodes.map((e) => e.code).toList();
+      final isBatch = state.config?.supportsBatch == true;
+      final merged = <String, dynamic>{
+        if (data != null) ...data,
+        'codes': codes,
+        'isBatch': isBatch,
+      };
+      _handleNavigation(context, route: route, data: merged);
+      return;
+    }
+
+    Future.delayed(const Duration(milliseconds: 200), () {
       if (mounted && context.mounted && !_hasReturned) {
         _popWithResult(context, state.scannedCodes);
       }
@@ -470,9 +478,10 @@ class _QrScanPageState extends State<QrScanPage> {
   }
 
   void _handleNavigation(
-    BuildContext context,
-    QrScanNavigationData navigationData,
-  ) {
+    BuildContext context, {
+    required String route,
+    Map<String, dynamic>? data,
+  }) {
     if (_hasReturned) {
       return;
     }
@@ -480,7 +489,7 @@ class _QrScanPageState extends State<QrScanPage> {
     _hasReturned = true;
 
     Logger.debug(
-      '【22222】QrScanPage will be destroyed and replaced by ${navigationData.route} with data: ${navigationData.data}',
+      '【22222】QrScanPage will be destroyed and replaced by $route with data: $data',
     );
 
     // 在导航前清理bloc状态
@@ -488,7 +497,7 @@ class _QrScanPageState extends State<QrScanPage> {
 
     // 🎯 使用pushReplacement：销毁QrScanPage，直接替换为业务页面
     // 这样导航栈变成：Home → BusinessPage（QrScanPage被完全销毁）
-    context.pushReplacement(navigationData.route, extra: navigationData.data);
+    context.pushReplacement(route, extra: data);
   }
 
   void _popWithResult(BuildContext context, List<QrScanResult> result) {

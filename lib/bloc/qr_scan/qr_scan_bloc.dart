@@ -8,9 +8,7 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/qr_scan/qr_scan_result.dart';
-import '../../models/qr_scan/qr_scan_type.dart';
 import '../../services/qr_scan_service.dart';
-import '../../services/qr_scan_strategies/qr_scan_strategy.dart';
 import 'qr_scan_event.dart';
 import 'qr_scan_state.dart';
 
@@ -74,9 +72,9 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
     Emitter<QrScanState> emit,
   ) async {
     try {
-      // For 'raw' type, we skip validation and always treat it as valid.
+      // Prefer explicit flag to skip validation.
       final bool isValid;
-      if (state.config?.scanType == QrScanType.raw) {
+      if (state.config?.skipValidation == true) {
         isValid = true;
       } else {
         isValid = await _qrScanService.validateCode(event.code);
@@ -180,84 +178,27 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
     try {
       emit(state.copyWith(status: QrScanStatus.processing, isProcessing: true));
 
-      QrScanProcessResult? result;
-      switch (state.config!.scanType) {
-        // case QrScanType.inbound:
-        //   result = await _qrScanService.processInbound(state.scannedCodes);
-        //   break;
-        case QrScanType.signout:
-          result = await _qrScanService.processSignout(state.scannedCodes);
-          break;
-        case QrScanType.transfer:
-          result = await _qrScanService.processTransfer(state.scannedCodes);
-          break;
-        case QrScanType.inventory:
-          result = await _qrScanService.processInventory(state.scannedCodes);
-          break;
-        case QrScanType.pipeCopy:
-          result = await _qrScanService.processPipeCopy(state.scannedCodes);
-          break;
-        case QrScanType.identification:
-          result = await _qrScanService.processIdentification(
-            state.scannedCodes,
-          );
-          break;
-        case QrScanType.returnMaterial:
-          result = await _qrScanService.processReturnMaterial(
-            state.scannedCodes,
-          );
-          break;
-        case QrScanType.acceptance:
-          result = await _qrScanService.processAcceptance(state.scannedCodes);
-          break;
-        case QrScanType.materialInbound:
-          result = await _qrScanService.processMaterialInbound(
-            state.scannedCodes,
-          );
-          break;
-        case QrScanType.scrap:
-          result = await _qrScanService.processScrap(
-            state.scannedCodes,
-            context: state.config?.context,
-          );
-        case QrScanType.install:
-          result = await _qrScanService.processInstall(state.scannedCodes);
-          break;
-        case QrScanType.raw:
-          // For raw type, we just return the scanned codes directly without processing.
-          result = QrScanProcessResult(
-            success: true,
-            data:
-                state.scannedCodes, // The data is the list of raw scan results
-          );
-          break;
-      }
-
-      if (result != null && !result.success) {
-        emit(
-          state.copyWith(
-            status: QrScanStatus.error,
-            errorMessage: result.errorMessage ?? '处理扫码结果时发生错误',
-            isProcessing: false,
-          ),
-        );
-
-        // 5秒后自动恢复扫码状态
-        Future.delayed(const Duration(seconds: 5), () {
-          if (!isClosed) {
-            add(const ResetScan());
-          }
-        });
-      } else {
-        // 处理完成，设置为 processComplete 状态
+      // 新模式：嵌入式扫码（来自业务页面的 继续扫码/扫码剔除）不做任何业务策略导航，直接返回扫码结果
+      final entry = state.config?.context != null
+          ? state.config!.context!['entry'] as String?
+          : null;
+      if (entry == 'embedded') {
         emit(
           state.copyWith(
             status: QrScanStatus.processComplete,
             isProcessing: false,
-            processResult: result,
           ),
         );
+        return;
       }
+
+      // 简化模式：非嵌入式也不在扫描阶段耦合业务策略
+      emit(
+        state.copyWith(
+          status: QrScanStatus.processComplete,
+          isProcessing: false,
+        ),
+      );
     } catch (e) {
       emit(
         state.copyWith(

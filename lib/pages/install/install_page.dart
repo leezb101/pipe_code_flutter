@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
@@ -11,7 +12,6 @@ import '../../bloc/install/install_state.dart';
 import '../../models/install/do_install_vo.dart';
 import '../../models/acceptance/material_vo.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
-import '../../models/qr_scan/qr_scan_type.dart';
 import '../../widgets/common_state_widgets.dart' as common;
 import '../../utils/toast_utils.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
@@ -57,10 +57,16 @@ class InstallView extends StatefulWidget {
 
 class _InstallViewState extends State<InstallView> {
   bool _isSubmitting = false;
+  bool _canSubmitNow = false; // reactive flag for submit button
 
   // 为每个上传点创建独立的Cubit
   final Map<int, FileUploadCubit> _materialPhotoCubits = {};
   late final FileUploadCubit _qualityReportCubit;
+
+  // 订阅管理
+  final Map<int, StreamSubscription<List<FileUploadState>>> _materialPhotoSubs =
+      {};
+  StreamSubscription<List<FileUploadState>>? _qualityReportSub;
 
   // 桩号管理
   final Map<int, String> _materialStakeNumbers = {};
@@ -70,6 +76,10 @@ class _InstallViewState extends State<InstallView> {
   void initState() {
     super.initState();
     _qualityReportCubit = FileUploadCubit();
+    // 监听质量报告上传状态变化，实时刷新提交可用性
+    _qualityReportSub = _qualityReportCubit.stream.listen(
+      (_) => _recomputeCanSubmit(),
+    );
   }
 
   @override
@@ -81,6 +91,11 @@ class _InstallViewState extends State<InstallView> {
     for (var cubit in _materialPhotoCubits.values) {
       cubit.close();
     }
+    // 取消订阅
+    for (var sub in _materialPhotoSubs.values) {
+      sub.cancel();
+    }
+    _qualityReportSub?.cancel();
     _qualityReportCubit.close();
     super.dispose();
   }
@@ -135,13 +150,24 @@ class _InstallViewState extends State<InstallView> {
         },
         builder: (context, state) {
           if (state is InstallReady) {
+            // 确保物料列表变化后，提交按钮能及时刷新
+            WidgetsBinding.instance.addPostFrameCallback((_) => _recomputeCanSubmit());
             return _buildContent(context, state);
           }
           if (state is InstallLoading) {
             return const common.LoadingWidget(message: "加载中...");
           }
           if (state is InstallFailure) {
-            return common.ErrorWidget(message: state.error, onRetry: () {});
+            return common.ErrorWidget(
+              message: state.error,
+              onRetry: () {
+                // 重置提交中标志，并恢复到提交前的界面态
+                if (_isSubmitting) {
+                  setState(() => _isSubmitting = false);
+                }
+                context.read<InstallBloc>().add(const RestorePreviousReady());
+              },
+            );
           }
           return const Center(child: Text('未知状态'));
         },
@@ -161,9 +187,10 @@ class _InstallViewState extends State<InstallView> {
             _buildMaterialsList(scannedMaterials),
             const SizedBox(height: 16),
           ],
-          _buildQualityReportSection(),
           const SizedBox(height: 16),
-          _buildScanButton(context),
+          _buildScanButton(context, scannedMaterials),
+          const SizedBox(height: 16),
+          _buildQualityReportSection(),
           const SizedBox(height: 32),
           _buildActionButtons(
             context,
@@ -200,10 +227,7 @@ class _InstallViewState extends State<InstallView> {
   Widget _buildMaterialItem(MaterialVO material) {
     final materialId = material.materialId;
     // 为这个物料动态获取或创建一个Cubit
-    final photoCubit = _materialPhotoCubits.putIfAbsent(
-      materialId,
-      () => FileUploadCubit(),
-    );
+    final photoCubit = _getOrCreatePhotoCubit(materialId);
 
     // 确保控制器存在
     if (!_stakeNumberControllers.containsKey(materialId)) {
@@ -277,9 +301,8 @@ class _InstallViewState extends State<InstallView> {
                       ),
                     ),
                     onChanged: (value) {
-                      setState(() {
-                        _materialStakeNumbers[materialId] = value;
-                      });
+                      _materialStakeNumbers[materialId] = value;
+                      _recomputeCanSubmit();
                     },
                   ),
                 ),
@@ -309,11 +332,14 @@ class _InstallViewState extends State<InstallView> {
     );
   }
 
-  Widget _buildScanButton(BuildContext context) {
+  Widget _buildScanButton(
+    BuildContext context,
+    List<MaterialInfo> scannedMaterials,
+  ) {
     return Center(
       child: ElevatedButton.icon(
         icon: const Icon(Icons.qr_code_scanner),
-        label: const Text('继续扫码添加'),
+        label: Text(scannedMaterials.isEmpty ? '开始扫码添加' : '继续扫码添加'),
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.white,
           backgroundColor: Colors.blue,
@@ -328,7 +354,8 @@ class _InstallViewState extends State<InstallView> {
   }
 
   Widget _buildActionButtons(BuildContext context, List<MaterialVO> materials) {
-    final canSubmit = _canSubmit(materials);
+    // 使用响应式标志控制按钮，同时考虑正在提交的态
+    final canSubmit = _canSubmitNow && !_isSubmitting;
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
@@ -363,7 +390,7 @@ class _InstallViewState extends State<InstallView> {
 
   void _navigateToQrScan(BuildContext context) {
     final materialCubit = context.read<MaterialHandleCubit>();
-    final config = QrScanConfig(scanType: QrScanType.install, title: '扫码安装');
+    final config = QrScanConfig(title: '扫码安装');
 
     context.pushNamed('qr-scan', extra: config).then((result) {
       if (mounted &&
@@ -376,8 +403,9 @@ class _InstallViewState extends State<InstallView> {
     });
   }
 
-  bool _canSubmit(List<MaterialVO> materials) {
-    if (materials.isEmpty || _isSubmitting) return false;
+  // 仅基于业务条件判断（不考虑_isSubmitting），供响应式计算与提交前校验复用
+  bool _meetsSubmitRequirements(List<MaterialVO> materials) {
+    if (materials.isEmpty) return false;
 
     // 检查每个材料的照片和桩号
     for (final material in materials) {
@@ -406,6 +434,50 @@ class _InstallViewState extends State<InstallView> {
     return true;
   }
 
+  // 重新计算是否可提交，并在变更时刷新UI
+  void _recomputeCanSubmit() {
+    // 从当前Bloc状态获取最新的物料列表
+    final state = context.read<InstallBloc>().state;
+    List<MaterialVO> materials = [];
+    if (state is InstallReady) {
+      final scannedMaterials = state.materialInfos?.normals ?? [];
+      materials = scannedMaterials
+          .map(
+            (m) => MaterialVO(
+              materialId: m.baseInfo.materialId,
+              materialName: m.baseInfo.prodNm ?? '未知材料',
+              num: 1,
+            ),
+          )
+          .toList();
+    }
+    final next = _meetsSubmitRequirements(materials);
+    if (next != _canSubmitNow) {
+      setState(() {
+        _canSubmitNow = next;
+      });
+    }
+  }
+
+  // 获取或创建照片上传Cubit，并绑定订阅
+  FileUploadCubit _getOrCreatePhotoCubit(int materialId) {
+    final existing = _materialPhotoCubits[materialId];
+    if (existing != null) {
+      // 确保有订阅
+      _materialPhotoSubs[materialId] ??= existing.stream.listen(
+        (_) => _recomputeCanSubmit(),
+      );
+      return existing;
+    }
+    final cubit = FileUploadCubit();
+    _materialPhotoCubits[materialId] = cubit;
+    _materialPhotoSubs[materialId]?.cancel();
+    _materialPhotoSubs[materialId] = cubit.stream.listen(
+      (_) => _recomputeCanSubmit(),
+    );
+    return cubit;
+  }
+
   void _submitInstall(BuildContext context, List<MaterialVO> materials) {
     // 增加上传状态检查
     final allPhotoCubits = _materialPhotoCubits.values.toList();
@@ -419,7 +491,7 @@ class _InstallViewState extends State<InstallView> {
       return;
     }
 
-    if (!_canSubmit(materials)) {
+    if (!_meetsSubmitRequirements(materials)) {
       context.showErrorToast('请确保所有材料都已上传2张照片、填写了桩号，并上传了质量验收报告');
       return;
     }

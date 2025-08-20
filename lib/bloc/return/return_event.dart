@@ -15,14 +15,14 @@ abstract class ReturnEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-// 加载扫码物料信息事件
-class LoadReturnMaterial extends ReturnEvent {
-  const LoadReturnMaterial({required this.materialInfo});
+// 加载扫码二维码事件
+class LoadReturnMaterialCodes extends ReturnEvent {
+  const LoadReturnMaterialCodes({required this.codes});
 
-  final MaterialInfoForBusiness materialInfo;
+  final List<String> codes;
 
   @override
-  List<Object?> get props => [materialInfo];
+  List<Object?> get props => [codes];
 }
 
 // 更新退库类型事件
@@ -73,4 +73,12 @@ class LoadReturnDetail extends ReturnEvent {
 
   @override
   List<Object?> get props => [id];
+}
+
+// 更新退库物料列表（追加或移除）
+class UpdateReturnMaterials extends ReturnEvent {
+  const UpdateReturnMaterials({required this.materials});
+  final List<MaterialVO> materials;
+  @override
+  List<Object?> get props => [materials];
 }

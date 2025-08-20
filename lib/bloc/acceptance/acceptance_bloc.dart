@@ -7,15 +7,19 @@
  */
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
+import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import '../../repositories/interfaces/acceptance_repository.dart';
+import '../../repositories/interfaces/material_handle_repository.dart';
 import '../../utils/logger.dart';
 import 'acceptance_event.dart';
 import 'acceptance_state.dart';
 
 class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
   final AcceptanceRepository _repository;
+  final MaterialHandleRepository _materialHandleRepository;
 
-  AcceptanceBloc(this._repository) : super(const AcceptanceInitial()) {
+  AcceptanceBloc(this._repository, this._materialHandleRepository)
+    : super(const AcceptanceInitial()) {
     on<LoadAcceptanceDetail>(_onLoadAcceptanceDetail);
     on<SubmitAcceptance>(_onSubmitAcceptance);
     on<AuditAcceptance>(_onAuditAcceptance);
@@ -28,6 +32,16 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     on<LoadWarehouseList>(_onLoadWarehouseList);
     // on<ScanMaterialForSignin>(_onScanMaterialForSignin);
     on<MatchScannedMaterial>(_onMatchScannedMaterial);
+    on<UnmatchScannedMaterial>(_onUnmatchScannedMaterial);
+    on<BulkUnmatchMaterials>(_onBulkUnmatchMaterials);
+    on<InitializeMaterialsFromCodes>(_onInitializeMaterialsFromCodes);
+    on<AppendMaterialsByCodes>(_onAppendMaterialsByCodes);
+    on<RemoveMaterialsByCodes>(_onRemoveMaterialsByCodes);
+    // AcceptancePage centralized editing flow
+    on<InitializeEditingMaterials>(_onInitializeEditingMaterials);
+    on<AppendEditingMaterialsByCodes>(_onAppendEditingMaterialsByCodes);
+    on<RemoveEditingMaterialsByCodes>(_onRemoveEditingMaterialsByCodes);
+    on<ClearEditingMessage>(_onClearEditingMessage);
   }
 
   Future<void> _onLoadAcceptanceDetail(
@@ -386,6 +400,307 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     } else {
       // 如果当前状态不是AcceptanceDetailLoaded，发出错误状态
       emit(AcceptanceError(message: "无法匹配材料，当前状态不正确"));
+    }
+  }
+
+  void _onUnmatchScannedMaterial(
+    UnmatchScannedMaterial event,
+    Emitter<AcceptanceState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is AcceptanceDetailLoaded) {
+      try {
+        final scannedId =
+            event.scannedMaterial.normals.first.baseInfo.materialId;
+        final existing = currentState.acceptanceInfo.materialList.firstWhere(
+          (m) => m.materialId.toString() == scannedId.toString(),
+        );
+        final isMatched = currentState.matchedMaterials.any(
+          (m) => m.materialId == existing.materialId,
+        );
+        if (!isMatched) {
+          emit(
+            currentState.copyWith(
+              matchMessage: '物料${existing.materialName} 未在已扫描列表中',
+            ),
+          );
+          return;
+        }
+        final newSet = Set<MaterialVO>.from(currentState.matchedMaterials)
+          ..removeWhere((m) => m.materialId == existing.materialId);
+        emit(
+          currentState.copyWith(
+            matchedMaterials: newSet,
+            matchMessage: '已移除物料${existing.materialName}',
+          ),
+        );
+      } catch (e) {
+        emit(currentState.copyWith(matchMessage: '当前验收单不包含扫描到的物料'));
+      }
+    }
+  }
+
+  void _onBulkUnmatchMaterials(
+    BulkUnmatchMaterials event,
+    Emitter<AcceptanceState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is AcceptanceDetailLoaded) {
+      final newSet = currentState.matchedMaterials
+          .where((m) => !event.materialIds.contains(m.materialId))
+          .toSet();
+      emit(
+        currentState.copyWith(
+          matchedMaterials: newSet,
+          matchMessage: '已剔除 ${event.materialIds.length} 个',
+        ),
+      );
+    }
+  }
+
+  // ========== QR Scan integration ==========
+  Future<void> _onInitializeMaterialsFromCodes(
+    InitializeMaterialsFromCodes event,
+    Emitter<AcceptanceState> emit,
+  ) async {
+    // Resolve codes and initialize current materials list for AcceptancePage
+    try {
+      if (event.codes.isEmpty) return;
+      final rsp = event.isBatch
+          ? await _materialHandleRepository.scanBatchToQueryAll(event.codes)
+          : await _materialHandleRepository.scanSingleToQueryAll(
+              event.codes.first,
+            );
+      if (rsp.isSuccess && rsp.data != null) {
+        final MaterialInfoForBusiness bundle = rsp.data!;
+        emit(
+          AcceptanceMaterialsResolved(
+            materials: bundle.normals,
+            // unique token to ensure state changes are observed even with same materials
+            message: 'init@${DateTime.now().microsecondsSinceEpoch}',
+          ),
+        );
+      } else {
+        emit(AcceptanceError(message: rsp.msg));
+      }
+    } catch (e) {
+      Logger.error(
+        'Initialize materials from codes failed: $e',
+        tag: 'AcceptanceBloc',
+      );
+      emit(const AcceptanceError(message: '解析扫码列表失败'));
+    }
+  }
+
+  Future<void> _onAppendMaterialsByCodes(
+    AppendMaterialsByCodes event,
+    Emitter<AcceptanceState> emit,
+  ) async {
+    try {
+      if (event.codes.isEmpty) return;
+      final rsp = await _materialHandleRepository.scanBatchToQueryAll(
+        event.codes,
+      );
+      if (rsp.isSuccess && rsp.data != null) {
+        final currentState = state;
+        if (currentState is AcceptanceDetailLoaded) {
+          // AcceptanceAfterSigninPage: 高亮匹配
+          final scannedIds = rsp.data!.normals
+              .map((m) => m.baseInfo.materialId)
+              .toSet();
+          final toAdd = currentState.acceptanceInfo.materialList
+              .where((m) => scannedIds.contains(m.materialId))
+              .toSet();
+
+          final before = currentState.matchedMaterials.length;
+          final newSet = {...currentState.matchedMaterials, ...toAdd};
+          final added = newSet.length - before;
+          final msg = added > 0 ? '新增匹配 $added 个物料' : '未匹配到新的物料';
+          emit(
+            currentState.copyWith(matchedMaterials: newSet, matchMessage: msg),
+          );
+        } else {
+          // AcceptancePage: 将解析结果抛给页面自行处理
+          emit(
+            AcceptanceMaterialsResolved(
+              materials: rsp.data!.normals,
+              message: 'append@${DateTime.now().microsecondsSinceEpoch}',
+            ),
+          );
+        }
+      } else {
+        emit(const AcceptanceError(message: '新增码未查到物料信息'));
+      }
+    } catch (e) {
+      Logger.error('Append by codes failed: $e', tag: 'AcceptanceBloc');
+      emit(const AcceptanceError(message: '获取物料信息失败'));
+    }
+  }
+
+  Future<void> _onRemoveMaterialsByCodes(
+    RemoveMaterialsByCodes event,
+    Emitter<AcceptanceState> emit,
+  ) async {
+    try {
+      if (event.codes.isEmpty) return;
+      final rsp = await _materialHandleRepository.scanBatchToQueryAll(
+        event.codes,
+      );
+      if (rsp.isSuccess && rsp.data != null) {
+        final currentState = state;
+        if (currentState is AcceptanceDetailLoaded) {
+          // AcceptanceAfterSigninPage: 取消高亮
+          final scannedIds = rsp.data!.normals
+              .map((m) => m.baseInfo.materialId)
+              .toSet();
+          final before = currentState.matchedMaterials.length;
+          final newSet = currentState.matchedMaterials
+              .where((m) => !scannedIds.contains(m.materialId))
+              .toSet();
+          final removed = before - newSet.length;
+          final msg = removed > 0 ? '已剔除 $removed 个物料' : '未找到可剔除的物料';
+          emit(
+            currentState.copyWith(matchedMaterials: newSet, matchMessage: msg),
+          );
+        } else {
+          // AcceptancePage: 将解析结果抛给页面自行处理
+          emit(
+            AcceptanceMaterialsResolved(
+              materials: rsp.data!.normals,
+              message: 'remove@${DateTime.now().microsecondsSinceEpoch}',
+            ),
+          );
+        }
+      } else {
+        emit(const AcceptanceError(message: '未匹配到可剔除的码'));
+      }
+    } catch (e) {
+      Logger.error('Remove by codes failed: $e', tag: 'AcceptanceBloc');
+      emit(const AcceptanceError(message: '剔除失败'));
+    }
+  }
+
+  // ========= Centralized editing for AcceptancePage =========
+  void _onInitializeEditingMaterials(
+    InitializeEditingMaterials event,
+    Emitter<AcceptanceState> emit,
+  ) {
+    final ids = event.initial.map((m) => m.baseInfo.materialId).toSet();
+    emit(
+      AcceptanceEditingState(
+        currentMaterials: List.of(event.initial),
+        materialIds: ids,
+        message: null,
+      ),
+    );
+  }
+
+  Future<void> _onAppendEditingMaterialsByCodes(
+    AppendEditingMaterialsByCodes event,
+    Emitter<AcceptanceState> emit,
+  ) async {
+    try {
+      if (event.codes.isEmpty) return;
+      final rsp = await _materialHandleRepository.scanBatchToQueryAll(
+        event.codes,
+      );
+      if (!rsp.isSuccess || rsp.data == null) {
+        emit(const AcceptanceError(message: '新增码未查到物料信息'));
+        return;
+      }
+      final currentState = state;
+      // Ensure we have an editing state; if not, bootstrap empty
+      final editing = currentState is AcceptanceEditingState
+          ? currentState
+          : const AcceptanceEditingState(currentMaterials: [], materialIds: {});
+      final list = List.of(editing.currentMaterials);
+      final ids = Set<int>.from(editing.materialIds);
+      int added = 0;
+      int dup = 0;
+      for (final m in rsp.data!.normals) {
+        final id = m.baseInfo.materialId;
+        if (ids.contains(id)) {
+          dup++;
+          continue;
+        }
+        ids.add(id);
+        list.add(m);
+        added++;
+      }
+      emit(
+        editing.copyWith(
+          currentMaterials: list,
+          materialIds: ids,
+          message: added > 0
+              ? '新增 $added 个${dup > 0 ? '，忽略重复 $dup 个' : ''}'
+              : '暂无可新增物料',
+        ),
+      );
+    } catch (e) {
+      Logger.error(
+        'Append editing materials failed: $e',
+        tag: 'AcceptanceBloc',
+      );
+      emit(const AcceptanceError(message: '获取物料信息失败'));
+    }
+  }
+
+  Future<void> _onRemoveEditingMaterialsByCodes(
+    RemoveEditingMaterialsByCodes event,
+    Emitter<AcceptanceState> emit,
+  ) async {
+    try {
+      if (event.codes.isEmpty) return;
+      final rsp = await _materialHandleRepository.scanBatchToQueryAll(
+        event.codes,
+      );
+      if (!rsp.isSuccess || rsp.data == null) {
+        emit(const AcceptanceError(message: '未匹配到可剔除的码'));
+        return;
+      }
+      final currentState = state;
+      final editing = currentState is AcceptanceEditingState
+          ? currentState
+          : const AcceptanceEditingState(currentMaterials: [], materialIds: {});
+      final idsToRemove = rsp.data!.normals
+          .map((m) => m.baseInfo.materialId)
+          .toSet();
+      final before = editing.currentMaterials.length;
+      final newList = editing.currentMaterials
+          .where((m) => !idsToRemove.contains(m.baseInfo.materialId))
+          .toList();
+      final removed = before - newList.length;
+      final existingIds = editing.currentMaterials
+          .map((m) => m.baseInfo.materialId)
+          .toSet();
+      final unmatched = idsToRemove.difference(existingIds).length;
+      final newIds = Set<int>.from(editing.materialIds)..removeAll(idsToRemove);
+      final msg = removed > 0
+          ? '已剔除 $removed 个${unmatched > 0 ? '，忽略未在页面 $unmatched 个' : ''}'
+          : '未找到可剔除的物料';
+      emit(
+        editing.copyWith(
+          currentMaterials: newList,
+          materialIds: newIds,
+          message: msg,
+        ),
+      );
+    } catch (e) {
+      Logger.error(
+        'Remove editing materials failed: $e',
+        tag: 'AcceptanceBloc',
+      );
+      emit(const AcceptanceError(message: '剔除失败'));
+    }
+  }
+
+  void _onClearEditingMessage(
+    ClearEditingMessage event,
+    Emitter<AcceptanceState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is AcceptanceEditingState) {
+      emit(currentState.copyWith(clearMessage: true));
     }
   }
 }

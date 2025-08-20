@@ -57,3 +57,8 @@ class AppendScannedMaterial extends InstallEvent {
   @override
   List<Object?> get props => [materialInfo];
 }
+
+/// 恢复到提交前的就绪态（保留用户已添加的材料等）
+class RestorePreviousReady extends InstallEvent {
+  const RestorePreviousReady();
+}

@@ -110,11 +110,7 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildQrCodeSection(state.dispatchDetail!),
-                        const SizedBox(height: 16),
                         _buildMaterialsList(state.dispatchDetail!),
-                        const SizedBox(height: 16),
-                        _buildAttachmentsSection(state.dispatchDetail!),
                         const SizedBox(height: 16),
                         _buildProjectInfo(state.dispatchDetail!),
                         const SizedBox(height: 16),
@@ -133,34 +129,6 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
 
           return const Center(child: Text('暂无数据'));
         },
-      ),
-    );
-  }
-
-  Widget _buildQrCodeSection(DispatchDetailVo dispatchDetail) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          const Text(
-            '一管一码',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Divider(),
-          if (dispatchDetail.materialList.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              '代表性材料: ${dispatchDetail.materialList.first.materialName}',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-            ),
-          ],
-        ],
       ),
     );
   }
@@ -191,136 +159,6 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
           Text('${material.num}个', style: const TextStyle(fontSize: 16)),
         ],
       ),
-    );
-  }
-
-  Widget _buildAttachmentsSection(DispatchDetailVo dispatchDetail) {
-    // 筛选不同类型的附件
-    final dispatchPhotos = dispatchDetail.imageList
-        .where((item) => item.type == 3)
-        .toList();
-    final reportDocuments = dispatchDetail.imageList
-        .where((item) => item.type == 1)
-        .toList();
-    final dispatchReports = dispatchDetail.imageList
-        .where((item) => item.type == 2)
-        .toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '调拨照片：',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 12),
-        _buildPhotosRow(dispatchPhotos),
-        const SizedBox(height: 20),
-        _buildDocumentInfo('调拨单', reportDocuments),
-        const SizedBox(height: 12),
-        _buildDocumentInfo('调拨报告', dispatchReports),
-      ],
-    );
-  }
-
-  Widget _buildPhotosRow(List<AttachmentVO> photos) {
-    if (photos.isEmpty) {
-      return Row(
-        children: [
-          _buildAttachmentPlaceholder(),
-          const SizedBox(width: 16),
-          _buildAttachmentPlaceholder(),
-        ],
-      );
-    }
-
-    return Row(
-      children: [
-        if (photos.isNotEmpty) _buildPhotoWidget(photos[0]),
-        const SizedBox(width: 16),
-        if (photos.length > 1)
-          _buildPhotoWidget(photos[1])
-        else
-          _buildAttachmentPlaceholder(),
-      ],
-    );
-  }
-
-  Widget _buildPhotoWidget(AttachmentVO photo) {
-    return GestureDetector(
-      onTap: () => _previewPhoto(photo),
-      child: Container(
-        width: 80,
-        height: 60,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.network(
-            photo.url,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: Colors.grey.shade100,
-              child: Icon(
-                Icons.image_not_supported,
-                color: Colors.grey.shade600,
-                size: 24,
-              ),
-            ),
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                color: Colors.grey.shade100,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                        : null,
-                    strokeWidth: 2,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAttachmentPlaceholder() {
-    return Container(
-      width: 80,
-      height: 60,
-      decoration: BoxDecoration(
-        color: Colors.blue.shade100,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blue.shade300),
-      ),
-      child: Icon(Icons.image, color: Colors.blue.shade600, size: 32),
-    );
-  }
-
-  Widget _buildDocumentInfo(String label, List<AttachmentVO> documents) {
-    return Row(
-      children: [
-        Text(
-          '$label：',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            documents.isNotEmpty ? documents.first.name ?? '' : '暂无$label',
-            style: TextStyle(
-              fontSize: 16,
-              color: documents.isNotEmpty ? Colors.black : Colors.grey.shade600,
-            ),
-          ),
-        ),
-      ],
     );
   }
 

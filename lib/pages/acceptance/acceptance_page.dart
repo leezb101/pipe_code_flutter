@@ -23,15 +23,26 @@ import '../../bloc/acceptance/acceptance_event.dart';
 import '../../bloc/acceptance/acceptance_state.dart';
 import '../../models/acceptance/do_accept_vo.dart';
 import '../../models/acceptance/material_vo.dart';
-import '../../utils/go_router_popuntil.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
+import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
+import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
+    show QrScanOperation; // enum
+// import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
+// import 'package:pipe_code_flutter/config/service_locator.dart';
 
 class AcceptancePage extends StatefulWidget {
-  const AcceptancePage({super.key, required this.materials});
+  const AcceptancePage({
+    super.key,
+    this.materials,
+    this.initialCodes,
+    this.initialIsBatch,
+  });
 
-  final MaterialInfoForBusiness materials;
+  final MaterialInfoForBusiness? materials;
+  final List<String>? initialCodes;
+  final bool? initialIsBatch;
 
   @override
   State<AcceptancePage> createState() => _AcceptancePageState();
@@ -63,6 +74,9 @@ class _AcceptancePageState extends State<AcceptancePage> {
 
   // 推送选择状态
   final Map<String, bool?> _userPushStates = {};
+  // 旧的本地列表与去重集合保留以便降级使用；主流程已切换到 Bloc 的 AcceptanceEditingState
+  final Set<int> _materialIds = <int>{};
+  late List<MaterialInfo> _currentMaterials;
 
   @override
   void initState() {
@@ -70,6 +84,32 @@ class _AcceptancePageState extends State<AcceptancePage> {
     _acceptancePhotosCubit = FileUploadCubit();
     _inspectionReportsCubit = FileUploadCubit();
     _acceptanceReportsCubit = FileUploadCubit();
+
+    // 初始进入（来自外部 initial 扫码页）时，将传入的 materials 视为已扫描集合，
+    // 以便后续可以直接执行“扫码剔除”操作；若后续 append/remove 会继续增删。
+    // 仅当当前集合还是空时才注入，避免重复。
+    _currentMaterials = [
+      ...(widget.materials?.normals ?? const <MaterialInfo>[]),
+    ];
+    for (final m in _currentMaterials) {
+      _materialIds.add(m.baseInfo.materialId);
+    }
+
+    // 如从Standalone扫码跳转而来，带有codes，则先让bloc解析，再用编辑态初始化
+    final codes = widget.initialCodes ?? const <String>[];
+    if (codes.isNotEmpty) {
+      context.read<AcceptanceBloc>().add(
+        InitializeMaterialsFromCodes(
+          codes: codes,
+          isBatch: widget.initialIsBatch ?? (codes.length > 1),
+        ),
+      );
+    }
+
+    // 用传入 materials 作为编辑态初始值
+    context.read<AcceptanceBloc>().add(
+      InitializeEditingMaterials(initial: _currentMaterials),
+    );
 
     // Load initial user data
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -114,6 +154,10 @@ class _AcceptancePageState extends State<AcceptancePage> {
               _userPushStates['construction_${user.name}'] = user.messageTo;
             }
           });
+        } else if (state is WarehouseListLoaded) {
+          setState(() {
+            _warehouseList = state.warehouseList;
+          });
         } else if (state is WarehouseUsersLoaded) {
           setState(() {
             _warehouseUsers = state.warehouseUserInfo.warehouseUsers;
@@ -122,38 +166,26 @@ class _AcceptancePageState extends State<AcceptancePage> {
               _userPushStates['warehouse_${user.name}'] = user.messageTo;
             }
           });
-        } else if (state is WarehouseListLoaded) {
-          setState(() {
-            _warehouseList = state.warehouseList;
-            // Set default selection to first warehouse if available
-            if (_warehouseList.isNotEmpty) {
-              _selectedWarehouseId = _warehouseList.first.id;
-
-              // 如果当前是独立仓库模式，自动获取默认仓库的人员
-              if (_storageType == 'independent') {
-                context.read<AcceptanceBloc>().add(
-                  LoadWarehouseUsers(warehouseId: _warehouseList.first.id),
-                );
-              }
+        } else if (state is AcceptanceMaterialsResolved) {
+          // 将解析结果作为编辑态初始值注入（用于 initialCodes 路径）
+          context.read<AcceptanceBloc>().add(
+            InitializeEditingMaterials(initial: state.materials),
+          );
+        } else if (state is AcceptanceEditingState) {
+          // 编辑态下的反馈消息
+          if (state.message != null && state.message!.isNotEmpty) {
+            // 简单判断文案分别提示
+            final msg = state.message!;
+            if (msg.contains('新增') || msg.contains('追加')) {
+              context.showSuccessToast(msg);
+            } else if (msg.contains('剔除') || msg.contains('移除')) {
+              context.showSuccessToast(msg);
+            } else {
+              context.showInfoToast(msg);
             }
-          });
-        } else if (state is AcceptanceError) {
-          context.showErrorToast(state.message);
-          // ScaffoldMessenger.of(
-          //   context,
-          // ).showSnackBar(SnackBar(content: Text(state.message)));
-        } else if (state is AcceptanceSubmitted) {
-          // 通过GoRouter返回MainPage
-          context.showSuccessToast('提交成功，即将返回', isGlobal: true);
-          Future.delayed(const Duration(seconds: 2), () {
-            if (context.mounted) {
-              GoRouter.of(context).popUntil(
-                predicate: (route) {
-                  return route.name == '/';
-                },
-              );
-            }
-          });
+            // 清理一次消息，避免后续无关状态变更时重复弹出
+            context.read<AcceptanceBloc>().add(const ClearEditingMessage());
+          }
         }
       },
       child: Scaffold(
@@ -204,28 +236,55 @@ class _AcceptancePageState extends State<AcceptancePage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        child: BlocBuilder<AcceptanceBloc, AcceptanceState>(
+          builder: (context, state) {
+            final materials = state is AcceptanceEditingState
+                ? state.currentMaterials
+                : _currentMaterials;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.inventory, size: 24, color: Colors.blue[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '材料清单',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
+                Row(
+                  children: [
+                    Icon(Icons.inventory, size: 24, color: Colors.blue[600]),
+                    const SizedBox(width: 8),
+                    const Text(
+                      '材料清单',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ...materials.map(_buildMaterialItem),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _scanAppendMaterials,
+                        child: const Text('继续扫码'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _scanRemoveMaterials,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.redAccent),
+                        ),
+                        child: const Text('扫码剔除'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-            const SizedBox(height: 16),
-            ...widget.materials.normals.map(
-              (material) => _buildMaterialItem(material),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -632,10 +691,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
                 ),
                 child: const Text(
                   '提交报验',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -651,7 +707,12 @@ class _AcceptancePageState extends State<AcceptancePage> {
   }
 
   void _handleScanAcceptance() {
-    final materialVOList = widget.materials.normals
+    // 优先从编辑态取材；否则退回到本地集合
+    final currentState = context.read<AcceptanceBloc>().state;
+    final sourceMaterials = currentState is AcceptanceEditingState
+        ? currentState.currentMaterials
+        : _currentMaterials;
+    final materialVOList = sourceMaterials
         .map(
           (e) => MaterialVO(
             materialId: e.baseInfo.materialId,
@@ -687,40 +748,26 @@ class _AcceptancePageState extends State<AcceptancePage> {
           ),
     );
     // 2. 报验单
-    allAttachments.addAll(
-      _inspectionReportsCubit.state
-          .where(
-            (s) => s.status == UploadStatus.success && s.uploadResult != null,
-          )
-          .map(
-            (state) => AttachmentVO(
-              type: 2, // 2 for inspection report file
-              name: state.uploadResult!.fileName,
-              url: state.uploadResult!.fileUrl,
-              attachFormat: state.uploadResult!.fileType,
-            ),
-          ),
-    );
+    final String? sendAcceptUrl = _inspectionReportsCubit.state
+        .firstWhere(
+          (s) => s.status == UploadStatus.success && s.uploadResult != null,
+        )
+        .uploadResult
+        ?.fileUrl;
     // 3. 验收报告
-    allAttachments.addAll(
-      _acceptanceReportsCubit.state
-          .where(
-            (s) => s.status == UploadStatus.success && s.uploadResult != null,
-          )
-          .map(
-            (state) => AttachmentVO(
-              type: 3, // 3 for acceptance report file
-              name: state.uploadResult!.fileName,
-              url: state.uploadResult!.fileUrl,
-              attachFormat: state.uploadResult!.fileType,
-            ),
-          ),
-    );
+    final String? acceptReportUrl = _acceptanceReportsCubit.state
+        .firstWhere(
+          (s) => s.status == UploadStatus.success && s.uploadResult != null,
+        )
+        .uploadResult
+        ?.fileUrl;
 
     // 创建DoAcceptVO对象
     final doAcceptVO = DoAcceptVO(
       materialList: materialVOList,
       imageList: allAttachments,
+      sendAcceptUrl: sendAcceptUrl,
+      acceptReportUrl: acceptReportUrl,
       realWarehouse: realWarehouse,
       warehouseId: warehouseId,
       messageTo: selectedUserIds,
@@ -734,7 +781,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
     ).showSnackBar(const SnackBar(content: Text('正在提交验收数据...')));
   }
 
-  
   void _handleReturn() {
     context.pop();
     // Navigator.of(context).pop();
@@ -788,4 +834,64 @@ class _AcceptancePageState extends State<AcceptancePage> {
 
     return selectedUserIds;
   }
+
+  // 批量继续扫码追加材料：
+  //  1. 通过扫码获取一组二维码（不做前端去重）
+  //  2. 调用 scanBatchToQueryAll 获取完整物料实体
+  //  3. 基于 materialId 去重追加
+  Future<void> _scanAppendMaterials() async {
+    final flow = RepositoryProvider.of<QrScanFlowService>(context);
+    // 不再依赖 currentCodes 做前端排重，传空数组让 normalize 全部视为新增
+    final currentCodes = <String>[];
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.append,
+      currentCodes: currentCodes,
+      batch: true,
+      context: const {
+        'source': 'acceptancePage_append',
+        'entry': 'embedded',
+        'operation': 'append',
+      },
+      title: '继续扫码',
+    );
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    if (!mounted) return;
+    final res = flow.normalize(request, raw);
+    if (res.addedCodes.isEmpty) return;
+    // Delegate code resolution to bloc
+    context.read<AcceptanceBloc>().add(
+      AppendEditingMaterialsByCodes(codes: res.addedCodes),
+    );
+  }
+
+  // 扫码剔除：
+  //  1. 扫到一组待移除二维码
+  //  2. 调用 scanBatchToQueryAll 获取对应 materialId 集合
+  //  3. 依据 materialId 从 _currentMaterials 中剔除
+  Future<void> _scanRemoveMaterials() async {
+    final flow = RepositoryProvider.of<QrScanFlowService>(context);
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.remove,
+      // 不再依赖前端已有码集合过滤，传空表示全部交给后端解析
+      currentCodes: const <String>[],
+      batch: true,
+      context: const {
+        'source': 'acceptancePage_remove',
+        'entry': 'embedded',
+        'operation': 'remove',
+      },
+      title: '扫码剔除',
+    );
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    if (!mounted) return;
+    final res = flow.normalize(request, raw);
+    if (res.removedCodes.isEmpty) return;
+    context.read<AcceptanceBloc>().add(
+      RemoveEditingMaterialsByCodes(codes: res.removedCodes),
+    );
+  }
+
+  // 已移除高亮及匹配辅助逻辑，直接基于 _currentMaterials 操作。
 }

@@ -22,6 +22,7 @@ class AcceptanceInfoVO extends Equatable {
   final String? acceptReportUrl;
   final bool realWarehouse;
   final int warehouseId;
+  final String? warehouseName;
   final List<CommonUserVO> warehouseUsers;
   final List<CommonUserVO> supervisorUsers;
   final List<CommonUserVO> constructionUsers;
@@ -36,6 +37,7 @@ class AcceptanceInfoVO extends Equatable {
     this.acceptReportUrl,
     required this.realWarehouse,
     required this.warehouseId,
+    this.warehouseName,
     required this.warehouseUsers,
     required this.supervisorUsers,
     required this.constructionUsers,
@@ -70,6 +72,7 @@ class AcceptanceInfoVO extends Equatable {
     String? acceptReportUrl,
     bool? realWarehouse,
     int? warehouseId,
+    String? warehouseName,
     List<CommonUserVO>? warehouseUsers,
     List<CommonUserVO>? supervisorUsers,
     List<CommonUserVO>? constructionUsers,
@@ -84,6 +87,7 @@ class AcceptanceInfoVO extends Equatable {
       acceptReportUrl: acceptReportUrl ?? this.acceptReportUrl,
       realWarehouse: realWarehouse ?? this.realWarehouse,
       warehouseId: warehouseId ?? this.warehouseId,
+      warehouseName: warehouseName ?? this.warehouseName,
       warehouseUsers: warehouseUsers ?? this.warehouseUsers,
       supervisorUsers: supervisorUsers ?? this.supervisorUsers,
       constructionUsers: constructionUsers ?? this.constructionUsers,
@@ -94,6 +98,6 @@ class AcceptanceInfoVO extends Equatable {
   }
 
   String get warehouseTypeDescription {
-    return realWarehouse ? '独立仓库' : '项目现场';
+    return realWarehouse ? '独立仓库: $warehouseName' : '项目现场: $warehouseName';
   }
 }

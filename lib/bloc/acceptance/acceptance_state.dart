@@ -5,6 +5,7 @@ import '../../models/common/accept_user_info_vo.dart';
 import '../../models/common/warehouse_user_info_vo.dart';
 import '../../models/records/record_list_response.dart';
 import '../../models/common/warehouse_vo.dart';
+import '../../models/material/material_info_base.dart';
 
 abstract class AcceptanceState extends Equatable {
   const AcceptanceState();
@@ -136,4 +137,43 @@ class WarehouseListLoaded extends AcceptanceState {
 
   @override
   List<Object?> get props => [warehouseList];
+}
+
+// Materials resolved from QR codes for AcceptancePage initialization
+class AcceptanceMaterialsResolved extends AcceptanceState {
+  final List<MaterialInfo> materials;
+  final String? message;
+  const AcceptanceMaterialsResolved({required this.materials, this.message});
+
+  @override
+  List<Object?> get props => [materials, message];
+}
+
+// Editing flow state for AcceptancePage: keeps current list and dedup set
+class AcceptanceEditingState extends AcceptanceState {
+  final List<MaterialInfo> currentMaterials;
+  final Set<int> materialIds; // for quick dedup
+  final String? message; // feedback like appended/removed counts
+
+  const AcceptanceEditingState({
+    required this.currentMaterials,
+    required this.materialIds,
+    this.message,
+  });
+
+  AcceptanceEditingState copyWith({
+    List<MaterialInfo>? currentMaterials,
+    Set<int>? materialIds,
+    String? message,
+    bool clearMessage = false,
+  }) {
+    return AcceptanceEditingState(
+      currentMaterials: currentMaterials ?? this.currentMaterials,
+      materialIds: materialIds ?? this.materialIds,
+      message: clearMessage ? null : (message ?? this.message),
+    );
+  }
+
+  @override
+  List<Object?> get props => [currentMaterials, materialIds, message];
 }

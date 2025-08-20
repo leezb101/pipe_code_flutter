@@ -17,6 +17,8 @@ import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
+import 'package:pipe_code_flutter/widgets/file_upload/fade_scale_route.dart';
+import 'package:pipe_code_flutter/widgets/file_upload/image_preview_widget.dart';
 
 class SignoutAuditPage extends StatefulWidget {
   final int signoutId;
@@ -79,7 +81,11 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
         backgroundColor: Colors.grey[50],
         body: BlocBuilder<SignoutBloc, SignoutState>(
           builder: (context, state) {
-            if (state is SignoutLoading) {
+            // Show loading for initial, loading, and auditing states to avoid fallback flashes
+            if (state is SignoutInitial ||
+                state is SignoutLoading ||
+                state is SignoutAuditing ||
+                state is SignoutAudited) {
               return const Center(child: CircularProgressIndicator());
             }
             if (state is SignoutReady) {
@@ -92,7 +98,7 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
                         children: [
                           _buildMaterialsList(context, state),
                           const SizedBox(height: 16),
-                          _buildPhotoSection(),
+                          _buildPhotoSection(context, state),
                           const SizedBox(height: 16),
                           _buildWarehouseSection(state),
                         ],
@@ -103,6 +109,7 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
                 ],
               );
             }
+            // Fallback (should rarely hit now)
             return const Center(child: Text('未知错误，请重试'));
           },
         ),
@@ -203,7 +210,7 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
     );
   }
 
-  Widget _buildPhotoSection() {
+  Widget _buildPhotoSection(BuildContext context, SignoutReady state) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -227,46 +234,45 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
               ],
             ),
             const SizedBox(height: 16),
-            _buildPhotoGrid(),
+            _buildPhotoGrid(context, state),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPhotoGrid() {
+  Widget _buildPhotoGrid(BuildContext context, SignoutReady state) {
     return Row(
-      children: [
-        _buildPhotoPlaceholder(),
-        const SizedBox(width: 16),
-        _buildPhotoPlaceholder(),
+      children: <Widget>[
+        if (state.signoutDetail?.imageList.isNotEmpty ?? false)
+          ...state.signoutDetail!.imageList.asMap().entries.map((entry) {
+            final photo = entry.value;
+            final index = entry.key;
+            return Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: InkWell(
+                onTap: () => _previewImages(context, state, index),
+                child: Image.network(
+                  photo.url,
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            );
+          }),
       ],
     );
   }
 
-  Widget _buildPhotoPlaceholder() {
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.image, size: 32, color: Colors.blue[400]),
-          const SizedBox(height: 4),
-          Container(
-            width: 20,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[400],
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        ],
+  void _previewImages(BuildContext context, SignoutReady state, int index) {
+    Navigator.of(context).push(
+      FadeScaleRoute(
+        page: ImagePreviewWidget(
+          imageUrls: state.signoutDetail!.imageList.map((e) => e.url).toList(),
+          initialIndex: index,
+          onUrlsChanged: (p0) => {},
+        ),
       ),
     );
   }

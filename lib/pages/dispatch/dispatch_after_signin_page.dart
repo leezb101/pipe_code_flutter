@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
 import '../../bloc/dispatch/dispatch_bloc.dart';
 import '../../bloc/records/records_bloc.dart';
 import '../../bloc/records/records_event.dart';
@@ -11,15 +10,14 @@ import '../../models/acceptance/attachment_vo.dart';
 import '../../models/dispatch/do_dispatch_sign_in_vo.dart';
 import '../../models/common/common_user_vo.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
-import '../../models/qr_scan/qr_scan_type.dart';
 import '../../models/records/record_type.dart';
 import '../../widgets/common_state_widgets.dart' as common;
 import '../../utils/toast_utils.dart';
-import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
-import 'package:pipe_code_flutter/bloc/material_handle/material_handle_state.dart';
+// 移除逐个扫码 Cubit 依赖，改用批量扫码流程
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
+import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 
 class DispatchAfterSigninPage extends StatelessWidget {
   final int dispatchId;
@@ -27,21 +25,8 @@ class DispatchAfterSigninPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<MaterialHandleCubit, MaterialHandleState>(
-      listener: (context, materialHandleState) {
-        if (materialHandleState is MaterialHandleScanSuccess) {
-          // 扫描成功，物料信息交给DispatchBloc进行匹配
-          context.read<DispatchBloc>().add(
-            MatchScannedMaterial(
-              scannedMaterial: materialHandleState.materialInfo,
-            ),
-          );
-          // 给出一个即时反馈
-          context.showSuccessToast('扫到二维码信息，正在匹配...');
-        }
-      },
-      child: DispatchAfterSigninView(dispatchId: dispatchId),
-    );
+    // 直接返回视图，扫码交互走 QrScanFlowService
+    return DispatchAfterSigninView(dispatchId: dispatchId);
   }
 }
 
@@ -72,79 +57,82 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('调拨后入库')),
-      body: BlocConsumer<DispatchBloc, DispatchState>(
-        // 当状态是DispatchSignedIn时，不用重建UI，因为listener会处理pop，避免未知状态闪烁
-        buildWhen: (previous, current) =>
-            current.status != DispatchStatus.signInSuccess,
-        listenWhen: (previous, current) {
-          // 提交成功时触发
-          if (current.status == DispatchStatus.signInSuccess) return true;
-          // 出现提示用户错误时出发
-          if (current.status == DispatchStatus.failure) return true;
-          // 有新的匹配消息触发
-          if (current.matchMessage != null) {
-            // 避免重复弹出相同的消息
-            if (previous.matchMessage == current.matchMessage) {
-              return false;
+    return BlocProvider<FileUploadCubit>.value(
+      value: _fileUploadCubit,
+      child: Scaffold(
+        appBar: AppBar(title: Text('调拨后入库')),
+        body: BlocConsumer<DispatchBloc, DispatchState>(
+          // 当状态是DispatchSignedIn时，不用重建UI，因为listener会处理pop，避免未知状态闪烁
+          buildWhen: (previous, current) =>
+              current.status != DispatchStatus.signInSuccess,
+          listenWhen: (previous, current) {
+            // 提交成功时触发
+            if (current.status == DispatchStatus.signInSuccess) return true;
+            // 出现提示用户错误时出发
+            if (current.status == DispatchStatus.failure) return true;
+            // 有新的匹配消息触发
+            if (current.matchMessage != null) {
+              // 避免重复弹出相同的消息
+              if (previous.matchMessage == current.matchMessage) {
+                return false;
+              }
+              return true;
             }
-            return true;
-          }
-          return false;
-        },
-        listener: (context, state) {
-          if (state.status == DispatchStatus.signInSuccess) {
-            context.showSuccessToast('调拨后入库成功', isGlobal: true);
-            context.pop();
-            // 触发记录列表刷新
-            context.read<RecordsBloc>().add(
-              RefreshRecords(recordType: RecordType.todo),
-            );
-            context.read<RecordsBloc>().add(
-              RefreshRecords(recordType: RecordType.dispatch),
-            );
-          }
-          // 将扫码的错误处理统一放在listener中，而不是在UI中到处判断
-          else if (state.status == DispatchStatus.failure) {
-            context.showErrorToast(state.errorMessage ?? '操作失败');
-
-            if (_isSubmitting) {
-              setState(() {
-                _isSubmitting = false;
-              });
+            return false;
+          },
+          listener: (context, state) {
+            if (state.status == DispatchStatus.signInSuccess) {
+              context.showSuccessToast('调拨后入库成功', isGlobal: true);
+              context.pop();
+              // 触发记录列表刷新
+              context.read<RecordsBloc>().add(
+                RefreshRecords(recordType: RecordType.todo),
+              );
+              context.read<RecordsBloc>().add(
+                RefreshRecords(recordType: RecordType.dispatch),
+              );
             }
-          } else if (state.matchMessage != null) {
-            context.showInfoToast(state.matchMessage!);
-          }
-        },
-        builder: (context, state) {
-          // builder现在只关心UI的构建
-          if (state.status == DispatchStatus.success &&
-              state.dispatchDetail != null) {
-            return _buildContent(
-              context,
-              state.dispatchDetail!,
-              state.matchedMaterials,
-            );
-          }
-          if (state.status == DispatchStatus.loading) {
-            return const common.LoadingWidget(message: "加载中...");
-          }
-          // 如果是错误状态，显示一个通用的错误页
-          if (state.status == DispatchStatus.failure) {
-            return common.ErrorWidget(
-              message: state.errorMessage ?? '加载失败',
-              onRetry: () {
-                context.read<DispatchBloc>().add(
-                  LoadDispatchDetail(widget.dispatchId),
-                );
-              },
-            );
-          }
+            // 将扫码的错误处理统一放在listener中，而不是在UI中到处判断
+            else if (state.status == DispatchStatus.failure) {
+              context.showErrorToast(state.errorMessage ?? '操作失败');
 
-          return const Center(child: Text('未知状态'));
-        },
+              if (_isSubmitting) {
+                setState(() {
+                  _isSubmitting = false;
+                });
+              }
+            } else if (state.matchMessage != null) {
+              context.showInfoToast(state.matchMessage!);
+            }
+          },
+          builder: (context, state) {
+            // builder现在只关心UI的构建
+            if (state.status == DispatchStatus.success &&
+                state.dispatchDetail != null) {
+              return _buildContent(
+                context,
+                state.dispatchDetail!,
+                state.matchedMaterials,
+              );
+            }
+            if (state.status == DispatchStatus.loading) {
+              return const common.LoadingWidget(message: "加载中...");
+            }
+            // 如果是错误状态，显示一个通用的错误页
+            if (state.status == DispatchStatus.failure) {
+              return common.ErrorWidget(
+                message: state.errorMessage ?? '加载失败',
+                onRetry: () {
+                  context.read<DispatchBloc>().add(
+                    LoadDispatchDetail(widget.dispatchId),
+                  );
+                },
+              );
+            }
+
+            return const Center(child: Text('未知状态'));
+          },
+        ),
       ),
     );
   }
@@ -165,35 +153,40 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
             matchedMaterials,
           ),
           const SizedBox(height: 16),
-          _buildScanButton(context),
+          _buildScanButtons(context),
           const SizedBox(height: 16),
-          BlocProvider.value(
-            value: _fileUploadCubit,
-            child: BlocBuilder<FileUploadCubit, List<FileUploadState>>(
-              builder: (context, states) {
-                return ImageUploadWidget(
-                  title: '入库照片',
-                  requiredPhotoCount: 2,
-                  states: states,
-                  onAdd: (files) {
-                    _fileUploadCubit.addFiles(files);
-                  },
-                  onRemove: (uniqueId) {
-                    _fileUploadCubit.removeFile(uniqueId);
-                  },
-                  onRetry: (uniqueId) {
-                    _fileUploadCubit.retryUpload(uniqueId);
-                  },
-                );
-              },
-            ),
+          BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+            builder: (context, states) {
+              return ImageUploadWidget(
+                title: '入库照片',
+                requiredPhotoCount: 2,
+                states: states,
+                onAdd: (files) {
+                  _fileUploadCubit.addFiles(files);
+                },
+                onRemove: (uniqueId) {
+                  _fileUploadCubit.removeFile(uniqueId);
+                },
+                onRetry: (uniqueId) {
+                  _fileUploadCubit.retryUpload(uniqueId);
+                },
+              );
+            },
           ),
           const SizedBox(height: 16),
           _buildWarehouseInfo(dispatchInfo),
           const SizedBox(height: 16),
           _buildUserInfo(dispatchInfo),
           const SizedBox(height: 32),
-          _buildActionButtons(context, dispatchInfo, matchedMaterials),
+          // 监听上传状态变化，确保按钮可用性立即刷新
+          BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+            builder: (context, uploadStates) => _buildActionButtons(
+              context,
+              dispatchInfo,
+              matchedMaterials,
+              uploadStates,
+            ),
+          ),
         ],
       ),
     );
@@ -276,22 +269,26 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
     );
   }
 
-  Widget _buildScanButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () => _navigateToQrScan(context),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+  Widget _buildScanButtons(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: () => _scanAppendMaterials(context),
+            label: const Text('扫码入库'),
+          ),
         ),
-        child: const Text(
-          '扫码入库',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            icon: const Icon(Icons.delete),
+            onPressed: () => _scanRemoveMaterials(context),
+            label: const Text('扫码剔除'),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -362,6 +359,7 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
     BuildContext context,
     DispatchDetailVo dispatchInfo,
     Set<MaterialVO> matchedMaterials,
+    List<FileUploadState> uploadStates,
   ) {
     return Row(
       children: [
@@ -377,7 +375,7 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
         const SizedBox(width: 16),
         Expanded(
           child: ElevatedButton(
-            onPressed: _canSubmit(dispatchInfo, matchedMaterials)
+            onPressed: _canSubmit(dispatchInfo, matchedMaterials, uploadStates)
                 ? () => _submitSignin(context, dispatchInfo, matchedMaterials)
                 : null,
             style: ElevatedButton.styleFrom(
@@ -401,32 +399,66 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
     );
   }
 
-  void _navigateToQrScan(BuildContext context) {
-    final materialCubit = context.read<MaterialHandleCubit>();
-    // 导航到扫码逻辑保持不变，但返回结果后处理方式不同
-    final config = QrScanConfig(
-      scanType: QrScanType.materialInbound,
-      title: '扫码入库',
+  Future<void> _scanAppendMaterials(BuildContext context) async {
+    final flow = RepositoryProvider.of<QrScanFlowService>(context);
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.append,
+      currentCodes: const <String>[],
+      batch: true,
+      context: const {
+        'source': 'dispatchAfterSignin_append',
+        'entry': 'embedded',
+        'operation': 'append',
+      },
+      title: '继续扫码',
     );
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    if (!mounted) return;
+    final res = flow.normalize(request, raw);
+    if (res.addedCodes.isEmpty || !context.mounted) return;
+    context.read<DispatchBloc>().add(
+      AppendSigninMatchedByCodes(res.addedCodes),
+    );
+  }
 
-    context.pushNamed('qr-scan', extra: config).then((result) {
-      if (!context.mounted) return;
-      if (result != null &&
-          result is List<QrScanResult> &&
-          result.first.code.isNotEmpty) {
-        final qrCode = result.first.code;
-        materialCubit.getMaterialInfoFromQr(qrCode);
-      }
-    });
+  Future<void> _scanRemoveMaterials(BuildContext context) async {
+    final flow = RepositoryProvider.of<QrScanFlowService>(context);
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.remove,
+      currentCodes: const <String>[],
+      batch: true,
+      context: const {
+        'source': 'dispatchAfterSignin_remove',
+        'entry': 'embedded',
+        'operation': 'remove',
+      },
+      title: '扫码剔除',
+    );
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    if (!mounted) return;
+    final res = flow.normalize(request, raw);
+    if (res.removedCodes.isEmpty || !context.mounted) return;
+    context.read<DispatchBloc>().add(
+      RemoveSigninMatchedByCodes(res.removedCodes),
+    );
   }
 
   bool _canSubmit(
     DispatchDetailVo dispatchInfo,
     Set<MaterialVO> matchedMaterials,
+    List<FileUploadState> uploadStates,
   ) {
+    // 按 materialId 严格匹配，避免仅比长度导致误判
+    final expectedIds = dispatchInfo.materialList
+        .map((m) => m.materialId)
+        .toSet();
+    final matchedIds = matchedMaterials.map((m) => m.materialId).toSet();
     final allMaterialScanned =
-        matchedMaterials.length == dispatchInfo.materialList.length;
-    final uploadStates = _fileUploadCubit.state;
+        expectedIds.length == matchedIds.length &&
+        matchedIds.containsAll(expectedIds);
+
     final hasEnoughPhotos = uploadStates.length >= 2;
     final allPhotosUploaded = uploadStates.every(
       (s) => s.status == UploadStatus.success,
@@ -451,7 +483,7 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
       return;
     }
     if (!mounted) return;
-    if (!_canSubmit(dispatchInfo, matchedMaterials)) return;
+    if (!_canSubmit(dispatchInfo, matchedMaterials, uploadStates)) return;
 
     setState(() => _isSubmitting = true);
 

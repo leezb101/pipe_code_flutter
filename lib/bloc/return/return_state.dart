@@ -19,6 +19,7 @@ enum ReturnStatus {
 class ReturnState extends Equatable {
   const ReturnState({
     this.status = ReturnStatus.initial,
+    this.codes = const [],
     this.materialInfo,
     this.returnDetail,
     this.returnType = 1, // 默认为多余件退库
@@ -29,6 +30,8 @@ class ReturnState extends Equatable {
 
   // 当前状态
   final ReturnStatus status;
+  // 扫码获取的物料二维码字符串
+  final List<String> codes;
   // 扫码获取的物料信息
   final MaterialInfoForBusiness? materialInfo;
   // 退库详情
@@ -44,6 +47,7 @@ class ReturnState extends Equatable {
 
   ReturnState copyWith({
     ReturnStatus? status,
+    List<String>? codes,
     MaterialInfoForBusiness? materialInfo,
     ReturnDetailVo? returnDetail,
     int? returnType,
@@ -53,6 +57,7 @@ class ReturnState extends Equatable {
   }) {
     return ReturnState(
       status: status ?? this.status,
+      codes: codes ?? this.codes,
       materialInfo: materialInfo ?? this.materialInfo,
       returnDetail: returnDetail ?? this.returnDetail,
       returnType: returnType ?? this.returnType,
@@ -64,12 +69,13 @@ class ReturnState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        materialInfo,
-        returnDetail,
-        returnType,
-        returnRemark,
-        imageList,
-        errorMessage,
-      ];
+    status,
+    codes,
+    materialInfo,
+    returnDetail,
+    returnType,
+    returnRemark,
+    imageList,
+    errorMessage,
+  ];
 }
