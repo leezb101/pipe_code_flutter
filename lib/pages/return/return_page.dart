@@ -26,9 +26,9 @@ import 'package:pipe_code_flutter/repositories/interfaces/material_handle_reposi
 import 'package:pipe_code_flutter/config/service_locator.dart';
 
 class ReturnPage extends StatefulWidget {
-  const ReturnPage({super.key, required this.materials});
+  const ReturnPage({super.key, required this.codes});
 
-  final MaterialInfoForBusiness materials;
+  final List<String> codes;
 
   @override
   State<ReturnPage> createState() => _ReturnPageState();
@@ -47,7 +47,7 @@ class _ReturnPageState extends State<ReturnPage> {
     // 加载物料信息
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ReturnBloc>().add(
-        LoadReturnMaterial(materialInfo: widget.materials),
+        LoadReturnMaterialCodes(codes: widget.codes),
       );
     });
   }

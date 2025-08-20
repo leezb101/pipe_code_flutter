@@ -410,13 +410,13 @@ final GoRouter appRouter = GoRouter(
             if (data == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            final materials = data['materialInfo'] as MaterialInfoForBusiness?;
-            if (materials == null) {
+            if (data['codes'] == null ||
+                (data['codes'] as List<String>).isEmpty) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
               create: (context) => getIt<ReturnBloc>(),
-              child: ReturnPage(materials: materials),
+              child: ReturnPage(codes: data['codes'] as List<String>),
             );
           },
         ),

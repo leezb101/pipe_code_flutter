@@ -14,6 +14,7 @@ import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/return/do_return_req_vo.dart';
 import 'package:pipe_code_flutter/models/return/return_detail_vo.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/return_repository.dart';
 
 part 'return_event.dart';
@@ -21,11 +22,16 @@ part 'return_state.dart';
 
 class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
   final ReturnRepository _returnRepository;
+  final MaterialHandleRepository _materialHandleRepository;
 
-  ReturnBloc({ReturnRepository? returnRepository})
-    : _returnRepository = returnRepository ?? getIt<ReturnRepository>(),
-      super(const ReturnState()) {
-    on<LoadReturnMaterial>(_onLoadReturnMaterial);
+  ReturnBloc({
+    ReturnRepository? returnRepository,
+    MaterialHandleRepository? materialHandleRepository,
+  }) : _returnRepository = returnRepository ?? getIt<ReturnRepository>(),
+       _materialHandleRepository =
+           materialHandleRepository ?? getIt<MaterialHandleRepository>(),
+       super(const ReturnState()) {
+    on<LoadReturnMaterialCodes>(_onLoadReturnMaterialCodes);
     on<UpdateReturnType>(_onUpdateReturnType);
     on<UpdateReturnRemark>(_onUpdateReturnRemark);
     on<UpdateImageList>(_onUpdateImageList);
@@ -35,58 +41,67 @@ class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
     on<UpdateReturnMaterials>(_onUpdateReturnMaterials);
   }
 
-  // 处理加载扫码物料信息事件
-  Future<void> _onLoadReturnMaterial(
-    LoadReturnMaterial event,
+  // 处理加载扫码二维码事件
+  Future<void> _onLoadReturnMaterialCodes(
+    LoadReturnMaterialCodes event,
     Emitter<ReturnState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        status: ReturnStatus.loading,
-        materialInfo: event.materialInfo,
-      ),
-    );
+    emit(state.copyWith(status: ReturnStatus.loading, codes: event.codes));
 
     try {
-      // 从物料信息中提取有效的物料列表
-      final validMaterials = <MaterialVO>[];
+      final rsp = await _materialHandleRepository.scanBatchToQueryAll(
+        event.codes,
+      );
+      if (rsp.isSuccess && rsp.data != null) {
+        // 从物料信息中提取有效的物料列表
+        final validMaterials = <MaterialVO>[];
 
-      // 添加正常物料
-      if (event.materialInfo.normals.isNotEmpty) {
-        validMaterials.addAll(
-          event.materialInfo.normals.map(
-            (e) => MaterialVO(
-              materialId: e.baseInfo.materialId,
-              materialName: e.baseInfo.prodNm ?? '',
-              num: 1,
+        // 添加正常物料
+        if (rsp.data!.normals.isNotEmpty) {
+          validMaterials.addAll(
+            rsp.data!.normals.map(
+              (e) => MaterialVO(
+                materialId: e.baseInfo.materialId,
+                materialName: e.baseInfo.prodNm ?? '',
+                num: 1,
+              ),
             ),
+          );
+        }
+
+        // 如果没有有效物料，抛出异常
+        if (validMaterials.isEmpty) {
+          // throw Exception('未找到有效的退库物料');
+          emit(
+            state.copyWith(
+              status: ReturnStatus.failure,
+              codes: const [],
+              errorMessage: '未找到有效的退库物料',
+            ),
+          );
+        }
+
+        // 创建退库详情对象
+        final returnDetail = ReturnDetailVo(
+          materialList: validMaterials,
+          imageList: [],
+          returnType: state.returnType,
+          returnRemark: state.returnRemark,
+        );
+
+        emit(
+          state.copyWith(
+            status: ReturnStatus.success,
+            codes: const <String>[],
+            returnDetail: returnDetail,
           ),
         );
       }
-
-      // 如果没有有效物料，抛出异常
-      if (validMaterials.isEmpty) {
-        throw Exception('未找到有效的退库物料');
-      }
-
-      // 创建退库详情对象
-      final returnDetail = ReturnDetailVo(
-        materialList: validMaterials,
-        imageList: [],
-        returnType: state.returnType,
-        returnRemark: state.returnRemark,
-      );
-
-      emit(
-        state.copyWith(
-          status: ReturnStatus.success,
-          returnDetail: returnDetail,
-        ),
-      );
     } catch (e) {
       emit(
         state.copyWith(
           status: ReturnStatus.failure,
+          codes: const [],
           errorMessage: e.toString(),
         ),
       );
