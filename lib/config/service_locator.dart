@@ -110,7 +110,7 @@ Future<void> setupServiceLocator({
   getIt.registerSingleton<EnumRepository>(
     RepositoryFactory.createEnumRepository(),
   );
-  await getIt<EnumRepository>().initializeEnums();
+  // 延后到网络就绪后由 StartupGate 触发 initializeAppData()
 
   getIt.registerLazySingleton<InstallRepository>(
     () => RepositoryFactory.createInstallRepository(),
@@ -223,6 +223,18 @@ Future<void> setupServiceLocator({
   }
   if (dataSource != null) {
     await AppConfig.setDataSource(dataSource);
+  }
+}
+
+/// Execute network-dependent initializations after connectivity is granted.
+Future<void> initializeAppData() async {
+  Logger.debug('=========Initializing network-dependent app data');
+  try {
+    await getIt<EnumRepository>().initializeEnums();
+    Logger.debug('=========Enum initialization done');
+  } catch (e, s) {
+    Logger.error('Enum initialization failed: $e\n$s');
+    rethrow;
   }
 }
 

@@ -34,6 +34,7 @@ import 'repositories/interfaces/list_repository.dart';
 import 'repositories/interfaces/records_repository.dart';
 import 'widgets/notification/floating_todo_banner.dart';
 import 'services/sse/sse_service.dart';
+import 'widgets/startup_gate.dart';
 
 void main() async {
   if (kDebugMode) {
@@ -171,8 +172,12 @@ class MyApp extends StatelessWidget {
             ),
             routerConfig: appRouter,
             builder: (context, child) {
-              // Globally host floating todo banner on top of all pages
-              return FloatingTodoBannerHost(child: child ?? const SizedBox());
+              // 启动门卫：网络可用并完成初始化后放行
+              return StartupGate(
+                child: FloatingTodoBannerHost(
+                  child: child ?? const SizedBox(),
+                ),
+              );
             },
           ),
         ),
