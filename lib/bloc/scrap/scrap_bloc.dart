@@ -35,6 +35,7 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
     on<LoadScrapDetail>(_onLoadScrapDetail);
     on<UpdateMaterialQuantity>(_onUpdateMaterialQuantity);
     on<ClearScrapData>(_onClearScrapData);
+    on<ClearScrapErrorMessage>(_onClearScrapErrorMessage);
   }
 
   /// 加载报废详情
@@ -55,14 +56,14 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
         emit(ScrapDetailLoaded(scrapDetail: result.data!));
         Logger.info('Scrap detail loaded successfully', tag: 'ScrapBloc');
       } else {
-        emit(ScrapError(message: result.msg));
+        emit(ScrapFatalError(message: result.msg));
         Logger.error(
           'Failed to load scrap detail: ${result.msg}',
           tag: 'ScrapBloc',
         );
       }
     } catch (e) {
-      emit(ScrapError(message: '加载报废详情时发生错误: $e'));
+      emit(ScrapFatalError(message: '加载报废详情时发生错误: $e'));
       Logger.error(
         'Exception while loading scrap detail: $e',
         tag: 'ScrapBloc',
@@ -92,7 +93,7 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
         tag: 'ScrapBloc',
       );
     } catch (e) {
-      emit(ScrapError(message: '初始化报废申请失败: $e'));
+      emit(ScrapFatalError(message: '初始化报废申请失败: $e'));
       Logger.error(
         'Exception while initializing scrap submission: $e',
         tag: 'ScrapBloc',
@@ -131,14 +132,14 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
           tag: 'ScrapBloc',
         );
       } else {
-        emit(ScrapError(message: result.msg));
+        emit(ScrapSubmissionReady(errorMessage: result.msg));
         Logger.error(
           'Failed to query materials from codes: ${result.msg}',
           tag: 'ScrapBloc',
         );
       }
     } catch (e) {
-      emit(ScrapError(message: '从扫码结果初始化报废申请失败: $e'));
+      emit(ScrapFatalError(message: '从扫码结果初始化报废申请失败: $e'));
       Logger.error(
         'Exception while initializing scrap from codes: $e',
         tag: 'ScrapBloc',
@@ -152,7 +153,7 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
     Emitter<ScrapState> emit,
   ) async {
     if (state is! ScrapSubmissionReady) {
-      emit(const ScrapError(message: '当前状态不支持追加材料'));
+      emit(ScrapFatalError(message: '当前状态不支持追加材料'));
       return;
     }
 
@@ -178,6 +179,7 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
 
         // 合并现有材料和新材料
         final allMaterials = List<MaterialVO>.from(currentState.materialList);
+        final existedMaterials = <MaterialVO>[];
 
         // 去重：避免添加重复的材料
         for (final newMaterial in newMaterialList) {
@@ -186,31 +188,33 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
           );
 
           if (existingIndex >= 0) {
-            // 如果材料已存在，增加数量
-            final existing = allMaterials[existingIndex];
-            allMaterials[existingIndex] = existing.copyWith(
-              num: existing.num + newMaterial.num,
-            );
+            // 弹出提示
+            existedMaterials.add(newMaterial);
           } else {
             // 如果是新材料，直接添加
             allMaterials.add(newMaterial);
           }
         }
 
-        emit(currentState.copyWith(materialList: allMaterials));
-        Logger.info(
-          'Materials appended successfully, total: ${allMaterials.length}',
-          tag: 'ScrapBloc',
+        emit(
+          currentState.copyWith(
+            materialList: allMaterials,
+            errorMessage: existedMaterials.isNotEmpty
+                ? '存在重复材料${existedMaterials.length}个,已忽略'
+                : null,
+          ),
         );
       } else {
-        emit(ScrapError(message: result.msg));
+        emit(currentState.copyWith(errorMessage: result.msg));
         Logger.error(
           'Failed to query materials from codes: ${result.msg}',
           tag: 'ScrapBloc',
         );
       }
     } catch (e) {
-      emit(ScrapError(message: '追加材料失败: $e'));
+      emit(
+        (state as ScrapSubmissionReady).copyWith(errorMessage: '追加材料失败: $e'),
+      );
       Logger.error(
         'Exception while appending materials from codes: $e',
         tag: 'ScrapBloc',
@@ -224,7 +228,7 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
     Emitter<ScrapState> emit,
   ) async {
     if (state is! ScrapSubmissionReady) {
-      emit(const ScrapError(message: '当前状态不支持删除材料'));
+      emit(const ScrapFatalError(message: '当前状态不支持删除材料'));
       return;
     }
 
@@ -246,6 +250,16 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
             .map((materialInfo) => materialInfo.baseInfo.materialId)
             .toSet();
 
+        // 判断是否有不属于原本材料的材料，若有，记录下来以便提示
+        final notExistedMaterials = <MaterialVO>[];
+        for (final material in result.data!.normals) {
+          if (!currentState.materialList.any(
+            (m) => m.materialId == material.baseInfo.materialId,
+          )) {
+            notExistedMaterials.add(_convertMaterialInfoToMaterialVO(material));
+          }
+        }
+
         // 从现有材料列表中移除匹配的材料
         final updatedMaterials = currentState.materialList
             .where(
@@ -253,20 +267,31 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
             )
             .toList();
 
-        emit(currentState.copyWith(materialList: updatedMaterials));
+        emit(
+          currentState.copyWith(
+            materialList: updatedMaterials,
+            errorMessage: notExistedMaterials.isNotEmpty
+                ? '存在多扫材料${notExistedMaterials.length}个,已忽略'
+                : null,
+          ),
+        );
         Logger.info(
           'Materials removed successfully, remaining: ${updatedMaterials.length}',
           tag: 'ScrapBloc',
         );
       } else {
-        emit(ScrapError(message: result.msg));
+        emit(
+          (state as ScrapSubmissionReady).copyWith(errorMessage: result.msg),
+        );
         Logger.error(
           'Failed to query materials from codes: ${result.msg}',
           tag: 'ScrapBloc',
         );
       }
     } catch (e) {
-      emit(ScrapError(message: '删除材料失败: $e'));
+      emit(
+        (state as ScrapSubmissionReady).copyWith(errorMessage: '删除材料失败: $e'),
+      );
       Logger.error(
         'Exception while removing materials from codes: $e',
         tag: 'ScrapBloc',
@@ -323,7 +348,7 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
       try {
         // 验证数据
         if (currentState.materialList.isEmpty) {
-          emit(const ScrapError(message: '请至少添加一个物料'));
+          emit(currentState.copyWith(errorMessage: '请至少添加一个物料'));
           return;
         }
 
@@ -348,16 +373,27 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
           emit(const ScrapSubmitted());
           Logger.info('Scrap submitted successfully', tag: 'ScrapBloc');
         } else {
-          emit(ScrapError(message: result.msg));
+          emit(currentState.copyWith(errorMessage: result.msg));
           Logger.error(
             'Failed to submit scrap: ${result.msg}',
             tag: 'ScrapBloc',
           );
         }
       } catch (e) {
-        emit(ScrapError(message: '提交报废申请时发生错误: $e'));
+        emit(currentState.copyWith(errorMessage: '提交报废申请时发生错误: $e'));
         Logger.error('Exception while submitting scrap: $e', tag: 'ScrapBloc');
       }
+    }
+  }
+
+  Future<void> _onClearScrapErrorMessage(
+    ClearScrapErrorMessage event,
+    Emitter<ScrapState> emit,
+  ) async {
+    if (state is ScrapSubmissionReady) {
+      final currentState = state as ScrapSubmissionReady;
+      emit(currentState.copyWith(clearErrorMessage: true));
+      Logger.info('Scrap error message cleared', tag: 'ScrapBloc');
     }
   }
 

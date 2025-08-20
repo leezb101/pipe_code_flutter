@@ -62,7 +62,7 @@ class _ScrapDetailPageState extends State<ScrapDetailPage> {
           return common.LoadingWidget();
         } else if (state is ScrapDetailLoaded) {
           return _buildDetailContent(state.scrapDetail);
-        } else if (state is ScrapError) {
+        } else if (state is ScrapFatalError) {
           return common.ErrorWidget(
             message: state.message,
             onRetry: _loadScrapDetail,

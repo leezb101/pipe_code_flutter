@@ -41,25 +41,37 @@ class ScrapSubmissionReady extends ScrapState {
   final List<MaterialVO> materialList;
   final List<String> photoUrls;
   final bool isSubmitting;
+  final String? errorMessage; // 一次性错误信息
 
   const ScrapSubmissionReady({
     this.materialList = const [],
     this.photoUrls = const [],
     this.isSubmitting = false,
+    this.errorMessage,
   });
 
   @override
-  List<Object?> get props => [materialList, photoUrls, isSubmitting];
+  List<Object?> get props => [
+    materialList,
+    photoUrls,
+    isSubmitting,
+    errorMessage,
+  ];
 
   ScrapSubmissionReady copyWith({
     List<MaterialVO>? materialList,
     List<String>? photoUrls,
     bool? isSubmitting,
+    String? errorMessage,
+    bool clearErrorMessage = false,
   }) {
     return ScrapSubmissionReady(
       materialList: materialList ?? this.materialList,
       photoUrls: photoUrls ?? this.photoUrls,
       isSubmitting: isSubmitting ?? this.isSubmitting,
+      errorMessage: clearErrorMessage
+          ? null
+          : errorMessage ?? this.errorMessage,
     );
   }
 }
@@ -74,11 +86,9 @@ class ScrapSubmitted extends ScrapState {
   List<Object?> get props => [message];
 }
 
-/// 错误状态
-class ScrapError extends ScrapState {
+class ScrapFatalError extends ScrapState {
   final String message;
-
-  const ScrapError({required this.message});
+  const ScrapFatalError({required this.message});
 
   @override
   List<Object?> get props => [message];

@@ -1157,7 +1157,14 @@ class _HomePageState extends State<HomePage> {
       case MenuActions.qrScanScrap:
         _navigateToScan(
           context,
-          QrScanConfig(context: {'source': 'menu'}, scanMode: QrScanMode.batch),
+          QrScanConfig(
+            scanMode: QrScanMode.batch,
+            context: const {
+              'entry': 'standalone',
+              'route': '/scrap',
+              'data': <String, dynamic>{},
+            },
+          ),
         );
         break;
       case MenuActions.qrIdentify:

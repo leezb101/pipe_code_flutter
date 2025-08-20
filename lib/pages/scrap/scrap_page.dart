@@ -35,9 +35,6 @@ class ScrapPage extends StatefulWidget {
 class _ScrapPageState extends State<ScrapPage> {
   late final FileUploadCubit _imageUploadCubit;
 
-  // 保存已经扫描过的原始码，用于去重
-  final Set<String> _scannedCodes = <String>{};
-
   @override
   void initState() {
     super.initState();
@@ -59,7 +56,6 @@ class _ScrapPageState extends State<ScrapPage> {
       );
     } else if (widget.codes != null) {
       // 从扫码结果初始化
-      _scannedCodes.addAll(widget.codes!); // 保存初始的扫码
       context.read<ScrapBloc>().add(
         InitializeScrapFromCodes(codes: widget.codes!),
       );
@@ -102,7 +98,8 @@ class _ScrapPageState extends State<ScrapPage> {
     final flow = RepositoryProvider.of<QrScanFlowService>(context);
     final request = QrScanFlowRequest(
       operation: QrScanOperation.append,
-      currentCodes: _scannedCodes.toList(),
+      // currentCodes: _scannedCodes.toList(),
+      currentCodes: const <String>[],
       batch: true,
       context: const {
         'source': 'scrapPage',
@@ -115,7 +112,6 @@ class _ScrapPageState extends State<ScrapPage> {
     final result = flow.normalize(request, raw);
     if (!mounted) return;
     if (result.addedCodes.isNotEmpty) {
-      _scannedCodes.addAll(result.addedCodes);
       context.read<ScrapBloc>().add(
         AppendMaterialsFromCodes(codes: result.addedCodes),
       );
@@ -127,7 +123,8 @@ class _ScrapPageState extends State<ScrapPage> {
     final flow = RepositoryProvider.of<QrScanFlowService>(context);
     final request = QrScanFlowRequest(
       operation: QrScanOperation.remove,
-      currentCodes: _scannedCodes.toList(),
+      // currentCodes: _scannedCodes.toList(),
+      currentCodes: const <String>[],
       batch: true,
       context: const {
         'source': 'scrapPage',
@@ -143,7 +140,6 @@ class _ScrapPageState extends State<ScrapPage> {
       context.read<ScrapBloc>().add(
         RemoveMaterialsFromCodes(codes: result.removedCodes),
       );
-      _scannedCodes.removeAll(result.removedCodes);
     }
   }
 
@@ -170,9 +166,11 @@ class _ScrapPageState extends State<ScrapPage> {
       ),
       backgroundColor: Colors.grey[50],
       body: BlocListener<ScrapBloc, ScrapState>(
-        listener: (context, state) {
-          if (state is ScrapError) {
-            ToastUtils.showError(context, state.message);
+        listener: (context, state) async {
+          if (state is ScrapSubmissionReady && state.errorMessage != null) {
+            ToastUtils.showError(context, state.errorMessage!);
+            // 清空错误信息
+            context.read<ScrapBloc>().add(ClearScrapErrorMessage());
           } else if (state is ScrapSubmitted) {
             ToastUtils.showSuccess(context, state.message);
             // 返回到上一页面
@@ -191,7 +189,7 @@ class _ScrapPageState extends State<ScrapPage> {
           return common.LoadingWidget();
         } else if (state is ScrapSubmissionReady) {
           return _buildSubmissionForm(state);
-        } else if (state is ScrapError) {
+        } else if (state is ScrapFatalError) {
           return common.ErrorWidget(
             message: state.message,
             onRetry: _initializeScrap,

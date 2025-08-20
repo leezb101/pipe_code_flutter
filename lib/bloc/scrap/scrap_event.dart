@@ -89,6 +89,10 @@ class UpdateMaterialQuantity extends ScrapEvent {
   List<Object?> get props => [materialId, quantity];
 }
 
+class ClearScrapErrorMessage extends ScrapEvent {
+  const ClearScrapErrorMessage();
+}
+
 /// 提交报废申请
 class SubmitScrap extends ScrapEvent {
   const SubmitScrap();
