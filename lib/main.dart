@@ -174,9 +174,7 @@ class MyApp extends StatelessWidget {
             builder: (context, child) {
               // 启动门卫：网络可用并完成初始化后放行
               return StartupGate(
-                child: FloatingTodoBannerHost(
-                  child: child ?? const SizedBox(),
-                ),
+                child: FloatingTodoBannerHost(child: child ?? const SizedBox()),
               );
             },
           ),

@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:pipe_code_flutter/config/service_locator.dart' show initializeAppData;
+import 'package:pipe_code_flutter/config/service_locator.dart'
+    show initializeAppData;
 import 'package:pipe_code_flutter/services/network_permission_service.dart';
 
 class StartupGate extends StatefulWidget {
@@ -12,8 +13,7 @@ class StartupGate extends StatefulWidget {
   State<StartupGate> createState() => _StartupGateState();
 }
 
-class _StartupGateState extends State<StartupGate>
-    with WidgetsBindingObserver {
+class _StartupGateState extends State<StartupGate> with WidgetsBindingObserver {
   final _network = NetworkPermissionService();
   StreamSubscription? _connSub;
   bool _ready = false;
@@ -99,9 +99,7 @@ class _StartupGateState extends State<StartupGate>
                       const Icon(Icons.wifi_off, size: 72, color: Colors.grey),
                       const SizedBox(height: 16),
                       Text(
-                        isNoNet
-                            ? '未检测到网络连接'
-                            : '网络受限，无法访问互联网',
+                        isNoNet ? '未检测到网络连接' : '网络受限，无法访问互联网',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -119,8 +117,10 @@ class _StartupGateState extends State<StartupGate>
                         const SizedBox(height: 8),
                         Text(
                           _error!,
-                          style:
-                              const TextStyle(color: Colors.red, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ],

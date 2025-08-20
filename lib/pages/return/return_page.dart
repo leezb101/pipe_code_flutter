@@ -105,6 +105,8 @@ class _ReturnPageState extends State<ReturnPage> {
                   children: [
                     _buildMaterialsList(),
                     const SizedBox(height: 16),
+                    _buildMaterialButtonSection(),
+                    const SizedBox(height: 16),
                     _buildReturnTypeSection(),
                     const SizedBox(height: 16),
                     _buildReturnRemarkSection(),
@@ -142,27 +144,30 @@ class _ReturnPageState extends State<ReturnPage> {
                     color: Colors.black87,
                   ),
                 ),
-                const Spacer(),
-                // 添加追加与移除扫码按钮
-                IconButton(
-                  tooltip: '追加扫码',
-                  icon: const Icon(Icons.qr_code_scanner, color: Colors.blue),
-                  onPressed: _scanAppendMaterials,
-                ),
-                IconButton(
-                  tooltip: '移除扫码',
-                  icon: const Icon(Icons.qr_code_2, color: Colors.red),
-                  onPressed: _scanRemoveMaterials,
-                ),
               ],
             ),
             const SizedBox(height: 16),
-            ...?context
-                .read<ReturnBloc>()
-                .state
-                .returnDetail
-                ?.materialList
-                ?.map((m) => _buildMaterialItemFromVO(m)),
+            BlocBuilder<ReturnBloc, ReturnState>(
+              builder: (context, state) {
+                final materials = state.returnDetail?.materialList;
+                if (state.status == ReturnStatus.loading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (materials == null || materials.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: Text('暂无退库物料信息'),
+                    ),
+                  );
+                }
+                return Column(
+                  children: materials
+                      .map((m) => _buildMaterialItemFromVO(m))
+                      .toList(),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -227,6 +232,45 @@ class _ReturnPageState extends State<ReturnPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMaterialButtonSection() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Expanded(
+          flex: 5,
+          child: ElevatedButton(
+            onPressed: _scanAppendMaterials,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[600],
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('追加物料'),
+          ),
+        ),
+        Spacer(flex: 1),
+        Expanded(
+          flex: 5,
+          child: ElevatedButton(
+            onPressed: _scanRemoveMaterials,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red[600],
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('移除物料'),
+          ),
+        ),
+      ],
     );
   }
 
@@ -587,12 +631,16 @@ class _ReturnPageState extends State<ReturnPage> {
       final rsp = await repo.scanBatchToQueryAll(res.addedCodes);
       if (rsp.isSuccess && rsp.data != null) {
         // 将获取到的真实物料追加（基于 materialId 去重）
+        // 记录重复的id，进行toas提示
         final existingIds = currentList.map((m) => m.materialId).toSet();
         final fetched = rsp.data!.normals;
         final appended = <MaterialVO>[];
         for (final m in fetched) {
           final id = m.baseInfo.materialId;
-          if (existingIds.contains(id)) continue;
+          if (existingIds.contains(id)) {
+            if (mounted) context.showInfoToast('物料 $id 已存在');
+            continue;
+          }
           appended.add(
             MaterialVO(
               materialId: id,
@@ -601,15 +649,17 @@ class _ReturnPageState extends State<ReturnPage> {
             ),
           );
         }
-        context.read<ReturnBloc>().add(
-          UpdateReturnMaterials(materials: [...currentList, ...appended]),
-        );
-        context.showSuccessToast('已追加 ${appended.length} 个');
+        if (mounted) {
+          context.read<ReturnBloc>().add(
+            UpdateReturnMaterials(materials: [...currentList, ...appended]),
+          );
+          context.showSuccessToast('已追加 ${appended.length} 个');
+        }
       } else {
-        context.showInfoToast('未查到新增物料');
+        if (mounted) context.showInfoToast('未查到新增物料');
       }
     } catch (e) {
-      context.showErrorToast('获取物料失败');
+      if (mounted) context.showErrorToast('获取物料失败');
     }
   }
 
@@ -646,23 +696,25 @@ class _ReturnPageState extends State<ReturnPage> {
             .map((m) => m.baseInfo.materialId)
             .toSet();
         if (idsToRemove.isEmpty) {
-          context.showInfoToast('未匹配到可移除的物料');
+          if (mounted) context.showInfoToast('未匹配到可移除的物料');
           return;
         }
         final remaining = currentList
             .where((m) => !idsToRemove.contains(m.materialId))
             .toList();
-        context.read<ReturnBloc>().add(
-          UpdateReturnMaterials(materials: remaining),
-        );
-        context.showSuccessToast(
-          '已移除 ${currentList.length - remaining.length} 个',
-        );
+        if (mounted) {
+          context.read<ReturnBloc>().add(
+            UpdateReturnMaterials(materials: remaining),
+          );
+          context.showSuccessToast(
+            '已移除 ${currentList.length - remaining.length} 个',
+          );
+        }
       } else {
-        context.showInfoToast('未匹配到可移除的码');
+        if (mounted) context.showInfoToast('未匹配到可移除的码');
       }
     } catch (e) {
-      context.showErrorToast('移除失败');
+      if (mounted) context.showErrorToast('移除失败');
     }
   }
 }

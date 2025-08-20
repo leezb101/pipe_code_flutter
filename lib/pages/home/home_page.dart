@@ -1136,6 +1136,18 @@ class _HomePageState extends State<HomePage> {
         );
         break;
       case MenuActions.qrScanReturnMaterial:
+        _navigateToScan(
+          context,
+          QrScanConfig(
+            scanMode: QrScanMode.batch,
+            context: const {
+              'entry': 'standalone',
+              'route': '/return-material',
+              'data': <String, dynamic>{},
+            },
+          ),
+        );
+        break;
       case MenuActions.qrScanInventory:
         _showScanModeSelection(context, 'inventory');
         break;

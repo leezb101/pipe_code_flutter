@@ -15,7 +15,7 @@ class NetworkPermissionService {
   final Connectivity _connectivity;
 
   NetworkPermissionService({Connectivity? connectivity})
-      : _connectivity = connectivity ?? Connectivity();
+    : _connectivity = connectivity ?? Connectivity();
 
   /// Check current network accessibility.
   Future<NetworkAccessStatus> checkStatus() async {
@@ -37,8 +37,9 @@ class NetworkPermissionService {
   /// A lightweight connectivity probe via DNS lookup.
   Future<bool> _hasInternetConnectivity() async {
     try {
-      final result = await InternetAddress.lookup('example.com')
-          .timeout(const Duration(seconds: 3));
+      final result = await InternetAddress.lookup(
+        'example.com',
+      ).timeout(const Duration(seconds: 3));
       return result.isNotEmpty && result.first.rawAddress.isNotEmpty;
     } catch (_) {
       return false;
