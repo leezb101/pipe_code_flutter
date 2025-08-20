@@ -57,6 +57,7 @@ dependencies:
   # Utilities
   equatable: ^2.0.5
   permission_handler: ^12.0.1
+  connectivity_plus: ^5.0.2
 
   # QR Scanner
   mobile_scanner: ^7.0.1
