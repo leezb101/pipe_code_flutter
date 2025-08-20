@@ -12,7 +12,7 @@ ScanIdentificationData _$ScanIdentificationDataFromJson(
   info: MaterialInfo.fromJson(json['info'] as Map<String, dynamic>),
   factorySourceQr: json['factorySourceQr'] as String?,
   projectName: json['projectName'] as String?,
-  projectId: (json['projectId'] as num).toInt(),
+  projectId: (json['projectId'] as num?)?.toInt(),
   projectAddress: json['projectAddress'] as String?,
   materialCode: json['materialCode'] as String,
   cut: json['cut'] as bool,

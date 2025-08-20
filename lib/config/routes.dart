@@ -335,7 +335,7 @@ final GoRouter appRouter = GoRouter(
             if (data == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            final materialCode = data['materialCode'] as String?;
+            final materialCode = data['codes'].first as String?;
             if (materialCode == null || materialCode.trim().isEmpty) {
               return const Scaffold(body: Center(child: Text('二维码内容无效')));
             }

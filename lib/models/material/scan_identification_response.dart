@@ -43,7 +43,7 @@ class ScanIdentificationData extends Equatable {
   final String? projectName;
 
   /// 项目ID
-  final int projectId;
+  final int? projectId;
 
   /// 项目地址
   final String? projectAddress;

@@ -1168,7 +1168,17 @@ class _HomePageState extends State<HomePage> {
         );
         break;
       case MenuActions.qrIdentify:
-        _navigateToScan(context, QrScanConfig());
+        _navigateToScan(
+          context,
+          QrScanConfig(
+            scanMode: QrScanMode.single,
+            context: const {
+              'entry': 'standalone',
+              'route': '/material-detail',
+              'data': <String, dynamic>{},
+            },
+          ),
+        );
         break;
       default:
         context.showInfoToast('${MenuActions.getDisplayName(action)}: 功能开发中');
