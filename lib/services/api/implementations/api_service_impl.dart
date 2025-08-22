@@ -31,6 +31,7 @@ import '../interfaces/acceptance_api_service.dart';
 import '../interfaces/signout_api_service.dart';
 import '../interfaces/dispatch_api_service.dart';
 import '../interfaces/return_api_service.dart';
+import '../interfaces/recovery_api_service.dart';
 import 'auth_api_service_impl.dart';
 import 'install_api_service_impl.dart';
 import 'user_api_service_impl.dart';
@@ -38,6 +39,7 @@ import 'list_api_service_impl.dart';
 import 'acceptance_api_service_impl.dart';
 import 'signout_api_service_impl.dart';
 import 'return_api_service_impl.dart';
+import 'recovery_api_service_impl.dart';
 
 class ApiServiceImpl implements ApiServiceInterface {
   final Dio _dio;
@@ -57,6 +59,7 @@ class ApiServiceImpl implements ApiServiceInterface {
   CutApiService? _cutApiService;
   InventoryApiServiceImpl? _inventoryApiService;
   ScrapApiService? _scrapApiService;
+  RecoveryApiService? _recoveryApiService;
 
   ApiServiceImpl(this._dio);
 
@@ -116,4 +119,8 @@ class ApiServiceImpl implements ApiServiceInterface {
 
   @override
   ScrapApiService get scrap => _scrapApiService ??= ScrapApiServiceImpl(_dio);
+
+  @override
+  RecoveryApiService get recovery =>
+      _recoveryApiService ??= RecoveryApiServiceImpl(_dio);
 }

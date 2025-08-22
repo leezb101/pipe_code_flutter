@@ -6,6 +6,7 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/services/api/interfaces/project_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/recovery_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 
 import 'enum_api_service.dart';
@@ -40,4 +41,5 @@ abstract class ApiServiceInterface {
   CutApiService get cut;
   InventoryApiService get inventory;
   ScrapApiService get scrap;
+  RecoveryApiService get recovery;
 }

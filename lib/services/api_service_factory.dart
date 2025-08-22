@@ -59,6 +59,8 @@ import 'api/mock/mock_cut_api_service.dart';
 import 'api/interfaces/upload_api_service.dart';
 import 'api/implementations/upload_api_service_impl.dart';
 import 'api/mock/mock_upload_api_service.dart';
+import 'api/interfaces/recovery_api_service.dart';
+import 'api/implementations/recovery_api_service_impl.dart';
 
 class ApiServiceFactory {
   static ApiServiceInterface create() {
@@ -203,6 +205,16 @@ class ApiServiceFactory {
       final dio = _createUploadDio();
       return UploadApiServiceImpl(dio);
     }
+  }
+
+  static RecoveryApiService createRecoveryService() {
+    // TODO: 添加mock实现
+    // if (AppConfig.isMockEnabled) {
+    //   return MockRecoveryApiService();
+    // } else {
+    final dio = _createDio();
+    return RecoveryApiServiceImpl(dio);
+    // }
   }
 
   static Dio _createDio() {

@@ -12,6 +12,8 @@ import 'package:pipe_code_flutter/repositories/interfaces/inventory_repository.d
 import 'package:pipe_code_flutter/repositories/implementations/return_repository_impl.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_detail_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/return_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/recovery_repository.dart';
+import 'package:pipe_code_flutter/repositories/implementations/recovery_repository_impl.dart';
 import 'package:pipe_code_flutter/services/api_service_factory.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/implementations/acceptance_repository_impl.dart';
@@ -190,5 +192,11 @@ class RepositoryFactory {
       identificationApiService,
       cutApiService,
     );
+  }
+
+  /// 创建并返回一个 [RecoveryRepository] 实例。
+  static RecoveryRepository createRecoveryRepository() {
+    final recoveryApiService = ApiServiceFactory.createRecoveryService();
+    return RecoveryRepositoryImpl(recoveryApiService);
   }
 }

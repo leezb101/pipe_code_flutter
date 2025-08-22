@@ -29,6 +29,7 @@ import '../pages/cut/cut_page.dart';
 import '../pages/dispatch/dispatch_application_page.dart';
 import '../pages/dispatch/dispatch_after_signin_page.dart';
 import '../pages/main_page.dart';
+import '../pages/recovery/recovery_pages.dart';
 import '../pages/qr_scan/qr_scan_page.dart';
 import '../pages/acceptance/acceptance_page.dart';
 import '../pages/acceptance/acceptance_detail_page.dart';
@@ -290,6 +291,13 @@ final GoRouter appRouter = GoRouter(
               create: (context) => getIt<SignoutBloc>(),
               child: SignoutAuditPage(signoutId: signoutId),
             );
+          },
+        ),
+        GoRoute(
+          path: '/recovery',
+          name: 'recovery',
+          builder: (context, state) {
+            return const RecoveryPage();
           },
         ),
         GoRoute(
