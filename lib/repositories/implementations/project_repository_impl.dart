@@ -11,7 +11,6 @@ import 'package:pipe_code_flutter/models/user/wx_login_vo.dart';
 import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
 import 'package:pipe_code_flutter/models/project/project_info.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/api_service_interface.dart';
-import 'package:pipe_code_flutter/services/api/interfaces/project_api_service.dart';
 import 'package:pipe_code_flutter/services/storage_service.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/project_repository.dart';
 

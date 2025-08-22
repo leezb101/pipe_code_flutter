@@ -238,7 +238,7 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
                       ),
                       Expanded(
                         child: Text(
-                          '${_currentIndex + 1} / ${_length}',
+                          '${_currentIndex + 1} / $_length',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,

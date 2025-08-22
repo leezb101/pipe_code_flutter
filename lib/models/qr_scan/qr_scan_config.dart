@@ -30,7 +30,7 @@ class QrScanConfig extends Equatable {
     this.title,
     this.existingCodesToExclude,
     this.context,
-    QrScanOperation this.operation = QrScanOperation.initial,
+    this.operation = QrScanOperation.initial,
     this.skipValidation = false,
   });
 
