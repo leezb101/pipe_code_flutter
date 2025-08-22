@@ -6,6 +6,7 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
+import 'package:pipe_code_flutter/models/project/project_general_display.dart';
 import '../interfaces/project_api_service.dart';
 import '../../../models/project/project_initiation.dart';
 import '../../../models/common/result.dart';
@@ -264,6 +265,30 @@ class ProjectApiServiceImpl extends BaseApiService
         msg: handleError(e),
         data: null,
       );
+    }
+  }
+
+  @override
+  Future<Result<ProjectGeneralDisplay>> getProjectDisplayInfos() async {
+    try {
+      final response = await dio.post('/statistics/material');
+      if (response.statusCode == 200) {
+        final result = Result.safeFromJson(
+          response.data,
+          (json) =>
+              ProjectGeneralDisplay.fromJson(json as Map<String, dynamic>),
+          'ProjectGeneralDisplay',
+        );
+        return result;
+      } else {
+        return Result(
+          code: response.statusCode ?? 500,
+          msg: '获取项目统计信息失败',
+          data: null,
+        );
+      }
+    } catch (e) {
+      return Result(code: 500, msg: '获取项目统计信息异常: $e', data: null);
     }
   }
 }

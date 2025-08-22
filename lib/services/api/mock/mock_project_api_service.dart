@@ -12,6 +12,8 @@
  * @LastEditTime: 2025-07-09 22:05:00
  * @copyright: Copyright © 2025 高新供水.
  */
+import 'package:pipe_code_flutter/models/project/project_general_display.dart';
+
 import '../interfaces/project_api_service.dart';
 import '../../../models/project/project_initiation.dart';
 import '../../../models/common/result.dart';
@@ -348,6 +350,26 @@ class MockProjectApiService implements ProjectApiService {
     ];
 
     return baseUsers.take(projectId % 3 + 1).toList();
+  }
+
+  @override
+  Future<Result<ProjectGeneralDisplay>> getProjectDisplayInfos() {
+    return Future.delayed(Duration(milliseconds: 500), () {
+      return Result(
+        code: 0,
+        msg: '成功',
+        data: ProjectGeneralDisplay(
+          totalCount: 200,
+          acceptedCount: 180,
+          rejectedCount: 20,
+          installedCount: 100,
+          cutPipeCount: 10,
+          surplusReturnedCount: 2,
+          qrCodeLostCount: 5,
+          damageCount: 1,
+        ),
+      );
+    });
   }
 }
 

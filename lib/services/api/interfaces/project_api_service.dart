@@ -5,6 +5,8 @@
  * @LastEditTime: 2025-07-09 22:05:00
  * @copyright: Copyright © 2025 高新供水.
  */
+import 'package:pipe_code_flutter/models/project/project_general_display.dart';
+
 import '../../../models/project/project_initiation.dart';
 import '../../../models/common/result.dart';
 
@@ -44,4 +46,7 @@ abstract class ProjectApiService {
     String? roleType,
     String? orgCode,
   });
+
+  /// 获取项目统计信息
+  Future<Result<ProjectGeneralDisplay>> getProjectDisplayInfos();
 }
