@@ -41,6 +41,12 @@ class RecoveryBloc extends Bloc<RecoveryEvent, RecoveryState> {
     on<RecoveryFormReset>(_onFormReset);
     on<RecoveryValidationErrorsCleared>(_onValidationErrorsCleared);
     on<RecoveryErrorMessageCleared>(_onErrorMessageCleared);
+
+    // === 两步提交相关事件处理器 ===
+    on<RecoveryStep3Submitted>(_onStep3Submitted);
+    on<RecoveryStep4Confirmed>(_onStep4Confirmed);
+    on<RecoveryStep4QrScanned>(_onStep4QrScanned);
+    on<RecoveryStep4Cancelled>(_onStep4Cancelled);
   }
 
   /// 处理初始化事件
@@ -428,7 +434,7 @@ class RecoveryBloc extends Bloc<RecoveryEvent, RecoveryState> {
   }
 
   /// 处理表单提交事件
-  /// 验证并提交表单数据
+  /// 验证并开始两步提交流程（触发Step3）
   Future<void> _onFormSubmitted(
     RecoveryFormSubmitted event,
     Emitter<RecoveryState> emit,
@@ -438,62 +444,10 @@ class RecoveryBloc extends Bloc<RecoveryEvent, RecoveryState> {
       return;
     }
 
-    final currentState = state as RecoveryFormReady;
+    Logger.info('表单提交，开始两步提交流程', tag: 'RecoveryBloc');
 
-    Logger.info('开始表单提交', tag: 'RecoveryBloc');
-
-    // 先进行验证
-    final validationResult = _repository.validateFormData(
-      currentState.formData,
-      currentState.selectedType.type,
-    );
-
-    if (!validationResult.isValid) {
-      Logger.warning('提交前验证失败', tag: 'RecoveryBloc');
-
-      emit(
-        RecoveryValidationError(
-          formState: currentState.copyWith(
-            fieldErrors: validationResult.fieldErrors,
-          ),
-          validationResult: validationResult,
-        ),
-      );
-      return;
-    }
-
-    try {
-      // 开始提交
-      emit(RecoverySubmitting(formState: currentState, message: '正在提交数据...'));
-
-      // 构建提交数据
-      final submissionData = _repository.buildSubmissionData(
-        currentState.selectedType.type,
-        currentState.formData,
-      );
-
-      Logger.info('提交数据构建完成: $submissionData', tag: 'RecoveryBloc');
-
-      // TODO: 这里应该调用实际的提交API
-      // 目前模拟提交过程
-      await Future.delayed(const Duration(seconds: 2));
-
-      Logger.info('表单提交成功', tag: 'RecoveryBloc');
-
-      emit(
-        RecoverySubmissionSuccess(
-          message: '数据提交成功',
-          submittedData: submissionData,
-        ),
-      );
-    } catch (e, stackTrace) {
-      Logger.error('表单提交异常', tag: 'RecoveryBloc', error: e);
-      Logger.error('堆栈跟踪', tag: 'RecoveryBloc', error: stackTrace);
-
-      emit(
-        RecoverySubmitting(formState: currentState, errorMessage: '提交失败，请重试'),
-      );
-    }
+    // 触发Step3提交事件
+    add(const RecoveryStep3Submitted());
   }
 
   /// 处理表单重置事件
@@ -544,6 +498,206 @@ class RecoveryBloc extends Bloc<RecoveryEvent, RecoveryState> {
     } else if (state is RecoverySubmitting) {
       final currentState = state as RecoverySubmitting;
       emit(currentState.copyWith(errorMessage: null));
+    }
+  }
+
+  // === 两步提交相关事件处理器实现 ===
+
+  /// 处理Step3提交事件
+  /// 第一步提交表单数据，获取确认信息
+  Future<void> _onStep3Submitted(
+    RecoveryStep3Submitted event,
+    Emitter<RecoveryState> emit,
+  ) async {
+    if (state is! RecoveryFormReady) {
+      Logger.warning('状态错误：当前状态不是RecoveryFormReady', tag: 'RecoveryBloc');
+      return;
+    }
+
+    final currentState = state as RecoveryFormReady;
+
+    Logger.info('开始Step3提交', tag: 'RecoveryBloc');
+
+    // 先进行验证
+    final validationResult = _repository.validateFormData(
+      currentState.formData,
+      currentState.selectedType.type,
+    );
+
+    if (!validationResult.isValid) {
+      Logger.warning('Step3提交前验证失败', tag: 'RecoveryBloc');
+
+      emit(
+        RecoveryValidationError(
+          formState: currentState.copyWith(
+            fieldErrors: validationResult.fieldErrors,
+          ),
+          validationResult: validationResult,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // 开始Step3提交
+      emit(
+        RecoverySubmitting(formState: currentState, message: '正在提交数据（第1步）...'),
+      );
+
+      // 调用Repository的Step3提交方法
+      final step3Result = await _repository.submitStep3Fields(
+        currentState.selectedVendor.code,
+        currentState.selectedType.type,
+        currentState.formData,
+      );
+
+      if (step3Result.isFailure) {
+        Logger.error('Step3提交失败: ${step3Result.msg}', tag: 'RecoveryBloc');
+
+        emit(
+          RecoverySubmitting(
+            formState: currentState,
+            errorMessage: 'Step3提交失败: ${step3Result.msg}',
+          ),
+        );
+        return;
+      }
+
+      Logger.info('Step3提交成功', tag: 'RecoveryBloc');
+
+      // 进入Step3成功状态，等待用户确认
+      emit(
+        RecoveryStep3Success(
+          formState: currentState,
+          step3Result: step3Result.data!,
+        ),
+      );
+    } catch (e, stackTrace) {
+      Logger.error('Step3提交异常', tag: 'RecoveryBloc', error: e);
+      Logger.error('堆栈跟踪', tag: 'RecoveryBloc', error: stackTrace);
+
+      emit(
+        RecoverySubmitting(
+          formState: currentState,
+          errorMessage: 'Step3提交失败: $e',
+        ),
+      );
+    }
+  }
+
+  /// 处理Step4确认事件
+  /// 用户确认信息后准备QR扫描
+  void _onStep4Confirmed(
+    RecoveryStep4Confirmed event,
+    Emitter<RecoveryState> emit,
+  ) {
+    if (state is! RecoveryStep3Success) {
+      Logger.warning('状态错误：当前状态不是RecoveryStep3Success', tag: 'RecoveryBloc');
+      return;
+    }
+
+    final currentState = state as RecoveryStep3Success;
+
+    Logger.info('Step4确认，准备QR扫描', tag: 'RecoveryBloc');
+
+    // 进入Step4进行中状态
+    emit(
+      RecoveryStep4InProgress(
+        formState: currentState.formState,
+        step3Result: currentState.step3Result,
+        statusMessage: '请扫描QR码完成最终提交',
+      ),
+    );
+  }
+
+  /// 处理Step4 QR扫描完成事件
+  /// 用户完成QR扫描后提交最终数据
+  Future<void> _onStep4QrScanned(
+    RecoveryStep4QrScanned event,
+    Emitter<RecoveryState> emit,
+  ) async {
+    if (state is! RecoveryStep4InProgress) {
+      Logger.warning('状态错误：当前状态不是RecoveryStep4InProgress', tag: 'RecoveryBloc');
+      return;
+    }
+
+    final currentState = state as RecoveryStep4InProgress;
+
+    Logger.info('QR扫描完成，开始Step4提交: ${event.qrCode}', tag: 'RecoveryBloc');
+
+    try {
+      // 开始Step4提交
+      emit(
+        currentState.copyWith(
+          statusMessage: '正在提交数据（第2步）...',
+          isSubmittingStep4: true,
+        ),
+      );
+
+      // 调用Repository的Step4提交方法
+      final step4Result = await _repository.submitStep4Fields(
+        event.qrCode,
+        currentState.step3Result.headerKey,
+      );
+
+      if (step4Result.isFailure) {
+        Logger.error('Step4提交失败: ${step4Result.msg}', tag: 'RecoveryBloc');
+
+        emit(
+          currentState.copyWith(
+            statusMessage: 'Step4提交失败，请重新扫描QR码',
+            isSubmittingStep4: false,
+            errorMessage: 'Step4提交失败: ${step4Result.msg}',
+          ),
+        );
+        return;
+      }
+
+      Logger.info('Step4提交成功，两步提交流程完成', tag: 'RecoveryBloc');
+
+      // 进入两步提交完成状态
+      emit(
+        RecoveryTwoStepSubmissionComplete(
+          message: '数据提交成功',
+          submittedData: currentState.formState.formData,
+          scannedQrCode: event.qrCode,
+        ),
+      );
+    } catch (e, stackTrace) {
+      Logger.error('Step4提交异常', tag: 'RecoveryBloc', error: e);
+      Logger.error('堆栈跟踪', tag: 'RecoveryBloc', error: stackTrace);
+
+      emit(
+        currentState.copyWith(
+          statusMessage: 'Step4提交失败，请重新扫描QR码',
+          isSubmittingStep4: false,
+          errorMessage: 'Step4提交失败: $e',
+        ),
+      );
+    }
+  }
+
+  /// 处理Step4取消事件
+  /// 用户在确认弹窗中点击取消或返回
+  void _onStep4Cancelled(
+    RecoveryStep4Cancelled event,
+    Emitter<RecoveryState> emit,
+  ) {
+    Logger.info('Step4取消，回到表单状态', tag: 'RecoveryBloc');
+
+    if (state is RecoveryStep3Success) {
+      final currentState = state as RecoveryStep3Success;
+      // 回到表单准备状态
+      emit(currentState.formState);
+    } else if (state is RecoveryStep4InProgress) {
+      final currentState = state as RecoveryStep4InProgress;
+      // 回到Step3成功状态
+      emit(
+        RecoveryStep3Success(
+          formState: currentState.formState,
+          step3Result: currentState.step3Result,
+        ),
+      );
     }
   }
 }

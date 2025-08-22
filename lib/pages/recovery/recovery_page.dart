@@ -17,6 +17,7 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
+import 'package:pipe_code_flutter/widgets/recovery/recovery_confirmation_dialog.dart';
 
 /// Recovery回收页面
 /// 实现供应商选择 → 材料分类选择 → 材料类型选择 → 动态表单填写的完整流程
@@ -86,6 +87,10 @@ class _RecoveryViewState extends State<RecoveryView> {
       errorMessage = state.errorMessage;
     } else if (state is RecoverySubmitting && state.errorMessage != null) {
       errorMessage = state.errorMessage;
+    } else if (state is RecoveryStep3Success && state.errorMessage != null) {
+      errorMessage = state.errorMessage;
+    } else if (state is RecoveryStep4InProgress && state.errorMessage != null) {
+      errorMessage = state.errorMessage;
     }
 
     // 显示错误信息并清除
@@ -95,7 +100,17 @@ class _RecoveryViewState extends State<RecoveryView> {
       context.read<RecoveryBloc>().add(const RecoveryErrorMessageCleared());
     }
 
+    // 处理各种特定状态
     if (state is RecoverySubmissionSuccess) {
+      ToastUtils.showSuccess(context, state.message);
+      // 延迟导航，让用户看到成功提示
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      });
+    } else if (state is RecoveryTwoStepSubmissionComplete) {
+      // 两步提交完成
       ToastUtils.showSuccess(context, state.message);
       // 延迟导航，让用户看到成功提示
       Future.delayed(const Duration(milliseconds: 1500), () {
@@ -108,6 +123,12 @@ class _RecoveryViewState extends State<RecoveryView> {
     } else if (state is RecoveryFormReady) {
       // 当表单准备就绪时，确保所有字段都有对应的控制器
       _ensureControllersForFields(state.formFields);
+    } else if (state is RecoveryStep3Success) {
+      // Step3成功，显示确认弹窗
+      _showConfirmationDialog(context, state);
+    } else if (state is RecoveryStep4InProgress) {
+      // Step4进行中，执行QR扫描
+      _handleStep4QrScan(context);
     }
   }
 
@@ -170,6 +191,12 @@ class _RecoveryViewState extends State<RecoveryView> {
               _buildDynamicFormCard(context, state),
               const SizedBox(height: 16),
               _buildScanButton(context),
+              const SizedBox(height: 24),
+              _buildActionButtons(context, state),
+            ] else if (state is RecoverySubmitting ||
+                state is RecoveryStep3Success ||
+                state is RecoveryStep4InProgress) ...[
+              // 在提交过程中也显示操作按钮，但处于禁用状态
               const SizedBox(height: 24),
               _buildActionButtons(context, state),
             ],
@@ -449,16 +476,40 @@ class _RecoveryViewState extends State<RecoveryView> {
   }
 
   /// 构建操作按钮
-  Widget _buildActionButtons(BuildContext context, RecoveryFormReady state) {
-    final isSubmitting = state is RecoverySubmitting;
-    final isValidating = state.isValidating;
+  Widget _buildActionButtons(BuildContext context, RecoveryState state) {
+    // 处理不同状态下的按钮禁用逻辑
+    bool isDisabled = false;
+    bool isLoading = false;
+    String buttonText = '确定';
+
+    if (state is RecoveryFormReady) {
+      isDisabled = state.isValidating;
+      isLoading = state.isValidating;
+    } else if (state is RecoverySubmitting) {
+      isDisabled = true;
+      isLoading = true;
+      buttonText = '提交中...';
+    } else if (state is RecoveryStep3Success) {
+      // Step3成功状态，按钮暂时禁用（等待确认弹窗）
+      isDisabled = true;
+      buttonText = '等待确认...';
+    } else if (state is RecoveryStep4InProgress) {
+      // Step4进行中，按钮禁用（等待QR扫描）
+      isDisabled = true;
+      isLoading = state.isSubmittingStep4;
+      buttonText = state.isSubmittingStep4 ? '提交中...' : '扫描中...';
+    } else {
+      // 其他状态（如验证错误等），允许重新提交
+      isDisabled = false;
+      isLoading = false;
+    }
 
     return Row(
       children: [
         // 取消按钮
         Expanded(
           child: OutlinedButton(
-            onPressed: isSubmitting || isValidating
+            onPressed: isDisabled
                 ? null
                 : () {
                     Navigator.of(context).pop();
@@ -470,18 +521,18 @@ class _RecoveryViewState extends State<RecoveryView> {
         // 确定按钮
         Expanded(
           child: ElevatedButton(
-            onPressed: isSubmitting || isValidating
+            onPressed: isDisabled
                 ? null
                 : () {
                     _handleSubmit(context);
                   },
-            child: isSubmitting
+            child: isLoading
                 ? const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('确定'),
+                : Text(buttonText),
           ),
         ),
       ],
@@ -494,6 +545,73 @@ class _RecoveryViewState extends State<RecoveryView> {
       context.read<RecoveryBloc>().add(const RecoveryFormSubmitted());
     } else {
       ToastUtils.showWarning(context, '请完善表单信息');
+    }
+  }
+
+  /// 显示确认弹窗
+  void _showConfirmationDialog(
+    BuildContext context,
+    RecoveryStep3Success state,
+  ) {
+    Logger.info('显示确认弹窗', tag: 'RecoveryPage');
+
+    showRecoveryConfirmationDialog(
+      context: context,
+      step3Result: state.step3Result,
+      onConfirmed: () {
+        // 用户确认，触发Step4
+        context.read<RecoveryBloc>().add(const RecoveryStep4Confirmed());
+      },
+      onCancelled: () {
+        // 用户取消，触发取消事件
+        context.read<RecoveryBloc>().add(const RecoveryStep4Cancelled());
+      },
+    );
+  }
+
+  /// 处理Step4 QR扫描
+  Future<void> _handleStep4QrScan(BuildContext context) async {
+    Logger.info('开始Step4 QR扫描', tag: 'RecoveryPage');
+
+    final flow = RepositoryProvider.of<QrScanFlowService>(
+      context,
+      listen: false,
+    );
+
+    // 创建Step4专用的扫描配置
+    final request = QrScanFlowRequest(
+      operation: QrScanOperation.initial,
+      currentCodes: const [],
+      batch: false,
+      title: '扫描QR码完成提交',
+      context: const {'source': 'recovery_page', 'entry': 'step4'},
+    );
+
+    try {
+      // 导航到扫描页面
+      final config = flow.buildConfig(request);
+      final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+      final res = flow.normalize(request, raw);
+
+      if (res.rawResults.isEmpty) {
+        Logger.info('Step4扫描取消或无结果', tag: 'RecoveryPage');
+        return;
+      }
+
+      if (!context.mounted) return;
+
+      // 触发Step4 QR扫描完成事件
+      final qrCode = res.rawResults.first.code;
+      Logger.info('Step4扫描成功: $qrCode', tag: 'RecoveryPage');
+
+      context.read<RecoveryBloc>().add(RecoveryStep4QrScanned(qrCode: qrCode));
+    } catch (e) {
+      Logger.error('Step4扫描异常', tag: 'RecoveryPage', error: e);
+      if (context.mounted) {
+        ToastUtils.showError(context, 'QR扫描失败，请重试');
+        // 回到Step3状态让用户重新选择
+        context.read<RecoveryBloc>().add(const RecoveryStep4Cancelled());
+      }
     }
   }
 }

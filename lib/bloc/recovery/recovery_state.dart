@@ -9,6 +9,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:pipe_code_flutter/models/recovery/material_categories.dart';
 import 'package:pipe_code_flutter/models/recovery/vendors_map.dart';
+import 'package:pipe_code_flutter/models/recovery/step3_result.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/recovery_repository.dart';
 
 /// Recovery模块的状态基类
@@ -347,4 +348,113 @@ class RecoverySubmissionSuccess extends RecoveryState {
 
   @override
   List<Object?> get props => [message, submittedData];
+}
+
+// === 两步提交相关状态 ===
+
+/// Step3提交成功状态 - 第一步提交成功，等待用户确认
+class RecoveryStep3Success extends RecoveryState {
+  /// 保持当前的表单状态（供用户查看）
+  final RecoveryFormReady formState;
+
+  /// Step3提交的结果数据
+  final Step3Result step3Result;
+
+  /// 一次性消费的错误信息
+  final String? errorMessage;
+
+  const RecoveryStep3Success({
+    required this.formState,
+    required this.step3Result,
+    this.errorMessage,
+  });
+
+  /// 创建新的状态副本，只更新指定字段
+  RecoveryStep3Success copyWith({
+    RecoveryFormReady? formState,
+    Step3Result? step3Result,
+    String? errorMessage,
+  }) {
+    return RecoveryStep3Success(
+      formState: formState ?? this.formState,
+      step3Result: step3Result ?? this.step3Result,
+      errorMessage: errorMessage,
+    );
+  }
+
+  @override
+  List<Object?> get props => [formState, step3Result, errorMessage];
+}
+
+/// Step4进行中状态 - 正在进行QR扫描和最终提交
+class RecoveryStep4InProgress extends RecoveryState {
+  /// 保持当前的表单状态
+  final RecoveryFormReady formState;
+
+  /// Step3的结果数据
+  final Step3Result step3Result;
+
+  /// 当前的状态描述
+  final String statusMessage;
+
+  /// 是否正在提交Step4
+  final bool isSubmittingStep4;
+
+  /// 一次性消费的错误信息
+  final String? errorMessage;
+
+  const RecoveryStep4InProgress({
+    required this.formState,
+    required this.step3Result,
+    required this.statusMessage,
+    this.isSubmittingStep4 = false,
+    this.errorMessage,
+  });
+
+  /// 创建新的状态副本，只更新指定字段
+  RecoveryStep4InProgress copyWith({
+    RecoveryFormReady? formState,
+    Step3Result? step3Result,
+    String? statusMessage,
+    bool? isSubmittingStep4,
+    String? errorMessage,
+  }) {
+    return RecoveryStep4InProgress(
+      formState: formState ?? this.formState,
+      step3Result: step3Result ?? this.step3Result,
+      statusMessage: statusMessage ?? this.statusMessage,
+      isSubmittingStep4: isSubmittingStep4 ?? this.isSubmittingStep4,
+      errorMessage: errorMessage,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    formState,
+    step3Result,
+    statusMessage,
+    isSubmittingStep4,
+    errorMessage,
+  ];
+}
+
+/// 两步提交完成状态 - 整个两步提交流程成功完成
+class RecoveryTwoStepSubmissionComplete extends RecoveryState {
+  /// 成功提示信息
+  final String message;
+
+  /// 提交的表单数据（用于确认显示）
+  final Map<String, String?> submittedData;
+
+  /// 扫描的QR码（用于确认显示）
+  final String scannedQrCode;
+
+  const RecoveryTwoStepSubmissionComplete({
+    required this.message,
+    this.submittedData = const {},
+    required this.scannedQrCode,
+  });
+
+  @override
+  List<Object?> get props => [message, submittedData, scannedQrCode];
 }

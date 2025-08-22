@@ -9,6 +9,7 @@
 import 'package:pipe_code_flutter/models/common/result.dart';
 import 'package:pipe_code_flutter/models/recovery/material_categories.dart';
 import 'package:pipe_code_flutter/models/recovery/vendors_map.dart';
+import 'package:pipe_code_flutter/models/recovery/step3_result.dart';
 
 /// 验证结果
 class ValidationResult {
@@ -168,4 +169,25 @@ abstract class RecoveryRepository {
   /// 输出: Future<Result<bool>> - 预加载结果
   /// 用途: 应用启动时或Bloc初始化时预加载数据
   Future<Result<bool>> preloadData();
+
+  // === 两步提交方法 ===
+
+  /// Step3: 提交表单字段，获取确认信息
+  /// 输入: vendorCode (String) - 选择的供应商代码
+  ///      materialType (int) - 选择的物料类型编号
+  ///      formData (Map<String, String?>) - 用户填写的动态表单数据
+  /// 输出: Future<Result<Step3Result>> - Step3结果，包含确认信息和headerKey
+  /// 用途: Bloc处理表单提交，获取服务端确认信息供用户确认
+  Future<Result<Step3Result>> submitStep3Fields(
+    String vendorCode,
+    int materialType,
+    Map<String, String?> formData,
+  );
+
+  /// Step4: 最终提交，包含QR码
+  /// 输入: qrCode (String) - 扫描的QR码字符串
+  ///      headerKey (String) - Step3返回的header key
+  /// 输出: Future<Result<void>> - 最终提交结果
+  /// 用途: 用户确认后进行最终提交
+  Future<Result<void>> submitStep4Fields(String qrCode, String headerKey);
 }

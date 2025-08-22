@@ -9,6 +9,8 @@
 import 'package:pipe_code_flutter/models/common/result.dart';
 import 'package:pipe_code_flutter/models/recovery/material_categories.dart';
 import 'package:pipe_code_flutter/models/recovery/vendors_map.dart';
+import 'package:pipe_code_flutter/models/recovery/step3_result.dart';
+import 'package:pipe_code_flutter/models/recovery/recovery_scan_data.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/recovery_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/recovery_api_service.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
@@ -272,6 +274,118 @@ class RecoveryRepositoryImpl implements RecoveryRepository {
     } catch (e) {
       Logger.error('预加载数据异常', tag: 'RecoveryRepository', error: e);
       return Result(code: -1, msg: '预加载失败: $e', data: false);
+    }
+  }
+
+  // === 两步提交方法实现 ===
+
+  @override
+  Future<Result<Step3Result>> submitStep3Fields(
+    String vendorCode,
+    int materialType,
+    Map<String, String?> formData,
+  ) async {
+    try {
+      Logger.info(
+        'Step3提交: 供应商=$vendorCode, 材料类型=$materialType',
+        tag: 'RecoveryRepository',
+      );
+
+      // 过滤掉空值，准备提交数据
+      final Map<String, dynamic> submitFields = {};
+      formData.forEach((key, value) {
+        if (value != null && value.trim().isNotEmpty) {
+          submitFields[key] = value.trim();
+        }
+      });
+
+      Logger.info('Step3提交字段: $submitFields', tag: 'RecoveryRepository');
+
+      // 调用API service的step3方法
+      final apiResult = await _apiService.submitStep3Fields(
+        code: vendorCode,
+        type: materialType,
+        fields: submitFields,
+      );
+
+      if (apiResult.isFailure) {
+        Logger.error(
+          'Step3 API调用失败: ${apiResult.msg}',
+          tag: 'RecoveryRepository',
+        );
+        return Result(code: apiResult.code, msg: apiResult.msg, data: null);
+      }
+
+      // 从API返回的Map中提取数据和key
+      final responseData = apiResult.data!;
+      final headerKey = responseData['key'] as String?;
+      final scanDataJson = responseData['data'];
+
+      if (headerKey == null || headerKey.isEmpty) {
+        const errorMsg = 'Step3响应缺少header key';
+        Logger.error(errorMsg, tag: 'RecoveryRepository');
+        return Result(code: -1, msg: errorMsg, data: null);
+      }
+
+      if (scanDataJson == null) {
+        const errorMsg = 'Step3响应缺少扫描数据';
+        Logger.error(errorMsg, tag: 'RecoveryRepository');
+        return Result(code: -1, msg: errorMsg, data: null);
+      }
+
+      // 序列化RecoveryScanData
+      RecoveryScanData scanData;
+      try {
+        scanData = RecoveryScanData.fromJson(
+          scanDataJson as Map<String, dynamic>,
+        );
+      } catch (e) {
+        Logger.error(
+          'RecoveryScanData序列化失败',
+          tag: 'RecoveryRepository',
+          error: e,
+        );
+        return Result(code: -1, msg: '数据序列化失败: $e', data: null);
+      }
+
+      // 创建Step3Result
+      final step3Result = Step3Result(scanData: scanData, headerKey: headerKey);
+
+      Logger.info('Step3提交成功，headerKey: $headerKey', tag: 'RecoveryRepository');
+      return Result(code: 0, msg: 'Step3提交成功', data: step3Result);
+    } catch (e) {
+      Logger.error('Step3提交异常', tag: 'RecoveryRepository', error: e);
+      return Result(code: -1, msg: 'Step3提交失败: $e', data: null);
+    }
+  }
+
+  @override
+  Future<Result<void>> submitStep4Fields(
+    String qrCode,
+    String headerKey,
+  ) async {
+    try {
+      Logger.info(
+        'Step4提交: qrCode=$qrCode, headerKey=$headerKey',
+        tag: 'RecoveryRepository',
+      );
+
+      // 调用API service的step4方法
+      final apiResult = await _apiService.submitStep4Fields(qrCode, headerKey);
+
+      if (apiResult.isFailure) {
+        Logger.error(
+          'Step4 API调用失败: ${apiResult.msg}',
+          tag: 'RecoveryRepository',
+        );
+        return Result(code: apiResult.code, msg: apiResult.msg, data: null);
+      }
+
+      Logger.info('Step4提交成功', tag: 'RecoveryRepository');
+      return Result(code: 0, msg: 'Step4提交成功', data: null);
+    } catch (e) {
+      Logger.error('Step4提交异常', tag: 'RecoveryRepository', error: e);
+      return Result(code: -1, msg: 'Step4提交失败: $e', data: null);
     }
   }
 }

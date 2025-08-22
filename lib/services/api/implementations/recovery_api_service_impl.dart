@@ -71,7 +71,8 @@ class RecoveryApiServiceImpl extends BaseApiService
     try {
       final response = await dio.post(
         '/r/b/copy/1/$code/$type',
-        data: {'key': fields},
+        // data: {'key': fields},
+        data: fields,
       );
       if (response.statusCode == 200) {
         final result = Result.safeFromJson(
@@ -81,7 +82,7 @@ class RecoveryApiServiceImpl extends BaseApiService
         );
         final Map<String, dynamic> withHeaderKey = {
           'data': result.data,
-          'key': response.headers['key'],
+          'key': response.headers['key']?.first,
         };
         return Result<Map<String, dynamic>>(
           code: result.code,

@@ -103,3 +103,31 @@ class RecoveryValidationErrorsCleared extends RecoveryEvent {
 class RecoveryErrorMessageCleared extends RecoveryEvent {
   const RecoveryErrorMessageCleared();
 }
+
+// === 两步提交相关事件 ===
+
+/// Step3提交事件 - 用户点击确定按钮提交表单进入第一步提交时触发
+class RecoveryStep3Submitted extends RecoveryEvent {
+  const RecoveryStep3Submitted();
+}
+
+/// Step4确认事件 - 用户在确认弹窗中点击确认按钮准备QR扫描时触发
+class RecoveryStep4Confirmed extends RecoveryEvent {
+  const RecoveryStep4Confirmed();
+}
+
+/// Step4 QR扫描完成事件 - 用户完成QR扫描后提交最终数据时触发
+class RecoveryStep4QrScanned extends RecoveryEvent {
+  /// 扫描到的QR码内容
+  final String qrCode;
+
+  const RecoveryStep4QrScanned({required this.qrCode});
+
+  @override
+  List<Object?> get props => [qrCode];
+}
+
+/// 取消Step4事件 - 用户在确认弹窗中点击取消或返回时触发
+class RecoveryStep4Cancelled extends RecoveryEvent {
+  const RecoveryStep4Cancelled();
+}
