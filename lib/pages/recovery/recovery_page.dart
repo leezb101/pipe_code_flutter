@@ -85,11 +85,7 @@ class _RecoveryViewState extends State<RecoveryView> {
       errorMessage = state.errorMessage;
     } else if (state is RecoveryFormReady && state.errorMessage != null) {
       errorMessage = state.errorMessage;
-    } else if (state is RecoverySubmitting && state.errorMessage != null) {
-      errorMessage = state.errorMessage;
     } else if (state is RecoveryStep3Success && state.errorMessage != null) {
-      errorMessage = state.errorMessage;
-    } else if (state is RecoveryStep4InProgress && state.errorMessage != null) {
       errorMessage = state.errorMessage;
     }
 
@@ -594,7 +590,11 @@ class _RecoveryViewState extends State<RecoveryView> {
       final res = flow.normalize(request, raw);
 
       if (res.rawResults.isEmpty) {
-        Logger.info('Step4扫描取消或无结果', tag: 'RecoveryPage');
+        Logger.info('Step4扫描取消或无结果，回退到Step3状态', tag: 'RecoveryPage');
+        if (context.mounted) {
+          // 触发Step4取消事件，让用户可以重新确认
+          context.read<RecoveryBloc>().add(const RecoveryStep4Cancelled());
+        }
         return;
       }
 

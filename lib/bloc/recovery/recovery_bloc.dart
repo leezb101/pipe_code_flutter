@@ -495,8 +495,8 @@ class RecoveryBloc extends Bloc<RecoveryEvent, RecoveryState> {
     } else if (state is RecoveryFormReady) {
       final currentState = state as RecoveryFormReady;
       emit(currentState.copyWith(errorMessage: null));
-    } else if (state is RecoverySubmitting) {
-      final currentState = state as RecoverySubmitting;
+    } else if (state is RecoveryStep3Success) {
+      final currentState = state as RecoveryStep3Success;
       emit(currentState.copyWith(errorMessage: null));
     }
   }
@@ -555,10 +555,7 @@ class RecoveryBloc extends Bloc<RecoveryEvent, RecoveryState> {
         Logger.error('Step3提交失败: ${step3Result.msg}', tag: 'RecoveryBloc');
 
         emit(
-          RecoverySubmitting(
-            formState: currentState,
-            errorMessage: 'Step3提交失败: ${step3Result.msg}',
-          ),
+          currentState.copyWith(errorMessage: 'Step3提交失败: ${step3Result.msg}'),
         );
         return;
       }
@@ -576,12 +573,7 @@ class RecoveryBloc extends Bloc<RecoveryEvent, RecoveryState> {
       Logger.error('Step3提交异常', tag: 'RecoveryBloc', error: e);
       Logger.error('堆栈跟踪', tag: 'RecoveryBloc', error: stackTrace);
 
-      emit(
-        RecoverySubmitting(
-          formState: currentState,
-          errorMessage: 'Step3提交失败: $e',
-        ),
-      );
+      emit(currentState.copyWith(errorMessage: 'Step3提交失败: $e'));
     }
   }
 
@@ -644,9 +636,9 @@ class RecoveryBloc extends Bloc<RecoveryEvent, RecoveryState> {
         Logger.error('Step4提交失败: ${step4Result.msg}', tag: 'RecoveryBloc');
 
         emit(
-          currentState.copyWith(
-            statusMessage: 'Step4提交失败，请重新扫描QR码',
-            isSubmittingStep4: false,
+          RecoveryStep3Success(
+            formState: currentState.formState,
+            step3Result: currentState.step3Result,
             errorMessage: 'Step4提交失败: ${step4Result.msg}',
           ),
         );
@@ -668,9 +660,9 @@ class RecoveryBloc extends Bloc<RecoveryEvent, RecoveryState> {
       Logger.error('堆栈跟踪', tag: 'RecoveryBloc', error: stackTrace);
 
       emit(
-        currentState.copyWith(
-          statusMessage: 'Step4提交失败，请重新扫描QR码',
-          isSubmittingStep4: false,
+        RecoveryStep3Success(
+          formState: currentState.formState,
+          step3Result: currentState.step3Result,
           errorMessage: 'Step4提交失败: $e',
         ),
       );

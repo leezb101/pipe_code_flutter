@@ -307,30 +307,10 @@ class RecoverySubmitting extends RecoveryState {
   /// 提交进度信息
   final String? message;
 
-  /// 一次性消费的错误信息
-  final String? errorMessage;
-
-  const RecoverySubmitting({
-    required this.formState,
-    this.message,
-    this.errorMessage,
-  });
-
-  /// 创建新的状态副本，只更新指定字段
-  RecoverySubmitting copyWith({
-    RecoveryFormReady? formState,
-    String? message,
-    String? errorMessage,
-  }) {
-    return RecoverySubmitting(
-      formState: formState ?? this.formState,
-      message: message ?? this.message,
-      errorMessage: errorMessage,
-    );
-  }
+  const RecoverySubmitting({required this.formState, this.message});
 
   @override
-  List<Object?> get props => [formState, message, errorMessage];
+  List<Object?> get props => [formState, message];
 }
 
 /// 表单提交成功状态 - 表单提交成功后的状态
@@ -400,15 +380,11 @@ class RecoveryStep4InProgress extends RecoveryState {
   /// 是否正在提交Step4
   final bool isSubmittingStep4;
 
-  /// 一次性消费的错误信息
-  final String? errorMessage;
-
   const RecoveryStep4InProgress({
     required this.formState,
     required this.step3Result,
     required this.statusMessage,
     this.isSubmittingStep4 = false,
-    this.errorMessage,
   });
 
   /// 创建新的状态副本，只更新指定字段
@@ -417,14 +393,12 @@ class RecoveryStep4InProgress extends RecoveryState {
     Step3Result? step3Result,
     String? statusMessage,
     bool? isSubmittingStep4,
-    String? errorMessage,
   }) {
     return RecoveryStep4InProgress(
       formState: formState ?? this.formState,
       step3Result: step3Result ?? this.step3Result,
       statusMessage: statusMessage ?? this.statusMessage,
       isSubmittingStep4: isSubmittingStep4 ?? this.isSubmittingStep4,
-      errorMessage: errorMessage,
     );
   }
 
@@ -434,7 +408,6 @@ class RecoveryStep4InProgress extends RecoveryState {
     step3Result,
     statusMessage,
     isSubmittingStep4,
-    errorMessage,
   ];
 }
 
