@@ -68,6 +68,15 @@ extension UserRoleMenuExtension on UserRole {
             order: 5,
             isEnabled: true, // 扫码识别始终可用
           ),
+          _createMenuItem(
+            id: 'recovery',
+            title: '异常码找回',
+            type: MenuItemType.action,
+            icon: 'recovery',
+            action: 'recovery',
+            order: 6,
+            isEnabled: true,
+          ),
         ];
 
       case UserRole.supervisor:
@@ -87,8 +96,17 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.action,
             icon: 'keyboard_return',
             action: MenuActions.qrScanReturnMaterial,
-            order: 2,
+            order: 1,
             isEnabled: !isExpired,
+          ),
+          _createMenuItem(
+            id: 'recovery',
+            title: '异常码找回',
+            type: MenuItemType.action,
+            icon: 'recovery',
+            action: 'recovery',
+            order: 2,
+            isEnabled: true,
           ),
           _createMenuItem(
             id: 'qr_identify',
@@ -200,6 +218,15 @@ extension UserRoleMenuExtension on UserRole {
           //   order: 9,
           //   isEnabled: !isExpired,
           // ),
+          _createMenuItem(
+            id: 'recovery',
+            title: '异常码找回',
+            type: MenuItemType.action,
+            icon: 'recovery',
+            action: 'recovery',
+            order: 9,
+            isEnabled: true,
+          ),
           _createMenuItem(
             id: 'temporary_auth',
             title: '临时授权',
@@ -317,6 +344,15 @@ extension UserRoleMenuExtension on UserRole {
           //   isEnabled: !isExpired,
           // ),
           _createMenuItem(
+            id: 'recovery',
+            title: '异常码找回',
+            type: MenuItemType.action,
+            icon: 'recovery',
+            action: 'recovery',
+            order: 9,
+            isEnabled: true,
+          ),
+          _createMenuItem(
             id: 'temporary_auth',
             title: '临时授权',
             type: MenuItemType.page,
@@ -433,6 +469,15 @@ extension UserRoleMenuExtension on UserRole {
           //   isEnabled: !isExpired,
           // ),
           _createMenuItem(
+            id: 'recovery',
+            title: '异常码找回',
+            type: MenuItemType.action,
+            icon: 'recovery',
+            action: 'recovery',
+            order: 9,
+            isEnabled: true,
+          ),
+          _createMenuItem(
             id: 'qr_identify',
             title: '扫码识别',
             type: MenuItemType.action,
@@ -467,6 +512,15 @@ extension UserRoleMenuExtension on UserRole {
             action: 'qr_identify',
             order: 1,
             isEnabled: true, // 扫码识别始终可用
+          ),
+          _createMenuItem(
+            id: 'recovery',
+            title: '异常码找回',
+            type: MenuItemType.action,
+            icon: 'recovery',
+            action: 'recovery',
+            order: 2,
+            isEnabled: true,
           ),
         ];
     }

@@ -1182,6 +1182,7 @@ class _HomePageState extends State<HomePage> {
       'delete_forever': Icons.delete_forever,
       'admin_panel_settings': Icons.admin_panel_settings,
       'qr_code_scanner': Icons.qr_code_scanner,
+      'recovery': Icons.youtube_searched_for_rounded,
     };
     return iconMap[iconName] ?? Icons.apps;
   }
