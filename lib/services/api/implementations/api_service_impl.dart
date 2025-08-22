@@ -7,8 +7,10 @@
  */
 import 'package:dio/dio.dart';
 import 'package:pipe_code_flutter/services/api/implementations/inventory_api_service_impl.dart';
+import 'package:pipe_code_flutter/services/api/implementations/project_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/scrap_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/cut_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/project_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 import 'common_query_api_service_impl.dart';
 import 'cut_api_service_impl.dart';
@@ -42,6 +44,7 @@ class ApiServiceImpl implements ApiServiceInterface {
 
   AuthApiService? _authService;
   UserApiService? _userService;
+  ProjectApiService? _projectApiService;
   ListApiService? _listService;
   SpareqrApiService? _spareService;
   AcceptanceApiService? _acceptanceService;
@@ -62,6 +65,10 @@ class ApiServiceImpl implements ApiServiceInterface {
 
   @override
   UserApiService get user => _userService ??= UserApiServiceImpl(_dio);
+
+  @override
+  ProjectApiService get project =>
+      _projectApiService ??= ProjectApiServiceImpl(_dio);
 
   @override
   ListApiService get list => _listService ??= ListApiServiceImpl(_dio);

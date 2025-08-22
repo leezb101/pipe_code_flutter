@@ -64,6 +64,11 @@ class ProjectSetCurrentRoleInfo extends ProjectEvent {
   List<Object?> get props => [wxLoginVO, currentUserRoleInfo];
 }
 
+/// 获取项目统计信息
+class ProjectGetGeneralDisplayInfo extends ProjectEvent {
+  const ProjectGetGeneralDisplayInfo();
+}
+
 /// 清除项目数据
 class ProjectClearData extends ProjectEvent {
   const ProjectClearData();

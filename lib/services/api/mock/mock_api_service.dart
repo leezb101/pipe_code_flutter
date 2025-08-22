@@ -10,6 +10,7 @@ import 'package:pipe_code_flutter/services/api/interfaces/dispatch_api_service.d
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/inventory_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/material_handle_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/project_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/spareqr_api_service.dart';
@@ -17,6 +18,7 @@ import 'package:pipe_code_flutter/services/api/mock/mock_common_query_api_servic
 import 'package:pipe_code_flutter/services/api/mock/mock_enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_material_handle_api_service.dart';
+import 'package:pipe_code_flutter/services/api/mock/mock_project_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_spareqr_api_service.dart';
@@ -41,6 +43,7 @@ import 'mock_inventory_api_service.dart';
 class MockApiService implements ApiServiceInterface {
   AuthApiService? _authService;
   UserApiService? _userService;
+  ProjectApiService? _projectService;
   ListApiService? _listService;
   SpareqrApiService? _spareqrService;
   AcceptanceApiService? _acceptanceService;
@@ -60,6 +63,9 @@ class MockApiService implements ApiServiceInterface {
 
   @override
   UserApiService get user => _userService ??= MockUserApiService();
+
+  @override
+  ProjectApiService get project => _projectService ??= MockProjectApiService();
 
   @override
   ListApiService get list => _listService ??= MockListApiService();

@@ -5,6 +5,7 @@
  * @LastEditTime: 2025-08-03 11:07:35
  * @copyright: Copyright © 2025 高新供水.
  */
+import 'package:pipe_code_flutter/services/api/interfaces/project_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 
 import 'enum_api_service.dart';
@@ -25,6 +26,7 @@ import 'inventory_api_service.dart';
 abstract class ApiServiceInterface {
   AuthApiService get auth;
   UserApiService get user;
+  ProjectApiService get project;
   ListApiService get list;
   SpareqrApiService get spare;
   AcceptanceApiService get acceptance;

@@ -5,19 +5,20 @@
  * @LastEditTime: 2025-07-14 18:36:54
  * @copyright: Copyright © 2025 高新供水.
  */
+import 'package:pipe_code_flutter/models/common/result.dart';
+import 'package:pipe_code_flutter/models/project/project_general_display.dart';
 import 'package:pipe_code_flutter/models/user/wx_login_vo.dart';
 import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
 import 'package:pipe_code_flutter/models/project/project_info.dart';
 
 abstract class ProjectRepository {
-  Future<void> saveCurrentUserRoleInfo(
-    CurrentUserOnProjectRoleInfo roleInfo,
-  );
+  Future<void> saveCurrentUserRoleInfo(CurrentUserOnProjectRoleInfo roleInfo);
   Future<CurrentUserOnProjectRoleInfo?> loadCurrentUserRoleInfo();
   List<ProjectInfo> getUserProjects(WxLoginVO wxLoginVO);
   Future<bool> isFirstLogin();
   Future<String?> getLastSelectedProjectId();
   Future<void> saveLastSelectedProjectId(String projectId);
+  Future<Result<ProjectGeneralDisplay>> getProjectDisplayInfosForHome();
   Future<void> clearProjectData();
   void clearCache();
   String? get currentProjectId;

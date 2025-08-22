@@ -6,6 +6,7 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:equatable/equatable.dart';
+import 'package:pipe_code_flutter/models/project/project_general_display.dart';
 import '../../models/user/wx_login_vo.dart';
 import '../../models/user/current_user_on_project_role_info.dart';
 import '../../models/project/project_info.dart';
@@ -23,7 +24,7 @@ abstract class ProjectState extends Equatable {
 /// 项目状态初始化
 class ProjectInitial extends ProjectState {
   const ProjectInitial({this.timestamp});
-  
+
   final DateTime? timestamp;
 
   @override
@@ -92,6 +93,16 @@ class ProjectRoleInfoLoaded extends ProjectState {
 
   /// 判断是否已过期
   bool get isExpired => currentUserRoleInfo.expire;
+}
+
+/// 项目统计信息已加载
+class ProjectGeneralDisplayInfoLoaded extends ProjectState {
+  const ProjectGeneralDisplayInfoLoaded({required this.displayInfo});
+
+  final ProjectGeneralDisplay displayInfo;
+
+  @override
+  List<Object?> get props => [displayInfo];
 }
 
 /// 项目错误状态

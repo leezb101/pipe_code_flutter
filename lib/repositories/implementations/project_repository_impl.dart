@@ -5,15 +5,19 @@
  * @LastEditTime: 2025-07-14 18:36:54
  * @copyright: Copyright © 2025 高新供水.
  */
+import 'package:pipe_code_flutter/models/common/result.dart';
+import 'package:pipe_code_flutter/models/project/project_general_display.dart';
 import 'package:pipe_code_flutter/models/user/wx_login_vo.dart';
 import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
 import 'package:pipe_code_flutter/models/project/project_info.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/api_service_interface.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/project_api_service.dart';
 import 'package:pipe_code_flutter/services/storage_service.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/project_repository.dart';
 
 class ProjectRepositoryImpl implements ProjectRepository {
   final StorageService _storageService;
+  final ApiServiceInterface _apiservice;
 
   // 项目相关的内存缓存
   CurrentUserOnProjectRoleInfo? _cachedCurrentUserRoleInfo;
@@ -23,7 +27,8 @@ class ProjectRepositoryImpl implements ProjectRepository {
   ProjectRepositoryImpl({
     required ApiServiceInterface apiService,
     required StorageService storageService,
-  }) : _storageService = storageService;
+  }) : _storageService = storageService,
+       _apiservice = apiService;
 
   @override
   Future<void> saveCurrentUserRoleInfo(
@@ -115,6 +120,16 @@ class ProjectRepositoryImpl implements ProjectRepository {
   @override
   Future<void> saveLastSelectedProjectId(String projectId) async {
     await _storageService.setUserString('current_project_id', projectId);
+  }
+
+  @override
+  Future<Result<ProjectGeneralDisplay>> getProjectDisplayInfosForHome() async {
+    final result = await _apiservice.project.getProjectDisplayInfos();
+    if (result.code == 0 && result.data != null) {
+      return Result(code: 0, msg: '获取项目统计信息成功', data: result.data);
+    } else {
+      return Result(code: result.code, msg: '获取项目统计失败: ${result.msg}');
+    }
   }
 
   @override
