@@ -15,4 +15,20 @@ class MockRecoveryApiService implements RecoveryApiService {
     // TODO: implement getVendorsMap
     throw UnimplementedError();
   }
+
+  @override
+  Future<Result<Map<String, dynamic>>> submitStep3Fields({
+    required String code,
+    required int type,
+    required Map<String, dynamic> fields,
+  }) {
+    // TODO: implement submitStep3Fields
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Result<void>> submitStep4Fields(String qrCode, String key) {
+    // TODO: implement submitStep4Fields
+    throw UnimplementedError();
+  }
 }
