@@ -106,3 +106,8 @@ class SessionSelectProjectWithPendingNavigation extends SessionEvent {
 class SessionClearPendingNavigation extends SessionEvent {
   const SessionClearPendingNavigation();
 }
+
+/// 加载项目统计信息
+class SessionLoadProjectDisplayInfo extends SessionEvent {
+  const SessionLoadProjectDisplayInfo();
+}

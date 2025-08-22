@@ -162,7 +162,10 @@ Future<void> setupServiceLocator({
 
   // Blocs
   getIt.registerFactory<SessionBloc>(
-    () => SessionBloc(authRepository: getIt<AuthRepository>()),
+    () => SessionBloc(
+      authRepository: getIt<AuthRepository>(),
+      projectRepository: getIt<ProjectRepository>(),
+    ),
   );
   getIt.registerFactory<AcceptanceBloc>(
     () => AcceptanceBloc(

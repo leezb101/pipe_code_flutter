@@ -8,6 +8,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/records/record_item.dart';
 import '../../repositories/interfaces/auth_repository.dart';
+import '../../repositories/interfaces/project_repository.dart';
 import '../../models/user/wx_login_vo.dart';
 import '../../services/notification/notification_manager.dart';
 import '../../utils/logger.dart';
@@ -16,13 +17,17 @@ import 'session_state.dart';
 
 class SessionBloc extends Bloc<SessionEvent, SessionState> {
   final AuthRepository _authRepository;
+  final ProjectRepository _projectRepository;
   int? _pendingProjectId;
   WxLoginVO? _cachedWxLoginVO;
   TodoRecordItem? _pendingTodoRecord;
 
-  SessionBloc({required AuthRepository authRepository})
-    : _authRepository = authRepository,
-      super(const SessionInitial()) {
+  SessionBloc({
+    required AuthRepository authRepository,
+    required ProjectRepository projectRepository,
+  }) : _authRepository = authRepository,
+       _projectRepository = projectRepository,
+       super(const SessionInitial()) {
     on<SessionInitializeRequested>(_onInitializeRequested);
     on<SessionSelectProjectParticipant>(_onSelectProjectParticipant);
     on<SessionSelectStorekeeper>(_onSelectStorekeeper);
@@ -35,6 +40,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     on<SessionClearPendingNavigation>(_onClearPendingNavigation);
     on<SessionClearRequested>(_onClearRequested);
     on<SessionReloadRequested>(_onReloadRequested);
+    on<SessionLoadProjectDisplayInfo>(_onLoadProjectDisplayInfo);
   }
 
   /// 初始化会话
@@ -217,18 +223,20 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
         final wxLoginVO = _cachedWxLoginVO;
 
         if (wxLoginVO != null) {
-          emit(
-            SessionProjectEstablished(
-              wxLoginVO: wxLoginVO,
-              currentUserRoleInfo: result.data!,
-            ),
+          final projectEstablishedState = SessionProjectEstablished(
+            wxLoginVO: wxLoginVO,
+            currentUserRoleInfo: result.data!,
           );
+          emit(projectEstablishedState);
           _pendingProjectId = null;
 
           // 启动通知系统 (仅当用户为自有人员时)
           if (wxLoginVO.own) {
             _startNotificationSystem(wxLoginVO);
           }
+
+          // 自动加载统计信息
+          add(const SessionLoadProjectDisplayInfo());
         } else {
           emit(const SessionError(error: '无法获取用户登录信息'));
         }
@@ -279,14 +287,16 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
         final wxLoginVO = _cachedWxLoginVO;
 
         if (wxLoginVO != null) {
-          emit(
-            SessionProjectEstablished(
-              wxLoginVO: wxLoginVO,
-              currentUserRoleInfo: result.data!,
-              pendingTodoRecord: event.pendingTodoRecord,
-            ),
+          final projectEstablishedState = SessionProjectEstablished(
+            wxLoginVO: wxLoginVO,
+            currentUserRoleInfo: result.data!,
+            pendingTodoRecord: event.pendingTodoRecord,
           );
+          emit(projectEstablishedState);
           _pendingProjectId = null;
+
+          // 自动加载统计信息
+          add(const SessionLoadProjectDisplayInfo());
         } else {
           emit(const SessionError(error: '无法获取用户登录信息'));
         }
@@ -360,6 +370,26 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
         'Error starting notification system: ${e.toString()}',
         tag: 'SESSION_BLOC',
       );
+    }
+  }
+
+  /// 处理加载项目统计信息事件
+  Future<void> _onLoadProjectDisplayInfo(
+    SessionLoadProjectDisplayInfo event,
+    Emitter<SessionState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is SessionProjectEstablished) {
+      try {
+        final result = await _projectRepository.getProjectDisplayInfosForHome();
+        if (result.isSuccess && result.data != null) {
+          emit(currentState.copyWith(projectDisplayInfo: result.data));
+        }
+        // 如果失败，不改变状态，保持现有的显示
+      } catch (e) {
+        // 静默处理错误，不影响主要功能
+        Logger.error('加载项目统计信息失败: $e', tag: 'SessionBloc');
+      }
     }
   }
 }

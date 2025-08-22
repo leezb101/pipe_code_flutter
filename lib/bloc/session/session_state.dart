@@ -9,6 +9,7 @@ import 'package:equatable/equatable.dart';
 import '../../models/user/wx_login_vo.dart';
 import '../../models/user/current_user_on_project_role_info.dart';
 import '../../models/project/project_info.dart';
+import '../../models/project/project_general_display.dart';
 import '../../models/menu/menu_config.dart';
 import '../../models/records/record_item.dart';
 import '../../services/menu_service.dart';
@@ -97,12 +98,14 @@ class SessionProjectEstablished extends SessionState {
     required this.currentUserRoleInfo,
     this.pendingTodoRecord,
     this.isSwitching = false,
+    this.projectDisplayInfo,
   });
 
   final WxLoginVO wxLoginVO;
   final CurrentUserOnProjectRoleInfo currentUserRoleInfo;
   final TodoRecordItem? pendingTodoRecord;
   final bool isSwitching;
+  final ProjectGeneralDisplay? projectDisplayInfo;
 
   @override
   List<dynamic> get props => [
@@ -110,6 +113,7 @@ class SessionProjectEstablished extends SessionState {
     currentUserRoleInfo,
     pendingTodoRecord,
     isSwitching,
+    projectDisplayInfo,
   ];
 
   /// 获取当前项目信息
@@ -150,6 +154,7 @@ class SessionProjectEstablished extends SessionState {
     TodoRecordItem? pendingTodoRecord,
     bool clearPendingTodo = false,
     bool? isSwitching,
+    ProjectGeneralDisplay? projectDisplayInfo,
   }) {
     return SessionProjectEstablished(
       wxLoginVO: wxLoginVO ?? this.wxLoginVO,
@@ -158,6 +163,7 @@ class SessionProjectEstablished extends SessionState {
           ? null
           : pendingTodoRecord ?? this.pendingTodoRecord,
       isSwitching: isSwitching ?? this.isSwitching,
+      projectDisplayInfo: projectDisplayInfo ?? this.projectDisplayInfo,
     );
   }
 }
