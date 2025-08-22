@@ -14,6 +14,7 @@ import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/models/recovery/material_categories.dart';
 import 'package:pipe_code_flutter/models/recovery/vendors_map.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
+import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 
@@ -374,7 +375,7 @@ class _RecoveryViewState extends State<RecoveryView> {
       child: TextFormField(
         controller: controller,
         decoration: InputDecoration(
-          labelText: field.key,
+          labelText: field.name,
           border: const OutlineInputBorder(),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
@@ -416,28 +417,35 @@ class _RecoveryViewState extends State<RecoveryView> {
   }
 
   /// 处理扫描二维码
-  void _handleScanQRCode(BuildContext context) {
-    Logger.info('启动二维码扫描', tag: 'RecoveryPage');
+  Future<void> _handleScanQRCode(BuildContext context) async {
+    final flow = RepositoryProvider.of<QrScanFlowService>(
+      context,
+      listen: false,
+    );
 
     // 创建扫描配置
-    final scanConfig = QrScanConfig(
+    final request = QrScanFlowRequest(
       operation: QrScanOperation.initial,
-      title: '扫描备用码',
-      scanMode: QrScanMode.single,
+      currentCodes: const [],
+      batch: false,
+      title: '扫描补充码',
+      context: const {'source': 'recovery_page', 'entry': 'embedded'},
     );
 
     // 导航到扫描页面
-    context.push('/qr_scan', extra: scanConfig).then((result) {
-      if (mounted &&
-          context.mounted &&
-          result != null &&
-          result is List<String> &&
-          result.isNotEmpty) {
-        Logger.info('扫描结果: $result', tag: 'RecoveryPage');
-        ToastUtils.showSuccess(context, '扫描成功：${result.first}');
-        // 这里可以处理扫描结果，比如填充到某个字段中
-      }
-    });
+    final config = flow.buildConfig(request);
+    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final res = flow.normalize(request, raw);
+    if (res.rawResults.isEmpty) return;
+    if (!context.mounted) return;
+    // 记录扫描结果，待后续提交时提交到服务端
+    // FIXME: 这里还有问题
+    context.read<RecoveryBloc>().add(
+      RecoveryFormFieldChanged(
+        fieldKey: '扫描结果',
+        value: res.rawResults.first.code,
+      ),
+    );
   }
 
   /// 构建操作按钮
