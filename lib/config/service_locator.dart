@@ -14,6 +14,7 @@ import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
 import 'package:pipe_code_flutter/bloc/cut/cut_bloc.dart';
 import 'package:pipe_code_flutter/bloc/material_detail/material_detail_cubit.dart';
 import 'package:pipe_code_flutter/bloc/recovery/recovery_bloc.dart';
+import 'package:pipe_code_flutter/bloc/storekeeper_non_project/storekeeper_non_project_bloc.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/auth_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/cut_repository.dart';
@@ -32,6 +33,7 @@ import 'package:pipe_code_flutter/repositories/interfaces/scrap_repository.dart'
 import 'package:pipe_code_flutter/repositories/interfaces/signout_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/user_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/storekeeper_non_project_repository.dart';
 import 'package:pipe_code_flutter/repositories/repository_factory.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/identification_api_service.dart';
@@ -39,6 +41,7 @@ import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart
 import 'package:pipe_code_flutter/services/api/interfaces/upload_api_service.dart';
 import 'package:pipe_code_flutter/services/api_service_factory.dart';
 import 'package:pipe_code_flutter/services/qr_scan_service.dart';
+import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/services/storage_service.dart';
 import 'package:pipe_code_flutter/services/notification/background_handler.dart';
 import 'package:pipe_code_flutter/services/notification/notification_manager.dart';
@@ -92,6 +95,9 @@ Future<void> setupServiceLocator({
 
   // QR Scan Service
   getIt.registerLazySingleton<QrScanService>(() => QrScanServiceImpl());
+  getIt.registerLazySingleton<QrScanFlowService>(
+    () => const QrScanFlowService(),
+  );
 
   // Notification Services
   getIt.registerSingleton<NotificationManager>(NotificationManager.instance);
@@ -159,6 +165,9 @@ Future<void> setupServiceLocator({
   getIt.registerLazySingleton<MaterialDetailRepository>(
     () => RepositoryFactory.createMaterialDetailRepository(),
   );
+  getIt.registerLazySingleton<StorekeeperNonProjectRepository>(
+    () => RepositoryFactory.createStorekeeperNonProjectRepository(),
+  );
   // Wait for async singletons to be ready before registering dependent Blocs
   await getIt.isReady<AuthRepository>();
   await getIt.isReady<ProjectRepository>();
@@ -224,6 +233,13 @@ Future<void> setupServiceLocator({
     () => ScrapBloc(
       scrapRepository: getIt<ScrapRepository>(),
       materialHandleRepository: getIt<MaterialHandleRepository>(),
+    ),
+  );
+
+  getIt.registerFactory<StorekeeperNonProjectBloc>(
+    () => StorekeeperNonProjectBloc(
+      repository: getIt<StorekeeperNonProjectRepository>(),
+      qrScanFlowService: getIt<QrScanFlowService>(),
     ),
   );
 

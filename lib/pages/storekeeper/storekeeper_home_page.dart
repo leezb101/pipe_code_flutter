@@ -7,6 +7,7 @@
  */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../models/user/wx_login_vo.dart';
@@ -203,10 +204,10 @@ class StorekeeperHomePage extends StatelessWidget {
           children: [
             Expanded(
               child: _buildActionCard(
-                title: '入库',
+                title: '非项目入库',
                 icon: Icons.add_box,
                 color: const Color(0xFF27AE60),
-                onTap: () => _showComingSoon(context, '入库功能'),
+                onTap: () => context.pushNamed('storekeeper-non-project'),
               ),
             ),
             const SizedBox(width: 12),

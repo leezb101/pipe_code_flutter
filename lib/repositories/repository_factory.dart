@@ -45,6 +45,10 @@ import 'package:pipe_code_flutter/repositories/interfaces/cut_repository.dart';
 import 'package:pipe_code_flutter/repositories/implementations/cut_repository_impl.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/scrap_repository.dart';
 import 'package:pipe_code_flutter/repositories/implementations/scrap_repository_impl.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/storekeeper_action_repository.dart';
+import 'package:pipe_code_flutter/repositories/implementations/storekeeper_action_repository_impl.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/storekeeper_non_project_repository.dart';
+import 'package:pipe_code_flutter/repositories/implementations/storekeeper_non_project_repository_impl.dart';
 
 /// Repository 工厂
 ///
@@ -198,5 +202,23 @@ class RepositoryFactory {
   static RecoveryRepository createRecoveryRepository() {
     final recoveryApiService = ApiServiceFactory.createRecoveryService();
     return RecoveryRepositoryImpl(recoveryApiService);
+  }
+
+  /// 创建并返回一个 [StorekeeperActionRepository] 实例。
+  static StorekeeperActionRepository createStorekeeperActionRepository() {
+    final storekeeperActionApiService =
+        ApiServiceFactory.createStorekeeperActionService();
+    return StorekeeperActionRepositoryImpl(storekeeperActionApiService);
+  }
+
+  /// 创建并返回一个 [StorekeeperNonProjectRepository] 实例。
+  static StorekeeperNonProjectRepository
+  createStorekeeperNonProjectRepository() {
+    final storekeeperActionRepository = createStorekeeperActionRepository();
+    final materialHandleRepository = createMaterialHandleRepository();
+    return StorekeeperNonProjectRepositoryImpl(
+      storekeeperActionRepository: storekeeperActionRepository,
+      materialHandleRepository: materialHandleRepository,
+    );
   }
 }

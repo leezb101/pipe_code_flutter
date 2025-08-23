@@ -58,6 +58,8 @@ import '../pages/inventory/inventory_list_page.dart';
 import '../pages/inventory/inventory_page.dart';
 import '../pages/inventory/inventory_detail_page.dart';
 import '../pages/notification/pending_todo_list_page.dart';
+import '../pages/storekeeper/storekeeper_non_project_page.dart';
+import '../bloc/storekeeper_non_project/storekeeper_non_project_bloc.dart';
 import 'service_locator.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -562,6 +564,16 @@ final GoRouter appRouter = GoRouter(
           return const Scaffold(body: Center(child: Text('参数错误')));
         }
         return PdfPreviewer(url: url);
+      },
+    ),
+    GoRoute(
+      path: '/storekeeper-non-project',
+      name: 'storekeeper-non-project',
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => getIt<StorekeeperNonProjectBloc>(),
+          child: const StorekeeperNonProjectPage(),
+        );
       },
     ),
   ],

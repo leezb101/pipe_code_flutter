@@ -61,6 +61,8 @@ import 'api/implementations/upload_api_service_impl.dart';
 import 'api/mock/mock_upload_api_service.dart';
 import 'api/interfaces/recovery_api_service.dart';
 import 'api/implementations/recovery_api_service_impl.dart';
+import 'api/interfaces/storekeeper_action_api_service.dart';
+import 'api/implementations/storekeeper_action_api_service_impl.dart';
 
 class ApiServiceFactory {
   static ApiServiceInterface create() {
@@ -214,6 +216,16 @@ class ApiServiceFactory {
     // } else {
     final dio = _createDio();
     return RecoveryApiServiceImpl(dio);
+    // }
+  }
+
+  static StorekeeperActionApiService createStorekeeperActionService() {
+    // TODO: 添加mock实现
+    // if (AppConfig.isMockEnabled) {
+    //   return MockStorekeeperActionApiService();
+    // } else {
+    final dio = _createDio();
+    return StorekeeperActionApiServiceImpl(dio);
     // }
   }
 
