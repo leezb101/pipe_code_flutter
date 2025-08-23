@@ -16,7 +16,9 @@ import 'package:pipe_code_flutter/bloc/storekeeper_non_project/storekeeper_non_p
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
+import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
+import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 
 class StorekeeperNonProjectPage extends StatefulWidget {
   const StorekeeperNonProjectPage({super.key});
@@ -54,6 +56,45 @@ class _StorekeeperNonProjectPageState extends State<StorekeeperNonProjectPage> {
     _imageUploadCubit.close();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  // 提交入库方法
+  void _submitEntry() {
+    final uploadStates = _imageUploadCubit.state;
+    final isUploading = uploadStates.any(
+      (s) => s.status == UploadStatus.uploading,
+    );
+    if (isUploading) {
+      ToastUtils.showInfo(context, '照片仍在上传中，请稍候...');
+      return;
+    }
+
+    final hasFailures = uploadStates.any(
+      (s) => s.status == UploadStatus.failure,
+    );
+    if (hasFailures) {
+      ToastUtils.showError(context, '有图片上传失败，请重试或删除。');
+      return;
+    }
+
+    final photoUrls = uploadStates
+        .where(
+          (s) => s.status == UploadStatus.success && s.uploadResult != null,
+        )
+        .map((state) => state.uploadResult!.fileUrl)
+        .toList();
+
+    // 更新bloc中的照片列表
+    // TODO: 实现bloc中的UpdatePhotos事件以保存照片URL到状态中
+    // context.read<StorekeeperNonProjectBloc>().add(UpdatePhotos(photoUrls));
+
+    // 准备提交时检查照片
+    if (photoUrls.isNotEmpty) {
+      // 有照片已上传，将在提交时一并处理
+    }
+
+    // 触发提交 - 携带照片URL信息
+    context.read<StorekeeperNonProjectBloc>().add(SubmitEntry());
   }
 
   @override
@@ -383,33 +424,25 @@ class _StorekeeperNonProjectPageState extends State<StorekeeperNonProjectPage> {
               ],
             ),
             const SizedBox(height: 16),
-            // 简化的图片上传区域
-            Container(
-              width: double.infinity,
-              height: 120,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(8),
-                color: Colors.grey[50],
-              ),
-              child: InkWell(
-                onTap: () {
-                  // TODO: 实现图片选择逻辑
-                  ToastUtils.showInfo(context, '图片上传功能待完善');
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add_a_photo, size: 40, color: Colors.grey[600]),
-                    const SizedBox(height: 8),
-                    Text(
-                      '点击上传图片（可选）',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
+            // 使用ImageUploadWidget替代简化版本
+            BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+              bloc: _imageUploadCubit,
+              builder: (context, states) {
+                return ImageUploadWidget(
+                  title: '照片',
+                  maxImages: 6,
+                  states: states,
+                  onAdd: (files) {
+                    _imageUploadCubit.addFiles(files);
+                  },
+                  onRemove: (uniqueId) {
+                    _imageUploadCubit.removeFile(uniqueId);
+                  },
+                  onRetry: (uniqueId) {
+                    _imageUploadCubit.retryUpload(uniqueId);
+                  },
+                );
+              },
             ),
           ],
         ),
@@ -495,11 +528,7 @@ class _StorekeeperNonProjectPageState extends State<StorekeeperNonProjectPage> {
                 onPressed:
                     canSubmit &&
                         state.status != StorekeeperNonProjectStatus.submitting
-                    ? () {
-                        context.read<StorekeeperNonProjectBloc>().add(
-                          SubmitEntry(),
-                        );
-                      }
+                    ? _submitEntry
                     : null,
                 child: state.status == StorekeeperNonProjectStatus.submitting
                     ? const SizedBox(
