@@ -10,8 +10,8 @@ BusinessRecord _$BusinessRecordFromJson(Map<String, dynamic> json) =>
     BusinessRecord(
       id: (json['id'] as num).toInt(),
       bizType: (json['bizType'] as num?)?.toInt(),
-      projectName: json['projectName'] as String,
-      projectCode: json['projectCode'] as String,
+      projectName: json['projectName'] as String?,
+      projectCode: json['projectCode'] as String?,
       materialNum: (json['materialNum'] as num?)?.toInt(),
       userName: json['userName'] as String,
       doTime: BusinessRecord._timestampToDateTime(json['doTime']),

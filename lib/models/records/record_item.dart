@@ -11,8 +11,8 @@ import '../todo/todo_task.dart';
 
 abstract class RecordItem {
   int get id;
-  String get projectName;
-  String get projectCode;
+  String? get projectName;
+  String? get projectCode;
   String get userName;
   DateTime? get doTime;
   String get businessTypeDescription;
@@ -27,10 +27,10 @@ class BusinessRecordItem implements RecordItem {
   int get id => _record.id;
 
   @override
-  String get projectName => _record.projectName;
+  String? get projectName => _record.projectName;
 
   @override
-  String get projectCode => _record.projectCode;
+  String? get projectCode => _record.projectCode;
 
   @override
   String get userName => _record.userName;
@@ -42,6 +42,12 @@ class BusinessRecordItem implements RecordItem {
   String get businessTypeDescription => _record.businessTypeDescription;
 
   BusinessRecord get record => _record;
+}
+
+class StorekeeperBusinessRecordItem extends BusinessRecordItem {
+  StorekeeperBusinessRecordItem(super.record, this.materialNum);
+
+  final int? materialNum;
 }
 
 class ProjectRecordItem implements RecordItem {

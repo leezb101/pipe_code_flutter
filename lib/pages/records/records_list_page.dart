@@ -70,12 +70,12 @@ class _RecordsListPageState extends State<RecordsListPage>
       if (mounted) {
         final ids = _resolveIds(context.read<SessionBloc>().state);
         context.read<RecordsBloc>().add(
-              LoadRecords(
-                recordType: _initialTab,
-                userId: ids.$1,
-                projectId: ids.$2,
-              ),
-            );
+          LoadRecords(
+            recordType: _initialTab,
+            userId: ids.$1,
+            projectId: ids.$2,
+          ),
+        );
       }
     });
   }
@@ -91,21 +91,28 @@ class _RecordsListPageState extends State<RecordsListPage>
 
     List<RecordType> tabs = [];
     if (isStoreKeeper) {
-      // 仓管员身份，展示"待办"和"仓管待办"
-      tabs = [RecordType.todo, RecordType.warehouseTodo];
+      // 仓管员身份，展示专用的4个tab："仓管待办"、"待办"、"入库记录"、"出库记录"
+      tabs = [
+        RecordType.warehouseTodo,
+        RecordType.todo,
+        RecordType.signinWarehouse,
+        RecordType.signoutWarehouse,
+      ];
     } else {
       // 普通项目参与方，只展示"待办"
       tabs = [RecordType.todo];
+      // 追加其他所有tab，但排除仓管专用的tabs
+      tabs.addAll(
+        RecordType.values.where(
+          (e) =>
+              e != RecordType.todo &&
+              e != RecordType.warehouseTodo &&
+              e != RecordType.signinWarehouse &&
+              e != RecordType.signoutWarehouse &&
+              e != RecordType.inventory, // 盘点记录也只有仓管员可见
+        ),
+      );
     }
-    // 追加其他所有tab，且仅当isStoreKeeper为true时才包含inventory
-    tabs.addAll(
-      RecordType.values.where(
-        (e) =>
-            e != RecordType.todo &&
-            e != RecordType.warehouseTodo &&
-            (e != RecordType.inventory || isStoreKeeper),
-      ),
-    );
     _allTabs = tabs;
 
     // 根据最终的会话身份设置默认选中的tab
@@ -148,11 +155,7 @@ class _RecordsListPageState extends State<RecordsListPage>
   void _onTabSelected(RecordType recordType) {
     final ids = _resolveIds(context.read<SessionBloc>().state);
     context.read<RecordsBloc>().add(
-      SwitchTab(
-        recordType,
-        userId: ids.$1,
-        projectId: ids.$2,
-      ),
+      SwitchTab(recordType, userId: ids.$1, projectId: ids.$2),
     );
   }
 
@@ -195,6 +198,21 @@ class _RecordsListPageState extends State<RecordsListPage>
       case RecordType.inventory:
         context.goNamed(
           'inventory-detail',
+          queryParameters: {'id': record.id.toString()},
+        );
+        break;
+      case RecordType.signout:
+      case RecordType.signoutWarehouse:
+        // 出库记录和仓管出库记录都导航到同一个详情页
+        context.goNamed(
+          'signout-detail',
+          queryParameters: {'id': record.id.toString()},
+        );
+        break;
+      case RecordType.signinWarehouse:
+        // 仓管入库记录导航到入库详情页（假设有这个页面）
+        context.goNamed(
+          'signin-detail',
           queryParameters: {'id': record.id.toString()},
         );
         break;
@@ -291,13 +309,14 @@ class _RecordsListPageState extends State<RecordsListPage>
           });
         }
 
-    // 处理会话身份切换或项目切换，这需要重置Tabs并重新加载记录
-    final last = _lastSessionState;
-    final typeChanged = last?.runtimeType != sessionState.runtimeType;
-    final projectChanged = last is SessionProjectEstablished &&
-      sessionState is SessionProjectEstablished &&
-      last.project.projectId != sessionState.project.projectId;
-    if (typeChanged || projectChanged) {
+        // 处理会话身份切换或项目切换，这需要重置Tabs并重新加载记录
+        final last = _lastSessionState;
+        final typeChanged = last?.runtimeType != sessionState.runtimeType;
+        final projectChanged =
+            last is SessionProjectEstablished &&
+            sessionState is SessionProjectEstablished &&
+            last.project.projectId != sessionState.project.projectId;
+        if (typeChanged || projectChanged) {
           if (mounted) {
             setState(() {
               _setupTabsBySession(sessionState);
@@ -305,12 +324,12 @@ class _RecordsListPageState extends State<RecordsListPage>
               final ids = _resolveIds(sessionState);
               // 强制刷新以绕开缓存
               context.read<RecordsBloc>().add(
-                    RefreshRecords(
-                      recordType: _initialTab,
-                      userId: ids.$1,
-                      projectId: ids.$2,
-                    ),
-                  );
+                RefreshRecords(
+                  recordType: _initialTab,
+                  userId: ids.$1,
+                  projectId: ids.$2,
+                ),
+              );
             });
           }
         }

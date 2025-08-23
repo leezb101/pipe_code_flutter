@@ -21,6 +21,12 @@ enum RecordType {
   @JsonValue('signout')
   signout,
 
+  @JsonValue('signinWarehouse')
+  signinWarehouse,
+
+  @JsonValue('signoutWarehouse')
+  signoutWarehouse,
+
   @JsonValue('install')
   install,
 
@@ -51,6 +57,10 @@ extension RecordTypeExtension on RecordType {
         return '验收记录';
       case RecordType.signout:
         return '出库记录';
+      case RecordType.signinWarehouse:
+        return '入库记录';
+      case RecordType.signoutWarehouse:
+        return '出库记录';
       case RecordType.install:
         return '安装记录';
       case RecordType.returnWarehouse:
@@ -76,6 +86,10 @@ extension RecordTypeExtension on RecordType {
         return '/accept/list';
       case RecordType.signout:
         return '/signout/list';
+      case RecordType.signinWarehouse:
+        return '/signin/list/warehouse';
+      case RecordType.signoutWarehouse:
+        return '/signout/list/warehouse';
       case RecordType.install:
         return '/install/list';
       case RecordType.returnWarehouse:
@@ -95,6 +109,8 @@ extension RecordTypeExtension on RecordType {
       case RecordType.warehouseTodo:
       case RecordType.accept:
       case RecordType.signout:
+      case RecordType.signinWarehouse:
+      case RecordType.signoutWarehouse:
       case RecordType.install:
       case RecordType.dispatch:
         return true;

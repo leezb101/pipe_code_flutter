@@ -102,9 +102,13 @@ class RecordsRepositoryImpl implements RecordsRepository {
           throw Exception(response.msg.isNotEmpty ? response.msg : '获取数据失败');
         }
 
-        records = response.data!.records
-            .map((record) => BusinessRecordItem(record))
-            .toList();
+        records = response.data!.records.map((record) {
+          if (recordType == RecordType.signoutWarehouse ||
+              recordType == RecordType.signinWarehouse) {
+            return StorekeeperBusinessRecordItem(record, record.materialNum);
+          }
+          return BusinessRecordItem(record);
+        }).toList();
         meta = PageMeta(
           total: response.data!.total,
           size: response.data!.size,

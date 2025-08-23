@@ -7,8 +7,8 @@ part 'business_record.g.dart';
 class BusinessRecord extends Equatable {
   final int id;
   final int? bizType;
-  final String projectName;
-  final String projectCode;
+  final String? projectName;
+  final String? projectCode;
   final int? materialNum;
   final String userName;
   @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
@@ -17,8 +17,8 @@ class BusinessRecord extends Equatable {
   const BusinessRecord({
     required this.id,
     this.bizType,
-    required this.projectName,
-    required this.projectCode,
+    this.projectName,
+    this.projectCode,
     this.materialNum,
     required this.userName,
     this.doTime,
