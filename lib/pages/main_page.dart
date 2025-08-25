@@ -6,9 +6,11 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/utils/logger.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
 import '../pages/home/home_page.dart';
@@ -27,9 +29,19 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
+  static const platform = MethodChannel('com.example.pipe_code_flutter');
+
   int _currentIndex = 0;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+
+  Future<void> _moveToBack() async {
+    try {
+      await platform.invokeMethod('moveTaskToBack');
+    } on PlatformException catch (e) {
+      Logger.error("Failed to move task to back: '${e.message}'.");
+    }
+  }
 
   final List<Widget> _pages = [
     RepositoryProvider(
@@ -64,14 +76,23 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthUnauthenticated) {
-          // 用户未认证，跳转到登录页面
-          context.go('/login');
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) {
+          return;
         }
+        await _moveToBack();
       },
-      child: SessionGuard(child: _buildMainInterface()),
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthUnauthenticated) {
+            // 用户未认证，跳转到登录页面
+            context.go('/login');
+          }
+        },
+        child: SessionGuard(child: _buildMainInterface()),
+      ),
     );
   }
 
