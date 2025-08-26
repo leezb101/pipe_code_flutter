@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/widgets/timeline_view.dart';
 import 'package:timeline_list/timeline_list.dart';
 import 'package:pipe_code_flutter/bloc/material_detail/material_detail_bloc.dart';
 import 'package:pipe_code_flutter/models/material/material_lifecycle_node.dart';
@@ -99,6 +100,137 @@ class _MaterialLifecyclePageState extends State<MaterialLifecyclePage> {
       final timeB = b.businessTime ?? 0;
       return timeA.compareTo(timeB); // 升序排列，最早的在前
     });
+
+    return GenericTimelineView(
+      data: sortedNodes,
+      lineColor: Colors.grey.shade300,
+      markerBuilder: (context, index, isFirst, isLast) {
+        Color iconColor = Colors.white;
+        IconData iconData;
+        Color backgroundColor;
+
+        if (isFirst) {
+          backgroundColor = Theme.of(context).primaryColor;
+          iconData = Icons.start;
+        } else if (isLast) {
+          backgroundColor = Colors.green.shade600;
+          iconData = Icons.fiber_new;
+        } else {
+          backgroundColor = Colors.grey.shade500;
+          iconData = Icons.radio_button_checked;
+        }
+
+        return Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(iconData, color: iconColor, size: 16),
+        );
+      },
+      contentBuilder: (context, index, item) {
+        Color cardBackgroundColor = Colors.white;
+        Color accentColor = Theme.of(context).primaryColor;
+        final businessName = item.businessName?.toLowerCase() ?? '';
+        if (businessName.contains('安装')) {
+          accentColor = const Color(0xFF4CAF50);
+          cardBackgroundColor = const Color(0xFFF1F8E9);
+        } else if (businessName.contains('出库')) {
+          accentColor = const Color(0xFFFF9800);
+          cardBackgroundColor = const Color(0xFFFFF3E0);
+        } else if (businessName.contains('入库')) {
+          accentColor = const Color(0xFF2196F3);
+          cardBackgroundColor = const Color(0xFFE3F2FD);
+        } else if (businessName.contains('验收')) {
+          accentColor = const Color(0xFF9C27B0);
+          cardBackgroundColor = const Color(0xFFF3E5F5);
+        }
+
+        return Card(
+          elevation: 3,
+          color: cardBackgroundColor,
+          shadowColor: accentColor.withValues(alpha: 0.2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: accentColor.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.businessName ?? '未知操作',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: accentColor.withValues(alpha: 0.9),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        // Assuming you have a date formatting function
+                        _formatDateTime(item.businessTime ?? 0),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: accentColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                if (item.businessPeople != null || item.businessAddress != null)
+                  const SizedBox(height: 12),
+                if (item.businessPeople != null)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.person_outline,
+                        size: 16,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(child: Text(item.businessPeople!)),
+                    ],
+                  ),
+                if (item.businessAddress != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 16,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(child: Text(item.businessAddress!)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
