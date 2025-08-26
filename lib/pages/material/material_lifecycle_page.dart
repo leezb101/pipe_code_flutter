@@ -45,7 +45,13 @@ class _MaterialLifecyclePageState extends State<MaterialLifecyclePage> {
               if (state.lifecycleNodes!.isEmpty) {
                 return const Center(child: Text('没有找到材料操作历史'));
               }
-              return _buildLifecycleTimeline(state.lifecycleNodes!);
+              return Column(
+                children: [
+                  Expanded(
+                    child: _buildLifecycleTimeline(state.lifecycleNodes!),
+                  ),
+                ],
+              );
             }
             return const Center(child: Text('未知状态，请返回重试'));
           }
