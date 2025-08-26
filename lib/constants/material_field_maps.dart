@@ -57,7 +57,7 @@ const Map<String, String> _pipeBaseFields = {
   ..._baseFields,
   'matGradeParam': '材质（牌号）参数',
   'posDev': '正偏差',
-  'len': '长度',
+  'len': '长度(mm)',
   'industryArea': '承口铸字',
 };
 

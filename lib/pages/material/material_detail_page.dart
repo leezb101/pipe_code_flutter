@@ -229,12 +229,12 @@ class MaterialDetailView extends StatelessWidget {
       return Card(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text('未找到与“$materialTypeKey”匹配的字段定义'),
+          child: Text('未找到与"$materialTypeKey"匹配的字段定义'),
         ),
       );
     }
 
-    final allDisplayFields = <(String, String)>[];
+    final allDisplayFields = <Widget>[];
 
     // 基础信息和扩展信息合并处理
     final combinedFields = {
@@ -246,7 +246,38 @@ class MaterialDetailView extends StatelessWidget {
       if (combinedFields.containsKey(key)) {
         final value = combinedFields[key];
         if (value != null && value.toString().isNotEmpty) {
-          allDisplayFields.add((label, value.toString()));
+          // 特殊处理文件字段
+          if (key == 'warrantyUrl') {
+            // 质保书字段
+            final currentWarrantyUrl = combinedFields['currentWarrantyUrl']
+                ?.toString();
+            allDisplayFields.add(
+              _buildFileInfoRow(
+                label,
+                value.toString(),
+                currentWarrantyUrl,
+                context,
+              ),
+            );
+          } else if (key == 'certificateUrl') {
+            // 合格证字段
+            final currentCertificateUrl =
+                combinedFields['currentCertificateUrl']?.toString();
+            allDisplayFields.add(
+              _buildFileInfoRow(
+                label,
+                value.toString(),
+                currentCertificateUrl,
+                context,
+              ),
+            );
+          } else if (key != 'currentWarrantyUrl' &&
+              key != 'currentCertificateUrl') {
+            // 普通字段，排除辅助的URL字段
+            allDisplayFields.add(
+              _buildInfoRow(label, value.toString(), context),
+            );
+          }
         }
       }
     });
@@ -266,9 +297,7 @@ class MaterialDetailView extends StatelessWidget {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            ...allDisplayFields.map(
-              (field) => _buildInfoRow(field.$1, field.$2, context),
-            ),
+            ...allDisplayFields,
           ],
         ),
       ),
@@ -323,6 +352,82 @@ class MaterialDetailView extends StatelessWidget {
             child: GestureDetector(
               onLongPress: () => _copyToClipboard(value, context),
               child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFileInfoRow(
+    String label,
+    String? name,
+    String? documentUrl,
+    BuildContext context,
+  ) {
+    // 从URL中提取文件名，只显示最后一个"/"后面的部分
+    String getFileNameFromUrl(String? url) {
+      if (url == null || url.isEmpty) return '';
+      try {
+        // 移除查询参数（?后面的部分）
+        final urlWithoutQuery = url.split('?').first;
+        // 获取最后一个"/"后面的部分
+        final fileName = urlWithoutQuery.split('/').last;
+        return fileName.isNotEmpty ? fileName : url;
+      } catch (e) {
+        return url;
+      }
+    }
+
+    final displayName = documentUrl?.isNotEmpty == true
+        ? getFileNameFromUrl(documentUrl)
+        : (name?.isNotEmpty == true ? name! : '');
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+            ),
+          ),
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                if (documentUrl?.isNotEmpty == true) {
+                  // 通过documentUrl打开一个预览地址，一般为PDF
+                  context.push('/pdf-preview', extra: documentUrl);
+                }
+              },
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.picture_as_pdf,
+                    size: 18,
+                    color: documentUrl?.isNotEmpty == true
+                        ? Colors.blueAccent
+                        : Colors.grey.shade600,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      displayName.isNotEmpty ? displayName : '暂无$label',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: documentUrl?.isNotEmpty == true
+                            ? Colors.blueAccent
+                            : Colors.grey.shade600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

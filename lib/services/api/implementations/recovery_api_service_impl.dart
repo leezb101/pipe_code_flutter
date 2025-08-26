@@ -1,6 +1,5 @@
 import 'package:dio/src/dio.dart';
 import 'package:pipe_code_flutter/models/common/result.dart';
-import 'package:pipe_code_flutter/models/material/scan_identification_response.dart';
 import 'package:pipe_code_flutter/models/recovery/material_categories.dart';
 import 'package:pipe_code_flutter/models/recovery/vendors_map.dart';
 import 'package:pipe_code_flutter/services/api/implementations/base_api_service.dart';
