@@ -17,6 +17,7 @@ import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/pages/install/install_page.dart';
+import 'package:pipe_code_flutter/pages/material/material_lifecycle_page.dart';
 import 'package:pipe_code_flutter/pages/scrap/scrap_pages.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_audit_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_page.dart';
@@ -50,7 +51,7 @@ import '../models/project/project_initiation.dart';
 import '../models/records/record_type.dart';
 import '../pages/material/material_detail_page.dart';
 import '../pages/material/pipe_cutting_record_page.dart';
-import '../bloc/material_detail/material_detail_cubit.dart';
+import '../bloc/material_detail/material_detail_bloc.dart';
 import '../pages/return/return_page.dart';
 import '../pages/return/return_detail_page.dart';
 import '../bloc/return/return_bloc.dart';
@@ -349,11 +350,7 @@ final GoRouter appRouter = GoRouter(
             if (materialCode == null || materialCode.trim().isEmpty) {
               return const Scaffold(body: Center(child: Text('二维码内容无效')));
             }
-            return BlocProvider(
-              create: (context) =>
-                  MaterialDetailCubit()..loadMaterialDetail(materialCode),
-              child: const MaterialDetailView(),
-            );
+            return MaterialDetailPage(materialCode: materialCode);
           },
           routes: [
             GoRoute(
@@ -361,7 +358,7 @@ final GoRouter appRouter = GoRouter(
               name: 'pipe-cutting-record',
               builder: (context, state) {
                 final materialId = state.uri.queryParameters['materialId'];
-                final cubit = state.extra as MaterialDetailCubit?;
+                final cubit = state.extra as MaterialDetailBloc?;
 
                 if (materialId == null) {
                   return const Scaffold(
@@ -377,6 +374,21 @@ final GoRouter appRouter = GoRouter(
                 return BlocProvider.value(
                   value: cubit,
                   child: PipeCuttingRecordPage(materialId: materialId),
+                );
+              },
+            ),
+            GoRoute(
+              path: 'material-lifecycle',
+              name: 'material-lifecycle',
+              builder: (context, state) {
+                final materialDetailBloc = state.extra as MaterialDetailBloc;
+                final materialId = int.parse(
+                  state.uri.queryParameters['materialId']!,
+                );
+
+                return BlocProvider.value(
+                  value: materialDetailBloc,
+                  child: MaterialLifecyclePage(materialId: materialId),
                 );
               },
             ),

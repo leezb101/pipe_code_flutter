@@ -13,6 +13,8 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
+import 'package:pipe_code_flutter/models/material/material_lifecycle_node.dart';
+
 import '../../../models/material/scan_identification_response.dart';
 import '../../../models/material/material_info_base.dart';
 import '../../../models/common/result.dart';
@@ -153,5 +155,13 @@ class MockIdentificationApiService implements IdentificationApiService {
     );
 
     return data;
+  }
+
+  @override
+  Future<Result<List<MaterialLifecycleNode>>> getMaterialLifecycle(
+    int materialId,
+  ) {
+    // TODO: implement getMaterialLifecycle
+    throw UnimplementedError();
   }
 }

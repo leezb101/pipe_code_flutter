@@ -6,15 +6,24 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
+import 'package:flutter/material.dart';
+import 'package:pipe_code_flutter/models/material/material_lifecycle_node.dart';
+
 import '../../../models/material/scan_identification_response.dart';
 import '../../../models/common/result.dart';
 
 /// 扫码识别API服务接口
 abstract class IdentificationApiService {
   /// 扫码识别材料信息
-  /// 
+  ///
   /// [code] 扫描到的二维码内容，如 ZZWATER:729960879520481280
-  /// 
+  ///
   /// 返回材料的详细信息，包括基础属性和根据类型动态的扩展属性
-  Future<Result<ScanIdentificationData>> scanMaterialIdentification(String code);
+  Future<Result<ScanIdentificationData>> scanMaterialIdentification(
+    String code,
+  );
+
+  Future<Result<List<MaterialLifecycleNode>>> getMaterialLifecycle(
+    int materialId,
+  );
 }

@@ -6,27 +6,31 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
+import 'package:pipe_code_flutter/models/material/material_lifecycle_node.dart';
+
 import '../../models/material/scan_identification_response.dart';
 import '../../models/cut/pipe_cutting_record.dart';
 
 abstract class MaterialDetailRepository {
   /// 获取材料详情（替代直接传入数据的方式）
   Future<ScanIdentificationData> getMaterialDetail(String materialCode);
-  
+
   /// 获取截管记录
   Future<PipeCuttingRecord> getCuttingHistory(String materialId);
-  
+
   /// 批量获取材料详情和截管记录（减少网络请求）
-  Future<MaterialDetailWithData> getMaterialDetailWithCuttingHistory(String materialCode);
+  Future<MaterialDetailWithData> getMaterialDetailWithCuttingHistory(
+    String materialCode,
+  );
+
+  /// 获取材料生命周期记录
+  Future<List<MaterialLifecycleNode>> getMaterialLifecycle(int materialId);
 }
 
 /// 辅助数据类，包含材料详情和截管记录
 class MaterialDetailWithData {
   final ScanIdentificationData materialDetail;
   final PipeCuttingRecord? cuttingRecord;
-  
-  MaterialDetailWithData({
-    required this.materialDetail,
-    this.cuttingRecord,
-  });
+
+  MaterialDetailWithData({required this.materialDetail, this.cuttingRecord});
 }

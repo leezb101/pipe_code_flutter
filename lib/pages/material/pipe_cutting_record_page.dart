@@ -8,8 +8,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../bloc/material_detail/material_detail_cubit.dart';
-import '../../bloc/material_detail/material_detail_state.dart';
+import '../../bloc/material_detail/material_detail_bloc.dart';
 import '../../widgets/pipe_cutting_tree_view.dart';
 
 class PipeCuttingRecordPage extends StatefulWidget {
@@ -25,7 +24,9 @@ class _PipeCuttingRecordPageState extends State<PipeCuttingRecordPage> {
   @override
   void initState() {
     super.initState();
-    context.read<MaterialDetailCubit>().loadCuttingRecord(widget.materialId);
+    context.read<MaterialDetailBloc>().add(
+      LoadCuttingRecord(materialId: widget.materialId),
+    );
   }
 
   @override
@@ -46,21 +47,25 @@ class PipeCuttingRecordView extends StatelessWidget {
         title: const Text('截管记录'),
         actions: [
           IconButton(
-            onPressed: () => context
-                .read<MaterialDetailCubit>()
-                .loadCuttingRecord(materialId),
+            onPressed: () => context.read<MaterialDetailBloc>().add(
+              LoadCuttingRecord(materialId: materialId),
+            ),
             icon: const Icon(Icons.refresh),
             tooltip: '刷新',
           ),
         ],
       ),
-      body: BlocBuilder<MaterialDetailCubit, MaterialDetailState>(
+      body: BlocBuilder<MaterialDetailBloc, MaterialDetailState>(
         builder: (context, state) {
-          if (state is MaterialDetailLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is MaterialDetailError) {
-            return _buildErrorState(state, context);
+          if (state is MaterialDetailError) {
+            return _buildErrorState(state.message, context);
           } else if (state is MaterialDetailLoaded) {
+            if (state.isLoadingCuttingRecord) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (state.cuttingRecordError != null) {
+              return _buildErrorState(state.cuttingRecordError!, context);
+            }
             if (state.cuttingRecord == null) {
               return _buildNoDataState(context);
             }
@@ -76,7 +81,7 @@ class PipeCuttingRecordView extends StatelessWidget {
     );
   }
 
-  Widget _buildErrorState(MaterialDetailError state, BuildContext context) {
+  Widget _buildErrorState(String message, BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -90,15 +95,15 @@ class PipeCuttingRecordView extends StatelessWidget {
           Text('加载失败', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
           Text(
-            state.message,
+            message,
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => context
-                .read<MaterialDetailCubit>()
-                .loadCuttingRecord(materialId),
+            onPressed: () => context.read<MaterialDetailBloc>().add(
+              LoadCuttingRecord(materialId: materialId),
+            ),
             child: const Text('重试'),
           ),
         ],
@@ -125,9 +130,9 @@ class PipeCuttingRecordView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => context
-                .read<MaterialDetailCubit>()
-                .loadCuttingRecord(materialId),
+            onPressed: () => context.read<MaterialDetailBloc>().add(
+              LoadCuttingRecord(materialId: materialId),
+            ),
             child: const Text('刷新'),
           ),
         ],

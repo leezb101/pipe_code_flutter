@@ -13,8 +13,7 @@ import 'package:go_router/go_router.dart';
 import '../../constants/material_field_maps.dart';
 import '../../models/material/scan_identification_response.dart';
 import '../../utils/toast_utils.dart';
-import '../../bloc/material_detail/material_detail_cubit.dart';
-import '../../bloc/material_detail/material_detail_state.dart';
+import '../../bloc/material_detail/material_detail_bloc.dart';
 
 class MaterialDetailPage extends StatelessWidget {
   const MaterialDetailPage({super.key, required this.materialCode});
@@ -23,7 +22,12 @@ class MaterialDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialDetailView();
+    return BlocProvider(
+      create: (context) =>
+          MaterialDetailBloc()
+            ..add(LoadMaterialDetail(materialCode: materialCode)),
+      child: const MaterialDetailView(),
+    );
   }
 }
 
@@ -31,7 +35,7 @@ class MaterialDetailView extends StatelessWidget {
   const MaterialDetailView({super.key});
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<MaterialDetailCubit, MaterialDetailState>(
+    return BlocBuilder<MaterialDetailBloc, MaterialDetailState>(
       builder: (context, state) {
         if (state is MaterialDetailLoading) {
           return _buildLoadingState();
@@ -98,9 +102,13 @@ class MaterialDetailView extends StatelessWidget {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () => context
-            .read<MaterialDetailCubit>()
-            .refreshMaterialDetail(data.info.baseInfo.materialCode!),
+        onRefresh: () async {
+          context.read<MaterialDetailBloc>().add(
+            RefreshMaterialDetail(
+              materialCode: data.info.baseInfo.materialCode!,
+            ),
+          );
+        },
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -181,6 +189,20 @@ class MaterialDetailView extends StatelessWidget {
                 ),
               ),
             ],
+            // 添加材料生命周期按钮
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _viewMaterialLifecycle(data, context),
+                icon: const Icon(Icons.timeline),
+                label: const Text('查看材料生命周期'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).primaryColor,
+                  side: BorderSide(color: Theme.of(context).primaryColor),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -507,7 +529,22 @@ class MaterialDetailView extends StatelessWidget {
     context.pushNamed(
       'pipe-cutting-record',
       queryParameters: {'materialId': data.info.baseInfo.materialId.toString()},
-      extra: context.read<MaterialDetailCubit>(),
+      extra: context.read<MaterialDetailBloc>(),
+    );
+  }
+
+  void _viewMaterialLifecycle(
+    ScanIdentificationData data,
+    BuildContext context,
+  ) {
+    // 预留跳转逻辑，后续从model层开始实现
+    context.pushNamed(
+      'material-lifecycle',
+      queryParameters: {
+        'materialId': data.info.baseInfo.materialId.toString(),
+        'materialCode': data.materialCode,
+      },
+      extra: context.read<MaterialDetailBloc>(),
     );
   }
 }

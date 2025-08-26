@@ -6,7 +6,7 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
-import 'package:equatable/equatable.dart';
+part of 'material_detail_bloc.dart';
 
 abstract class MaterialDetailEvent extends Equatable {
   const MaterialDetailEvent();
@@ -18,9 +18,7 @@ abstract class MaterialDetailEvent extends Equatable {
 /// 加载材料详情
 class LoadMaterialDetail extends MaterialDetailEvent {
   final String materialCode;
-
   const LoadMaterialDetail({required this.materialCode});
-
   @override
   List<Object?> get props => [materialCode];
 }
@@ -28,9 +26,7 @@ class LoadMaterialDetail extends MaterialDetailEvent {
 /// 重新加载材料详情
 class RefreshMaterialDetail extends MaterialDetailEvent {
   final String materialCode;
-
   const RefreshMaterialDetail({required this.materialCode});
-
   @override
   List<Object?> get props => [materialCode];
 }
@@ -38,29 +34,15 @@ class RefreshMaterialDetail extends MaterialDetailEvent {
 /// 加载截管记录
 class LoadCuttingRecord extends MaterialDetailEvent {
   final String materialId;
-
   const LoadCuttingRecord({required this.materialId});
-
   @override
   List<Object?> get props => [materialId];
 }
 
-/// 材料详情加载失败
-class MaterialDetailLoadFailed extends MaterialDetailEvent {
-  final String message;
-
-  const MaterialDetailLoadFailed({required this.message});
-
+/// 加载材料生命周期
+class LoadMaterialLifeCycle extends MaterialDetailEvent {
+  final int materialId;
+  const LoadMaterialLifeCycle({required this.materialId});
   @override
-  List<Object?> get props => [message];
-}
-
-/// 截管记录加载失败
-class CuttingRecordLoadFailed extends MaterialDetailEvent {
-  final String message;
-
-  const CuttingRecordLoadFailed({required this.message});
-
-  @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [materialId];
 }
