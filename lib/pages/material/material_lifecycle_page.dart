@@ -96,33 +96,35 @@ class _MaterialLifecyclePageState extends State<MaterialLifecyclePage> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(6),
-          child: Timeline.builder(
-            context: context,
-            markerCount: sortedNodes.length,
-            shrinkWrap: true,
-            properties: TimelineProperties(
-              timelinePosition: TimelinePosition.start,
-              iconAlignment: MarkerIconAlignment.center,
-              iconSize: 24,
-              lineWidth: 3,
-              lineColor: Colors.grey.shade300,
-              markerGap: 16,
-              iconGap: 12,
-            ),
-            markerBuilder: (context, index) {
-              final node = sortedNodes[index];
-              final isFirst = index == 0;
-              final isLast = index == sortedNodes.length - 1;
-
-              return Marker(
-                child: _buildTimelineItem(node, context),
-                icon: _buildTimelineIcon(node, isFirst, isLast, context),
-              );
-            },
+        // return SingleChildScrollView(
+        //   padding: const EdgeInsets.all(6),
+        //   child:
+        return Timeline.builder(
+          context: context,
+          markerCount: sortedNodes.length,
+          shrinkWrap: true,
+          properties: TimelineProperties(
+            timelinePosition: TimelinePosition.start,
+            iconAlignment: MarkerIconAlignment.center,
+            iconSize: 24,
+            lineWidth: 3,
+            lineColor: Colors.grey.shade300,
+            markerGap: 16,
+            iconGap: 12,
           ),
+          markerBuilder: (context, index) {
+            final node = sortedNodes[index];
+            final isFirst = index == 0;
+            final isLast = index == sortedNodes.length - 1;
+
+            return Marker(
+              child: _buildTimelineItem(node, context),
+              icon: _buildTimelineIcon(node, isFirst, isLast, context),
+              maxWidth: constraints.maxWidth - 60,
+            );
+          },
         );
+        // );
       },
     );
   }
@@ -173,7 +175,7 @@ class _MaterialLifecyclePageState extends State<MaterialLifecyclePage> {
   }
 
   Widget _buildTimelineItem(MaterialLifecycleNode node, BuildContext context) {
-    // 根据业务类型选择合适的背景色
+    // According to the business type, select the appropriate background color
     Color cardBackgroundColor = Colors.white;
     Color accentColor = Theme.of(context).primaryColor;
 
@@ -192,21 +194,20 @@ class _MaterialLifecyclePageState extends State<MaterialLifecyclePage> {
       cardBackgroundColor = const Color(0xFFF3E5F5);
     }
 
-    // 去掉外层 Flexible 和强制拉满宽度，避免在不确定约束下造成溢出
+    // REMOVED: The Flexible widget is no longer needed.
+    // The incoming constraints from the Marker's maxWidth are sufficient.
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.fromLTRB(10, 0, 10, 8),
       child: Card(
         elevation: 3,
         color: cardBackgroundColor,
-        shadowColor: accentColor.withValues(alpha: 0.2),
+        shadowColor: accentColor.withAlpha(
+          51,
+        ), // Using withAlpha(51) is equivalent to withValues(alpha: 0.2) and more idiomatic
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: accentColor.withValues(alpha: 0.2),
-            width: 1,
-          ),
+          side: BorderSide(color: accentColor.withAlpha(51), width: 1),
         ),
-        clipBehavior: Clip.antiAlias,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -222,46 +223,54 @@ class _MaterialLifecyclePageState extends State<MaterialLifecyclePage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: accentColor.withValues(alpha: 0.9),
+                        color: accentColor.withAlpha(
+                          230,
+                        ), // Equivalent to withValues(alpha: 0.9)
                       ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Container(
-                    constraints: const BoxConstraints(maxWidth: 180),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          accentColor.withValues(alpha: 0.1),
-                          accentColor.withValues(alpha: 0.05),
-                        ],
+                  // Using a Flexible around this container in case the date/time string becomes very long on small screens.
+                  Flexible(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 180),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
                       ),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: accentColor.withValues(alpha: 0.3),
-                        width: 1,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            accentColor.withAlpha(26),
+                            accentColor.withAlpha(13),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: accentColor.withAlpha(77),
+                          width: 1,
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      _formatDateTime(node.businessTime!),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: accentColor,
-                        fontWeight: FontWeight.w600,
+                      child: Text(
+                        _formatDateTime(node.businessTime!),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: accentColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis, // 确保文本在容器收缩时能正确显示省略号
+                        softWrap: false, // 推荐设置为 false，防止日期文本换行
+                        maxLines: 1,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
 
-              if (node.businessPeople != null || node.businessAddress != null) ...[
+              if (node.businessPeople != null ||
+                  node.businessAddress != null) ...[
                 const SizedBox(height: 12),
 
                 if (node.businessPeople != null) ...[
