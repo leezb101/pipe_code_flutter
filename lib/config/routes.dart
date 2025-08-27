@@ -22,6 +22,7 @@ import 'package:pipe_code_flutter/pages/material/material_lifecycle_page.dart';
 import 'package:pipe_code_flutter/pages/scrap/scrap_pages.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_audit_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_page.dart';
+import 'package:pipe_code_flutter/pages/signout/signout_detail_page.dart';
 import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
 import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
 import '../bloc/dispatch/dispatch_bloc.dart';
@@ -312,6 +313,23 @@ final GoRouter appRouter = GoRouter(
             return BlocProvider(
               create: (context) => getIt<SignoutBloc>(),
               child: SignoutAuditPage(signoutId: signoutId),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/signout-detail',
+          name: 'signout-detail',
+          builder: (context, state) {
+            final signoutIdParam = state.uri.queryParameters['id'];
+            final signoutId = signoutIdParam != null
+                ? int.tryParse(signoutIdParam)
+                : null;
+            if (signoutId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return BlocProvider(
+              create: (context) => getIt<SignoutBloc>(),
+              child: SignoutDetailPage(signoutId: signoutId),
             );
           },
         ),
