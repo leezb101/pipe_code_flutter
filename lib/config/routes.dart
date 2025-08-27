@@ -17,6 +17,7 @@ import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/pages/install/install_page.dart';
+import 'package:pipe_code_flutter/pages/install/install_detail_page.dart';
 import 'package:pipe_code_flutter/pages/material/material_lifecycle_page.dart';
 import 'package:pipe_code_flutter/pages/scrap/scrap_pages.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_audit_page.dart';
@@ -332,6 +333,23 @@ final GoRouter appRouter = GoRouter(
                 BlocProvider(create: (context) => MaterialHandleCubit()),
               ],
               child: InstallPage(signOutId: signOutId),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/install-detail',
+          name: 'install-detail',
+          builder: (context, state) {
+            final installIdParam = state.uri.queryParameters['id'];
+            final installId = installIdParam != null
+                ? int.tryParse(installIdParam)
+                : null;
+            if (installId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return BlocProvider(
+              create: (context) => getIt<InstallBloc>(),
+              child: InstallDetailPage(installId: installId),
             );
           },
         ),

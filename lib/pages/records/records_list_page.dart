@@ -195,6 +195,11 @@ class _RecordsListPageState extends State<RecordsListPage>
           queryParameters: {'id': record.id.toString()},
         );
         break;
+      case RecordType.install:
+        context.goNamed(
+          'install-detail',
+          queryParameters: {'id': record.id.toString()},
+        );
       case RecordType.waste:
         context.goNamed(
           'scrap-detail',

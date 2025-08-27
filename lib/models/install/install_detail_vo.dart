@@ -5,19 +5,40 @@
  * @LastEditTime: 2025-07-25 19:04:12
  * @copyright: Copyright © 2025 高新供水.
  */
-import 'package:pipe_code_flutter/models/install/do_install_vo.dart';
+import 'package:equatable/equatable.dart';
+import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
+import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-/// [InstallDetailVo] extends [DoInstallVo] and serves as a placeholder for future fields or methods specific to installation details.
-class InstallDetailVo extends DoInstallVo {
+part 'install_detail_vo.g.dart';
+
+@JsonSerializable()
+class InstallDetailVo extends Equatable {
+  final List<MaterialVO> materialList;
+  final List<AttachmentVO> imageList;
+  final String? installQualityUrl;
+  final bool? onlyInstall;
+  final int signOutId;
+
   const InstallDetailVo({
-    required super.materialList,
-    required super.imageList,
-    super.installQualityUrl,
-    super.onlyInstall,
-    required super.signOutId,
+    required this.materialList,
+    required this.imageList,
+    this.installQualityUrl,
+    this.onlyInstall,
+    required this.signOutId,
   });
 
-  // fromjson继承父类的fromjson
+  @override
+  List<Object?> get props => [
+    materialList,
+    imageList,
+    installQualityUrl,
+    onlyInstall,
+    signOutId,
+  ];
+
   factory InstallDetailVo.fromJson(Map<String, dynamic> json) =>
-      DoInstallVo.fromJson(json) as InstallDetailVo;
+      _$InstallDetailVoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$InstallDetailVoToJson(this);
 }
