@@ -11,7 +11,7 @@ import '../../bloc/records/records_bloc.dart';
 import '../../bloc/records/records_event.dart';
 import '../../bloc/records/records_state.dart';
 import '../../models/records/record_type.dart';
-import '../../widgets/expandable_tab_bar.dart';
+import '../../widgets/scrollable_tab_bar.dart';
 import '../../widgets/record_list_item.dart';
 import '../../widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/services/notification/notification_center.dart';
@@ -366,7 +366,7 @@ class _RecordsListPageState extends State<RecordsListPage>
                   } else if (state is RecordsEmpty) {
                     currentTab = state.currentTab;
                   }
-                  return ExpandableTabBar(
+                  return ScrollableTabBar(
                     selectedTab: currentTab,
                     onTabSelected: _onTabSelected,
                     allTabs: _allTabs,
