@@ -37,6 +37,7 @@ import '../pages/acceptance/acceptance_detail_page.dart';
 import '../pages/acceptance/acceptance_confirmation_page.dart';
 import '../pages/acceptance/acceptance_after_signin_page.dart';
 import '../pages/dispatch/dispatch_confirmation_page.dart';
+import '../pages/dispatch/dispatch_detail_page.dart';
 import '../bloc/acceptance/acceptance_bloc.dart';
 import '../pages/developer_settings_page.dart';
 import '../pages/project_initiation/project_initiation_form_page.dart';
@@ -235,6 +236,23 @@ final GoRouter appRouter = GoRouter(
             return BlocProvider(
               create: (context) => getIt<DispatchBloc>(),
               child: DispatchConfirmationPage(dispatchId: dispatchId),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/dispatch-detail',
+          name: 'dispatch-detail',
+          builder: (context, state) {
+            final dispatchIdParam = state.uri.queryParameters['id'];
+            final dispatchId = dispatchIdParam != null
+                ? int.tryParse(dispatchIdParam)
+                : null;
+            if (dispatchId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return BlocProvider(
+              create: (context) => getIt<DispatchBloc>(),
+              child: DispatchDetailPage(dispatchId: dispatchId),
             );
           },
         ),

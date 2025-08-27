@@ -14,9 +14,9 @@ DispatchDetailVo _$DispatchDetailVoFromJson(Map<String, dynamic> json) =>
       imageList: (json['imageList'] as List<dynamic>)
           .map((e) => AttachmentVO.fromJson(e as Map<String, dynamic>))
           .toList(),
-      fromProjectId: (json['fromProjectId'] as num).toInt(),
+      fromProjectId: (json['fromProjectId'] as num?)?.toInt(),
       fromProjectName: json['fromProjectName'] as String?,
-      toProjectId: (json['toProjectId'] as num).toInt(),
+      toProjectId: (json['toProjectId'] as num?)?.toInt(),
       toProjectName: json['toProjectName'] as String?,
       toWarehouseId: (json['toWarehouseId'] as num).toInt(),
       toWarehouseName: json['toWarehouseName'] as String?,

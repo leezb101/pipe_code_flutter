@@ -189,6 +189,12 @@ class _RecordsListPageState extends State<RecordsListPage>
           queryParameters: {'id': record.id.toString()},
         );
         break;
+      case RecordType.dispatch:
+        context.goNamed(
+          'dispatch-detail',
+          queryParameters: {'id': record.id.toString()},
+        );
+        break;
       case RecordType.waste:
         context.goNamed(
           'scrap-detail',

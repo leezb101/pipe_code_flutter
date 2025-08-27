@@ -10,9 +10,9 @@ part 'dispatch_detail_vo.g.dart';
 class DispatchDetailVo extends Equatable {
   final List<MaterialVO> materialList;
   final List<AttachmentVO> imageList;
-  final int fromProjectId;
+  final int? fromProjectId;
   final String? fromProjectName;
-  final int toProjectId;
+  final int? toProjectId;
   final String? toProjectName;
   final int toWarehouseId;
   final String? toWarehouseName;
