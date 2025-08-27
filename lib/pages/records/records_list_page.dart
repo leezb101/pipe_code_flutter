@@ -90,7 +90,7 @@ class _RecordsListPageState extends State<RecordsListPage>
     }
 
     List<RecordType> tabs = [];
-    if (isStoreKeeper) {
+    if (isStoreKeeper && sessionState is SessionStorekeeperEstablished) {
       // 仓管员身份，展示专用的4个tab："仓管待办"、"待办"、"入库记录"、"出库记录"
       tabs = [
         RecordType.warehouseTodo,
