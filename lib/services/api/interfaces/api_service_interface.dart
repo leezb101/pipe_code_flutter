@@ -23,6 +23,7 @@ import 'dispatch_api_service.dart';
 import 'return_api_service.dart';
 import 'cut_api_service.dart';
 import 'inventory_api_service.dart';
+import 'signin_api_service.dart';
 
 abstract class ApiServiceInterface {
   AuthApiService get auth;
@@ -42,4 +43,5 @@ abstract class ApiServiceInterface {
   InventoryApiService get inventory;
   ScrapApiService get scrap;
   RecoveryApiService get recovery;
+  SigninApiService get signin;
 }

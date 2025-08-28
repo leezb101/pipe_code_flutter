@@ -18,6 +18,9 @@ enum RecordType {
   @JsonValue('accept')
   accept,
 
+  @JsonValue('signin')
+  signin,
+
   @JsonValue('signout')
   signout,
 
@@ -55,6 +58,8 @@ extension RecordTypeExtension on RecordType {
       //   return '入库记录';
       case RecordType.accept:
         return '验收记录';
+      case RecordType.signin:
+        return '入库记录';
       case RecordType.signout:
         return '出库记录';
       case RecordType.signinWarehouse:
@@ -84,6 +89,8 @@ extension RecordTypeExtension on RecordType {
       //   return '/signin/list';
       case RecordType.accept:
         return '/accept/list';
+      case RecordType.signin:
+        return '/signin/list';
       case RecordType.signout:
         return '/signout/list';
       case RecordType.signinWarehouse:

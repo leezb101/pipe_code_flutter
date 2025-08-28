@@ -220,6 +220,7 @@ class _RecordsListPageState extends State<RecordsListPage>
           queryParameters: {'id': record.id.toString()},
         );
         break;
+      case RecordType.signin:
       case RecordType.signinWarehouse:
         // 仓管入库记录导航到入库详情页（假设有这个页面）
         context.goNamed(

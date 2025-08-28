@@ -63,6 +63,8 @@ import 'api/interfaces/recovery_api_service.dart';
 import 'api/implementations/recovery_api_service_impl.dart';
 import 'api/interfaces/storekeeper_action_api_service.dart';
 import 'api/implementations/storekeeper_action_api_service_impl.dart';
+import 'api/interfaces/signin_api_service.dart';
+import 'api/implementations/signin_api_service_impl.dart';
 
 class ApiServiceFactory {
   static ApiServiceInterface create() {
@@ -227,6 +229,11 @@ class ApiServiceFactory {
     final dio = _createDio();
     return StorekeeperActionApiServiceImpl(dio);
     // }
+  }
+
+  static SigninApiService createSigninApiService() {
+    final dio = _createDio();
+    return SigninApiServiceImpl(dio);
   }
 
   static Dio _createDio() {

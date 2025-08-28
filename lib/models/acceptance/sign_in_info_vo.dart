@@ -17,11 +17,19 @@ class SignInInfoVO extends Equatable {
   final List<MaterialVO> materialList;
   final List<AttachmentVO> imageList;
   final int warehouseId;
+  final String? warehouseName;
+  final String? signInUserName;
+  final int? projectId;
+  final String? projectName;
 
   const SignInInfoVO({
     required this.materialList,
     required this.imageList,
     required this.warehouseId,
+    this.warehouseName,
+    this.signInUserName,
+    this.projectId,
+    this.projectName,
   });
 
   factory SignInInfoVO.fromJson(Map<String, dynamic> json) =>
@@ -30,17 +38,33 @@ class SignInInfoVO extends Equatable {
   Map<String, dynamic> toJson() => _$SignInInfoVOToJson(this);
 
   @override
-  List<Object?> get props => [materialList, imageList, warehouseId];
+  List<Object?> get props => [
+    materialList,
+    imageList,
+    warehouseId,
+    warehouseName,
+    signInUserName,
+    projectId,
+    projectName,
+  ];
 
   SignInInfoVO copyWith({
     List<MaterialVO>? materialList,
     List<AttachmentVO>? imageList,
     int? warehouseId,
+    String? warehouseName,
+    String? signInUserName,
+    int? projectId,
+    String? projectName,
   }) {
     return SignInInfoVO(
       materialList: materialList ?? this.materialList,
       imageList: imageList ?? this.imageList,
       warehouseId: warehouseId ?? this.warehouseId,
+      warehouseName: warehouseName ?? this.warehouseName,
+      signInUserName: signInUserName ?? this.signInUserName,
+      projectId: projectId ?? this.projectId,
+      projectName: projectName ?? this.projectName,
     );
   }
 }

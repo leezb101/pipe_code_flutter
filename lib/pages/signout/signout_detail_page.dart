@@ -540,7 +540,10 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.green[600],
                   borderRadius: BorderRadius.circular(16),
@@ -646,10 +649,7 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
                   const SizedBox(height: 4),
                   Text(
                     '图片错误',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.green[600],
-                    ),
+                    style: TextStyle(fontSize: 10, color: Colors.green[600]),
                   ),
                 ],
               ),
@@ -665,7 +665,7 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
                     child: CircularProgressIndicator(
                       value: loadingProgress.expectedTotalBytes != null
                           ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
+                                loadingProgress.expectedTotalBytes!
                           : null,
                       strokeWidth: 2,
                       color: Colors.green[600],
@@ -1089,7 +1089,7 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
               icon: Icons.settings,
               color: Colors.green[600],
             ),
-            
+
             // 安装物料列表
             if (installInfo.materialList.isNotEmpty) ...[
               const SizedBox(height: 20),

@@ -14,6 +14,10 @@ SignInInfoVO _$SignInInfoVOFromJson(Map<String, dynamic> json) => SignInInfoVO(
       .map((e) => AttachmentVO.fromJson(e as Map<String, dynamic>))
       .toList(),
   warehouseId: (json['warehouseId'] as num).toInt(),
+  warehouseName: json['warehouseName'] as String?,
+  signInUserName: json['signInUserName'] as String?,
+  projectId: (json['projectId'] as num?)?.toInt(),
+  projectName: json['projectName'] as String?,
 );
 
 Map<String, dynamic> _$SignInInfoVOToJson(SignInInfoVO instance) =>
@@ -21,4 +25,8 @@ Map<String, dynamic> _$SignInInfoVOToJson(SignInInfoVO instance) =>
       'materialList': instance.materialList,
       'imageList': instance.imageList,
       'warehouseId': instance.warehouseId,
+      'warehouseName': instance.warehouseName,
+      'signInUserName': instance.signInUserName,
+      'projectId': instance.projectId,
+      'projectName': instance.projectName,
     };

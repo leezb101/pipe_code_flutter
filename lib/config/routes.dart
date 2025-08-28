@@ -15,11 +15,13 @@ import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dar
 import 'package:pipe_code_flutter/bloc/scrap/scrap_bloc.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
+import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/pages/install/install_page.dart';
 import 'package:pipe_code_flutter/pages/install/install_detail_page.dart';
 import 'package:pipe_code_flutter/pages/material/material_lifecycle_page.dart';
 import 'package:pipe_code_flutter/pages/scrap/scrap_pages.dart';
+import 'package:pipe_code_flutter/pages/signin/signin_detail_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_audit_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_detail_page.dart';
@@ -279,6 +281,24 @@ final GoRouter appRouter = GoRouter(
                 BlocProvider(create: (context) => MaterialHandleCubit()),
               ],
               child: DispatchAfterSigninPage(dispatchId: dispatchId),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/signin-detail',
+          name: 'signin-detail',
+          builder: (context, state) {
+            final signinIdParam = state.uri.queryParameters['id'];
+            final signinId = signinIdParam != null
+                ? int.tryParse(signinIdParam)
+                : null;
+            if (signinId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return BlocProvider(
+              create: (context) =>
+                  getIt<SigninDetailCubit>()..loadSigninDetail(signinId),
+              child: SigninDetailPage(signinId: signinId),
             );
           },
         ),

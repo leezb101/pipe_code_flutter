@@ -15,6 +15,7 @@ import 'package:pipe_code_flutter/bloc/cut/cut_bloc.dart';
 import 'package:pipe_code_flutter/bloc/material_detail/material_detail_bloc.dart';
 import 'package:pipe_code_flutter/bloc/recovery/recovery_bloc.dart';
 import 'package:pipe_code_flutter/bloc/storekeeper_non_project/storekeeper_non_project_bloc.dart';
+import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/auth_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/cut_repository.dart';
@@ -30,6 +31,7 @@ import 'package:pipe_code_flutter/repositories/interfaces/records_repository.dar
 import 'package:pipe_code_flutter/repositories/interfaces/recovery_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/return_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/scrap_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/signin_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/signout_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/user_repository.dart';
@@ -168,6 +170,9 @@ Future<void> setupServiceLocator({
   getIt.registerLazySingleton<StorekeeperNonProjectRepository>(
     () => RepositoryFactory.createStorekeeperNonProjectRepository(),
   );
+  getIt.registerLazySingleton<SigninRepository>(
+    () => RepositoryFactory.createSigninRepository(),
+  );
   // Wait for async singletons to be ready before registering dependent Blocs
   await getIt.isReady<AuthRepository>();
   await getIt.isReady<ProjectRepository>();
@@ -227,6 +232,10 @@ Future<void> setupServiceLocator({
       inventoryRepository: getIt<InventoryRepository>(),
       materialHandleRepository: getIt<MaterialHandleRepository>(),
     ),
+  );
+
+  getIt.registerFactory<SigninDetailCubit>(
+    () => SigninDetailCubit(signinRepository: getIt<SigninRepository>()),
   );
 
   getIt.registerFactory<ScrapBloc>(
