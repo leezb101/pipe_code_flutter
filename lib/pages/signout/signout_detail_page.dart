@@ -352,51 +352,6 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
               ),
             ],
           ),
-
-          // 安装桩号信息
-          if (material.installPileNo != null) ...[
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(Icons.location_on, size: 16, color: Colors.green[600]),
-                const SizedBox(width: 4),
-                Text(
-                  '安装桩号: ${material.installPileNo}',
-                  style: TextStyle(
-                    color: Colors.green[600],
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ],
-
-          // 安装照片
-          if (material.installImageUrl1 != null ||
-              material.installImageUrl2 != null) ...[
-            const SizedBox(height: 12),
-            const Text(
-              '安装照片:',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                if (material.installImageUrl1 != null)
-                  _buildImagePreview(material.installImageUrl1!, '安装照片1'),
-                if (material.installImageUrl1 != null &&
-                    material.installImageUrl2 != null)
-                  const SizedBox(width: 12),
-                if (material.installImageUrl2 != null)
-                  _buildImagePreview(material.installImageUrl2!, '安装照片2'),
-              ],
-            ),
-          ],
         ],
       ),
     );
@@ -537,6 +492,191 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildInstallMaterialItem(MaterialVO material) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.green[50],
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.green[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 物料基本信息
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.build, size: 20, color: Colors.green[700]),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      material.materialName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'ID: ${material.materialId}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.green[600],
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  '${material.num}个',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // 安装桩号信息
+          if (material.installPileNo != null) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(Icons.location_on, size: 16, color: Colors.green[700]),
+                const SizedBox(width: 4),
+                Text(
+                  '安装桩号: ${material.installPileNo}',
+                  style: TextStyle(
+                    color: Colors.green[700],
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ],
+
+          // 安装照片
+          if (material.installImageUrl1 != null ||
+              material.installImageUrl2 != null) ...[
+            const SizedBox(height: 12),
+            const Text(
+              '安装照片:',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                if (material.installImageUrl1 != null)
+                  _buildImagePreview(material.installImageUrl1!, '安装照片1'),
+                if (material.installImageUrl1 != null &&
+                    material.installImageUrl2 != null)
+                  const SizedBox(width: 12),
+                if (material.installImageUrl2 != null)
+                  _buildImagePreview(material.installImageUrl2!, '安装照片2'),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInstallImageGrid(List<AttachmentVO> imageList) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 1,
+      ),
+      itemCount: imageList.length,
+      itemBuilder: (context, index) {
+        final image = imageList[index];
+        return _buildInstallImageThumbnail(image);
+      },
+    );
+  }
+
+  Widget _buildInstallImageThumbnail(AttachmentVO image) {
+    return GestureDetector(
+      onTap: () => _previewPhoto(image),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.green[300]!),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            image.url,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+              color: Colors.green[100],
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.broken_image, color: Colors.green[600], size: 20),
+                  const SizedBox(height: 4),
+                  Text(
+                    '图片错误',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.green[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                color: Colors.green[100],
+                child: Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                      strokeWidth: 2,
+                      color: Colors.green[600],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 
@@ -949,7 +1089,47 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
               icon: Icons.settings,
               color: Colors.green[600],
             ),
+            
+            // 安装物料列表
+            if (installInfo.materialList.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Icon(Icons.build_circle, size: 20, color: Colors.green[600]),
+                  const SizedBox(width: 8),
+                  Text(
+                    '安装物料 (${installInfo.materialList.length}种)',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green[700],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ...installInfo.materialList.map(
+                (material) => _buildInstallMaterialItem(material),
+              ),
+            ],
+
+            // 安装质量文档
             if (installInfo.installQualityUrl != null) ...[
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Icon(Icons.description, size: 20, color: Colors.green[600]),
+                  const SizedBox(width: 8),
+                  Text(
+                    '安装质量文档',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green[700],
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
               GestureDetector(
                 onTap: () =>
@@ -1003,6 +1183,27 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
                 ),
               ),
             ],
+
+            // 安装现场照片
+            if (installInfo.imageList.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Icon(Icons.photo_camera, size: 20, color: Colors.green[600]),
+                  const SizedBox(width: 8),
+                  Text(
+                    '安装现场照片 (${installInfo.imageList.length}张)',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green[700],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildInstallImageGrid(installInfo.imageList),
+            ],
           ],
         ),
       ),
@@ -1027,7 +1228,7 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
                 Icon(Icons.photo_library, size: 24, color: Colors.pink[600]),
                 const SizedBox(width: 8),
                 Text(
-                  '相关照片 (${signoutDetail.imageList.length})',
+                  '出库现场照片 (${signoutDetail.imageList.length}张)',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
