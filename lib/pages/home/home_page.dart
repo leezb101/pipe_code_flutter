@@ -61,6 +61,21 @@ class _HomePageState extends State<HomePage> {
         title: const Text('建设一码通'),
         backgroundColor: Colors.blue[600],
         foregroundColor: Colors.white,
+        actions: [
+          // 当处于项目已建立状态时，在右上角展示“切换项目”按钮
+          BlocBuilder<SessionBloc, SessionState>(
+            builder: (context, sessionState) {
+              if (sessionState is SessionProjectEstablished) {
+                return IconButton(
+                  tooltip: '切换项目',
+                  icon: const Icon(Icons.swap_horiz),
+                  onPressed: () => _showProjectSelector(context, sessionState),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        ],
       ),
       body: BlocListener<SessionBloc, SessionState>(
         // 使用 listenWhen 提高效率，只在关心的状态变化时才触发 listener
@@ -286,12 +301,6 @@ class _HomePageState extends State<HomePage> {
                         );
                       },
                       tooltip: '刷新统计信息',
-                    ),
-                    // 项目切换按钮
-                    IconButton(
-                      icon: const Icon(Icons.swap_horiz, color: Colors.white),
-                      onPressed: () => _showProjectSelector(context, state),
-                      tooltip: '切换项目',
                     ),
                   ],
                 ),
