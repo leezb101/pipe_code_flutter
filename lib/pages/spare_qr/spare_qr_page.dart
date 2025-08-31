@@ -5,12 +5,16 @@
  * @LastEditTime: 2025-07-17 09:58:18
  * @copyright: Copyright © 2025 高新供水.
  */
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_event.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
+import 'package:pipe_code_flutter/utils/logger.dart';
+import 'dart:io';
 
 import '../../bloc/spare_qr/spare_qr_bloc.dart';
 import '../../bloc/spare_qr/spare_qr_state.dart';
@@ -295,34 +299,7 @@ class _SpareQrPageState extends State<SpareQrPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        onPressed: () async {
-                          try {
-                            final shareResult = await SharePlus.instance.share(
-                              ShareParams(
-                                text: '备用二维码',
-                                files: [XFile(state.filePath)],
-                              ),
-                            );
-                            if (shareResult.status ==
-                                ShareResultStatus.success) {
-                              if (context.mounted) {
-                                context.showSuccessToast('文件已分享，临时文件已清理');
-                                context.read<SpareQrBloc>().add(
-                                  SpareQrFileShared(filePath: state.filePath),
-                                );
-                              }
-                            } else if (shareResult.status ==
-                                ShareResultStatus.dismissed) {
-                              if (context.mounted) {
-                                context.showInfoToast('分享已取消，文件保留');
-                              }
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              context.showErrorToast('分享失败: $e');
-                            }
-                          }
-                        },
+                        onPressed: () => _shareFile(state.filePath),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -341,6 +318,68 @@ class _SpareQrPageState extends State<SpareQrPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _shareFile(String filePath) async {
+    try {
+      // 检查文件是否存在
+      final file = File(filePath);
+      if (!await file.exists()) {
+        if (context.mounted) {
+          context.showErrorToast('文件不存在，无法分享');
+        }
+        return;
+      }
+
+      // 检查存储权限（Android 13以下需要）
+      if (Platform.isAndroid) {
+        final androidInfo = await DeviceInfoPlugin().androidInfo;
+        if (androidInfo.version.sdkInt < 33) {
+          final storageStatus = await Permission.storage.status;
+          if (!storageStatus.isGranted) {
+            final result = await Permission.storage.request();
+            if (!result.isGranted) {
+              if (context.mounted) {
+                context.showErrorToast('需要存储权限才能分享文件');
+              }
+              return;
+            }
+          }
+        }
+      }
+
+      Logger.info('开始分享文件: $filePath', tag: 'SpareQrPage');
+
+      final shareResult = await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(filePath)],
+          text: '备用二维码文件',
+          subject: '备用二维码',
+        ),
+      );
+
+      if (context.mounted) {
+        switch (shareResult.status) {
+          case ShareResultStatus.success:
+            context.showSuccessToast('文件已分享，临时文件已清理');
+            context.read<SpareQrBloc>().add(
+              SpareQrFileShared(filePath: filePath),
+            );
+            break;
+          case ShareResultStatus.dismissed:
+            context.showInfoToast('分享已取消，文件保留');
+            break;
+          case ShareResultStatus.unavailable:
+            context.showErrorToast('分享功能不可用');
+            break;
+        }
+      }
+    } catch (e) {
+      Logger.error('分享文件失败', tag: 'SpareQrPage', error: e);
+      if (context.mounted) {
+        context.showErrorToast('分享失败: ${e.toString()}');
+      }
+    }
   }
 
   Future<void> _cleanupTempFile() async {
