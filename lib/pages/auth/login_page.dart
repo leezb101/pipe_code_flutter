@@ -534,9 +534,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 SizedBox(
-                  width: 120,
+                  width: 80,
                   height: 56,
                   child: ElevatedButton(
                     onPressed: (_canRequestSms && state is! AuthSmsCodeSending)
