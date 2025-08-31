@@ -19,6 +19,8 @@ import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/fade_scale_route.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/image_preview_widget.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/constants/app_theme.dart';
 
 class SignoutAuditPage extends StatefulWidget {
   final int signoutId;
@@ -63,8 +65,9 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('一管一码'),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
+          backgroundColor: AppTheme.getBusinessColor('signout'),
+          foregroundColor: Colors.white,
+          iconTheme: const IconThemeData(color: Colors.white),
           elevation: 0,
           centerTitle: true,
           actions: [
@@ -72,10 +75,14 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
               onPressed: _handleViewRecords,
               child: const Text(
                 '出库记录',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: AppTheme.spacingSmall),
           ],
         ),
         backgroundColor: Colors.grey[50],
@@ -118,94 +125,26 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
   }
 
   Widget _buildMaterialsList(BuildContext context, SignoutReady state) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.inventory, size: 24, color: Colors.blue[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '材料清单',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ...state.signoutDetail!.materialList.map(
-              (material) => _buildMaterialItem(material),
-            ),
-          ],
-        ),
+    return UnifiedCard(
+      title: '材料清单',
+      icon: Icons.inventory,
+      businessType: 'signout',
+      child: Column(
+        children: state.signoutDetail!.materialList
+            .map((material) => _buildMaterialItem(material))
+            .toList(),
       ),
     );
   }
 
   Widget _buildMaterialItem(MaterialVO material) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.blue[200]!),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.blue[100],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.water_drop, size: 20, color: Colors.blue[700]),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  material.materialName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '材料ID: ${material.materialId}',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.blue[600],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              '1个',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
+    return Padding(
+      padding: EdgeInsets.only(bottom: AppTheme.spacingMedium),
+      child: MaterialListItem(
+        materialName: material.materialName,
+        materialId: material.materialId.toString(),
+        quantity: material.num,
+        businessType: 'signout',
       ),
     );
   }

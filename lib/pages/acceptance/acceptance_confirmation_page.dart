@@ -14,6 +14,7 @@ import 'package:pipe_code_flutter/bloc/records/records_event.dart';
 import 'package:pipe_code_flutter/models/records/record_type.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class AcceptanceConfirmationPage extends StatefulWidget {
   final int acceptanceId;
@@ -60,6 +61,7 @@ class _AcceptanceConfirmationPageState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('验收确认'), elevation: 0),
+      backgroundColor: AppTheme.grey50,
       body: _buildBody(),
     );
   }
@@ -124,18 +126,18 @@ class _AcceptanceConfirmationPageState
               children: [
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(AppTheme.spacingLarge),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildQrCodeSection(state.acceptanceInfo),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppTheme.spacingLarge),
                         _buildMaterialsList(state.acceptanceInfo),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppTheme.spacingLarge),
                         _buildAttachmentsSection(state.acceptanceInfo),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppTheme.spacingLarge),
                         _buildWarehouseInfo(state.acceptanceInfo),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppTheme.spacingLarge),
                         _buildResponsiblePersonsSection(state.acceptanceInfo),
                         const SizedBox(height: 100), // 为底部按钮留出空间
                       ],
@@ -154,27 +156,17 @@ class _AcceptanceConfirmationPageState
   }
 
   Widget _buildQrCodeSection(AcceptanceInfoVO? acceptanceInfo) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
-      ),
+    return UnifiedCard(
+      title: '一管一码',
+      icon: Icons.qr_code,
+      businessType: 'acceptance',
       child: Column(
         children: [
-          const Text(
-            '一管一码',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Divider(),
           if (acceptanceInfo != null &&
               acceptanceInfo.materialList.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              '代表性材料: ${acceptanceInfo.materialList.first.materialName}',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            InfoRow(
+              label: '代表性材料',
+              value: acceptanceInfo.materialList.first.materialName,
             ),
           ],
         ],
@@ -183,31 +175,53 @@ class _AcceptanceConfirmationPageState
   }
 
   Widget _buildMaterialsList(AcceptanceInfoVO acceptanceInfo) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ...acceptanceInfo.materialList.map(
-          (material) => _buildMaterialItem(material),
-        ),
-      ],
+    return UnifiedCard(
+      title: '物料清单 (${acceptanceInfo.materialList.length})',
+      icon: Icons.inventory,
+      businessType: 'acceptance',
+      child: Column(
+        children: acceptanceInfo.materialList
+            .asMap()
+            .entries
+            .map(
+              (entry) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: entry.key < acceptanceInfo.materialList.length - 1
+                      ? AppTheme.spacingMedium
+                      : 0,
+                ),
+                child: _buildMaterialItem(entry.value),
+              ),
+            )
+            .toList(),
+      ),
     );
   }
 
   Widget _buildMaterialItem(MaterialVO material) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(material.materialName, style: const TextStyle(fontSize: 16)),
-          Text('${material.num}个', style: const TextStyle(fontSize: 16)),
-        ],
-      ),
+    return MaterialListItem(
+      materialName: material.materialName,
+      materialId: material.materialId.toString(),
+      quantity: material.num,
+      businessType: 'acceptance',
+      trailing: material.installPileNo != null
+          ? Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingSmall,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: AppTheme.acceptanceColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+              ),
+              child: Text(
+                '桩号: ${material.installPileNo}',
+                style: AppTheme.labelSmall.copyWith(
+                  color: AppTheme.acceptanceColor,
+                ),
+              ),
+            )
+          : null,
     );
   }
 
@@ -227,20 +241,22 @@ class _AcceptanceConfirmationPageState
         .split('?')
         .first;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '验收照片：',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 12),
-        _buildPhotosRow(acceptancePhotos),
-        const SizedBox(height: 20),
-        _buildDocumentInfo('报验单', reportDocumentName, reportDocumentUrl),
-        const SizedBox(height: 12),
-        _buildDocumentInfo('验收报告', acceptanceReportName, acceptanceReportUrl),
-      ],
+    return UnifiedCard(
+      title: '附件信息',
+      icon: Icons.attach_file,
+      businessType: 'acceptance',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('验收照片：', style: AppTheme.titleSmall),
+          const SizedBox(height: AppTheme.spacingMedium),
+          _buildPhotosRow(acceptancePhotos),
+          const SizedBox(height: AppTheme.spacingLarge),
+          _buildDocumentInfo('报验单', reportDocumentName, reportDocumentUrl),
+          const SizedBox(height: AppTheme.spacingMedium),
+          _buildDocumentInfo('验收报告', acceptanceReportName, acceptanceReportUrl),
+        ],
+      ),
     );
   }
 
@@ -356,19 +372,20 @@ class _AcceptanceConfirmationPageState
   }
 
   Widget _buildWarehouseInfo(AcceptanceInfoVO acceptanceInfo) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '仓库：',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '${acceptanceInfo.warehouseTypeDescription} (ID: ${acceptanceInfo.warehouseId})',
-          style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
-        ),
-      ],
+    return UnifiedCard(
+      title: '仓库信息',
+      icon: Icons.warehouse,
+      businessType: 'acceptance',
+      child: Column(
+        children: [
+          InfoRow(
+            label: '仓库类型',
+            value: acceptanceInfo.warehouseTypeDescription,
+          ),
+          const SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(label: '仓库ID', value: acceptanceInfo.warehouseId.toString()),
+        ],
+      ),
     );
   }
 
@@ -426,18 +443,26 @@ class _AcceptanceConfirmationPageState
   }
 
   Widget _buildResponsiblePersonsSection(AcceptanceInfoVO acceptanceInfo) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildResponsiblePersonsList('监理方负责人：', acceptanceInfo.supervisorUsers),
-        const SizedBox(height: 20),
-        _buildResponsiblePersonsList(
-          '建设方负责人：',
-          acceptanceInfo.constructionUsers,
-        ),
-        const SizedBox(height: 20),
-        _buildResponsiblePersonsList('仓库负责人：', acceptanceInfo.warehouseUsers),
-      ],
+    return UnifiedCard(
+      title: '负责人信息',
+      icon: Icons.people,
+      businessType: 'acceptance',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildResponsiblePersonsList(
+            '监理方负责人',
+            acceptanceInfo.supervisorUsers,
+          ),
+          const SizedBox(height: AppTheme.spacingLarge),
+          _buildResponsiblePersonsList(
+            '建设方负责人',
+            acceptanceInfo.constructionUsers,
+          ),
+          const SizedBox(height: AppTheme.spacingLarge),
+          _buildResponsiblePersonsList('仓库负责人', acceptanceInfo.warehouseUsers),
+        ],
+      ),
     );
   }
 
@@ -445,109 +470,46 @@ class _AcceptanceConfirmationPageState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        Text(title, style: AppTheme.titleSmall),
+        const SizedBox(height: AppTheme.spacingSmall),
+        ...users.asMap().entries.map(
+          (entry) => Padding(
+            padding: EdgeInsets.only(
+              bottom: entry.key < users.length - 1 ? AppTheme.spacingSmall : 0,
+            ),
+            child: _buildUserItem(entry.value),
+          ),
         ),
-        const SizedBox(height: 8),
-        ...users.map((user) => _buildUserItem(user)),
       ],
     );
   }
 
   Widget _buildUserItem(CommonUserVO user) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              '${user.name} - ${user.phone}',
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade400),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: const Text('推送', style: TextStyle(fontSize: 14)),
-          ),
-        ],
-      ),
+    return UserInfoWidget(
+      name: user.name,
+      phone: user.phone,
+      showPushOption: true,
+      isPushSelected: true,
     );
   }
 
   Widget _buildConfirmationButtons() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade300,
-            blurRadius: 4,
-            offset: const Offset(0, -2),
-          ),
-        ],
+    return UnifiedActionButtons(
+      primaryButton: UnifiedButton(
+        text: '验收确认',
+        type: UnifiedButtonType.primary,
+        onPressed: _isSubmitting ? null : () => _confirmAcceptance(true),
+        isLoading: _isSubmitting,
+        backgroundColor: AppTheme.acceptanceColor,
       ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _isSubmitting
-                    ? null
-                    : () => _confirmAcceptance(true),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: BorderSide(color: Colors.blue.shade600),
-                ),
-                child: _isSubmitting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('验收确认', style: TextStyle(fontSize: 16)),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _isSubmitting
-                    ? null
-                    : () => _confirmAcceptance(false),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: BorderSide(color: Colors.orange.shade600),
-                ),
-                child: _isSubmitting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('验收驳回', style: TextStyle(fontSize: 16)),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _isSubmitting
-                    ? null
-                    : () => Navigator.of(context).pop(),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: BorderSide(color: Colors.grey.shade600),
-                ),
-                child: const Text('返回', style: TextStyle(fontSize: 16)),
-              ),
-            ),
-          ],
-        ),
+      secondaryButton: UnifiedButton(
+        text: '不合格',
+        type: UnifiedButtonType.outlined,
+        onPressed: _isSubmitting ? null : () => _confirmAcceptance(false),
+        foregroundColor: AppTheme.warningColor,
+        borderColor: AppTheme.warningColor,
       ),
+      isFullWidth: true,
     );
   }
 

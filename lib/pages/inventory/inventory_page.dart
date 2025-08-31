@@ -26,6 +26,7 @@ import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class InventoryPage extends StatefulWidget {
   final int taskId;
@@ -130,7 +131,7 @@ class _InventoryPageState extends State<InventoryPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('盘点详情'),
-        backgroundColor: Colors.blue[600],
+        backgroundColor: AppTheme.getBusinessColor('inventory'),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -234,33 +235,27 @@ class _InventoryPageState extends State<InventoryPage> {
   }
 
   Widget _buildTaskInfoCard(InventoryDetailInfoVO detail) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.assignment, size: 24, color: Colors.blue[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '任务信息',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow('任务名称', detail.name ?? '无'),
-            _buildInfoRow('负责人', detail.bindUserName ?? '无'),
-            _buildInfoRow('物料数量', '${detail.materialNum ?? 0}'),
-            if (detail.createdTime != null)
-              _buildInfoRow('创建时间', _formatDateTime(detail.createdTime!)),
-            if (detail.warehouseName != null)
-              _buildInfoRow('仓库', detail.warehouseName!),
+    return UnifiedCard(
+      title: '任务信息',
+      icon: Icons.assignment,
+      businessType: 'inventory',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InfoRow(label: '任务名称', value: detail.name ?? '无'),
+          const SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(label: '负责人', value: detail.bindUserName ?? '无'),
+          const SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(label: '物料数量', value: '${detail.materialNum ?? 0}'),
+          if (detail.createdTime != null) ...[
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(label: '创建时间', value: _formatDateTime(detail.createdTime!)),
           ],
-        ),
+          if (detail.warehouseName != null) ...[
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(label: '仓库', value: detail.warehouseName!),
+          ],
+        ],
       ),
     );
   }
@@ -269,40 +264,25 @@ class _InventoryPageState extends State<InventoryPage> {
     InventoryDetailInfoVO detail,
     InventoryState state,
   ) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.inventory_2, size: 24, color: Colors.orange[600]),
-                const SizedBox(width: 8),
-                Text(
-                  '待盘点物料 (${detail.materials.length})',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (detail.materials.isEmpty)
-              _buildEmptyMaterialsWidget('暂无待盘点物料')
-            else
-              ...detail.materials.map(
-                (material) => _buildMaterialItem(
-                  material,
-                  isMatched: state.matchedMaterialIds.contains(
-                    material.materialId,
-                  ),
+    return UnifiedCard(
+      title: '待盘点物料 (${detail.materials.length})',
+      icon: Icons.inventory_2,
+      businessType: 'inventory',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (detail.materials.isEmpty)
+            _buildEmptyMaterialsWidget('暂无待盘点物料')
+          else
+            ...detail.materials.map(
+              (material) => _buildMaterialItem(
+                material,
+                isMatched: state.matchedMaterialIds.contains(
+                  material.materialId,
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -312,32 +292,17 @@ class _InventoryPageState extends State<InventoryPage> {
       return const SizedBox.shrink();
     }
 
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.add_circle, size: 24, color: Colors.green[600]),
-                const SizedBox(width: 8),
-                Text(
-                  '盘盈物料 (${state.surplusMaterials.length})',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ...state.surplusMaterials.map(
-              (material) => _buildSurplusMaterialItem(material),
-            ),
-          ],
-        ),
+    return UnifiedCard(
+      title: '盘盈物料 (${state.surplusMaterials.length})',
+      icon: Icons.add_circle_outline,
+      businessType: 'inventory',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ...state.surplusMaterials.map(
+            (material) => _buildSurplusMaterialItem(material),
+          ),
+        ],
       ),
     );
   }
@@ -516,7 +481,7 @@ class _InventoryPageState extends State<InventoryPage> {
             : const Icon(Icons.qr_code_scanner),
         label: Text(isScanning ? '正在处理扫码结果...' : '扫码盘点'),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue[600],
+          backgroundColor: AppTheme.getBusinessColor('inventory'),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -535,7 +500,7 @@ class _InventoryPageState extends State<InventoryPage> {
       child: ElevatedButton(
         onPressed: (canSubmit && !isSubmitting) ? _submitInventory : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green[600],
+          backgroundColor: AppTheme.getBusinessColor('inventory'),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -556,30 +521,6 @@ class _InventoryPageState extends State<InventoryPage> {
                 ],
               )
             : const Text('提交盘点'),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              '$label:',
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -23,6 +23,7 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
 // QrScanType removed
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class ReturnPage extends StatefulWidget {
   const ReturnPage({super.key, required this.codes});
@@ -79,8 +80,13 @@ class _ReturnPageState extends State<ReturnPage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('退库申请'),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
+          backgroundColor: AppTheme.getBusinessColor('return'),
+          iconTheme: const IconThemeData(color: Colors.white),
+          titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
           elevation: 0,
           centerTitle: true,
           actions: [
@@ -88,28 +94,32 @@ class _ReturnPageState extends State<ReturnPage> {
               onPressed: _handleViewRecords,
               child: const Text(
                 '退库记录',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
             ),
             const SizedBox(width: 8),
           ],
         ),
-        backgroundColor: Colors.grey[50],
+        backgroundColor: AppTheme.grey50,
         body: Column(
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppTheme.spacingLarge),
                 child: Column(
                   children: [
                     _buildMaterialsList(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppTheme.spacingLarge),
                     _buildMaterialButtonSection(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppTheme.spacingLarge),
                     _buildReturnTypeSection(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppTheme.spacingLarge),
                     _buildReturnRemarkSection(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppTheme.spacingLarge),
                     _buildAttachmentSection(),
                   ],
                 ),
@@ -123,114 +133,52 @@ class _ReturnPageState extends State<ReturnPage> {
   }
 
   Widget _buildMaterialsList() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.inventory, size: 24, color: Colors.orange[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '退库物料',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            BlocBuilder<ReturnBloc, ReturnState>(
-              builder: (context, state) {
-                final materials = state.returnDetail?.materialList;
-                if (state.status == ReturnStatus.loading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (materials == null || materials.isEmpty) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
-                      child: Text('暂无退库物料信息'),
+    return UnifiedCard(
+      title: '退库物料',
+      icon: Icons.inventory,
+      businessType: 'return',
+      child: BlocBuilder<ReturnBloc, ReturnState>(
+        builder: (context, state) {
+          final materials = state.returnDetail?.materialList;
+          if (state.status == ReturnStatus.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (materials == null || materials.isEmpty) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: AppTheme.spacingLarge),
+                child: Text('暂无退库物料信息'),
+              ),
+            );
+          }
+          return Column(
+            children: materials
+                .asMap()
+                .entries
+                .map(
+                  (entry) => Padding(
+                    padding: EdgeInsets.only(
+                      bottom: entry.key < materials.length - 1
+                          ? AppTheme.spacingMedium
+                          : 0,
                     ),
-                  );
-                }
-                return Column(
-                  children: materials
-                      .map((m) => _buildMaterialItemFromVO(m))
-                      .toList(),
-                );
-              },
-            ),
-          ],
-        ),
+                    child: _buildMaterialItemFromVO(entry.value),
+                  ),
+                )
+                .toList(),
+          );
+        },
       ),
     );
   }
 
   // 通过 MaterialVO 构造展示（追加/移除后的实时列表）
   Widget _buildMaterialItemFromVO(MaterialVO vo) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.orange[50],
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.orange[200]!),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.orange[100],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.water_drop, size: 20, color: Colors.orange[700]),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  vo.materialName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'ID: ${vo.materialId}',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.orange[600],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              '${vo.num}个',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return MaterialListItem(
+      materialName: vo.materialName,
+      materialId: vo.materialId.toString(),
+      quantity: vo.num,
+      businessType: 'return',
     );
   }
 
@@ -245,15 +193,17 @@ class _ReturnPageState extends State<ReturnPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green[600],
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(
+                vertical: AppTheme.spacingLarge,
+              ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               ),
             ),
             child: const Text('追加物料'),
           ),
         ),
-        Spacer(flex: 1),
+        SizedBox(width: AppTheme.spacingMedium),
         Expanded(
           flex: 5,
           child: ElevatedButton(
@@ -261,9 +211,11 @@ class _ReturnPageState extends State<ReturnPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red[600],
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(
+                vertical: AppTheme.spacingLarge,
+              ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               ),
             ),
             child: const Text('移除物料'),
@@ -274,33 +226,11 @@ class _ReturnPageState extends State<ReturnPage> {
   }
 
   Widget _buildReturnTypeSection() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.category, size: 24, color: Colors.blue[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '退库类型',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildReturnTypeOptions(),
-          ],
-        ),
-      ),
+    return UnifiedCard(
+      title: '退库类型',
+      icon: Icons.category,
+      businessType: 'return',
+      child: _buildReturnTypeOptions(),
     );
   }
 
@@ -314,7 +244,7 @@ class _ReturnPageState extends State<ReturnPage> {
           Icons.gpp_bad,
           Colors.red,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: AppTheme.spacingMedium),
         _buildReturnTypeOption(
           1,
           '多余件退库',
@@ -338,7 +268,7 @@ class _ReturnPageState extends State<ReturnPage> {
         border: Border.all(
           color: _returnType == value ? color : Colors.grey[300]!,
         ),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         color: _returnType == value
             ? color.withValues(alpha: 0.1)
             : Colors.white,
@@ -355,7 +285,7 @@ class _ReturnPageState extends State<ReturnPage> {
         title: Row(
           children: [
             Icon(icon, color: color, size: 20),
-            const SizedBox(width: 8),
+            SizedBox(width: AppTheme.spacingSmall),
             Text(
               title,
               style: TextStyle(
@@ -376,112 +306,68 @@ class _ReturnPageState extends State<ReturnPage> {
   }
 
   Widget _buildReturnRemarkSection() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.note_alt, size: 24, color: Colors.green[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '退库原因',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: '请详细说明退库原因...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.green[600]!),
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _returnRemark = value;
-                  context.read<ReturnBloc>().add(
-                    UpdateReturnRemark(returnRemark: value),
-                  );
-                });
-              },
-            ),
-          ],
+    return UnifiedCard(
+      title: '退库原因',
+      icon: Icons.note_alt,
+      businessType: 'return',
+      child: TextField(
+        maxLines: 4,
+        decoration: InputDecoration(
+          hintText: '请详细说明退库原因...',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+            borderSide: BorderSide(color: AppTheme.getBusinessColor('return')),
+          ),
         ),
+        onChanged: (value) {
+          setState(() {
+            _returnRemark = value;
+            context.read<ReturnBloc>().add(
+              UpdateReturnRemark(returnRemark: value),
+            );
+          });
+        },
       ),
     );
   }
 
   Widget _buildAttachmentSection() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.attach_file, size: 24, color: Colors.purple[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '相关图片',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            BlocBuilder<FileUploadCubit, List<FileUploadState>>(
-              bloc: _imageUploadCubit,
-              builder: (context, states) {
-                return ImageUploadWidget(
-                  title: '退库图片',
-                  states: states,
-                  onAdd: (files) {
-                    _imageUploadCubit.addFiles(files);
-                  },
-                  onRemove: (uniqueId) {
-                    _imageUploadCubit.removeFile(uniqueId);
-                  },
-                  onRetry: (uniqueId) {
-                    _imageUploadCubit.retryUpload(uniqueId);
-                  },
-                  maxImages: 6,
-                );
-              },
-            ),
-          ],
-        ),
+    return UnifiedCard(
+      title: '相关图片',
+      icon: Icons.attach_file,
+      businessType: 'return',
+      child: BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+        bloc: _imageUploadCubit,
+        builder: (context, states) {
+          return ImageUploadWidget(
+            title: '退库图片',
+            states: states,
+            onAdd: (files) {
+              _imageUploadCubit.addFiles(files);
+            },
+            onRemove: (uniqueId) {
+              _imageUploadCubit.removeFile(uniqueId);
+            },
+            onRetry: (uniqueId) {
+              _imageUploadCubit.retryUpload(uniqueId);
+            },
+            maxImages: 6,
+          );
+        },
       ),
     );
   }
 
   Widget _buildActionButtons() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppTheme.spacingLarge),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -501,11 +387,15 @@ class _ReturnPageState extends State<ReturnPage> {
                   child: ElevatedButton(
                     onPressed: _handleSubmitReturn,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
+                      backgroundColor: AppTheme.getBusinessColor('return'),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppTheme.spacingLarge,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusMedium,
+                        ),
                       ),
                       elevation: 2,
                     ),
@@ -520,7 +410,7 @@ class _ReturnPageState extends State<ReturnPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppTheme.spacingMedium),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
@@ -528,9 +418,11 @@ class _ReturnPageState extends State<ReturnPage> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.grey[600],
                   side: BorderSide(color: Colors.grey[400]!),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppTheme.spacingLarge,
+                  ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                   ),
                 ),
                 child: const Text(

@@ -28,9 +28,8 @@ import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
-    show QrScanOperation; // enum
-// import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
-// import 'package:pipe_code_flutter/config/service_locator.dart';
+    show QrScanOperation;
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class AcceptancePage extends StatefulWidget {
   const AcceptancePage({
@@ -49,13 +48,6 @@ class AcceptancePage extends StatefulWidget {
 }
 
 class _AcceptancePageState extends State<AcceptancePage> {
-  // 静态常量 BoxShadow，避免重复创建
-  static const BoxShadow _acceptancePageBoxShadow = BoxShadow(
-    color: Color(0x1A000000), // 0.1 opacity black
-    blurRadius: 8,
-    offset: Offset(0, -2),
-  );
-
   // 为每个上传组件创建一个Cubit
   late final FileUploadCubit _acceptancePhotosCubit;
   late final FileUploadCubit _inspectionReportsCubit;
@@ -206,7 +198,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
             const SizedBox(width: 8),
           ],
         ),
-        backgroundColor: Colors.grey[50],
+        backgroundColor: AppTheme.grey50,
         body: Column(
           children: [
             Expanded(
@@ -231,228 +223,147 @@ class _AcceptancePageState extends State<AcceptancePage> {
   }
 
   Widget _buildMaterialsList() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: BlocBuilder<AcceptanceBloc, AcceptanceState>(
-          builder: (context, state) {
-            final materials = state is AcceptanceEditingState
-                ? state.currentMaterials
-                : _currentMaterials;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.inventory, size: 24, color: Colors.blue[600]),
-                    const SizedBox(width: 8),
-                    const Text(
-                      '材料清单',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
+    return UnifiedCard(
+      title: '材料清单',
+      icon: Icons.inventory,
+      businessType: 'acceptance',
+      child: BlocBuilder<AcceptanceBloc, AcceptanceState>(
+        builder: (context, state) {
+          final materials = state is AcceptanceEditingState
+              ? state.currentMaterials
+              : _currentMaterials;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ...materials.map(_buildMaterialItem),
+              const SizedBox(height: AppTheme.spacingMedium),
+              Row(
+                children: [
+                  Expanded(
+                    child: UnifiedButton(
+                      text: '继续扫码',
+                      type: UnifiedButtonType.outlined,
+                      businessType: 'acceptance',
+                      onPressed: _scanAppendMaterials,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                ...materials.map(_buildMaterialItem),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _scanAppendMaterials,
-                        child: const Text('继续扫码'),
-                      ),
+                  ),
+                  const SizedBox(width: AppTheme.spacingMedium),
+                  Expanded(
+                    child: UnifiedButton(
+                      text: '扫码剔除',
+                      type: UnifiedButtonType.outlined,
+                      businessType: 'acceptance',
+                      foregroundColor: Colors.red,
+                      borderColor: Colors.red,
+                      onPressed: _scanRemoveMaterials,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _scanRemoveMaterials,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.redAccent),
-                        ),
-                        child: const Text('扫码剔除'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-        ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
   Widget _buildMaterialItem(MaterialInfo material) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.blue[200]!),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTheme.spacingMedium),
+      child: MaterialListItem(
+        materialName: material.baseInfo.prodNm ?? '无',
+        materialId: material.baseInfo.materialCode ?? '无',
+        quantity: 1,
+        businessType: 'acceptance',
+        icon: Icons.water_drop,
       ),
-      child: Row(
+    );
+  }
+
+  Widget _buildAttachmentSection() {
+    return UnifiedCard(
+      title: '附件上传',
+      icon: Icons.attach_file,
+      businessType: 'acceptance',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.blue[100],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.water_drop, size: 20, color: Colors.blue[700]),
+          BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+            bloc: _acceptancePhotosCubit,
+            builder: (context, states) {
+              return ImageUploadWidget(
+                title: '验收照片',
+                states: states,
+                maxImages: 6,
+                onAdd: (files) => _acceptancePhotosCubit.addFiles(files),
+                onRemove: (uniqueId) =>
+                    _acceptancePhotosCubit.removeFile(uniqueId),
+                onRetry: (uniqueId) =>
+                    _acceptancePhotosCubit.retryUpload(uniqueId),
+              );
+            },
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  material.baseInfo.prodNm ?? '无',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  material.baseInfo.materialCode ?? '无',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-              ],
-            ),
+          const SizedBox(height: AppTheme.spacingXLarge),
+          BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+            bloc: _inspectionReportsCubit,
+            builder: (context, states) {
+              return FileUploadWidget(
+                title: '报验单',
+                states: states,
+                allowedExtensions: const ['pdf', 'doc', 'docx'],
+                maxFiles: 3,
+                onAdd: (files) => _inspectionReportsCubit.addFiles(files),
+                onRemove: (uniqueId) =>
+                    _inspectionReportsCubit.removeFile(uniqueId),
+                onRetry: (uniqueId) =>
+                    _inspectionReportsCubit.retryUpload(uniqueId),
+              );
+            },
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.blue[600],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              '1个',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
+          const SizedBox(height: AppTheme.spacingXLarge),
+          BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+            bloc: _acceptanceReportsCubit,
+            builder: (context, states) {
+              return FileUploadWidget(
+                title: '验收报告',
+                states: states,
+                allowedExtensions: const ['pdf', 'doc', 'docx'],
+                maxFiles: 3,
+                onAdd: (files) => _acceptanceReportsCubit.addFiles(files),
+                onRemove: (uniqueId) =>
+                    _acceptanceReportsCubit.removeFile(uniqueId),
+                onRetry: (uniqueId) =>
+                    _acceptanceReportsCubit.retryUpload(uniqueId),
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAttachmentSection() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20),
-            BlocBuilder<FileUploadCubit, List<FileUploadState>>(
-              bloc: _acceptancePhotosCubit,
-              builder: (context, states) {
-                return ImageUploadWidget(
-                  title: '验收照片',
-                  states: states,
-                  maxImages: 6,
-                  onAdd: (files) => _acceptancePhotosCubit.addFiles(files),
-                  onRemove: (uniqueId) =>
-                      _acceptancePhotosCubit.removeFile(uniqueId),
-                  onRetry: (uniqueId) =>
-                      _acceptancePhotosCubit.retryUpload(uniqueId),
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-            BlocBuilder<FileUploadCubit, List<FileUploadState>>(
-              bloc: _inspectionReportsCubit,
-              builder: (context, states) {
-                return FileUploadWidget(
-                  title: '报验单',
-                  states: states,
-                  allowedExtensions: const ['pdf', 'doc', 'docx'],
-                  maxFiles: 3,
-                  onAdd: (files) => _inspectionReportsCubit.addFiles(files),
-                  onRemove: (uniqueId) =>
-                      _inspectionReportsCubit.removeFile(uniqueId),
-                  onRetry: (uniqueId) =>
-                      _inspectionReportsCubit.retryUpload(uniqueId),
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-            BlocBuilder<FileUploadCubit, List<FileUploadState>>(
-              bloc: _acceptanceReportsCubit,
-              builder: (context, states) {
-                return FileUploadWidget(
-                  title: '验收报告',
-                  states: states,
-                  allowedExtensions: const ['pdf', 'doc', 'docx'],
-                  maxFiles: 3,
-                  onAdd: (files) => _acceptanceReportsCubit.addFiles(files),
-                  onRemove: (uniqueId) =>
-                      _acceptanceReportsCubit.removeFile(uniqueId),
-                  onRetry: (uniqueId) =>
-                      _acceptanceReportsCubit.retryUpload(uniqueId),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildWarehouseSection() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.warehouse, size: 24, color: Colors.orange[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '仓库管理',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _buildStorageTypeSelection(),
-            if (_storageType == 'independent') ...[
-              const SizedBox(height: 20),
-              _buildWarehouseSelection(),
-            ],
-            const SizedBox(height: 20),
-            if (_storageType == 'independent')
-              _buildUserSection('仓库负责人', _warehouseUsers, 'warehouse'),
-            if (_storageType == 'independent') const SizedBox(height: 20),
-            _buildUserSection('监理方负责人', _supervisorUsers, 'supervisor'),
-            const SizedBox(height: 20),
-            _buildUserSection('建设方负责人', _constructionUsers, 'construction'),
+    return UnifiedCard(
+      title: '仓库管理',
+      icon: Icons.warehouse,
+      businessType: 'acceptance',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildStorageTypeSelection(),
+          if (_storageType == 'independent') ...[
+            const SizedBox(height: AppTheme.spacingLarge),
+            _buildWarehouseSelection(),
           ],
-        ),
+          const SizedBox(height: AppTheme.spacingLarge),
+          if (_storageType == 'independent')
+            _buildUserSection('仓库负责人', _warehouseUsers, 'warehouse'),
+          if (_storageType == 'independent')
+            const SizedBox(height: AppTheme.spacingLarge),
+          _buildUserSection('监理方负责人', _supervisorUsers, 'supervisor'),
+          const SizedBox(height: AppTheme.spacingLarge),
+          _buildUserSection('建设方负责人', _constructionUsers, 'construction'),
+        ],
       ),
     );
   }
@@ -650,54 +561,20 @@ class _AcceptancePageState extends State<AcceptancePage> {
   }
 
   Widget _buildActionButtons() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: const [_acceptancePageBoxShadow],
+    return UnifiedActionButtons(
+      primaryButton: UnifiedButton(
+        text: '提交报验',
+        type: UnifiedButtonType.primary,
+        businessType: 'acceptance',
+        onPressed: _handleScanAcceptance,
       ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _handleReturn,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.grey[600],
-                  side: BorderSide(color: Colors.grey[400]!),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  '返回',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _handleScanAcceptance,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: const Text(
-                  '提交报验',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ],
-        ),
+      secondaryButton: UnifiedButton(
+        text: '返回',
+        type: UnifiedButtonType.outlined,
+        businessType: 'acceptance',
+        onPressed: _handleReturn,
       ),
+      isFullWidth: true,
     );
   }
 

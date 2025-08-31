@@ -18,6 +18,7 @@ import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class DispatchAfterSigninPage extends StatelessWidget {
   final int dispatchId;
@@ -60,7 +61,13 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
     return BlocProvider<FileUploadCubit>.value(
       value: _fileUploadCubit,
       child: Scaffold(
-        appBar: AppBar(title: Text('调拨后入库')),
+        appBar: AppBar(
+          title: _buildAppBarTitle(),
+          backgroundColor: AppTheme.getBusinessColor('dispatch'),
+          iconTheme: const IconThemeData(color: Colors.white),
+          elevation: 0,
+        ),
+        backgroundColor: AppTheme.grey50,
         body: BlocConsumer<DispatchBloc, DispatchState>(
           // 当状态是DispatchSignedIn时，不用重建UI，因为listener会处理pop，避免未知状态闪烁
           buildWhen: (previous, current) =>
@@ -137,13 +144,34 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
     );
   }
 
+  Widget _buildAppBarTitle() {
+    return BlocBuilder<DispatchBloc, DispatchState>(
+      buildWhen: (previous, current) =>
+          current.status == DispatchStatus.success ||
+          current.status == DispatchStatus.loading ||
+          current.status == DispatchStatus.failure,
+      builder: (context, state) {
+        if (state.status == DispatchStatus.success &&
+            state.dispatchDetail != null) {
+          final matched = state.matchedMaterials.length;
+          final total = state.dispatchDetail!.materialList.length;
+          return Text(
+            '调拨后入库 ($matched/$total)',
+            style: TextStyle(color: Colors.white),
+          );
+        }
+        return Text('调拨后入库', style: TextStyle(color: Colors.white));
+      },
+    );
+  }
+
   Widget _buildContent(
     BuildContext context,
     DispatchDetailVo dispatchInfo,
     Set<MaterialVO> matchedMaterials,
   ) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(AppTheme.spacingLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -152,9 +180,9 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
             dispatchInfo.materialList,
             matchedMaterials,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spacingLarge),
           _buildScanButtons(context),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spacingLarge),
           BlocBuilder<FileUploadCubit, List<FileUploadState>>(
             builder: (context, states) {
               return ImageUploadWidget(
@@ -173,11 +201,11 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
               );
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spacingLarge),
           _buildWarehouseInfo(dispatchInfo),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spacingLarge),
           _buildUserInfo(dispatchInfo),
-          const SizedBox(height: 32),
+          const SizedBox(height: AppTheme.spacingXXLarge),
           // 监听上传状态变化，确保按钮可用性立即刷新
           BlocBuilder<FileUploadCubit, List<FileUploadState>>(
             builder: (context, uploadStates) => _buildActionButtons(
@@ -197,22 +225,26 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
     List<MaterialVO> materials,
     Set<MaterialVO> matchedMaterials,
   ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '物料清单',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ...materials.map(
-              (material) => _buildMaterialItem(material, matchedMaterials),
-            ),
-          ],
-        ),
+    return UnifiedCard(
+      title: '物料清单',
+      icon: Icons.inventory,
+      businessType: 'dispatch',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: materials
+            .asMap()
+            .entries
+            .map(
+              (entry) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: entry.key < materials.length - 1
+                      ? AppTheme.spacingMedium
+                      : 0,
+                ),
+                child: _buildMaterialItem(entry.value, matchedMaterials),
+              ),
+            )
+            .toList(),
       ),
     );
   }
@@ -223,48 +255,14 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
   ) {
     final isScanned = matchedMaterials.contains(material);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  material.materialName,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade100,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${material.num}个',
-                    style: const TextStyle(color: Colors.blue, fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            isScanned ? Icons.check_circle : Icons.radio_button_unchecked,
-            color: isScanned ? Colors.green : Colors.grey,
-            size: 32,
-          ),
-        ],
+    return MaterialListItem(
+      materialName: material.materialName,
+      quantity: material.num,
+      businessType: 'dispatch',
+      trailing: Icon(
+        isScanned ? Icons.check_circle : Icons.radio_button_unchecked,
+        color: isScanned ? AppTheme.getBusinessColor('dispatch') : Colors.grey,
+        size: 32,
       ),
     );
   }
@@ -274,18 +272,33 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
       children: [
         Expanded(
           child: ElevatedButton.icon(
-            icon: const Icon(Icons.qr_code_scanner),
             onPressed: () => _scanAppendMaterials(context),
-            label: const Text('扫码入库'),
+            icon: Icon(Icons.qr_code_scanner),
+            label: Text('扫码入库'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.getBusinessColor('dispatch'),
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+              ),
+            ),
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: AppTheme.spacingMedium),
         Expanded(
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            icon: const Icon(Icons.delete),
+          child: OutlinedButton.icon(
             onPressed: () => _scanRemoveMaterials(context),
-            label: const Text('扫码剔除'),
+            icon: Icon(Icons.remove_circle_outline),
+            label: Text('扫码剔除'),
+            style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
+              side: BorderSide(color: Colors.red.shade300),
+              foregroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+              ),
+            ),
           ),
         ),
       ],
@@ -293,62 +306,78 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
   }
 
   Widget _buildWarehouseInfo(DispatchDetailVo dispatchInfo) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '仓库',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow('接收仓库:', dispatchInfo.toWarehouseName ?? ''),
-          ],
-        ),
+    return UnifiedCard(
+      title: '仓库',
+      icon: Icons.warehouse,
+      businessType: 'dispatch',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InfoRow(label: '接收仓库', value: dispatchInfo.toWarehouseName ?? '未知仓库'),
+        ],
       ),
     );
   }
 
   Widget _buildUserInfo(DispatchDetailVo dispatchInfo) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return UnifiedCard(
+      title: '负责人信息',
+      icon: Icons.person,
+      businessType: 'dispatch',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (dispatchInfo.fromWarehouseUsers.isNotEmpty)
             _buildUserSection('发出方负责人', dispatchInfo.fromWarehouseUsers),
-            const SizedBox(height: 8),
+          if (dispatchInfo.fromWarehouseUsers.isNotEmpty &&
+              dispatchInfo.toWarehouseUsers.isNotEmpty)
+            SizedBox(height: AppTheme.spacingMedium),
+          if (dispatchInfo.toWarehouseUsers.isNotEmpty)
             _buildUserSection('接收方负责人', dispatchInfo.toWarehouseUsers),
-          ],
-        ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(value, style: const TextStyle(fontSize: 16)),
     );
   }
 
   Widget _buildUserSection(String title, List<CommonUserVO> users) {
     if (users.isEmpty) return const SizedBox.shrink();
 
-    final user = users.first;
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$title:',
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+          title,
+          style: TextStyle(
+            color: AppTheme.getBusinessColor('dispatch'),
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            '${user.name} - ${user.phone}',
-            style: const TextStyle(fontSize: 14),
+        SizedBox(height: AppTheme.spacingSmall),
+        ...users.map(
+          (user) => Padding(
+            padding: EdgeInsets.only(bottom: AppTheme.spacingSmall),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${user.name} - ${user.phone}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: user.realHandler == true
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ),
+                if (user.realHandler == true)
+                  Icon(
+                    Icons.check_circle_outline,
+                    color: AppTheme.getBusinessColor('dispatch'),
+                    size: 16,
+                  ),
+              ],
+            ),
           ),
         ),
       ],
@@ -367,24 +396,32 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
           child: OutlinedButton(
             onPressed: () => context.pop(),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
+              side: BorderSide(color: AppTheme.getBusinessColor('dispatch')),
+              foregroundColor: AppTheme.getBusinessColor('dispatch'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+              ),
             ),
-            child: const Text('返回'),
+            child: Text('返回'),
           ),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: AppTheme.spacingMedium),
         Expanded(
           child: ElevatedButton(
             onPressed: _canSubmit(dispatchInfo, matchedMaterials, uploadStates)
                 ? () => _submitSignin(context, dispatchInfo, matchedMaterials)
                 : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: AppTheme.getBusinessColor('dispatch'),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+              ),
             ),
             child: _isSubmitting
-                ? const SizedBox(
+                ? SizedBox(
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
@@ -392,7 +429,7 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
                       color: Colors.white,
                     ),
                   )
-                : const Text('确认'),
+                : Text('确认'),
           ),
         ),
       ],

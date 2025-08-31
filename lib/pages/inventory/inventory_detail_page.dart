@@ -13,6 +13,7 @@ import 'package:pipe_code_flutter/bloc/inventory/inventory_event.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_state.dart';
 import 'package:pipe_code_flutter/models/inventory/inventory_models.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class InventoryDetailPage extends StatefulWidget {
   final int taskId;
@@ -39,7 +40,7 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('盘点详情'),
-        backgroundColor: Colors.blue[600],
+        backgroundColor: AppTheme.getBusinessColor('inventory'),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -89,40 +90,41 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
   }
 
   Widget _buildTaskInfoCard(InventoryDetailInfoVO detail) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.assignment, size: 24, color: Colors.blue[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '任务信息',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow('任务名称', detail.name ?? '无'),
-            _buildInfoRow('负责人', detail.bindUserName ?? '无'),
-            _buildInfoRow('执行人', detail.executeName ?? '无'),
-            _buildInfoRow('物料数量', '${detail.materialNum ?? 0}'),
-            _buildInfoRow('实际数量', '${detail.realMaterialNum ?? 0}'),
-            _buildInfoRow('状态', _getStatusText(detail.status)),
-            if (detail.passFlag != null)
-              _buildInfoRow('盘点结果', detail.passFlag! ? '正常' : '异常'),
-            if (detail.createdTime != null)
-              _buildInfoRow('创建时间', _formatDateTime(detail.createdTime!)),
-            if (detail.executeTime != null)
-              _buildInfoRow('执行时间', _formatDateTime(detail.executeTime!)),
-            if (detail.warehouseName != null)
-              _buildInfoRow('仓库', detail.warehouseName!),
+    return UnifiedCard(
+      title: '任务信息',
+      icon: Icons.assignment,
+      businessType: 'inventory',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InfoRow(label: '任务名称', value: detail.name ?? '无'),
+          const SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(label: '负责人', value: detail.bindUserName ?? '无'),
+          const SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(label: '执行人', value: detail.executeName ?? '无'),
+          const SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(label: '物料数量', value: '${detail.materialNum ?? 0}'),
+          const SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(label: '实际数量', value: '${detail.realMaterialNum ?? 0}'),
+          const SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(label: '状态', value: _getStatusText(detail.status)),
+          if (detail.passFlag != null) ...[
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(label: '盘点结果', value: detail.passFlag! ? '正常' : '异常'),
           ],
-        ),
+          if (detail.createdTime != null) ...[
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(label: '创建时间', value: _formatDateTime(detail.createdTime!)),
+          ],
+          if (detail.executeTime != null) ...[
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(label: '执行时间', value: _formatDateTime(detail.executeTime!)),
+          ],
+          if (detail.warehouseName != null) ...[
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(label: '仓库', value: detail.warehouseName!),
+          ],
+        ],
       ),
     );
   }
@@ -459,30 +461,6 @@ class _InventoryDetailPageState extends State<InventoryDetailPage> {
             );
           },
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              '$label:',
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          ),
-        ],
       ),
     );
   }

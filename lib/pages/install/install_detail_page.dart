@@ -15,6 +15,7 @@ import 'package:pipe_code_flutter/bloc/install/install_event.dart';
 import 'package:pipe_code_flutter/bloc/install/install_state.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class InstallDetailPage extends StatefulWidget {
   final int installId;
@@ -45,6 +46,8 @@ class _InstallDetailPageState extends State<InstallDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('安装记录详情'),
+        backgroundColor: AppTheme.getBusinessColor('install'),
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -99,55 +102,48 @@ class _InstallDetailPageState extends State<InstallDetailPage> {
   }
 
   Widget _buildInstallInfo(InstallDetailVo detail) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '安装信息',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow(
-              '安装类型',
-              detail.onlyInstall == true ? '仅安装' : '出库直接安装',
-            ),
-            _buildInfoRow('出库ID', detail.signOutId.toString()),
-            _buildInfoRow('物料数量', '${detail.materialList.length}种'),
-            _buildInfoRow('附件数量', '${detail.imageList.length}个'),
-          ],
-        ),
+    return UnifiedCard(
+      title: '安装信息',
+      icon: Icons.info,
+      businessType: 'install',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InfoRow(
+            label: '安装类型',
+            value: detail.onlyInstall == true ? '仅安装' : '出库直接安装',
+          ),
+          const SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(label: '出库ID', value: detail.signOutId.toString()),
+          const SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(label: '物料数量', value: '${detail.materialList.length}种'),
+          const SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(label: '附件数量', value: '${detail.imageList.length}个'),
+        ],
       ),
     );
   }
 
   Widget _buildMaterialsList(InstallDetailVo detail) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '安装物料清单',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            if (detail.materialList.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text('暂无物料信息', style: TextStyle(color: Colors.grey)),
-                ),
-              )
-            else
-              ...detail.materialList.map(
-                (material) => _buildMaterialItem(material),
+    return UnifiedCard(
+      title: '安装物料清单',
+      icon: Icons.list_alt,
+      businessType: 'install',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (detail.materialList.isEmpty)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Text('暂无物料信息', style: TextStyle(color: Colors.grey)),
               ),
-          ],
-        ),
+            )
+          else
+            ...detail.materialList.map(
+              (material) => _buildMaterialItem(material),
+            ),
+        ],
       ),
     );
   }
@@ -245,30 +241,25 @@ class _InstallDetailPageState extends State<InstallDetailPage> {
   }
 
   Widget _buildAttachmentsList(InstallDetailVo detail) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '相关附件',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            if (detail.imageList.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text('暂无附件', style: TextStyle(color: Colors.grey)),
-                ),
-              )
-            else
-              ...detail.imageList.map(
-                (attachment) => _buildAttachmentItem(attachment),
+    return UnifiedCard(
+      title: '相关附件',
+      icon: Icons.attach_file,
+      businessType: 'install',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (detail.imageList.isEmpty)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Text('暂无附件', style: TextStyle(color: Colors.grey)),
               ),
-          ],
-        ),
+            )
+          else
+            ...detail.imageList.map(
+              (attachment) => _buildAttachmentItem(attachment),
+            ),
+        ],
       ),
     );
   }
@@ -331,42 +322,32 @@ class _InstallDetailPageState extends State<InstallDetailPage> {
   }
 
   Widget _buildQualityReport(InstallDetailVo detail) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '质量验收报告',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: CircleAvatar(
-                backgroundColor: Colors.blue.shade100,
-                child: Icon(
-                  Icons.description,
-                  color: Colors.blue.shade700,
-                  size: 20,
-                ),
-              ),
-              title: const Text(
-                '质量验收报告',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-              ),
-              subtitle: const Text(
-                '质量验收相关文档',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              trailing: IconButton(
-                icon: const Icon(Icons.open_in_new, size: 20),
-                onPressed: () => _openQualityReport(detail.installQualityUrl!),
-                tooltip: '查看报告',
-              ),
-            ),
-          ],
+    return UnifiedCard(
+      title: '质量验收报告',
+      icon: Icons.description,
+      businessType: 'install',
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: CircleAvatar(
+          backgroundColor: AppTheme.getBusinessColorLight('install'),
+          child: Icon(
+            Icons.description,
+            color: AppTheme.getBusinessColor('install'),
+            size: 20,
+          ),
+        ),
+        title: const Text(
+          '质量验收报告',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+        subtitle: const Text(
+          '质量验收相关文档',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.open_in_new, size: 20),
+          onPressed: () => _openQualityReport(detail.installQualityUrl!),
+          tooltip: '查看报告',
         ),
       ),
     );
@@ -440,31 +421,6 @@ class _InstallDetailPageState extends State<InstallDetailPage> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          ),
-          const Text(': ', style: TextStyle(color: Colors.grey)),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          ),
-        ],
       ),
     );
   }

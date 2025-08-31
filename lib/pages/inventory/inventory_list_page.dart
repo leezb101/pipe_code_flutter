@@ -6,6 +6,7 @@ import 'package:pipe_code_flutter/bloc/inventory/inventory_event.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_state.dart';
 import 'package:pipe_code_flutter/models/inventory/inventory_models.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class InventoryListPage extends StatefulWidget {
   const InventoryListPage({super.key});
@@ -68,7 +69,7 @@ class _InventoryListPageState extends State<InventoryListPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('盘点任务'),
-        backgroundColor: Colors.blue[600],
+        backgroundColor: AppTheme.getBusinessColor('inventory'),
         foregroundColor: Colors.white,
         elevation: 0,
         bottom: PreferredSize(
@@ -155,13 +156,23 @@ class _InventoryListPageState extends State<InventoryListPage> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 final item = state.inventoryList[index];
-                return Card(
+                return UnifiedCard(
                   margin: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 6,
                   ),
-                  elevation: 1.5,
+                  businessType: 'inventory',
                   child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: AppTheme.getBusinessColorLight(
+                        'inventory',
+                      ),
+                      child: Icon(
+                        Icons.inventory_2,
+                        color: AppTheme.getBusinessColor('inventory'),
+                        size: 20,
+                      ),
+                    ),
                     title: Text(
                       item.name ?? '未命名任务',
                       style: const TextStyle(fontWeight: FontWeight.bold),
@@ -170,14 +181,29 @@ class _InventoryListPageState extends State<InventoryListPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 4),
-                        Text('负责人: ${item.bindUserName ?? 'N/A'}'),
+                        InfoRow(
+                          label: '负责人',
+                          value: item.bindUserName ?? 'N/A',
+                          spacing: AppTheme.spacingXSmall,
+                        ),
                         const SizedBox(height: 2),
-                        Text('物料数量: ${item.materialNum}'),
+                        InfoRow(
+                          label: '物料数量',
+                          value: '${item.materialNum}',
+                          spacing: AppTheme.spacingXSmall,
+                        ),
                         const SizedBox(height: 2),
-                        Text('创建时间: ${item.createdTime ?? 'N/A'}'),
+                        InfoRow(
+                          label: '创建时间',
+                          value: item.createdTime?.toString() ?? 'N/A',
+                          spacing: AppTheme.spacingXSmall,
+                        ),
                       ],
                     ),
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: AppTheme.getBusinessColor('inventory'),
+                    ),
                     onTap: () => _onItemTap(item),
                   ),
                 );
