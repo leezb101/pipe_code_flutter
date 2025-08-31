@@ -38,7 +38,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
   // UI state
   bool _isPasswordVisible = false;
-  bool _isPasswordMode = true; // true for password login, false for SMS login
+  bool _isPasswordMode =
+      false; // true for password login, false for SMS login (default to SMS)
 
   // Animation controller for flip animation
   late AnimationController _flipAnimationController;
@@ -66,6 +67,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         curve: Curves.easeInOut,
       ),
     );
+
+    // 默认展示短信验证码登录（背面），将翻转动画值设置为1.0
+    _flipAnimationController.value = 1.0;
 
     // 监听验证码输入变化
     _captchaController.addListener(() {
@@ -154,10 +158,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   children: [
-                    const SizedBox(height: 60),
+                    // const SizedBox(height: 30),
                     // 应用Logo和标题
                     _buildHeader(),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 20),
                     // 登录表单卡片（带翻转动画）
                     _buildFlipLoginCard(state),
                     const SizedBox(height: 30),
@@ -175,6 +179,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
   Widget _buildHeader() {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         // Logo占位符 - 可以替换为实际Logo
         Container(
@@ -251,8 +256,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
   Widget _buildPasswordLoginCard(AuthState state) {
     return Container(
-      height: 400, // 固定高度
-      padding: const EdgeInsets.all(28),
+      height: 360, // 固定高度
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
