@@ -6,6 +6,7 @@ import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_state.dart';
 import 'package:pipe_code_flutter/models/common/common_enum_vo.dart';
 import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/temporary_auth_repository.dart';
 
 enum TemporaryPageStatus {
   loadingRole,
@@ -85,16 +86,20 @@ class TemporaryAuthState extends Equatable {
 
 class TemporaryAuthCubit extends Cubit<TemporaryAuthState> {
   final SessionBloc _sessionBloc;
+  final TemporaryAuthRepository _repository;
   late final StreamSubscription _sessionSubscription;
 
-  TemporaryAuthCubit({required SessionBloc sessionBloc})
-    : _sessionBloc = sessionBloc,
-      super(
-        const TemporaryAuthState(
-          status: TemporaryPageStatus.loadingRole,
-          availableOptions: [],
-        ),
-      ) {
+  TemporaryAuthCubit({
+    required SessionBloc sessionBloc,
+    required TemporaryAuthRepository repository,
+  }) : _sessionBloc = sessionBloc,
+       _repository = repository,
+       super(
+         const TemporaryAuthState(
+           status: TemporaryPageStatus.loadingRole,
+           availableOptions: [],
+         ),
+       ) {
     _sessionSubscription = _sessionBloc.stream.listen((sessionState) {
       if (sessionState is SessionProjectEstablished) {
         _onRoleDetermined(sessionState.currentUserRoleInfo);
@@ -154,11 +159,47 @@ class TemporaryAuthCubit extends Cubit<TemporaryAuthState> {
   }
 
   Future<void> submitForm() async {
-    if (state.selectedOption == TemporaryAuthType.subRole) {
-      // Perform form submission logic here
-    } else if (state.selectedOption == TemporaryAuthType.labor) {}
+    // repository的校验
+    if (!_repository.validateInput(
+      state.selectedOption!,
+      state.name,
+      state.phone,
+      state.interval,
+    )) {
+      emit(state.copyWith(status: TemporaryPageStatus.error));
+      return;
+    }
 
-    // TODO: submit提交逻辑
+    if (state.selectedOption == TemporaryAuthType.subRole) {
+      try {
+        final success = await _repository.submitTemporarySubAuth(
+          state.name!,
+          state.phone!,
+        );
+        if (success) {
+          emit(state.copyWith(status: TemporaryPageStatus.success));
+        } else {
+          emit(state.copyWith(status: TemporaryPageStatus.error));
+        }
+      } catch (e) {
+        emit(state.copyWith(status: TemporaryPageStatus.error));
+      }
+    } else if (state.selectedOption == TemporaryAuthType.labor) {
+      try {
+        final success = await _repository.submitTemporaryLaborAuth(
+          state.name!,
+          state.phone!,
+          state.interval!,
+        );
+        if (success) {
+          emit(state.copyWith(status: TemporaryPageStatus.success));
+        } else {
+          emit(state.copyWith(status: TemporaryPageStatus.error));
+        }
+      } catch (e) {
+        emit(state.copyWith(status: TemporaryPageStatus.error));
+      }
+    }
   }
 
   @override

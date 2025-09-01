@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:pipe_code_flutter/cubits/temporary_auth.dart';
 import 'package:pipe_code_flutter/models/common/common_enum_vo.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/temporary_auth_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/api_service_interface.dart';
@@ -92,6 +93,39 @@ class TemporaryAuthRepositoryImpl implements TemporaryAuthRepository {
       throw Exception(errorMessage);
     } catch (e) {
       rethrow;
+    }
+  }
+
+  @override
+  bool validateInput(
+    TemporaryAuthType type,
+    String? name,
+    String? phone,
+    Interval? interval,
+  ) {
+    {
+      // 对入参归一化
+      name = name?.trim();
+      phone = phone?.trim();
+
+      if (name == null || phone == null) {
+        return false;
+      }
+
+      if (name.isEmpty || phone.isEmpty) {
+        return false;
+      }
+      if (type == TemporaryAuthType.labor && interval == null) {
+        return false;
+      }
+
+      // 手机号校验规则
+      final phoneRegExp = RegExp(r'^\d{11}$');
+      if (!phoneRegExp.hasMatch(phone)) {
+        return false;
+      }
+
+      return true;
     }
   }
 }
