@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:pipe_code_flutter/models/acceptance/sign_in_info_vo.dart';
-import 'package:pipe_code_flutter/models/common/result.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/signin_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/api_service_interface.dart';
 
