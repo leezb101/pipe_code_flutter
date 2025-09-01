@@ -166,7 +166,12 @@ class TemporaryAuthCubit extends Cubit<TemporaryAuthState> {
       state.phone,
       state.interval,
     )) {
-      emit(state.copyWith(status: TemporaryPageStatus.error));
+      emit(
+        state.copyWith(
+          status: TemporaryPageStatus.error,
+          errorMessage: '请检查表单是否填写正确',
+        ),
+      );
       return;
     }
 
@@ -200,6 +205,19 @@ class TemporaryAuthCubit extends Cubit<TemporaryAuthState> {
         emit(state.copyWith(status: TemporaryPageStatus.error));
       }
     }
+  }
+
+  void resetToOptionSelection() {
+    emit(
+      state.copyWith(
+        status: TemporaryPageStatus.optionSelection,
+        selectedOption: null,
+        name: null,
+        phone: null,
+        interval: null,
+        clearErrorMessage: true,
+      ),
+    );
   }
 
   @override

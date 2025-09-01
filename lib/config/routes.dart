@@ -16,6 +16,7 @@ import 'package:pipe_code_flutter/bloc/scrap/scrap_bloc.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
 import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
+import 'package:pipe_code_flutter/cubits/temporary_auth.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/pages/install/install_page.dart';
 import 'package:pipe_code_flutter/pages/install/install_detail_page.dart';
@@ -26,6 +27,7 @@ import 'package:pipe_code_flutter/pages/signout/signout_audit_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_detail_page.dart';
 import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
+import 'package:pipe_code_flutter/pages/temporary_auth/temporary_auth_page.dart';
 import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
 import '../bloc/dispatch/dispatch_bloc.dart';
 import '../pages/auth/login_page.dart';
@@ -625,6 +627,16 @@ final GoRouter appRouter = GoRouter(
             return BlocProvider(
               create: (context) => getIt<ScrapBloc>(),
               child: ScrapDetailPage(scrapId: scrapId),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/temporary-auth',
+          name: 'temporary-auth',
+          builder: (context, state) {
+            return BlocProvider(
+              create: (context) => getIt<TemporaryAuthCubit>(),
+              child: const TemporaryAuthPage(),
             );
           },
         ),

@@ -46,6 +46,8 @@ class _TemporaryAuthPageState extends State<TemporaryAuthPage> {
           // 清空表单状态
           _nameController.clear();
           _phoneController.clear();
+          // 切换回选项选择界面
+          context.read<TemporaryAuthCubit>().resetToOptionSelection();
         } else if (state.status == TemporaryPageStatus.error) {
           ToastUtils.showError(
             context,
