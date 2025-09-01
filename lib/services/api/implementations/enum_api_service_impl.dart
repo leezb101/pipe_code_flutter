@@ -117,4 +117,13 @@ class EnumApiServiceImpl implements EnumApiService {
       (data) => (data as List).map((e) => ReturnType.fromJson(e)).toList(),
     );
   }
+
+  @override
+  Future<Result<List<Interval>>> getIntervals() async {
+    final response = await dio.get('/enum/interval');
+    return Result<List<Interval>>.fromJson(
+      response.data,
+      (data) => (data as List).map((e) => Interval.fromJson(e)).toList(),
+    );
+  }
 }

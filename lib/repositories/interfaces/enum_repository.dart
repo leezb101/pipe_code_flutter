@@ -12,6 +12,7 @@ abstract class EnumRepository {
   Future<void> initializeEnums();
 
   List<TodoType>? get todoTypes;
+  List<Interval>? get intervals;
   List<MaterialGroup>? get materialGroups;
   List<MaterialType>? get materialTypes;
   List<OrgType>? get orgTypes;

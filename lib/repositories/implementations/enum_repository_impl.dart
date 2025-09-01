@@ -16,6 +16,7 @@ class EnumRepositoryImpl implements EnumRepository {
   final EnumApiService _enumApiService;
 
   List<TodoType>? _todoTypes;
+  List<Interval>? _intervals;
   List<MaterialGroup>? _materialGroups;
   List<MaterialType>? _materialTypes;
   List<OrgType>? _orgTypes;
@@ -45,6 +46,7 @@ class EnumRepositoryImpl implements EnumRepository {
         _enumApiService.getProjectSupplyTypes(),
         _enumApiService.getProjectTypes(),
         _enumApiService.getReturnTypes(),
+        _enumApiService.getIntervals(),
       ]);
 
       _todoTypes = (results[0] as Result<List<TodoType>>).data;
@@ -59,6 +61,7 @@ class EnumRepositoryImpl implements EnumRepository {
           (results[8] as Result<List<ProjectSupplyType>>).data;
       _projectTypes = (results[9] as Result<List<ProjectType>>).data;
       _returnTypes = (results[10] as Result<List<ReturnType>>).data;
+      _intervals = (results[11] as Result<List<Interval>>).data;
 
       // 初始化各枚举类的静态值列表
       if (_todoTypes != null) {
@@ -114,6 +117,11 @@ class EnumRepositoryImpl implements EnumRepository {
           _returnTypes!.map((e) => {'code': e.value, 'msg': e.name}).toList(),
         );
       }
+      if (_intervals != null) {
+        Interval.initFromList(
+          _intervals!.map((e) => {'code': e.value, 'msg': e.name}).toList(),
+        );
+      }
     } on Exception catch (e) {
       throw Exception('初始化枚举数据失败: $e, 建议检查网络后重新启动App');
     }
@@ -141,6 +149,8 @@ class EnumRepositoryImpl implements EnumRepository {
   List<ProjectType>? get projectTypes => _projectTypes;
   @override
   List<ReturnType>? get returnTypes => _returnTypes;
+  @override
+  List<Interval>? get intervals => _intervals;
 
   @override
   bool get isInitialized =>
@@ -154,5 +164,6 @@ class EnumRepositoryImpl implements EnumRepository {
       _projectStatuses != null &&
       _projectSupplyTypes != null &&
       _projectTypes != null &&
-      _returnTypes != null;
+      _returnTypes != null &&
+      _intervals != null;
 }

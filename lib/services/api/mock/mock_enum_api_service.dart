@@ -165,4 +165,14 @@ class MockEnumApiService implements EnumApiService {
       ],
     );
   }
+
+  @override
+  Future<Result<List<Interval>>> getIntervals() async {
+    await Future.delayed(Duration(milliseconds: 300));
+    return Result<List<Interval>>(
+      code: 0,
+      msg: '',
+      data: [Interval(1, '一周'), Interval(2, '一月'), Interval(3, '一年')],
+    );
+  }
 }

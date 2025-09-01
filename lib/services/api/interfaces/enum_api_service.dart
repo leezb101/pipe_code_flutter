@@ -49,4 +49,8 @@ abstract class EnumApiService {
   /// 获取退货类型列表
   /// 直接对接退货类型枚举 GET 接口
   Future<Result<List<ReturnType>>> getReturnTypes();
+
+  /// 获取授权期限枚举列表
+  /// 直接对接时间区间枚举 GET 接口
+  Future<Result<List<Interval>>> getIntervals();
 }
