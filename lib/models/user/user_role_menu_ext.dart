@@ -229,7 +229,7 @@ extension UserRoleMenuExtension on UserRole {
           ),
           _createMenuItem(
             id: 'temporary_auth',
-            title: '临时授权',
+            title: '授权他人',
             type: MenuItemType.page,
             icon: 'admin_panel_settings',
             route: '/temporary-auth',
@@ -354,7 +354,7 @@ extension UserRoleMenuExtension on UserRole {
           ),
           _createMenuItem(
             id: 'temporary_auth',
-            title: '临时授权',
+            title: '授权他人',
             type: MenuItemType.page,
             icon: 'admin_panel_settings',
             route: '/temporary-auth',
@@ -597,13 +597,13 @@ extension UserRoleMenuExtension on UserRole {
         return '监理单位：库存管理(盘点/退库)、扫码识别';
 
       case UserRole.builder:
-        return '施工单位：验收管理、出库/退库/调拨、施工操作(备用码/截管/报废)、临时授权、扫码识别';
+        return '施工单位：验收管理、出库/退库/调拨、施工操作(备用码/截管/报废)、授权他人、扫码识别';
 
       case UserRole.builderSub:
-        return '施工单位二级负责人：验收管理、出库/退库/调拨、施工操作(备用码/截管/报废)、临时授权、扫码识别';
+        return '施工单位二级负责人：验收管理、出库/退库/调拨、施工操作(备用码/截管/报废)、授权他人、扫码识别';
 
       case UserRole.laborer:
-        return '劳务人员：验收管理、出库/退库/调拨、施工操作(备用码/截管/报废，除临时授权)、扫码识别';
+        return '劳务人员：验收管理、出库/退库/调拨、施工操作(备用码/截管/报废，除授权他人)、扫码识别';
 
       case UserRole.playgoer:
         return '热心群众：扫码识别';
