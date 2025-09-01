@@ -34,6 +34,7 @@ import 'package:pipe_code_flutter/repositories/interfaces/scrap_repository.dart'
 import 'package:pipe_code_flutter/repositories/interfaces/signin_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/signout_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/temporary_auth_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/user_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/storekeeper_non_project_repository.dart';
 import 'package:pipe_code_flutter/repositories/repository_factory.dart';
@@ -172,6 +173,9 @@ Future<void> setupServiceLocator({
   );
   getIt.registerLazySingleton<SigninRepository>(
     () => RepositoryFactory.createSigninRepository(),
+  );
+  getIt.registerLazySingleton<TemporaryAuthRepository>(
+    () => RepositoryFactory.createTemporaryAuthRepository(),
   );
   // Wait for async singletons to be ready before registering dependent Blocs
   await getIt.isReady<AuthRepository>();

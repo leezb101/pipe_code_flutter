@@ -16,6 +16,7 @@ import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart
 import 'package:pipe_code_flutter/services/api/interfaces/signin_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/spareqr_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/temporary_auth_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_install_api_service.dart';
@@ -26,6 +27,7 @@ import 'package:pipe_code_flutter/services/api/mock/mock_scrap_api_service.dart'
 import 'package:pipe_code_flutter/services/api/mock/mock_signin_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_spareqr_api_service.dart';
+import 'package:pipe_code_flutter/services/api/mock/mock_temporary_auth_api_service.dart';
 
 import '../interfaces/api_service_interface.dart';
 import '../interfaces/auth_api_service.dart';
@@ -63,6 +65,7 @@ class MockApiService implements ApiServiceInterface {
   ScrapApiService? _scrapApiService;
   RecoveryApiService? _recoveryApiService;
   SigninApiService? _signinApiService;
+  TemporaryAuthApiService? _temporaryAuthApiService;
 
   @override
   AuthApiService get auth => _authService ??= MockAuthApiService();
@@ -126,4 +129,8 @@ class MockApiService implements ApiServiceInterface {
 
   @override
   SigninApiService get signin => _signinApiService ??= MockSigninApiService();
+
+  @override
+  TemporaryAuthApiService get temporaryAuth =>
+      _temporaryAuthApiService ??= MockTemporaryAuthApiService();
 }

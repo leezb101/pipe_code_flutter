@@ -10,10 +10,12 @@ import 'package:pipe_code_flutter/services/api/implementations/inventory_api_ser
 import 'package:pipe_code_flutter/services/api/implementations/project_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/scrap_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/signin_api_service_impl.dart';
+import 'package:pipe_code_flutter/services/api/implementations/temporary_auth_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/cut_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/project_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signin_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/temporary_auth_api_service.dart';
 import 'common_query_api_service_impl.dart';
 import 'cut_api_service_impl.dart';
 import 'dispatch_api_service_impl.dart';
@@ -63,6 +65,7 @@ class ApiServiceImpl implements ApiServiceInterface {
   ScrapApiService? _scrapApiService;
   RecoveryApiService? _recoveryApiService;
   SigninApiService? _signinApiService;
+  TemporaryAuthApiService? _temporaryAuthApiService;
 
   ApiServiceImpl(this._dio);
 
@@ -130,4 +133,8 @@ class ApiServiceImpl implements ApiServiceInterface {
   @override
   SigninApiService get signin =>
       _signinApiService ??= SigninApiServiceImpl(_dio);
+
+  @override
+  TemporaryAuthApiService get temporaryAuth =>
+      _temporaryAuthApiService ??= TemporaryAuthApiServiceImpl(_dio);
 }

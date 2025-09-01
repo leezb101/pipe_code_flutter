@@ -133,7 +133,27 @@ enum UserRole {
   /// 判断是否允许代理操作
   bool get canDelegate {
     switch (this) {
-      case UserRole.laborer:
+      case UserRole.builder:
+      case UserRole.builderSub:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool get canSetDelegateLabor {
+    switch (this) {
+      case UserRole.builder:
+      case UserRole.builderSub:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool get canSetDelegateSub {
+    switch (this) {
+      case UserRole.builder:
         return true;
       default:
         return false;
