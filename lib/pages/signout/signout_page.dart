@@ -29,7 +29,6 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
 
 import '../../models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
-import 'package:pipe_code_flutter/constants/app_theme.dart';
 
 class SignoutPage extends StatefulWidget {
   final MaterialInfoForBusiness? materials;
