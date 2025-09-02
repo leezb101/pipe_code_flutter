@@ -20,6 +20,7 @@ import 'package:pipe_code_flutter/widgets/file_upload/file_upload_widget.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class InstallPage extends StatelessWidget {
   final String? signOutId;
@@ -105,12 +106,14 @@ class _InstallViewState extends State<InstallView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('一管一码'),
+        backgroundColor: AppTheme.getBusinessColor('install'),
+        foregroundColor: Colors.white,
         actions: [
           TextButton(
             onPressed: () {
               // TODO: 导航到安装记录页面
             },
-            child: const Text('安装记录', style: TextStyle(color: Colors.blue)),
+            child: const Text('安装记录', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -151,7 +154,9 @@ class _InstallViewState extends State<InstallView> {
         builder: (context, state) {
           if (state is InstallReady) {
             // 确保物料列表变化后，提交按钮能及时刷新
-            WidgetsBinding.instance.addPostFrameCallback((_) => _recomputeCanSubmit());
+            WidgetsBinding.instance.addPostFrameCallback(
+              (_) => _recomputeCanSubmit(),
+            );
             return _buildContent(context, state);
           }
           if (state is InstallLoading) {
@@ -234,100 +239,83 @@ class _InstallViewState extends State<InstallView> {
       _stakeNumberControllers[materialId] = TextEditingController();
     }
 
-    return Card(
+    return UnifiedCard(
+      businessType: 'install',
       margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 材料信息
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    material.materialName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                Text(
-                  '${material.num}个',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 材料信息
+          MaterialListItem(
+            materialName: material.materialName,
+            quantity: material.num,
+            businessType: 'install',
+            icon: Icons.build,
+            showQuantityBadge: true,
+          ),
+          const SizedBox(height: 16),
 
-            // 安装照片部分
-            BlocProvider.value(
-              value: photoCubit,
-              child: BlocBuilder<FileUploadCubit, List<FileUploadState>>(
-                builder: (context, states) {
-                  return ImageUploadWidget(
-                    title: '安装照片',
-                    maxImages: 2,
-                    requiredPhotoCount: 2,
-                    states: states,
-                    onAdd: (files) => photoCubit.addFiles(files),
-                    onRemove: (uniqueId) => photoCubit.removeFile(uniqueId),
-                    onRetry: (uniqueId) => photoCubit.retryUpload(uniqueId),
-                  );
-                },
-              ),
+          // 安装照片部分
+          BlocProvider.value(
+            value: photoCubit,
+            child: BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+              builder: (context, states) {
+                return ImageUploadWidget(
+                  title: '安装照片',
+                  maxImages: 2,
+                  requiredPhotoCount: 2,
+                  states: states,
+                  onAdd: (files) => photoCubit.addFiles(files),
+                  onRemove: (uniqueId) => photoCubit.removeFile(uniqueId),
+                  onRetry: (uniqueId) => photoCubit.retryUpload(uniqueId),
+                );
+              },
             ),
-            const SizedBox(height: 16),
+          ),
+          const SizedBox(height: 16),
 
-            // 桩号输入
-            Row(
-              children: [
-                const Text(
-                  '桩号:',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _stakeNumberControllers[materialId],
-                    decoration: const InputDecoration(
-                      hintText: '请输入桩号',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                    onChanged: (value) {
-                      _materialStakeNumbers[materialId] = value;
-                      _recomputeCanSubmit();
-                    },
-                  ),
-                ),
-              ],
+          // 桩号输入
+          InfoRow(
+            label: '桩号',
+            value: _materialStakeNumbers[materialId] ?? '请输入桩号',
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _stakeNumberControllers[materialId],
+            decoration: const InputDecoration(
+              hintText: '请输入桩号',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
-          ],
-        ),
+            onChanged: (value) {
+              _materialStakeNumbers[materialId] = value;
+              _recomputeCanSubmit();
+            },
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildQualityReportSection() {
-    return BlocProvider.value(
-      value: _qualityReportCubit,
-      child: BlocBuilder<FileUploadCubit, List<FileUploadState>>(
-        builder: (context, states) {
-          return FileUploadWidget(
-            title: '质量验收报告',
-            maxFiles: 1,
-            states: states,
-            onAdd: (files) => _qualityReportCubit.addFiles(files),
-            onRemove: (uniqueId) => _qualityReportCubit.removeFile(uniqueId),
-            onRetry: (uniqueId) => _qualityReportCubit.retryUpload(uniqueId),
-          );
-        },
+    return UnifiedCard(
+      title: '质量验收报告',
+      icon: Icons.description,
+      businessType: 'install',
+      child: BlocProvider.value(
+        value: _qualityReportCubit,
+        child: BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+          builder: (context, states) {
+            return FileUploadWidget(
+              title: '',
+              maxFiles: 1,
+              states: states,
+              onAdd: (files) => _qualityReportCubit.addFiles(files),
+              onRemove: (uniqueId) => _qualityReportCubit.removeFile(uniqueId),
+              onRetry: (uniqueId) => _qualityReportCubit.retryUpload(uniqueId),
+            );
+          },
+        ),
       ),
     );
   }
@@ -342,7 +330,7 @@ class _InstallViewState extends State<InstallView> {
         label: Text(scannedMaterials.isEmpty ? '开始扫码添加' : '继续扫码添加'),
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.white,
-          backgroundColor: Colors.blue,
+          backgroundColor: AppTheme.getBusinessColor('install'),
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -361,7 +349,9 @@ class _InstallViewState extends State<InstallView> {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          backgroundColor: canSubmit ? Colors.green : Colors.grey,
+          backgroundColor: canSubmit
+              ? AppTheme.getBusinessColor('install')
+              : Colors.grey,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

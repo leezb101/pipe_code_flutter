@@ -24,9 +24,8 @@ class MenuActions {
   static const String qrIdentify = 'qr_identify';
   static const String qrScanScrap = 'qr_scan_scrap';
 
-  // 委托操作
-  static const String delegateHarvest = 'delegate_harvest';
-  static const String delegateAccept = 'delegate_accept';
+  // 授权操作
+  static const String setDelegate = 'set_delegate';
 
   // 其他操作
 
@@ -41,8 +40,7 @@ class MenuActions {
     qrScanScrap,
     qrScanAcceptance,
     qrIdentify,
-    delegateHarvest,
-    delegateAccept,
+    setDelegate,
   ];
 
   /// 验证action是否有效
@@ -71,10 +69,8 @@ class MenuActions {
         return '报废扫码';
       case qrIdentify:
         return '扫码识别';
-      case delegateHarvest:
-        return '委托收割';
-      case delegateAccept:
-        return '委托验收';
+      case setDelegate:
+        return '授权他人';
       default:
         return action;
     }

@@ -53,7 +53,7 @@ class IdentitySelector extends StatelessWidget {
             ),
 
             // 底部说明
-            _buildSelectionNote(),
+            // _buildSelectionNote(),
           ],
         ),
       ),
@@ -79,7 +79,9 @@ class IdentitySelector extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+            backgroundColor: Theme.of(
+              context,
+            ).primaryColor.withValues(alpha: 0.1),
             child: Text(
               wxLoginVO.name.isNotEmpty ? wxLoginVO.name[0] : 'U',
               style: TextStyle(

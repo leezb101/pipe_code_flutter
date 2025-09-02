@@ -18,6 +18,7 @@ import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
 import 'package:pipe_code_flutter/pages/signin/signin_detail_page.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/signin_repository.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class SigninDetailPageUsageExample {
   /// 导航到入库详情页面
@@ -86,7 +87,8 @@ class SigninListItemExample extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return UnifiedCard(
+      businessType: 'signin',
       child: ListTile(
         title: Text(signinTitle),
         subtitle: Text('入库ID: $signinId'),

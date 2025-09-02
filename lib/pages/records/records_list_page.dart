@@ -236,8 +236,6 @@ class _RecordsListPageState extends State<RecordsListPage>
         final rec = record as TodoRecordItem;
         handleGoTodoDetail(context, rec);
         break;
-      default:
-      // 其他列表的点击事件
     }
   }
 

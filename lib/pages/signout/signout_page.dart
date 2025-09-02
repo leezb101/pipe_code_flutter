@@ -28,6 +28,8 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
     show QrScanOperation;
 
 import '../../models/material/material_info_base.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/constants/app_theme.dart';
 
 class SignoutPage extends StatefulWidget {
   final MaterialInfoForBusiness? materials;
@@ -145,8 +147,13 @@ class _SignoutPageState extends State<SignoutPage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('一管一码'),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
+          backgroundColor: AppTheme.getBusinessColor('signout'),
+          iconTheme: const IconThemeData(color: Colors.white),
+          titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
           elevation: 0,
           centerTitle: true,
           actions: [
@@ -154,24 +161,28 @@ class _SignoutPageState extends State<SignoutPage> {
               onPressed: _handleViewRecords,
               child: const Text(
                 '出库记录',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
             ),
             const SizedBox(width: 8),
           ],
         ),
-        backgroundColor: Colors.grey[50],
+        backgroundColor: AppTheme.grey50,
         body: Column(
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppTheme.spacingLarge),
                 child: Column(
                   children: [
                     _buildMaterialsList(),
-                    const SizedBox(height: 16),
-                    _buildPhotoSection(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppTheme.spacingLarge),
+                    _buildPhotosSection(),
+                    const SizedBox(height: AppTheme.spacingLarge),
                     BlocBuilder<SignoutBloc, SignoutState>(
                       builder: (context, state) {
                         if (state is SignoutEditingState) {
@@ -205,208 +216,124 @@ class _SignoutPageState extends State<SignoutPage> {
   }
 
   Widget _buildMaterialsList() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: BlocBuilder<SignoutBloc, SignoutState>(
-          builder: (context, state) {
-            final materials = state is SignoutEditingState
-                ? state.currentMaterials
-                : _initialMaterials;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.inventory, size: 24, color: Colors.blue[600]),
-                    const SizedBox(width: 8),
-                    const Text(
-                      '材料清单',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
+    return UnifiedCard(
+      title: '材料清单',
+      icon: Icons.inventory,
+      businessType: 'signout',
+      child: BlocBuilder<SignoutBloc, SignoutState>(
+        builder: (context, state) {
+          final materials = state is SignoutEditingState
+              ? state.currentMaterials
+              : _initialMaterials;
+          return Column(
+            children: [
+              ...materials.asMap().entries.map(
+                (entry) => Padding(
+                  padding: EdgeInsets.only(
+                    bottom: entry.key < materials.length - 1
+                        ? AppTheme.spacingMedium
+                        : 0,
+                  ),
+                  child: _buildMaterialItem(entry.value),
                 ),
-                const SizedBox(height: 16),
-                ...materials.map(_buildMaterialItem),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _scanAppendMaterials,
-                        child: const Text('继续扫码'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _scanRemoveMaterials,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.redAccent),
+              ),
+              SizedBox(height: AppTheme.spacingMedium),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _scanAppendMaterials,
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          vertical: AppTheme.spacingMedium,
                         ),
-                        child: const Text('扫码剔除'),
+                        side: BorderSide(
+                          color: AppTheme.getBusinessColor('signout'),
+                        ),
+                        foregroundColor: AppTheme.getBusinessColor('signout'),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusMedium,
+                          ),
+                        ),
                       ),
+                      child: const Text('继续扫码'),
                     ),
-                  ],
-                ),
-              ],
-            );
-          },
-        ),
+                  ),
+                  SizedBox(width: AppTheme.spacingMedium),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _scanRemoveMaterials,
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          vertical: AppTheme.spacingMedium,
+                        ),
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.redAccent),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusMedium,
+                          ),
+                        ),
+                      ),
+                      child: const Text('扫码剔除'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
   Widget _buildMaterialItem(MaterialInfo material) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.blue[200]!),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.blue[100],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.water_drop, size: 20, color: Colors.blue[700]),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  material.baseInfo.prodNm ?? '',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '材料ID: ${material.baseInfo.materialId}',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.blue[600],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              '1个',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return MaterialListItem(
+      materialName: material.baseInfo.prodNm ?? '',
+      materialId: material.baseInfo.materialId.toString(),
+      quantity: 1,
+      businessType: 'signout',
     );
   }
 
-  Widget _buildPhotoSection() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.camera_alt, size: 24, color: Colors.green[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '照片',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            BlocBuilder<FileUploadCubit, List<FileUploadState>>(
-              bloc: _imageUploadCubit,
-              builder: (context, states) {
-                return ImageUploadWidget(
-                  title: '',
-                  states: states,
-                  onAdd: (files) {
-                    _imageUploadCubit.addFiles(files);
-                  },
-                  onRemove: (uniqueId) {
-                    _imageUploadCubit.removeFile(uniqueId);
-                  },
-                  onRetry: (uniqueId) {
-                    _imageUploadCubit.retryUpload(uniqueId);
-                  },
-                  maxImages: 6,
-                );
-              },
-            ),
-          ],
-        ),
+  Widget _buildPhotosSection() {
+    return UnifiedCard(
+      title: '现场照片',
+      icon: Icons.photo_camera,
+      businessType: 'signout',
+      child: BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+        bloc: _imageUploadCubit,
+        builder: (context, states) {
+          return ImageUploadWidget(
+            states: states,
+            onAdd: (files) => _imageUploadCubit.addFiles(files),
+            onRemove: (uniqueId) => _imageUploadCubit.removeFile(uniqueId),
+            onRetry: (uniqueId) => _imageUploadCubit.retryUpload(uniqueId),
+            maxImages: 9,
+          );
+        },
       ),
     );
   }
 
   Widget _buildWarehouseSection(SignoutReady state) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.warehouse, size: 24, color: Colors.orange[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '仓库信息',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildWarehouseInfo(state),
-            const SizedBox(height: 20),
-            if (state.isWarehouseUsersLoading)
-              _buildWarehouseUsersSkeleton()
-            else if (state.warehouseUsers != null)
-              _buildWarehouseUsers(state.warehouseUsers!.warehouseUsers),
-            const SizedBox(height: 20),
-            _buildInstallationUser(context),
-          ],
-        ),
+    return UnifiedCard(
+      title: '仓库信息',
+      icon: Icons.warehouse,
+      businessType: 'signout',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildWarehouseInfo(state),
+          SizedBox(height: AppTheme.spacingLarge),
+          if (state.isWarehouseUsersLoading)
+            _buildWarehouseUsersSkeleton()
+          else if (state.warehouseUsers != null)
+            _buildWarehouseUsers(state.warehouseUsers!.warehouseUsers),
+          SizedBox(height: AppTheme.spacingLarge),
+          _buildInstallationUser(context),
+        ],
       ),
     );
   }
@@ -414,18 +341,28 @@ class _SignoutPageState extends State<SignoutPage> {
   Widget _buildWarehouseInfo(SignoutReady state) {
     if (state.isWarehouseInfoLoading) {
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppTheme.spacingMedium),
         decoration: BoxDecoration(
-          color: Colors.orange[50],
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.orange[200]!),
+          color: AppTheme.getBusinessColor('signout').withOpacity(0.1),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+          border: Border.all(
+            color: AppTheme.getBusinessColor('signout').withOpacity(0.3),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _skeletonBox(width: 80, height: 16, color: Colors.orange[100]!),
-            const SizedBox(height: 10),
-            _skeletonBox(width: 220, height: 16, color: Colors.orange[100]!),
+            _skeletonBox(
+              width: 80,
+              height: 16,
+              color: AppTheme.getBusinessColor('signout').withOpacity(0.2),
+            ),
+            SizedBox(height: AppTheme.spacingSmall),
+            _skeletonBox(
+              width: 220,
+              height: 16,
+              color: AppTheme.getBusinessColor('signout').withOpacity(0.2),
+            ),
           ],
         ),
       );
@@ -433,21 +370,21 @@ class _SignoutPageState extends State<SignoutPage> {
 
     if (state.warehouseInfo == null) {
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppTheme.spacingMedium),
         decoration: BoxDecoration(
           color: Colors.blue[50],
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           border: Border.all(color: Colors.blue[200]!),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(Icons.info_outline, color: Colors.blue[600], size: 20),
-            const SizedBox(width: 8),
-            const Expanded(
+            SizedBox(width: AppTheme.spacingSmall),
+            Expanded(
               child: Text(
                 '尚未获取到仓库信息，将在成功解析首个耗材后自动获取。',
-                style: TextStyle(fontSize: 14, color: Colors.black87),
+                style: const TextStyle(fontSize: 14, color: Colors.black87),
               ),
             ),
           ],
@@ -455,35 +392,11 @@ class _SignoutPageState extends State<SignoutPage> {
       );
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.orange[50],
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.orange[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '发出仓库：',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            state.warehouseInfo?.name ?? '',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-        ],
-      ),
+    return InfoRow(
+      label: '发出仓库',
+      value: state.warehouseInfo?.name ?? '',
+      backgroundColor: AppTheme.getBusinessColor('signout').withOpacity(0.1),
+      borderRadius: AppTheme.radiusMedium,
     );
   }
 
@@ -680,12 +593,12 @@ class _SignoutPageState extends State<SignoutPage> {
 
   Widget _buildActionButtons() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(AppTheme.spacingLarge),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -703,11 +616,15 @@ class _SignoutPageState extends State<SignoutPage> {
                   child: ElevatedButton(
                     onPressed: isSubmitting ? null : _handleSubmit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: AppTheme.getBusinessColor('signout'),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        vertical: AppTheme.spacingLarge,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusMedium,
+                        ),
                       ),
                       elevation: 2,
                     ),
@@ -726,7 +643,7 @@ class _SignoutPageState extends State<SignoutPage> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: AppTheme.spacingSmall),
                               const Text(
                                 '提交中…',
                                 style: TextStyle(
@@ -745,16 +662,20 @@ class _SignoutPageState extends State<SignoutPage> {
                           ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: AppTheme.spacingMedium),
                 Expanded(
                   child: OutlinedButton(
                     onPressed: _handleReturn,
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.grey[600],
                       side: BorderSide(color: Colors.grey[400]!),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        vertical: AppTheme.spacingLarge,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusMedium,
+                        ),
                       ),
                     ),
                     child: const Text(

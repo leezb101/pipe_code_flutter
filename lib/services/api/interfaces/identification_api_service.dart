@@ -6,7 +6,6 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
-import 'package:flutter/material.dart';
 import 'package:pipe_code_flutter/models/material/material_lifecycle_node.dart';
 
 import '../../../models/material/scan_identification_response.dart';

@@ -7,6 +7,13 @@ class RecordListItem extends StatelessWidget {
 
   const RecordListItem({super.key, required this.record, this.onTap});
 
+  String _formatDoTime(DateTime? dt) {
+    if (dt == null) return '-';
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}';
+    // Example: 2025-08-31 09:05 (trim seconds/millis to avoid overflow)
+  }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -117,7 +124,7 @@ class RecordListItem extends StatelessWidget {
         Icon(Icons.access_time, size: 16, color: Colors.grey[500]),
         const SizedBox(width: 4),
         Text(
-          '发起时间：${record.doTime}',
+          '发起时间：${_formatDoTime(record.doTime)}',
           style: TextStyle(fontSize: 13, color: Colors.grey[600]),
         ),
         const Spacer(),

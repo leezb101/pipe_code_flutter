@@ -21,6 +21,41 @@ abstract class EnumModel<T> {
   }
 }
 
+/// 授权期限枚举（与 /enum/interval 接口适配）
+class Interval extends EnumModel<int> {
+  const Interval(super.value, super.name);
+
+  /// 扩展：所有已知时间区间枚举
+  static List<Interval> values = [];
+
+  /// 可从接口返回的列表初始化所有枚举
+  static void initFromList(List<dynamic> data) {
+    values = data
+        .map((e) => Interval(e['code'] as int, e['msg'] as String))
+        .toList();
+  }
+
+  /// 根据 int 获取枚举
+  static Interval? fromInt(int value) => EnumModel.fromValue(values, value);
+
+  /// 用于反序列化 int 或 Map
+  factory Interval.fromJson(dynamic json) {
+    if (json is int) {
+      return fromInt(json) ?? Interval(json, '未知类型'); // 容错：未定义类型
+    } else if (json is Map) {
+      return Interval(json['code'] as int, json['msg'] as String? ?? '');
+    } else {
+      throw ArgumentError('不支持的 Interval 格式: \$json');
+    }
+  }
+
+  /// 输出 int，toJson 用于接口传参
+  int toJson() => value;
+
+  @override
+  String toString() => '\$name(\$value)';
+}
+
 /// 材料类型枚举（与 /enum/material/type 接口适配）
 class MaterialType extends EnumModel<int> {
   final String? en;

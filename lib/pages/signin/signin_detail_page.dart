@@ -12,6 +12,7 @@ import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/file_upload/image_preview_widget.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class SigninDetailPage extends StatefulWidget {
   final int signinId;
@@ -42,9 +43,16 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('入库详情'),
+        backgroundColor: AppTheme.getBusinessColor('signin'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: _refreshSigninDetail,
           ),
         ],
@@ -77,18 +85,18 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
         return RefreshIndicator(
           onRefresh: () async => _refreshSigninDetail(),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppTheme.spacingLarge),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildProjectInfo(state.signinInfo!),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppTheme.spacingLarge),
                 _buildWarehouseInfo(state.signinInfo!),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppTheme.spacingLarge),
                 _buildSigninOperatorInfo(state.signinInfo!),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppTheme.spacingLarge),
                 _buildMaterialsList(state.signinInfo!),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppTheme.spacingLarge),
                 _buildSigninPhotos(state.signinInfo!),
               ],
             ),
@@ -104,56 +112,36 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
       return const SizedBox.shrink();
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.work, color: Colors.blue.shade600, size: 20),
-                const SizedBox(width: 8),
-                const Text(
-                  '项目信息',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (signinInfo.projectName != null)
-              _buildInfoRow('项目名称', signinInfo.projectName!),
-            if (signinInfo.projectId != null)
-              _buildInfoRow('项目ID', signinInfo.projectId.toString()),
-          ],
-        ),
+    return UnifiedCard(
+      title: '项目信息',
+      icon: Icons.work,
+      businessType: 'signin',
+      child: Column(
+        children: [
+          if (signinInfo.projectName != null)
+            InfoRow(label: '项目名称', value: signinInfo.projectName!),
+          if (signinInfo.projectName != null && signinInfo.projectId != null)
+            SizedBox(height: AppTheme.spacingSmall),
+          if (signinInfo.projectId != null)
+            InfoRow(label: '项目ID', value: signinInfo.projectId.toString()),
+        ],
       ),
     );
   }
 
   Widget _buildWarehouseInfo(SignInInfoVO signinInfo) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.warehouse, color: Colors.green.shade600, size: 20),
-                const SizedBox(width: 8),
-                const Text(
-                  '仓库信息',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (signinInfo.warehouseName != null)
-              _buildInfoRow('仓库名称', signinInfo.warehouseName!),
-            _buildInfoRow('仓库ID', signinInfo.warehouseId.toString()),
-          ],
-        ),
+    return UnifiedCard(
+      title: '仓库信息',
+      icon: Icons.warehouse,
+      businessType: 'signin',
+      child: Column(
+        children: [
+          if (signinInfo.warehouseName != null)
+            InfoRow(label: '仓库名称', value: signinInfo.warehouseName!),
+          if (signinInfo.warehouseName != null)
+            SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(label: '仓库ID', value: signinInfo.warehouseId.toString()),
+        ],
       ),
     );
   }
@@ -164,110 +152,69 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
       return const SizedBox.shrink();
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.person, color: Colors.orange.shade600, size: 20),
-                const SizedBox(width: 8),
-                const Text(
-                  '操作人信息',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow('入库操作人', signinInfo.signInUserName!),
-          ],
-        ),
-      ),
+    return UnifiedCard(
+      title: '操作人信息',
+      icon: Icons.person,
+      businessType: 'signin',
+      child: InfoRow(label: '入库操作人', value: signinInfo.signInUserName!),
     );
   }
 
   Widget _buildMaterialsList(SignInInfoVO signinInfo) {
     if (signinInfo.materialList.isEmpty) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '物料清单',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: const Center(
-                  child: Text(
-                    '暂无物料数据',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                ),
-              ),
-            ],
+      return UnifiedCard(
+        title: '物料清单',
+        icon: Icons.inventory,
+        businessType: 'signin',
+        child: Container(
+          padding: const EdgeInsets.all(AppTheme.spacingLarge),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: const Center(
+            child: Text(
+              '暂无物料数据',
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
           ),
         ),
       );
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Text(
-                  '物料清单',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return UnifiedCard(
+      title: '物料清单 (共${signinInfo.materialList.length}项)',
+      icon: Icons.inventory,
+      businessType: 'signin',
+      child: Column(
+        children: signinInfo.materialList
+            .asMap()
+            .entries
+            .map(
+              (entry) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: entry.key < signinInfo.materialList.length - 1
+                      ? AppTheme.spacingMedium
+                      : 0,
                 ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade100,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '共${signinInfo.materialList.length}项',
-                    style: const TextStyle(color: Colors.blue, fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ...signinInfo.materialList.asMap().entries.map(
-              (entry) => _buildMaterialItem(entry.value, entry.key + 1),
-            ),
-          ],
-        ),
+                child: _buildMaterialItem(entry.value, entry.key + 1),
+              ),
+            )
+            .toList(),
       ),
     );
   }
 
   Widget _buildMaterialItem(MaterialVO material, int index) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppTheme.spacingMedium),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
+        color: AppTheme.getBusinessColor('signin').withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        border: Border.all(
+          color: AppTheme.getBusinessColor('signin').withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,8 +225,8 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade600,
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppTheme.getBusinessColor('signin'),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                 ),
                 child: Center(
                   child: Text(
@@ -292,7 +239,7 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: AppTheme.spacingMedium),
               Expanded(
                 child: Text(
                   material.materialName,
@@ -300,10 +247,13 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingSmall,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.green.shade100,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                 ),
                 child: Text(
                   '${material.num}个',
@@ -313,11 +263,11 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
             ],
           ),
           if (material.installPileNo != null) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: AppTheme.spacingSmall),
             Row(
               children: [
                 Icon(Icons.location_on, size: 16, color: Colors.grey.shade600),
-                const SizedBox(width: 4),
+                SizedBox(width: AppTheme.spacingSmall),
                 Text(
                   '安装桩号: ${material.installPileNo}',
                   style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
@@ -328,12 +278,12 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
           // 物料相关的图片预览（如果有的话）
           if (material.installImageUrl1 != null ||
               material.installImageUrl2 != null) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: AppTheme.spacingSmall),
             const Text(
               '安装图片:',
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: AppTheme.spacingSmall),
             Row(
               children: [
                 if (material.installImageUrl1 != null)
@@ -343,7 +293,7 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
                       material.installImageUrl2!,
                   ]),
                 if (material.installImageUrl2 != null) ...[
-                  const SizedBox(width: 8),
+                  SizedBox(width: AppTheme.spacingSmall),
                   _buildImagePreview(
                     material.installImageUrl2!,
                     material.installImageUrl1 != null ? 1 : 0,
@@ -367,50 +317,19 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
       return const SizedBox.shrink();
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Text(
-                  '入库照片',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade100,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '共${signinInfo.imageList.length}张',
-                    style: const TextStyle(color: Colors.orange, fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: signinInfo.imageList.asMap().entries.map((entry) {
-                final index = entry.key;
-                final attachment = entry.value;
-                final imageUrls = signinInfo.imageList
-                    .map((e) => e.url)
-                    .toList();
-                return _buildImagePreview(attachment.url, index, imageUrls);
-              }).toList(),
-            ),
-          ],
-        ),
+    return UnifiedCard(
+      title: '入库照片 (共${signinInfo.imageList.length}张)',
+      icon: Icons.photo_library,
+      businessType: 'signin',
+      child: Wrap(
+        spacing: AppTheme.spacingSmall,
+        runSpacing: AppTheme.spacingSmall,
+        children: signinInfo.imageList.asMap().entries.map((entry) {
+          final index = entry.key;
+          final attachment = entry.value;
+          final imageUrls = signinInfo.imageList.map((e) => e.url).toList();
+          return _buildImagePreview(attachment.url, index, imageUrls);
+        }).toList(),
       ),
     );
   }
@@ -435,11 +354,11 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
         width: 80,
         height: 80,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           border: Border.all(color: Colors.grey.shade300),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           child: Image.network(
             imageUrl,
             fit: BoxFit.cover,
@@ -468,31 +387,6 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
             },
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          ),
-        ],
       ),
     );
   }

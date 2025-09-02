@@ -8,6 +8,8 @@ import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_state.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/widgets/file_upload/image_preview_widget.dart';
 
 class AcceptanceDetailPage extends StatefulWidget {
   final int acceptanceId;
@@ -40,6 +42,7 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.grey50,
       appBar: AppBar(
         title: const Text('验收详情'),
         actions: [
@@ -71,18 +74,18 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
           return RefreshIndicator(
             onRefresh: () async => _refreshAcceptanceDetail(),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(AppTheme.spacingLarge),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildWarehouseInfo(state.acceptanceInfo),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppTheme.spacingLarge),
                   _buildMaterialsList(state.acceptanceInfo),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppTheme.spacingLarge),
                   _buildAcceptancePhotos(state.acceptanceInfo),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppTheme.spacingLarge),
                   _buildAttachmentsList(state.acceptanceInfo),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppTheme.spacingLarge),
                   _buildSignInInfo(state.acceptanceInfo),
                 ],
               ),
@@ -96,105 +99,98 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
   }
 
   Widget _buildWarehouseInfo(AcceptanceInfoVO acceptanceInfo) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '仓库信息',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow('仓库类型', acceptanceInfo.warehouseTypeDescription),
-            _buildInfoRow('仓库ID', acceptanceInfo.warehouseId.toString()),
-            _buildUserListSection('仓库负责人', acceptanceInfo.warehouseUsers),
-            _buildUserListSection('监理方负责人', acceptanceInfo.supervisorUsers),
-            _buildUserListSection('建设方负责人', acceptanceInfo.constructionUsers),
-          ],
-        ),
+    return UnifiedCard(
+      title: '仓库信息',
+      icon: Icons.warehouse,
+      businessType: 'acceptance',
+      child: Column(
+        children: [
+          InfoRow(
+            label: '仓库类型',
+            value: acceptanceInfo.warehouseTypeDescription,
+          ),
+          const SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(label: '仓库ID', value: acceptanceInfo.warehouseId.toString()),
+          const SizedBox(height: AppTheme.spacingMedium),
+          _buildUserListSection('仓库负责人', acceptanceInfo.warehouseUsers),
+          _buildUserListSection('监理方负责人', acceptanceInfo.supervisorUsers),
+          _buildUserListSection('建设方负责人', acceptanceInfo.constructionUsers),
+        ],
       ),
     );
   }
 
   Widget _buildMaterialsList(AcceptanceInfoVO acceptanceInfo) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '物料清单',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ...acceptanceInfo.materialList.map(
-              (material) => _buildMaterialItem(material),
-            ),
-          ],
-        ),
+    return UnifiedCard(
+      title: '物料清单 (${acceptanceInfo.materialList.length})',
+      icon: Icons.inventory,
+      businessType: 'acceptance',
+      child: Column(
+        children: acceptanceInfo.materialList.isEmpty
+            ? [
+                Container(
+                  padding: const EdgeInsets.all(AppTheme.spacingXXLarge),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 48,
+                        color: AppTheme.grey400,
+                      ),
+                      const SizedBox(height: AppTheme.spacingMedium),
+                      Text(
+                        '暂无物料信息',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.grey600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ]
+            : acceptanceInfo.materialList
+                  .asMap()
+                  .entries
+                  .map(
+                    (entry) => Padding(
+                      padding: EdgeInsets.only(
+                        bottom:
+                            entry.key < acceptanceInfo.materialList.length - 1
+                            ? AppTheme.spacingMedium
+                            : 0,
+                      ),
+                      child: _buildMaterialItem(entry.value),
+                    ),
+                  )
+                  .toList(),
       ),
     );
   }
 
   Widget _buildMaterialItem(MaterialVO material) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  material.materialName,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
+    return MaterialListItem(
+      materialName: material.materialName,
+      materialId: material.materialId.toString(),
+      quantity: material.num,
+      businessType: 'acceptance',
+      trailing: material.installPileNo != null
+          ? Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingSmall,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: AppTheme.acceptanceColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+              ),
+              child: Text(
+                '桩号: ${material.installPileNo}',
+                style: AppTheme.labelSmall.copyWith(
+                  color: AppTheme.acceptanceColor,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${material.num}个',
-                  style: const TextStyle(color: Colors.blue, fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-          if (material.installPileNo != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              '安装桩号: ${material.installPileNo}',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-            ),
-          ],
-          if (material.installImageUrl1 != null ||
-              material.installImageUrl2 != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                if (material.installImageUrl1 != null)
-                  _buildImagePreview(material.installImageUrl1!),
-                if (material.installImageUrl2 != null) ...[
-                  const SizedBox(width: 8),
-                  _buildImagePreview(material.installImageUrl2!),
-                ],
-              ],
-            ),
-          ],
-        ],
-      ),
+            )
+          : null,
     );
   }
 
@@ -225,20 +221,25 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
       return const SizedBox.shrink();
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '附件列表',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ...items,
-          ],
-        ),
+    return UnifiedCard(
+      title: '附件列表',
+      icon: Icons.attach_file,
+      businessType: 'acceptance',
+      child: Column(
+        children: items
+            .asMap()
+            .entries
+            .map(
+              (entry) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: entry.key < items.length - 1
+                      ? AppTheme.spacingMedium
+                      : 0,
+                ),
+                child: entry.value,
+              ),
+            )
+            .toList(),
       ),
     );
   }
@@ -248,29 +249,16 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
       return const SizedBox.shrink();
     }
 
-    return SizedBox(
-      width: double.infinity,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '验收照片',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: acceptanceInfo.imageList
-                    .map((attachment) => _buildImagePreview(attachment.url))
-                    .toList(),
-              ),
-            ],
-          ),
-        ),
+    return UnifiedCard(
+      title: '验收照片 (${acceptanceInfo.imageList.length})',
+      icon: Icons.photo_library,
+      businessType: 'acceptance',
+      child: Wrap(
+        spacing: AppTheme.spacingSmall,
+        runSpacing: AppTheme.spacingSmall,
+        children: acceptanceInfo.imageList
+            .map((attachment) => _buildImagePreview(attachment.url))
+            .toList(),
       ),
     );
   }
@@ -281,36 +269,38 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
   }) {
     final fileName = _extractFileName(fileUrl);
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppTheme.spacingMedium),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
+        color: AppTheme.acceptanceColor.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+        border: Border.all(
+          color: AppTheme.acceptanceColor.withValues(alpha: 0.2),
+        ),
       ),
       child: Row(
         children: [
-          const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
-          const SizedBox(width: 12),
+          Icon(Icons.picture_as_pdf, color: AppTheme.acceptanceColor, size: 24),
+          const SizedBox(width: AppTheme.spacingMedium),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   fileName,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
+                  style: AppTheme.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  title,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                ),
+                const SizedBox(height: AppTheme.spacingXSmall),
+                Text(title, style: AppTheme.labelMedium),
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.visibility),
+            icon: Icon(Icons.visibility, color: AppTheme.acceptanceColor),
             onPressed: () => _openPdf(fileUrl),
+            tooltip: '预览',
           ),
         ],
       ),
@@ -344,115 +334,121 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
 
     final signInInfo = acceptanceInfo.signInInfo!;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '入库信息',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow('入库仓库ID', signInInfo.warehouseId.toString()),
-            const SizedBox(height: 12),
-            const Text(
-              '入库物料',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 8),
-            ...signInInfo.materialList.map(
-              (material) => _buildSimpleMaterialItem(material),
-            ),
-            if (signInInfo.imageList.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              const Text(
-                '入库照片',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+    return UnifiedCard(
+      title: '入库信息',
+      icon: Icons.input,
+      businessType: 'signin',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InfoRow(label: '入库仓库ID', value: signInInfo.warehouseId.toString()),
+          const SizedBox(height: AppTheme.spacingLarge),
+          Text('入库物料', style: AppTheme.titleSmall),
+          const SizedBox(height: AppTheme.spacingSmall),
+          ...signInInfo.materialList.asMap().entries.map(
+            (entry) => Padding(
+              padding: EdgeInsets.only(
+                bottom: entry.key < signInInfo.materialList.length - 1
+                    ? AppTheme.spacingSmall
+                    : 0,
               ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: signInInfo.imageList
-                    .map((attachment) => _buildImagePreview(attachment.url))
-                    .toList(),
-              ),
-            ],
+              child: _buildSimpleMaterialItem(entry.value),
+            ),
+          ),
+          if (signInInfo.imageList.isNotEmpty) ...[
+            const SizedBox(height: AppTheme.spacingLarge),
+            Text('入库照片', style: AppTheme.titleSmall),
+            const SizedBox(height: AppTheme.spacingSmall),
+            Wrap(
+              spacing: AppTheme.spacingSmall,
+              runSpacing: AppTheme.spacingSmall,
+              children: signInInfo.imageList
+                  .map((attachment) => _buildImagePreview(attachment.url))
+                  .toList(),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
 
   Widget _buildSimpleMaterialItem(MaterialVO material) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingMedium,
+        vertical: AppTheme.spacingSmall,
+      ),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(6),
+        color: AppTheme.acceptanceColor.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+        border: Border.all(
+          color: AppTheme.acceptanceColor.withValues(alpha: 0.2),
+        ),
       ),
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              material.materialName,
-              style: const TextStyle(fontSize: 14),
-            ),
+            child: Text(material.materialName, style: AppTheme.bodyMedium),
           ),
-          Text(
-            '${material.num}个',
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.spacingSmall,
+              vertical: 2,
+            ),
+            decoration: BoxDecoration(
+              color: AppTheme.acceptanceColor,
+              borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+            ),
+            child: Text(
+              '${material.num}个',
+              style: AppTheme.labelSmall.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildImagePreview(String imageUrl) {
-    return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.network(
-          imageUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Container(
-            color: Colors.grey.shade100,
-            child: const Icon(
-              Icons.image_not_supported,
-              color: Colors.grey,
-              size: 24,
+  Widget _buildImagePreview(String imagePath) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) =>
+                ImagePreviewWidget(imageUrls: [imagePath], initialIndex: 0),
+          ),
+        );
+      },
+      child: Container(
+        width: 80,
+        height: 80,
+        margin: const EdgeInsets.only(right: AppTheme.spacingSmall),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+          border: Border.all(
+            color: AppTheme.acceptanceColor.withValues(alpha: 0.3),
+          ),
+          image: DecorationImage(
+            image: NetworkImage(imagePath),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.transparent,
+                AppTheme.acceptanceColor.withValues(alpha: 0.1),
+              ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
-        ],
       ),
     );
   }

@@ -58,7 +58,7 @@ class _RecoveryViewState extends State<RecoveryView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('材料回收'),
+        title: const Text('异常码恢复'),
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
         elevation: 2,
@@ -189,6 +189,13 @@ class _RecoveryViewState extends State<RecoveryView> {
               _buildScanButton(context),
               const SizedBox(height: 24),
               _buildActionButtons(context, state),
+            ] else if (state is RecoveryValidationError) ...[
+              // 验证失败时依然展示表单（使用内部的表单状态），避免看起来“被清空”
+              _buildDynamicFormCard(context, state.formState),
+              const SizedBox(height: 16),
+              _buildScanButton(context),
+              const SizedBox(height: 24),
+              _buildActionButtons(context, state),
             ] else if (state is RecoverySubmitting ||
                 state is RecoveryStep3Success ||
                 state is RecoveryStep4InProgress) ...[
@@ -227,13 +234,16 @@ class _RecoveryViewState extends State<RecoveryView> {
             // 材料大类选择
             if (state is RecoveryCategoriesLoaded ||
                 state is RecoveryTypesLoaded ||
-                state is RecoveryFormReady) ...[
+                state is RecoveryFormReady ||
+                state is RecoveryValidationError) ...[
               _buildCategoryDropdown(context, state),
               const SizedBox(height: 16),
             ],
 
             // 材料类型选择
-            if (state is RecoveryTypesLoaded || state is RecoveryFormReady) ...[
+            if (state is RecoveryTypesLoaded ||
+                state is RecoveryFormReady ||
+                state is RecoveryValidationError) ...[
               _buildTypeDropdown(context, state),
             ],
           ],
@@ -259,6 +269,9 @@ class _RecoveryViewState extends State<RecoveryView> {
     } else if (state is RecoveryFormReady) {
       vendorOptions = state.vendorOptions;
       selectedVendor = state.selectedVendor;
+    } else if (state is RecoveryValidationError) {
+      vendorOptions = state.formState.vendorOptions;
+      selectedVendor = state.formState.selectedVendor;
     }
 
     return DropdownButtonFormField<VendorOption>(
@@ -295,6 +308,9 @@ class _RecoveryViewState extends State<RecoveryView> {
     } else if (state is RecoveryFormReady) {
       categoryOptions = state.categoryOptions;
       selectedCategory = state.selectedCategory;
+    } else if (state is RecoveryValidationError) {
+      categoryOptions = state.formState.categoryOptions;
+      selectedCategory = state.formState.selectedCategory;
     }
 
     return DropdownButtonFormField<MaterialCategoryOption>(
@@ -328,6 +344,9 @@ class _RecoveryViewState extends State<RecoveryView> {
     } else if (state is RecoveryFormReady) {
       typeOptions = state.typeOptions;
       selectedType = state.selectedType;
+    } else if (state is RecoveryValidationError) {
+      typeOptions = state.formState.typeOptions;
+      selectedType = state.formState.selectedType;
     }
 
     return DropdownButtonFormField<MaterialTypeOption>(
@@ -388,7 +407,9 @@ class _RecoveryViewState extends State<RecoveryView> {
     RetrieveBack field,
   ) {
     final controller =
-        _controllers[field.key] ?? TextEditingController(text: field.value);
+        _controllers[field.key] ??
+        // 使用状态中的 formData 作为初始值，避免因重建而丢失已输入内容
+        TextEditingController(text: state.formData[field.key] ?? field.value);
     if (!_controllers.containsKey(field.key)) {
       _controllers[field.key] = controller;
     }
@@ -431,7 +452,7 @@ class _RecoveryViewState extends State<RecoveryView> {
       child: OutlinedButton.icon(
         onPressed: () => _handleScanQRCode(context),
         icon: const Icon(Icons.qr_code_scanner, size: 28),
-        label: const Text('扫描备用码', style: TextStyle(fontSize: 18)),
+        label: const Text('扫描新二维码', style: TextStyle(fontSize: 18)),
         style: OutlinedButton.styleFrom(
           side: BorderSide(color: Theme.of(context).primaryColor, width: 2),
         ),
@@ -517,6 +538,15 @@ class _RecoveryViewState extends State<RecoveryView> {
         // 确定按钮
         Expanded(
           child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1976D2),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+              padding: EdgeInsets.all(0),
+              elevation: 3,
+            ),
             onPressed: isDisabled
                 ? null
                 : () {

@@ -23,6 +23,7 @@ import '../../utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class AcceptanceAfterSigninPage extends StatelessWidget {
   final int acceptanceId;
@@ -75,6 +76,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: _buildAppBarTitle()),
+      backgroundColor: AppTheme.grey50,
       body: BlocConsumer<AcceptanceBloc, AcceptanceState>(
         // 当状态是AcceptanceSignedIn时，不用重建UI，因为listener会处理pop，避免未知状态闪烁
         buildWhen: (previous, current) => current is! AcceptanceSignedIn,
@@ -174,7 +176,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     Set<MaterialVO> matchedMaterials,
   ) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(AppTheme.spacingLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -183,9 +185,9 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
             acceptanceInfo.materialList,
             matchedMaterials,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spacingLarge),
           _buildScanButtons(context),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spacingLarge),
           BlocBuilder<FileUploadCubit, List<FileUploadState>>(
             bloc: _fileUploadCubit,
             builder: (context, states) {
@@ -205,7 +207,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
               );
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spacingLarge),
           _buildWarehouseInfo(acceptanceInfo),
           const SizedBox(height: 16),
           _buildUserInfo(acceptanceInfo),
@@ -238,22 +240,26 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     List<MaterialVO> materials,
     Set<MaterialVO> matchedMaterials,
   ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '物料清单',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ...materials.map(
-              (material) => _buildMaterialItem(material, matchedMaterials),
-            ),
-          ],
-        ),
+    return UnifiedCard(
+      title: '物料清单',
+      icon: Icons.inventory,
+      businessType: 'acceptance',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: materials
+            .asMap()
+            .entries
+            .map(
+              (entry) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: entry.key < materials.length - 1
+                      ? AppTheme.spacingMedium
+                      : 0,
+                ),
+                child: _buildMaterialItem(entry.value, matchedMaterials),
+              ),
+            )
+            .toList(),
       ),
     );
   }
@@ -264,48 +270,16 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
   ) {
     final isScanned = matchedMaterials.contains(material);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  material.materialName,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade100,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${material.num}个',
-                    style: const TextStyle(color: Colors.blue, fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            isScanned ? Icons.check_circle : Icons.radio_button_unchecked,
-            color: isScanned ? Colors.green : Colors.grey,
-            size: 32,
-          ),
-        ],
+    return MaterialListItem(
+      materialName: material.materialName,
+      quantity: material.num,
+      businessType: 'acceptance',
+      trailing: Icon(
+        isScanned ? Icons.check_circle : Icons.radio_button_unchecked,
+        color: isScanned
+            ? AppTheme.getBusinessColor('acceptance')
+            : Colors.grey,
+        size: 32,
       ),
     );
   }
@@ -314,32 +288,34 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     return Row(
       children: [
         Expanded(
-          child: ElevatedButton(
+          child: ElevatedButton.icon(
             onPressed: () => _navigateToQrScanAppend(context),
+            icon: Icon(Icons.qr_code_scanner),
+            label: Text('扫码入库'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: AppTheme.getBusinessColor('acceptance'),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               ),
-            ),
-            child: const Text(
-              '扫码入库',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: AppTheme.spacingMedium),
         Expanded(
-          child: OutlinedButton(
+          child: OutlinedButton.icon(
             onPressed: () => _navigateToQrScanRemove(context),
+            icon: Icon(Icons.remove_circle_outline),
+            label: Text('扫码剔除'),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
               side: BorderSide(color: Colors.red.shade300),
               foregroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+              ),
             ),
-            child: const Text('扫码剔除'),
           ),
         ),
       ],
@@ -347,87 +323,82 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
   }
 
   Widget _buildWarehouseInfo(AcceptanceInfoVO acceptanceInfo) {
-    // 左右顶格宽的card组件
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: 600),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '仓库',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              _buildInfoRow('', acceptanceInfo.warehouseTypeDescription),
-            ],
-          ),
-        ),
+    return UnifiedCard(
+      title: '仓库',
+      icon: Icons.warehouse,
+      businessType: 'acceptance',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InfoRow(label: '', value: acceptanceInfo.warehouseTypeDescription),
+        ],
       ),
     );
   }
 
   Widget _buildUserInfo(AcceptanceInfoVO acceptanceInfo) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return UnifiedCard(
+      title: '负责人信息',
+      icon: Icons.person,
+      businessType: 'acceptance',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (acceptanceInfo.supervisorUsers.isNotEmpty)
             _buildUserSection('监理方负责人', acceptanceInfo.supervisorUsers),
-            const SizedBox(height: 8),
+          if (acceptanceInfo.supervisorUsers.isNotEmpty &&
+              acceptanceInfo.constructionUsers.isNotEmpty)
+            SizedBox(height: AppTheme.spacingMedium),
+          if (acceptanceInfo.constructionUsers.isNotEmpty)
             _buildUserSection('建设方负责人', acceptanceInfo.constructionUsers),
-          ],
-        ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(value, style: const TextStyle(fontSize: 16)),
     );
   }
 
   Widget _buildUserSection(String title, List<CommonUserVO> users) {
     if (users.isEmpty) return const SizedBox.shrink();
 
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$title:',
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              for (var user in users)
-                Row(
-                  children: [
-                    Text(
-                      '${user.name} - ${user.phone}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: user.realHandler == true
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                    ),
-                    const Spacer(),
-                    user.realHandler == true
-                        ? Icon(Icons.check_circle_outline, color: Colors.green)
-                        : const SizedBox.shrink(),
-                  ],
-                ),
-            ],
+          title,
+          style: TextStyle(
+            color: AppTheme.getBusinessColor('acceptance'),
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
           ),
         ),
+        SizedBox(height: AppTheme.spacingSmall),
+        ...users
+            .map(
+              (user) => Padding(
+                padding: EdgeInsets.only(bottom: AppTheme.spacingSmall),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${user.name} - ${user.phone}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: user.realHandler == true
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                    if (user.realHandler == true)
+                      Icon(
+                        Icons.check_circle_outline,
+                        color: AppTheme.getBusinessColor('acceptance'),
+                        size: 16,
+                      ),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
       ],
     );
   }
@@ -443,24 +414,32 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
           child: OutlinedButton(
             onPressed: () => context.pop(),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
+              side: BorderSide(color: AppTheme.getBusinessColor('acceptance')),
+              foregroundColor: AppTheme.getBusinessColor('acceptance'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+              ),
             ),
-            child: const Text('返回'),
+            child: Text('返回'),
           ),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: AppTheme.spacingMedium),
         Expanded(
           child: ElevatedButton(
             onPressed: _canSubmit(acceptanceInfo, matchedMaterials)
                 ? () => _submitSignin(context, acceptanceInfo, matchedMaterials)
                 : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: AppTheme.getBusinessColor('acceptance'),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+              ),
             ),
             child: _isSubmitting
-                ? const SizedBox(
+                ? SizedBox(
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
@@ -468,7 +447,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
                       color: Colors.white,
                     ),
                   )
-                : const Text('确认'),
+                : Text('确认'),
           ),
         ),
       ],

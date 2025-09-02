@@ -16,6 +16,7 @@ import 'package:pipe_code_flutter/bloc/material_detail/material_detail_bloc.dart
 import 'package:pipe_code_flutter/bloc/recovery/recovery_bloc.dart';
 import 'package:pipe_code_flutter/bloc/storekeeper_non_project/storekeeper_non_project_bloc.dart';
 import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
+import 'package:pipe_code_flutter/cubits/temporary_auth.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/auth_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/cut_repository.dart';
@@ -34,6 +35,7 @@ import 'package:pipe_code_flutter/repositories/interfaces/scrap_repository.dart'
 import 'package:pipe_code_flutter/repositories/interfaces/signin_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/signout_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/temporary_auth_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/user_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/storekeeper_non_project_repository.dart';
 import 'package:pipe_code_flutter/repositories/repository_factory.dart';
@@ -173,6 +175,9 @@ Future<void> setupServiceLocator({
   getIt.registerLazySingleton<SigninRepository>(
     () => RepositoryFactory.createSigninRepository(),
   );
+  getIt.registerLazySingleton<TemporaryAuthRepository>(
+    () => RepositoryFactory.createTemporaryAuthRepository(),
+  );
   // Wait for async singletons to be ready before registering dependent Blocs
   await getIt.isReady<AuthRepository>();
   await getIt.isReady<ProjectRepository>();
@@ -180,7 +185,7 @@ Future<void> setupServiceLocator({
   Logger.debug('=========All repositories are ready');
 
   // Blocs
-  getIt.registerFactory<SessionBloc>(
+  getIt.registerLazySingleton<SessionBloc>(
     () => SessionBloc(
       authRepository: getIt<AuthRepository>(),
       projectRepository: getIt<ProjectRepository>(),
@@ -249,6 +254,12 @@ Future<void> setupServiceLocator({
     () => StorekeeperNonProjectBloc(
       repository: getIt<StorekeeperNonProjectRepository>(),
       qrScanFlowService: getIt<QrScanFlowService>(),
+    ),
+  );
+  getIt.registerFactory<TemporaryAuthCubit>(
+    () => TemporaryAuthCubit(
+      sessionBloc: getIt<SessionBloc>(),
+      repository: getIt<TemporaryAuthRepository>(),
     ),
   );
 

@@ -9,6 +9,7 @@ enum EnumStatus { initial, loading, success, failure }
 /// 枚举 Cubit 状态，直接暴露所有已拉取的枚举集合（按 EnumRepository 字段对应）
 class EnumState {
   final EnumStatus status;
+  final List<Interval>? intervals;
   final List<TodoType>? todoTypes;
   final List<MaterialGroup>? materialGroups;
   final List<MaterialType>? materialTypes;
@@ -24,6 +25,7 @@ class EnumState {
 
   const EnumState({
     this.status = EnumStatus.initial,
+    this.intervals,
     this.todoTypes,
     this.materialGroups,
     this.materialTypes,
@@ -40,6 +42,7 @@ class EnumState {
 
   EnumState copyWith({
     EnumStatus? status,
+    List<Interval>? intervals,
     List<TodoType>? todoTypes,
     List<MaterialGroup>? materialGroups,
     List<MaterialType>? materialTypes,
@@ -55,6 +58,7 @@ class EnumState {
   }) {
     return EnumState(
       status: status ?? this.status,
+      intervals: intervals ?? this.intervals,
       todoTypes: todoTypes ?? this.todoTypes,
       materialGroups: materialGroups ?? this.materialGroups,
       materialTypes: materialTypes ?? this.materialTypes,
@@ -87,6 +91,7 @@ class EnumCubit extends Cubit<EnumState> {
       emit(
         state.copyWith(
           status: EnumStatus.success,
+          intervals: _enumRepository.intervals,
           todoTypes: _enumRepository.todoTypes,
           materialGroups: _enumRepository.materialGroups,
           materialTypes: _enumRepository.materialTypes,

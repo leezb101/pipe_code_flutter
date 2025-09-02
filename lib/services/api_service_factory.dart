@@ -12,16 +12,19 @@ import 'package:pipe_code_flutter/services/api/implementations/install_api_servi
 import 'package:pipe_code_flutter/services/api/implementations/inventory_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/scrap_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/signout_api_service_impl.dart';
+import 'package:pipe_code_flutter/services/api/implementations/temporary_auth_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/inventory_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/temporary_auth_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_inventory_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_signout_api_service.dart';
+import 'package:pipe_code_flutter/services/api/mock/mock_temporary_auth_api_service.dart';
 import '../config/app_config.dart';
 import '../utils/logger.dart';
 import '../utils/network_logger.dart';
@@ -234,6 +237,15 @@ class ApiServiceFactory {
   static SigninApiService createSigninApiService() {
     final dio = _createDio();
     return SigninApiServiceImpl(dio);
+  }
+
+  static TemporaryAuthApiService createTemporaryAuthService() {
+    if (AppConfig.isMockEnabled) {
+      return MockTemporaryAuthApiService();
+    } else {
+      final dio = _createDio();
+      return TemporaryAuthApiServiceImpl(dio);
+    }
   }
 
   static Dio _createDio() {

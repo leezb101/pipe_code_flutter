@@ -6,6 +6,7 @@ import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class DispatchDetailPage extends StatefulWidget {
   final int dispatchId;
@@ -36,6 +37,7 @@ class _DispatchDetailPageState extends State<DispatchDetailPage> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
       ),
+      backgroundColor: AppTheme.grey50,
       body: _buildBody(),
     );
   }
@@ -61,22 +63,22 @@ class _DispatchDetailPageState extends State<DispatchDetailPage> {
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(AppTheme.spacingLarge),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeaderCard(state.dispatchDetail!),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppTheme.spacingLarge),
                   _buildMaterialsList(state.dispatchDetail!),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppTheme.spacingLarge),
                   _buildProjectInfo(state.dispatchDetail!),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppTheme.spacingLarge),
                   _buildWarehouseInfo(state.dispatchDetail!),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppTheme.spacingLarge),
                   _buildResponsiblePersonsSection(state.dispatchDetail!),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppTheme.spacingLarge),
                   _buildImagesSection(state.dispatchDetail!),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -94,121 +96,75 @@ class _DispatchDetailPageState extends State<DispatchDetailPage> {
   }
 
   Widget _buildHeaderCard(DispatchDetailVo dispatchDetail) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.swap_horiz,
-                    size: 24,
-                    color: Colors.blue[700],
+    return UnifiedCard(
+      title: '调拨记录',
+      icon: Icons.swap_horiz,
+      businessType: 'dispatch',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '状态：',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingMedium,
+                  vertical: AppTheme.spacingSmall,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.green[100],
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+                ),
+                child: Text(
+                  '已完成',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green[700],
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    '调拨记录',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green[100],
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    '已完成',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.green[700],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildSummaryInfo(dispatchDetail),
-          ],
-        ),
+              ),
+            ],
+          ),
+          SizedBox(height: AppTheme.spacingMedium),
+          _buildSummaryInfo(dispatchDetail),
+        ],
       ),
     );
   }
 
   Widget _buildSummaryInfo(DispatchDetailVo dispatchDetail) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(AppTheme.spacingMedium),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         children: [
-          Row(
-            children: [
-              Icon(Icons.launch, size: 16, color: Colors.grey[600]),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '${dispatchDetail.fromProjectName ?? '未知项目'} → ${dispatchDetail.toProjectName ?? '未知项目'}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
+          InfoRow(
+            icon: Icons.launch,
+            label: '项目流向',
+            value:
+                '${dispatchDetail.fromProjectName ?? '未知项目'} → ${dispatchDetail.toProjectName ?? '未知项目'}',
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.warehouse, size: 16, color: Colors.grey[600]),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '${dispatchDetail.fromWarehouseName ?? '未知仓库'} → ${dispatchDetail.toWarehouseName ?? '未知仓库'}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
+          SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(
+            icon: Icons.warehouse,
+            label: '仓库流向',
+            value:
+                '${dispatchDetail.fromWarehouseName ?? '未知仓库'} → ${dispatchDetail.toWarehouseName ?? '未知仓库'}',
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.inventory, size: 16, color: Colors.grey[600]),
-              const SizedBox(width: 8),
-              Text(
-                '共 ${dispatchDetail.materialList.length} 种物料',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+          SizedBox(height: AppTheme.spacingSmall),
+          InfoRow(
+            icon: Icons.inventory,
+            label: '物料数量',
+            value: '共 ${dispatchDetail.materialList.length} 种物料',
           ),
         ],
       ),
@@ -217,250 +173,98 @@ class _DispatchDetailPageState extends State<DispatchDetailPage> {
 
   Widget _buildMaterialsList(DispatchDetailVo dispatchDetail) {
     if (dispatchDetail.materialList.isEmpty) {
-      return Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              Icon(
-                Icons.inventory_2_outlined,
-                size: 48,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '暂无物料信息',
-                style: TextStyle(color: Colors.grey[600], fontSize: 16),
-              ),
-            ],
-          ),
+      return UnifiedCard(
+        title: '物料清单',
+        icon: Icons.inventory,
+        businessType: 'dispatch',
+        child: Column(
+          children: [
+            Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey[400]),
+            SizedBox(height: AppTheme.spacingMedium),
+            Text(
+              '暂无物料信息',
+              style: TextStyle(color: Colors.grey[600], fontSize: 16),
+            ),
+          ],
         ),
       );
     }
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.inventory, size: 24, color: Colors.blue[600]),
-                const SizedBox(width: 8),
-                Text(
-                  '物料清单 (${dispatchDetail.materialList.length})',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
+    return UnifiedCard(
+      title: '物料清单 (${dispatchDetail.materialList.length})',
+      icon: Icons.inventory,
+      businessType: 'dispatch',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: dispatchDetail.materialList
+            .asMap()
+            .entries
+            .map(
+              (entry) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: entry.key < dispatchDetail.materialList.length - 1
+                      ? AppTheme.spacingMedium
+                      : 0,
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ...dispatchDetail.materialList.map(
-              (material) => _buildMaterialItem(material),
-            ),
-          ],
-        ),
+                child: _buildMaterialItem(entry.value),
+              ),
+            )
+            .toList(),
       ),
     );
   }
 
   Widget _buildMaterialItem(MaterialVO material) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.blue[200]!),
-      ),
-      child: Row(
+    return MaterialListItem(
+      materialName: material.materialName,
+      materialId: material.materialId.toString(),
+      quantity: material.num,
+      businessType: 'dispatch',
+    );
+  }
+
+  Widget _buildProjectInfo(DispatchDetailVo dispatchDetail) {
+    return UnifiedCard(
+      title: '项目信息',
+      icon: Icons.business,
+      businessType: 'dispatch',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.blue[100],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.water_drop, size: 20, color: Colors.blue[700]),
+          InfoRow(
+            icon: Icons.launch,
+            label: '发出项目',
+            value: dispatchDetail.fromProjectName ?? '未知项目',
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  material.materialName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'ID: ${material.materialId}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.blue[600],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              '${material.num}个',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
+          SizedBox(height: AppTheme.spacingMedium),
+          InfoRow(
+            icon: Icons.download,
+            label: '接收项目',
+            value: dispatchDetail.toProjectName ?? '未知项目',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildProjectInfo(DispatchDetailVo dispatchDetail) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.business, size: 24, color: Colors.green[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '项目信息',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildInfoRow(
-              '发出项目',
-              dispatchDetail.fromProjectName ?? '未知项目',
-              icon: Icons.launch,
-              color: Colors.orange[600],
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow(
-              '接收项目',
-              dispatchDetail.toProjectName ?? '未知项目',
-              icon: Icons.download,
-              color: Colors.green[600],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildWarehouseInfo(DispatchDetailVo dispatchDetail) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.warehouse, size: 24, color: Colors.purple[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '仓库信息',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildInfoRow(
-              '发出仓库',
-              dispatchDetail.fromWarehouseName ?? '未知仓库',
-              icon: Icons.outbox,
-              color: Colors.orange[600],
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow(
-              '接收仓库',
-              dispatchDetail.toWarehouseName ?? '未知仓库',
-              icon: Icons.inbox,
-              color: Colors.green[600],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(
-    String label,
-    String value, {
-    IconData? icon,
-    Color? color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Row(
+    return UnifiedCard(
+      title: '仓库信息',
+      icon: Icons.warehouse,
+      businessType: 'dispatch',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (icon != null) ...[
-            Icon(icon, size: 20, color: color ?? Colors.grey[600]),
-            const SizedBox(width: 12),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
+          InfoRow(
+            icon: Icons.outbox,
+            label: '发出仓库',
+            value: dispatchDetail.fromWarehouseName ?? '未知仓库',
+          ),
+          SizedBox(height: AppTheme.spacingMedium),
+          InfoRow(
+            icon: Icons.inbox,
+            label: '接收仓库',
+            value: dispatchDetail.toWarehouseName ?? '未知仓库',
           ),
         ],
       ),
@@ -468,44 +272,29 @@ class _DispatchDetailPageState extends State<DispatchDetailPage> {
   }
 
   Widget _buildResponsiblePersonsSection(DispatchDetailVo dispatchDetail) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.people, size: 24, color: Colors.indigo[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '负责人信息',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+    return UnifiedCard(
+      title: '负责人信息',
+      icon: Icons.people,
+      businessType: 'dispatch',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (dispatchDetail.fromWarehouseUsers.isNotEmpty)
             _buildResponsiblePersonsList(
               '发出方负责人',
               dispatchDetail.fromWarehouseUsers,
-              Colors.orange[600]!,
+              AppTheme.getBusinessColor('dispatch'),
             ),
-            if (dispatchDetail.fromWarehouseUsers.isNotEmpty &&
-                dispatchDetail.toWarehouseUsers.isNotEmpty)
-              const SizedBox(height: 20),
+          if (dispatchDetail.fromWarehouseUsers.isNotEmpty &&
+              dispatchDetail.toWarehouseUsers.isNotEmpty)
+            SizedBox(height: AppTheme.spacingLarge),
+          if (dispatchDetail.toWarehouseUsers.isNotEmpty)
             _buildResponsiblePersonsList(
               '接收方负责人',
               dispatchDetail.toWarehouseUsers,
-              Colors.green[600]!,
+              AppTheme.getBusinessColor('dispatch'),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -519,34 +308,18 @@ class _DispatchDetailPageState extends State<DispatchDetailPage> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.person, size: 18, color: color),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: color,
-                ),
-              ),
-            ],
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
           ),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: Text(
-              '暂无负责人信息',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-              textAlign: TextAlign.center,
-            ),
+          SizedBox(height: AppTheme.spacingSmall),
+          Text(
+            '暂无负责人信息',
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       );
@@ -555,105 +328,38 @@ class _DispatchDetailPageState extends State<DispatchDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(Icons.person, size: 18, color: color),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: color,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '${users.length}人',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ...users.map((user) => _buildUserItem(user, color)),
-      ],
-    );
-  }
-
-  Widget _buildUserItem(CommonUserVO user, Color color) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: color.withValues(alpha: 0.2),
-            child: Text(
-              user.name.isNotEmpty ? user.name[0] : '用',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: color,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        SizedBox(height: AppTheme.spacingSmall),
+        ...users.map(
+          (user) => Padding(
+            padding: EdgeInsets.only(bottom: AppTheme.spacingSmall),
+            child: Row(
               children: [
-                Text(
-                  user.name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                Expanded(
+                  child: Text(
+                    '${user.name} - ${user.phone}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: user.realHandler == true
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
                   ),
                 ),
-                if (user.phone.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    user.phone,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                  ),
-                ],
+                if (user.realHandler == true)
+                  Icon(Icons.check_circle_outline, color: color, size: 16),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              '已推送',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -662,46 +368,24 @@ class _DispatchDetailPageState extends State<DispatchDetailPage> {
       return const SizedBox.shrink();
     }
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.photo_library, size: 24, color: Colors.pink[600]),
-                const SizedBox(width: 8),
-                Text(
-                  '相关照片 (${dispatchDetail.imageList.length})',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 1,
-              ),
-              itemCount: dispatchDetail.imageList.length,
-              itemBuilder: (context, index) {
-                final image = dispatchDetail.imageList[index];
-                return _buildImageThumbnail(image);
-              },
-            ),
-          ],
+    return UnifiedCard(
+      title: '相关照片 (${dispatchDetail.imageList.length})',
+      icon: Icons.photo_library,
+      businessType: 'dispatch',
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: AppTheme.spacingSmall,
+          mainAxisSpacing: AppTheme.spacingSmall,
+          childAspectRatio: 1,
         ),
+        itemCount: dispatchDetail.imageList.length,
+        itemBuilder: (context, index) {
+          final image = dispatchDetail.imageList[index];
+          return _buildImageThumbnail(image);
+        },
       ),
     );
   }

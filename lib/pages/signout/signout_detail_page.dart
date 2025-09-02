@@ -16,6 +16,8 @@ import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/constants/app_theme.dart';
 
 class SignoutDetailPage extends StatefulWidget {
   final int signoutId;
@@ -45,8 +47,9 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
       appBar: AppBar(
         title: const Text('出库详情'),
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: AppTheme.getBusinessColor('signout'),
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: _buildBody(),
     );
@@ -73,22 +76,22 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(AppTheme.spacingLarge),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeaderCard(state.signoutDetail!),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppTheme.spacingLarge),
                   _buildMaterialsList(state.signoutDetail!),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppTheme.spacingLarge),
                   _buildWarehouseInfo(state.signoutDetail!),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppTheme.spacingLarge),
                   _buildResponsiblePersonsSection(state.signoutDetail!),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppTheme.spacingLarge),
                   _buildInstallInfo(state.signoutDetail!),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppTheme.spacingLarge),
                   _buildImagesSection(state.signoutDetail!),
-                  const SizedBox(height: 24),
+                  SizedBox(height: AppTheme.spacingXLarge),
                 ],
               ),
             ),
@@ -106,63 +109,38 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
   }
 
   Widget _buildHeaderCard(SignoutInfoVo signoutDetail) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.output,
-                    size: 24,
-                    color: Colors.orange[700],
+    return UnifiedCard(
+      title: '出库记录',
+      icon: Icons.output,
+      businessType: 'signout',
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingMedium,
+                  vertical: AppTheme.spacingSmall,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.green[100],
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+                ),
+                child: Text(
+                  '已完成',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green[700],
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    '出库记录',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green[100],
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    '已完成',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.green[700],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildSummaryInfo(signoutDetail),
-          ],
-        ),
+              ),
+            ],
+          ),
+          SizedBox(height: AppTheme.spacingMedium),
+          _buildSummaryInfo(signoutDetail),
+        ],
       ),
     );
   }
@@ -252,107 +230,26 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
       );
     }
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.inventory, size: 24, color: Colors.blue[600]),
-                const SizedBox(width: 8),
-                Text(
-                  '物料清单 (${signoutDetail.materialList.length})',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ...signoutDetail.materialList.map(
-              (material) => _buildMaterialItem(material),
-            ),
-          ],
-        ),
+    return UnifiedCard(
+      title: '物料清单 (${signoutDetail.materialList.length})',
+      icon: Icons.inventory,
+      businessType: 'signout',
+      child: Column(
+        children: signoutDetail.materialList
+            .map((material) => _buildMaterialItem(material))
+            .toList(),
       ),
     );
   }
 
   Widget _buildMaterialItem(MaterialVO material) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.blue[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 物料基本信息
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.water_drop,
-                  size: 20,
-                  color: Colors.blue[700],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      material.materialName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'ID: ${material.materialId}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.blue[600],
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  '${material.num}个',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+    return Padding(
+      padding: EdgeInsets.only(bottom: AppTheme.spacingMedium),
+      child: MaterialListItem(
+        materialName: material.materialName,
+        materialId: material.materialId.toString(),
+        quantity: material.num,
+        businessType: 'signout',
       ),
     );
   }
@@ -681,46 +578,28 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
   }
 
   Widget _buildWarehouseInfo(SignoutInfoVo signoutDetail) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.warehouse, size: 24, color: Colors.purple[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '仓库信息',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
+    return UnifiedCard(
+      title: '仓库信息',
+      icon: Icons.warehouse,
+      businessType: 'signout',
+      child: Column(
+        children: [
+          InfoRow(
+            label: '仓库名称',
+            value: signoutDetail.warehouseName ?? '未知仓库',
+            icon: Icons.home_work,
+            iconColor: AppTheme.getBusinessColor('signout'),
+          ),
+          if (signoutDetail.warehouseId != null) ...[
+            SizedBox(height: AppTheme.spacingMedium),
+            InfoRow(
+              label: '仓库ID',
+              value: signoutDetail.warehouseId.toString(),
+              icon: Icons.tag,
+              iconColor: AppTheme.getBusinessColor('signout'),
             ),
-            const SizedBox(height: 16),
-            _buildInfoRow(
-              '仓库名称',
-              signoutDetail.warehouseName ?? '未知仓库',
-              icon: Icons.home_work,
-              color: Colors.purple[600],
-            ),
-            if (signoutDetail.warehouseId != null) ...[
-              const SizedBox(height: 12),
-              _buildInfoRow(
-                '仓库ID',
-                signoutDetail.warehouseId.toString(),
-                icon: Icons.tag,
-                color: Colors.purple[600],
-              ),
-            ],
           ],
-        ),
+        ],
       ),
     );
   }
@@ -774,40 +653,22 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
   }
 
   Widget _buildResponsiblePersonsSection(SignoutInfoVo signoutDetail) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.people, size: 24, color: Colors.indigo[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '相关人员',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildResponsiblePersonsList(
-              '仓库管理员',
-              signoutDetail.warehouseUsers,
-              Colors.indigo[600]!,
-            ),
-            if (signoutDetail.installUserName != null) ...[
-              const SizedBox(height: 20),
-              _buildInstallUserInfo(signoutDetail),
-            ],
+    return UnifiedCard(
+      title: '相关人员',
+      icon: Icons.people,
+      businessType: 'signout',
+      child: Column(
+        children: [
+          _buildResponsiblePersonsList(
+            '仓库管理员',
+            signoutDetail.warehouseUsers,
+            AppTheme.getBusinessColor('signout'),
+          ),
+          if (signoutDetail.installUserName != null) ...[
+            SizedBox(height: AppTheme.spacingLarge),
+            _buildInstallUserInfo(signoutDetail),
           ],
-        ),
+        ],
       ),
     );
   }

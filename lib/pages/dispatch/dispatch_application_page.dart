@@ -24,6 +24,7 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
 
 import '../../bloc/user/user_state.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class DispatchApplicationPage extends StatelessWidget {
   // final MaterialInfoForBusiness materials;
@@ -67,16 +68,21 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('调拨申请'),
+        title: const Text('调拨申请', style: TextStyle(color: Colors.white)),
+        elevation: 0,
+        backgroundColor: AppTheme.getBusinessColor('dispatch'),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           TextButton(
             onPressed: () {
               // TODO: Navigate to dispatch records page
             },
+            style: TextButton.styleFrom(foregroundColor: Colors.white),
             child: const Text('调拨记录'),
           ),
         ],
       ),
+      backgroundColor: AppTheme.grey50,
       body: BlocConsumer<DispatchBloc, DispatchState>(
         listener: (context, state) {
           if (state.status == DispatchStatus.success &&
@@ -106,18 +112,18 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
 
   Widget _buildContent(BuildContext context, DispatchState state) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(AppTheme.spacingLarge),
       child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildMaterialList(state.materialList ?? []),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppTheme.spacingLarge),
             _buildScanButtons(),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppTheme.spacingLarge),
             _buildForm(context, state),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppTheme.spacingLarge),
             _buildActionButtons(context, state),
           ],
         ),
@@ -126,151 +132,151 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
   }
 
   Widget _buildMaterialList(List<MaterialVO> materials) {
-    return Card(
-      elevation: 2,
-      margin: EdgeInsets.zero,
-      child: Column(
-        children: [
-          const ListTile(
-            title: Text(
-              '一管一码',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+    return UnifiedCard(
+      title: '一管一码',
+      icon: Icons.inventory,
+      businessType: 'dispatch',
+      child: materials.isEmpty
+          ? Column(
+              children: [
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 48,
+                  color: Colors.grey[400],
+                ),
+                SizedBox(height: AppTheme.spacingMedium),
+                Text(
+                  '暂无物料，请扫码添加',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                ),
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: materials
+                  .asMap()
+                  .entries
+                  .map(
+                    (entry) => Padding(
+                      padding: EdgeInsets.only(
+                        bottom: entry.key < materials.length - 1
+                            ? AppTheme.spacingMedium
+                            : 0,
+                      ),
+                      child: MaterialListItem(
+                        materialName: entry.value.materialName,
+                        quantity: entry.value.num,
+                        businessType: 'dispatch',
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
-          ),
-          const Divider(height: 1),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: materials.length,
-            itemBuilder: (context, index) {
-              final material = materials[index];
-              return ListTile(
-                title: Text(material.materialName),
-                trailing: Text('${material.num}个'),
-              );
-            },
-            separatorBuilder: (context, index) => const Divider(height: 1),
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildScanButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.qr_code_scanner),
-              onPressed: () => _scanAppendMaterials(context),
-              label: const Text('继续扫码'),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: ElevatedButton.icon(
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all<Color>(
-                  Colors.red[400]!,
-                ),
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: Icon(Icons.qr_code_scanner),
+            onPressed: () => _scanAppendMaterials(context),
+            label: Text('继续扫码'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.getBusinessColor('dispatch'),
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               ),
-              icon: const Icon(Icons.delete),
-              onPressed: () => _scanRemoveMaterials(context),
-              label: const Text('扫码剔除'),
             ),
           ),
-        ],
-      ),
+        ),
+        SizedBox(width: AppTheme.spacingMedium),
+        Expanded(
+          child: OutlinedButton.icon(
+            icon: Icon(Icons.remove_circle_outline),
+            onPressed: () => _scanRemoveMaterials(context),
+            label: Text('扫码剔除'),
+            style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
+              side: BorderSide(color: Colors.red.shade300),
+              foregroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildForm(BuildContext context, DispatchState state) {
-    final textTheme = Theme.of(context).textTheme;
-    final labelStyle = textTheme.titleMedium?.copyWith(
-      fontWeight: FontWeight.bold,
-    );
-
     final userState = context.read<UserBloc>().state as UserLoaded;
     final userName = userState.wxLoginVO.name;
 
-    return Card(
-      elevation: 2,
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildInfoRow('出库方项目:', state.sourceProject?.name ?? '加载中...'),
-            const Divider(height: 24),
-            _buildDropdownRow<ProjectSimpleVo>(
-              label: '入库方项目:',
-              value: _selectedTargetProject,
-              items: state.availableProjects,
-              onChanged: (value) {
-                setState(() {
-                  _selectedTargetProject = value;
-                });
-              },
-              itemBuilder: (item) =>
-                  DropdownMenuItem(value: item, child: Text(item.name)),
-            ),
-            const Divider(height: 24),
-            _buildInfoRow(
-              '发出仓库:',
-              '${state.sourceWarehouse?.name ?? "加载中..."} - ${state.sourceWarehouse?.address ?? ""}',
-            ),
-            const Divider(height: 24),
-            _buildDropdownRow<WarehouseVO>(
-              label: '接收仓库:',
-              value: _selectedTargetWarehouse,
-              items: state.availableWarehouses,
-              onChanged: (value) {
-                if (value != null) {
-                  context.read<DispatchBloc>().add(
-                    UpdateWarehouseUsersList(value.id),
-                  );
-                }
-                setState(() {
-                  _selectedTargetWarehouse = value;
-                });
-              },
-              itemBuilder: (item) => DropdownMenuItem(
-                value: item,
-                child: Text('${item.name} - ${item.address}'),
-              ),
-            ),
-            const Divider(height: 24),
-            // Assuming borrower is the current user, replace with actual logic
-            _buildInfoRow('借货人:', userName), // Placeholder
-            const Divider(height: 24),
-            Text('接收仓库负责人:', style: labelStyle),
-            const SizedBox(height: 8),
-            _buildWarehouseUserList(state.availableWarehouseUsers),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return UnifiedCard(
+      title: '调拨信息',
+      icon: Icons.assignment,
+      businessType: 'dispatch',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: Theme.of(context).textTheme.bodyLarge,
+          InfoRow(label: '出库方项目', value: state.sourceProject?.name ?? '加载中...'),
+          SizedBox(height: AppTheme.spacingMedium),
+          _buildDropdownRow<ProjectSimpleVo>(
+            label: '入库方项目:',
+            value: _selectedTargetProject,
+            items: state.availableProjects,
+            onChanged: (value) {
+              setState(() {
+                _selectedTargetProject = value;
+              });
+            },
+            itemBuilder: (item) =>
+                DropdownMenuItem(value: item, child: Text(item.name)),
+          ),
+          SizedBox(height: AppTheme.spacingMedium),
+          InfoRow(
+            label: '发出仓库',
+            value:
+                '${state.sourceWarehouse?.name ?? "加载中..."} - ${state.sourceWarehouse?.address ?? ""}',
+          ),
+          SizedBox(height: AppTheme.spacingMedium),
+          _buildDropdownRow<WarehouseVO>(
+            label: '接收仓库:',
+            value: _selectedTargetWarehouse,
+            items: state.availableWarehouses,
+            onChanged: (value) {
+              if (value != null) {
+                context.read<DispatchBloc>().add(
+                  UpdateWarehouseUsersList(value.id),
+                );
+              }
+              setState(() {
+                _selectedTargetWarehouse = value;
+              });
+            },
+            itemBuilder: (item) => DropdownMenuItem(
+              value: item,
+              child: Text('${item.name} - ${item.address}'),
             ),
           ),
+          SizedBox(height: AppTheme.spacingMedium),
+          InfoRow(label: '借货人', value: userName),
+          SizedBox(height: AppTheme.spacingLarge),
+          Text(
+            '接收仓库负责人:',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.getBusinessColor('dispatch'),
+            ),
+          ),
+          SizedBox(height: AppTheme.spacingSmall),
+          _buildWarehouseUserList(state.availableWarehouseUsers),
         ],
       ),
     );
@@ -298,61 +304,85 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
 
   Widget _buildWarehouseUserList(List<CommonUserVO> users) {
     if (users.isEmpty) {
-      return const Text('没有可用的仓库负责人');
+      return Text('没有可用的仓库负责人', style: TextStyle(color: AppTheme.grey600));
     }
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: users.length,
-      itemBuilder: (context, index) {
-        final user = users[index];
-        return CheckboxListTile(
-          title: Text('${user.name} - ${user.phone}'),
-          value: _selectedManagerIds.contains(user.userId),
-          onChanged: (bool? selected) {
-            setState(() {
-              if (selected == true) {
-                _selectedManagerIds.add(user.userId);
-              } else {
-                _selectedManagerIds.remove(user.userId);
-              }
-            });
-          },
-          secondary: const Text('推送'),
+    return Column(
+      children: users.map((user) {
+        final isSelected = _selectedManagerIds.contains(user.userId);
+        return Padding(
+          padding: EdgeInsets.only(bottom: AppTheme.spacingSmall),
+          child: UserInfoWidget(
+            name: user.name,
+            phone: user.phone,
+            onTap: () {
+              setState(() {
+                if (isSelected) {
+                  _selectedManagerIds.remove(user.userId);
+                } else {
+                  _selectedManagerIds.add(user.userId);
+                }
+              });
+            },
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '推送',
+                  style: TextStyle(fontSize: 14, color: AppTheme.grey600),
+                ),
+                SizedBox(width: AppTheme.spacingSmall),
+                Icon(
+                  isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                  color: isSelected
+                      ? AppTheme.getBusinessColor('dispatch')
+                      : AppTheme.grey400,
+                ),
+              ],
+            ),
+          ),
         );
-      },
+      }).toList(),
     );
   }
 
   Widget _buildActionButtons(BuildContext context, DispatchState state) {
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed:
-                    (state.status == DispatchStatus.loading ||
-                        state.status == DispatchStatus.loadingSourceInfo)
-                    ? null
-                    : _submit,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                child: const Text('提交'),
+        Expanded(
+          child: ElevatedButton(
+            onPressed:
+                (state.status == DispatchStatus.loading ||
+                    state.status == DispatchStatus.loadingSourceInfo)
+                ? null
+                : _submit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.getBusinessColor('dispatch'),
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                child: const Text('返回'),
+            child: Text(
+              '提交',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ),
+        SizedBox(width: AppTheme.spacingMedium),
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
+              side: BorderSide(color: AppTheme.grey600),
+              foregroundColor: AppTheme.grey600,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               ),
             ),
-          ],
+            child: Text('返回', style: TextStyle(fontSize: 16)),
+          ),
         ),
       ],
     );
