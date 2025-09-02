@@ -625,19 +625,25 @@ class _AcceptancePageState extends State<AcceptancePage> {
           ),
     );
     // 2. 报验单
-    final String? sendAcceptUrl = _inspectionReportsCubit.state
-        .firstWhere(
-          (s) => s.status == UploadStatus.success && s.uploadResult != null,
-        )
-        .uploadResult
-        ?.fileUrl;
+    final String? sendAcceptUrl = _inspectionReportsCubit.state.isEmpty
+        ? null
+        : _inspectionReportsCubit.state
+              .firstWhere(
+                (s) =>
+                    s.status == UploadStatus.success && s.uploadResult != null,
+              )
+              .uploadResult
+              ?.fileUrl;
     // 3. 验收报告
-    final String? acceptReportUrl = _acceptanceReportsCubit.state
-        .firstWhere(
-          (s) => s.status == UploadStatus.success && s.uploadResult != null,
-        )
-        .uploadResult
-        ?.fileUrl;
+    final String? acceptReportUrl = _acceptanceReportsCubit.state.isEmpty
+        ? null
+        : _acceptanceReportsCubit.state
+              .firstWhere(
+                (s) =>
+                    s.status == UploadStatus.success && s.uploadResult != null,
+              )
+              .uploadResult
+              ?.fileUrl;
 
     // 创建DoAcceptVO对象
     final doAcceptVO = DoAcceptVO(
@@ -653,6 +659,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
     // 通过BLoC提交验收数据
     context.read<AcceptanceBloc>().add(SubmitAcceptance(request: doAcceptVO));
 
+    //TODO: FIXME: 这里正常应该弹出toast，然后pop回上一层
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('正在提交验收数据...')));
