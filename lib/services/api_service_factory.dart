@@ -29,6 +29,7 @@ import '../config/app_config.dart';
 import '../utils/logger.dart';
 import '../utils/network_logger.dart';
 import '../utils/auth_interceptor.dart';
+import '../utils/location_interceptor.dart';
 import 'api/implementations/dispatch_api_service_impl.dart';
 import 'api/interfaces/api_service_interface.dart';
 import 'api/implementations/api_service_impl.dart';
@@ -68,6 +69,24 @@ import 'api/interfaces/storekeeper_action_api_service.dart';
 import 'api/implementations/storekeeper_action_api_service_impl.dart';
 import 'api/interfaces/signin_api_service.dart';
 import 'api/implementations/signin_api_service_impl.dart';
+
+/// Whitelist of endpoint patterns (as regular expressions) that require
+/// location data to be injected.
+///
+/// Add API path patterns that need latitude and longitude.
+/// Example: const List<String> _locationEndpointsWhitelist = [r'/api/v1/some/action/\d+'];
+const List<String> _locationEndpointPatterns = [
+  r'^/signout/do$',
+  r'^/install/do$',
+  r'^/return/do$',
+  r'^/accept/do$',
+  r'^/accept/after/accept/do$',
+  r'^/dispatch/do$',
+  r'^/dispatch/dispatch/receive$',
+  r'^/waste/do$',
+  // Example for a path with a dynamic parameter:
+  r'^/wx/login/sms',
+];
 
 class ApiServiceFactory {
   static ApiServiceInterface create() {
@@ -273,6 +292,11 @@ class ApiServiceFactory {
     // Add authentication interceptor (must be added before logging)
     dio.interceptors.add(AuthInterceptor());
 
+    // Add location interceptor with the defined whitelist.
+    dio.interceptors.add(
+      LocationInterceptor(endpointPatterns: _locationEndpointPatterns),
+    );
+
     // Add enhanced network logging interceptor in development
     if (AppConfig.isDevelopment) {
       // Use our custom network logger with detailed formatting
@@ -316,6 +340,11 @@ class ApiServiceFactory {
 
     // Add authentication interceptor
     dio.interceptors.add(AuthInterceptor());
+
+    // Add location interceptor with the defined whitelist.
+    dio.interceptors.add(
+      LocationInterceptor(endpointPatterns: _locationEndpointPatterns),
+    );
 
     // Add enhanced network logging interceptor in development
     if (AppConfig.isDevelopment) {
