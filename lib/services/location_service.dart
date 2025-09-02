@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:coordtransform_dart/coordtransform_dart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -66,7 +67,12 @@ class LocationService {
         locationSettings: locationSettings,
       );
 
-      final location = Location(position.latitude, position.longitude);
+      Location location = Location(position.latitude, position.longitude);
+      final gcj02Location = CoordinateTransformUtil.wgs84ToGcj02(
+        location.longitude,
+        location.latitude,
+      );
+      location = Location(gcj02Location.first, gcj02Location.last);
 
       // Update cache.
       _cachedLocation = location;
