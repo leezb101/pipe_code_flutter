@@ -80,8 +80,6 @@ class _AcceptanceConfirmationPageState
           //   ),
           // );
           // Navigator.of(context).pop(true);
-          context.showSuccessToast('验收确认成功', isGlobal: true);
-
           // 刷新记录列表
           try {
             context.read<RecordsBloc>().add(
@@ -93,7 +91,7 @@ class _AcceptanceConfirmationPageState
           } catch (e) {
             // 忽略刷新错误，不影响主流程
           }
-
+          context.showSuccessToast('验收确认成功', isGlobal: true);
           context.pop();
         } else if (state is AcceptanceError) {
           setState(() {

@@ -178,6 +178,10 @@ class _AcceptancePageState extends State<AcceptancePage> {
             // 清理一次消息，避免后续无关状态变更时重复弹出
             context.read<AcceptanceBloc>().add(const ClearEditingMessage());
           }
+        } else if (state is AcceptanceSubmitted) {
+          // Toast弹窗提示并pop出去
+          context.showSuccessToast('验收提交成功', isGlobal: true);
+          context.pop();
         }
       },
       child: Scaffold(
@@ -659,10 +663,12 @@ class _AcceptancePageState extends State<AcceptancePage> {
     // 通过BLoC提交验收数据
     context.read<AcceptanceBloc>().add(SubmitAcceptance(request: doAcceptVO));
 
-    //TODO: FIXME: 这里正常应该弹出toast，然后pop回上一层
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('正在提交验收数据...')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.purple[100],
+        content: Text('正在提交验收数据...'),
+      ),
+    );
   }
 
   void _handleReturn() {

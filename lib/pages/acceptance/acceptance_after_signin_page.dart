@@ -99,8 +99,6 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
         },
         listener: (context, state) {
           if (state is AcceptanceSignedIn) {
-            context.showSuccessToast('验收后入库成功', isGlobal: true);
-            context.pop();
             // 触发记录列表刷新
             context.read<RecordsBloc>().add(
               RefreshRecords(recordType: RecordType.todo),
@@ -108,6 +106,8 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
             context.read<RecordsBloc>().add(
               RefreshRecords(recordType: RecordType.accept),
             );
+            context.showSuccessToast('验收后入库成功', isGlobal: true);
+            context.pop();
           }
           // 将扫码的错误处理统一放在listener中，而不是在UI中到处判断
           else if (state is AcceptanceError) {
