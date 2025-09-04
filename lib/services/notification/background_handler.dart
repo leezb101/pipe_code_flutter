@@ -22,21 +22,21 @@ enum AppLifecycleState {
 /// 负责处理应用生命周期状态变化时的通知系统行为
 class BackgroundNotificationHandler {
   static const String _tag = 'BACKGROUND_NOTIFICATION_HANDLER';
-  
+
   static BackgroundNotificationHandler? _instance;
-  
+
   final NotificationManager _notificationManager;
   final List<AppLifecycleState> _stateHistory = [];
-  
+
   AppLifecycleState _currentState = AppLifecycleState.foreground;
   Timer? _backgroundTimer;
   Timer? _reconnectTimer;
-  
+
   // 配置参数
   static const Duration _backgroundCheckInterval = Duration(seconds: 30);
   static const Duration _backgroundMaxDuration = Duration(minutes: 30);
   static const Duration _reconnectDelay = Duration(seconds: 5);
-  
+
   // 后台状态跟踪
   DateTime? _backgroundStartTime;
   bool _isInBackground = false;
@@ -50,7 +50,7 @@ class BackgroundNotificationHandler {
   }
 
   BackgroundNotificationHandler._internal()
-      : _notificationManager = NotificationManager.instance {
+    : _notificationManager = NotificationManager.instance {
     _initialize();
   }
 
@@ -102,13 +102,15 @@ class BackgroundNotificationHandler {
   ) async {
     try {
       // 前台 -> 后台
-      if (oldState == AppLifecycleState.foreground && 
-          (newState == AppLifecycleState.background || newState == AppLifecycleState.paused)) {
+      if (oldState == AppLifecycleState.foreground &&
+          (newState == AppLifecycleState.background ||
+              newState == AppLifecycleState.paused)) {
         await _handleForegroundToBackground();
       }
       // 后台 -> 前台
-      else if ((oldState == AppLifecycleState.background || oldState == AppLifecycleState.paused) && 
-               newState == AppLifecycleState.foreground) {
+      else if ((oldState == AppLifecycleState.background ||
+              oldState == AppLifecycleState.paused) &&
+          newState == AppLifecycleState.foreground) {
         await _handleBackgroundToForeground();
       }
       // 应用终止
@@ -164,7 +166,10 @@ class BackgroundNotificationHandler {
 
       // 重新启动通知系统
       if (_notificationManager.state != NotificationManagerState.running) {
-        Logger.info('Restarting notification system after background', tag: _tag);
+        Logger.info(
+          'Restarting notification system after background',
+          tag: _tag,
+        );
         final success = await _notificationManager.start();
         if (!success) {
           Logger.warning('Failed to restart notification system', tag: _tag);
@@ -261,7 +266,7 @@ class BackgroundNotificationHandler {
             tag: _tag,
           );
           _backgroundReconnectAttempts++;
-          
+
           // 延迟重连以避免频繁尝试
           _reconnectTimer = Timer(_reconnectDelay, () async {
             await _notificationManager.start();
@@ -332,20 +337,20 @@ class BackgroundNotificationHandler {
   /// 重置状态
   void reset() {
     Logger.info('Resetting background notification handler', tag: _tag);
-    
+
     _currentState = AppLifecycleState.foreground;
     _isInBackground = false;
     _backgroundStartTime = null;
     _backgroundReconnectAttempts = 0;
     _stateHistory.clear();
-    
+
     forceStopBackgroundMonitoring();
   }
 
   /// 释放资源
   void dispose() {
     Logger.info('Disposing background notification handler', tag: _tag);
-    
+
     forceStopBackgroundMonitoring();
     _stateHistory.clear();
     _instance = null;

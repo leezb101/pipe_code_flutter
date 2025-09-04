@@ -6,7 +6,10 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:pipe_code_flutter/services/api/implementations/enum_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/install_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/inventory_api_service_impl.dart';
@@ -271,13 +274,13 @@ class ApiServiceFactory {
     final dio = Dio();
 
     // if (AppConfig.isDevelopment) {
-    //   final proxyAddress = '10.3.2.51:6152';
+    //   final proxyAddress = '10.3.2.198:6152';
     //   final httpClient = HttpClient();
-    //   httpClient.findProxy = (uri) {
-    //     return "PROXY $proxyAddress";
-    //   };
+    //   // httpClient.findProxy = (uri) {
+    //   //   return "PROXY $proxyAddress";
+    //   // };
     //   httpClient.badCertificateCallback = (cert, host, port) => true;
-
+    //
     //   dio.httpClientAdapter = IOHttpClientAdapter(
     //     createHttpClient: () => httpClient,
     //   );

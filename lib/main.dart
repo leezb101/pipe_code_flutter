@@ -36,7 +36,19 @@ import 'widgets/notification/floating_todo_banner.dart';
 import 'services/sse/sse_service.dart';
 import 'widgets/startup_gate.dart';
 
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    // TODO: implement createHttpClient
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+  }
+}
+
 void main() async {
+  HttpOverrides.global = MyHttpOverrides();
+
   if (kDebugMode) {
     HttpClient.enableTimelineLogging = true;
   }

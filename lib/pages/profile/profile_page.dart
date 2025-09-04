@@ -100,6 +100,17 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                         ),
                       ),
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.map),
+                        title: const Text('ArcGIS Map'),
+                        subtitle: const Text('View ArcGIS Map Example'),
+                        trailing: const Icon(Icons.arrow_forward_ios),
+                        onTap: () {
+                          context.pushNamed('arcgis-map');
+                        },
+                      ),
+                    ),
                   ] else if (userState is UserLoading) ...[
                     const Card(
                       child: ListTile(

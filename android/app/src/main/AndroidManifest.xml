@@ -10,7 +10,7 @@
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
 
-  <application android:label="pipe_code_flutter" android:name="${applicationName}" android:icon="@mipmap/ic_launcher" android:requestLegacyExternalStorage="true">
+  <application android:label="pipe_code_flutter" android:name="${applicationName}" android:icon="@mipmap/ic_launcher" android:requestLegacyExternalStorage="true" android:enableOnBackInvokedCallback="true">
 
     <!-- FileProvider 配置用于文件分享 -->
     <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.fileprovider" android:exported="false" android:grantUriPermissions="true">
