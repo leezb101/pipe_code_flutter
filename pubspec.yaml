@@ -80,6 +80,10 @@ dependencies:
   coordtransform_dart: ^1.0.4
   flutter_map: ^8.2.1
   latlong2: ^0.9.1
+  proj4dart: ^2.1.0
+  xml: ^6.6.1
+  path: ^1.9.1
+  tencent_map_flutter: ^0.1.0
 
 dev_dependencies:
   flutter_test:

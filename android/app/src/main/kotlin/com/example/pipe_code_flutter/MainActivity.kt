@@ -1,4 +1,4 @@
-package com.example.pipe_code_flutter
+package com.zzwater.pipe_code_trace
 
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
@@ -6,7 +6,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity: FlutterActivity() {
-    private val CHANNEL = "com.example.pipe_code_flutter"
+    private val CHANNEL = "com.zzwater.pipe_code_trace"
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)

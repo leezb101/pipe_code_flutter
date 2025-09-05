@@ -1,0 +1,54 @@
+import 'dart:math' as math;
+import 'dart:ui';
+
+import 'package:flutter_map/flutter_map.dart';
+import 'package:proj4dart/proj4dart.dart' as proj4;
+
+final resolutions = [
+  152.8744390822115,
+  76.43721954110575,
+  38.218609770552874,
+  19.109304885276437,
+  9.554652442638218,
+  4.777326221319109,
+  2.3886631106595547,
+  1.1943315553297774,
+  0.5971657776648887,
+  0.2984505969011938,
+  0.1492252984505969,
+  0.07461264922529845,
+  0.037306324612649225,
+];
+
+// Apply the coordinate offset directly in the projection definition
+// Service uses CGCS2000 with offset: X-3800000, Y-400000
+// So we need: x_0 = 500000 - 3800000 = -3300000, y_0 = 0 - 400000 = -400000
+final projection = proj4.Projection.add(
+  'EPSG:4547',
+  '+proj=tmerc +lat_0=0 +lon_0=114 +k=1 +x_0=-3300000 +y_0=-400000 +ellps=GRS80 +units=m +no_defs +type=crs',
+);
+
+// Restore original ArcGIS tileInfo origin since offset is now in projection
+final origins = <math.Point<double>>[
+  const math.Point<double>(-5123200.0, 10002100.0),
+];
+
+// Use the service's actual fullExtent as bounds to constrain coordinate system
+// This matches the service's coordinate space rather than standard EPSG:4547
+final bounds = Rect.fromLTRB(
+  -18255.273789212966, // xmin from info.txt fullExtent
+  -6803.530316798482, // ymin from info.txt fullExtent
+  119009.9042305517, // xmax from info.txt fullExtent
+  72954.51596234785, // ymax from info.txt fullExtent
+);
+
+final maxZoom = (resolutions.length - 1).toDouble();
+
+// Use standard EPSG:4547 projection with the coordinate offset applied
+final crs4547 = Proj4Crs.fromFactory(
+  code: 'EPSG:4547',
+  proj4Projection: projection,
+  origins: origins,
+  resolutions: resolutions,
+  bounds: bounds, // Use service's actual extent to align coordinate space
+);

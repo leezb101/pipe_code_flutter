@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Capabilities xmlns="http://www.opengis.net/wmts/1.0"
+xmlns:ows="http://www.opengis.net/ows/1.1"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:gml="http://www.opengis.net/gml"
+xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd"
+version="1.0.0">
+<!-- Service Identification --> <ows:ServiceIdentification>
+<ows:Title>dt_zztdt_wp</ows:Title>
+<ows:ServiceType>OGC WMTS</ows:ServiceType>
+<ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
+</ows:ServiceIdentification> <!-- Operations Metadata --> <ows:OperationsMetadata>
+<ows:Operation name="GetCapabilities">
+<ows:DCP>
+<ows:HTTP>
+<ows:Get xlink:href="https://10.1.119.10:8886/arcgis/rest/services/dt/zztdt_wp/MapServer/WMTS/1.0.0/WMTSCapabilities.xml">
+<ows:Constraint name="GetEncoding">
+<ows:AllowedValues>
+<ows:Value>RESTful</ows:Value>
+</ows:AllowedValues>
+</ows:Constraint>
+</ows:Get>
+<!-- add KVP binding in 10.1 -->
+<ows:Get xlink:href="https://10.1.119.10:8886/arcgis/rest/services/dt/zztdt_wp/MapServer/WMTS?">
+<ows:Constraint name="GetEncoding">
+<ows:AllowedValues>
+<ows:Value>KVP</ows:Value>
+</ows:AllowedValues>
+</ows:Constraint>
+</ows:Get>
+</ows:HTTP>
+</ows:DCP>
+</ows:Operation>
+<ows:Operation name="GetTile">
+<ows:DCP>
+<ows:HTTP>
+<ows:Get xlink:href="https://10.1.119.10:8886/arcgis/rest/services/dt/zztdt_wp/MapServer/WMTS/tile/1.0.0/">
+<ows:Constraint name="GetEncoding">
+<ows:AllowedValues>
+<ows:Value>RESTful</ows:Value>
+</ows:AllowedValues>
+</ows:Constraint>
+</ows:Get>
+<ows:Get xlink:href="https://10.1.119.10:8886/arcgis/rest/services/dt/zztdt_wp/MapServer/WMTS?">
+<ows:Constraint name="GetEncoding">
+<ows:AllowedValues>
+<ows:Value>KVP</ows:Value>
+</ows:AllowedValues>
+</ows:Constraint>
+</ows:Get>
+</ows:HTTP>
+</ows:DCP>
+</ows:Operation>
+</ows:OperationsMetadata> <Contents>
+<!--Layer--> <Layer>
+<ows:Title>dt_zztdt_wp</ows:Title> <ows:Identifier>dt_zztdt_wp</ows:Identifier>
+<ows:BoundingBox crs="urn:ogc:def:crs:EPSG::4547">
+<ows:LowerCorner>-6803.530316798482 -18255.273789212966</ows:LowerCorner>
+<ows:UpperCorner>72954.51596234785 119009.9042305517</ows:UpperCorner>
+</ows:BoundingBox> <ows:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84">
+<ows:LowerCorner>109.3492777064416 -0.06141870416297244</ows:LowerCorner>
+<ows:UpperCorner>110.57955492621923 0.658594775875088</ows:UpperCorner>
+</ows:WGS84BoundingBox>
+<Style isDefault="true">
+<ows:Title>Default Style</ows:Title>
+<ows:Identifier>default</ows:Identifier>
+</Style>
+<Format>image/png</Format>
+<TileMatrixSetLink>
+<TileMatrixSet>default028mm</TileMatrixSet>
+</TileMatrixSetLink>
+<ResourceURL format="image/png" resourceType="tile" template="https://10.1.119.10:8886/arcgis/rest/services/dt/zztdt_wp/MapServer/WMTS/tile/1.0.0/dt_zztdt_wp/{Style}/{TileMatrixSet}/{TileMatrix}/{TileRow}/{TileCol}.png" />
+</Layer> <!--TileMatrixSet-->
+<TileMatrixSet>
+<ows:Title>TileMatrix using 0.28mm</ows:Title>
+<ows:Abstract>The tile matrix set that has scale values calculated based on the dpi defined by OGC specification (dpi assumes 0.28mm as the physical distance of a pixel).</ows:Abstract> <ows:Identifier>default028mm</ows:Identifier>
+<ows:SupportedCRS>urn:ogc:def:crs:EPSG::4547</ows:SupportedCRS>
+<TileMatrix>
+<ows:Identifier>0</ows:Identifier>
+<ScaleDenominator>545980.1395792582</ScaleDenominator>
+<TopLeftCorner>1.00021E7 -5123200.0</TopLeftCorner> <TileWidth>256</TileWidth> <TileHeight>256</TileHeight>
+<MatrixWidth>134</MatrixWidth> <MatrixHeight>256</MatrixHeight>
+</TileMatrix>
+<TileMatrix>
+<ows:Identifier>1</ows:Identifier>
+<ScaleDenominator>272990.0697896291</ScaleDenominator>
+<TopLeftCorner>1.00021E7 -5123200.0</TopLeftCorner> <TileWidth>256</TileWidth> <TileHeight>256</TileHeight>
+<MatrixWidth>268</MatrixWidth> <MatrixHeight>512</MatrixHeight>
+</TileMatrix>
+<TileMatrix>
+<ows:Identifier>2</ows:Identifier>
+<ScaleDenominator>136495.03489481454</ScaleDenominator>
+<TopLeftCorner>1.00021E7 -5123200.0</TopLeftCorner> <TileWidth>256</TileWidth> <TileHeight>256</TileHeight>
+<MatrixWidth>536</MatrixWidth> <MatrixHeight>1023</MatrixHeight>
+</TileMatrix>
+<TileMatrix>
+<ows:Identifier>3</ows:Identifier>
+<ScaleDenominator>68247.51744740727</ScaleDenominator>
+<TopLeftCorner>1.00021E7 -5123200.0</TopLeftCorner> <TileWidth>256</TileWidth> <TileHeight>256</TileHeight>
+<MatrixWidth>1072</MatrixWidth> <MatrixHeight>2046</MatrixHeight>
+</TileMatrix>
+<TileMatrix>
+<ows:Identifier>4</ows:Identifier>
+<ScaleDenominator>34123.758723703635</ScaleDenominator>
+<TopLeftCorner>1.00021E7 -5123200.0</TopLeftCorner> <TileWidth>256</TileWidth> <TileHeight>256</TileHeight>
+<MatrixWidth>2144</MatrixWidth> <MatrixHeight>4092</MatrixHeight>
+</TileMatrix>
+<TileMatrix>
+<ows:Identifier>5</ows:Identifier>
+<ScaleDenominator>17061.879361851818</ScaleDenominator>
+<TopLeftCorner>1.00021E7 -5123200.0</TopLeftCorner> <TileWidth>256</TileWidth> <TileHeight>256</TileHeight>
+<MatrixWidth>4287</MatrixWidth> <MatrixHeight>8184</MatrixHeight>
+</TileMatrix>
+<TileMatrix>
+<ows:Identifier>6</ows:Identifier>
+<ScaleDenominator>8530.939680925909</ScaleDenominator>
+<TopLeftCorner>1.00021E7 -5123200.0</TopLeftCorner> <TileWidth>256</TileWidth> <TileHeight>256</TileHeight>
+<MatrixWidth>8573</MatrixWidth> <MatrixHeight>16368</MatrixHeight>
+</TileMatrix>
+<TileMatrix>
+<ows:Identifier>7</ows:Identifier>
+<ScaleDenominator>4265.469840462954</ScaleDenominator>
+<TopLeftCorner>1.00021E7 -5123200.0</TopLeftCorner> <TileWidth>256</TileWidth> <TileHeight>256</TileHeight>
+<MatrixWidth>17146</MatrixWidth> <MatrixHeight>32736</MatrixHeight>
+</TileMatrix>
+<TileMatrix>
+<ows:Identifier>8</ows:Identifier>
+<ScaleDenominator>2132.734920231477</ScaleDenominator>
+<TopLeftCorner>1.00021E7 -5123200.0</TopLeftCorner> <TileWidth>256</TileWidth> <TileHeight>256</TileHeight>
+<MatrixWidth>34291</MatrixWidth> <MatrixHeight>65472</MatrixHeight>
+</TileMatrix>
+<TileMatrix>
+<ows:Identifier>9</ows:Identifier>
+<ScaleDenominator>1065.894988932701</ScaleDenominator>
+<TopLeftCorner>1.00021E7 -5123200.0</TopLeftCorner> <TileWidth>256</TileWidth> <TileHeight>256</TileHeight>
+<MatrixWidth>68613</MatrixWidth> <MatrixHeight>131001</MatrixHeight>
+</TileMatrix>
+<TileMatrix>
+<ows:Identifier>10</ows:Identifier>
+<ScaleDenominator>532.9474944663505</ScaleDenominator>
+<TopLeftCorner>1.00021E7 -5123200.0</TopLeftCorner> <TileWidth>256</TileWidth> <TileHeight>256</TileHeight>
+<MatrixWidth>137225</MatrixWidth> <MatrixHeight>262002</MatrixHeight>
+</TileMatrix>
+<TileMatrix>
+<ows:Identifier>11</ows:Identifier>
+<ScaleDenominator>266.47374723317523</ScaleDenominator>
+<TopLeftCorner>1.00021E7 -5123200.0</TopLeftCorner> <TileWidth>256</TileWidth> <TileHeight>256</TileHeight>
+<MatrixWidth>274450</MatrixWidth> <MatrixHeight>524004</MatrixHeight>
+</TileMatrix>
+<TileMatrix>
+<ows:Identifier>12</ows:Identifier>
+<ScaleDenominator>133.23687361658762</ScaleDenominator>
+<TopLeftCorner>1.00021E7 -5123200.0</TopLeftCorner> <TileWidth>256</TileWidth> <TileHeight>256</TileHeight>
+<MatrixWidth>548899</MatrixWidth> <MatrixHeight>1048007</MatrixHeight>
+</TileMatrix>
+</TileMatrixSet>
+</Contents>
+<ServiceMetadataURL xlink:href="https://10.1.119.10:8886/arcgis/rest/services/dt/zztdt_wp/MapServer/WMTS/1.0.0/WMTSCapabilities.xml" /> </Capabilities>

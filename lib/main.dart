@@ -33,7 +33,7 @@ import 'repositories/interfaces/user_repository.dart';
 import 'repositories/interfaces/list_repository.dart';
 import 'repositories/interfaces/records_repository.dart';
 import 'widgets/notification/floating_todo_banner.dart';
-import 'services/sse/sse_service.dart';
+import 'services/notification/notification_manager.dart';
 import 'widgets/startup_gate.dart';
 
 class MyHttpOverrides extends HttpOverrides {
@@ -113,8 +113,8 @@ class MyApp extends StatelessWidget {
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthUnauthenticated) {
-            // Tear down SSE connection when user logs out or auth expires
-            getIt<SseService>().disconnect();
+            // Tear down notification system when user logs out or auth expires
+            NotificationManager.instance.stop();
             context.read<UserBloc>().add(const UserClearData());
             context.read<ProjectBloc>().add(const ProjectClearData());
             context.read<InventoryBloc>().add(InventoryReset());
@@ -122,14 +122,14 @@ class MyApp extends StatelessWidget {
             context.read<RecordsBloc>().add(const ClearRecordsCache());
           }
           if (state is AuthLoginSuccess) {
-            // Establish SSE connection with fresh credentials after login
-            getIt<SseService>().connect();
+            // Note: SSE connection will be established by SessionBloc via NotificationManager
+            // This avoids duplicate connection attempts and maintains single source of truth
             // 登录成功后也清理一次缓存，避免沿用上次残留
             context.read<RecordsBloc>().add(const ClearRecordsCache());
           }
           if (state is AuthTokenRefreshed) {
-            // Refresh SSE connection path on token refresh as well
-            getIt<SseService>().reconnect();
+            // Refresh notification system on token refresh
+            NotificationManager.instance.restart();
           }
         },
         child: RepositoryProvider<QrScanFlowService>(

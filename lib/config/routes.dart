@@ -22,6 +22,7 @@ import 'package:pipe_code_flutter/pages/arcgis/arcgis_page.dart';
 import 'package:pipe_code_flutter/pages/install/install_page.dart';
 import 'package:pipe_code_flutter/pages/install/install_detail_page.dart';
 import 'package:pipe_code_flutter/pages/material/material_lifecycle_page.dart';
+import 'package:pipe_code_flutter/pages/qmap/qmap.dart';
 import 'package:pipe_code_flutter/pages/scrap/scrap_pages.dart';
 import 'package:pipe_code_flutter/pages/signin/signin_detail_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_audit_page.dart';
@@ -647,6 +648,11 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) {
             return const ArcgisPage();
           },
+        ),
+        GoRoute(
+          path: '/qmap',
+          name: 'qmap',
+          builder: (context, state) => const Qmap(),
         ),
       ],
     ),
