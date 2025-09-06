@@ -37,6 +37,7 @@ import '../interfaces/user_api_service.dart';
 import '../interfaces/list_api_service.dart';
 import '../interfaces/acceptance_api_service.dart';
 import '../interfaces/install_api_service.dart';
+import '../interfaces/map_api_service.dart';
 import 'mock_auth_api_service.dart';
 import 'mock_cut_api_service.dart';
 import 'mock_dispatch_api_service.dart';
@@ -45,6 +46,7 @@ import 'mock_list_api_service.dart';
 import 'mock_acceptance_api_service.dart';
 import 'mock_return_api_service.dart';
 import 'mock_inventory_api_service.dart';
+import 'mock_map_api_service.dart';
 
 class MockApiService implements ApiServiceInterface {
   AuthApiService? _authService;
@@ -66,6 +68,7 @@ class MockApiService implements ApiServiceInterface {
   RecoveryApiService? _recoveryApiService;
   SigninApiService? _signinApiService;
   TemporaryAuthApiService? _temporaryAuthApiService;
+  MapApiService? _mapApiService;
 
   @override
   AuthApiService get auth => _authService ??= MockAuthApiService();
@@ -133,4 +136,7 @@ class MockApiService implements ApiServiceInterface {
   @override
   TemporaryAuthApiService get temporaryAuth =>
       _temporaryAuthApiService ??= MockTemporaryAuthApiService();
+
+  @override
+  MapApiService get mapApi => _mapApiService ??= MockMapApiService();
 }

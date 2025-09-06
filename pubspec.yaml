@@ -87,6 +87,7 @@ dependencies:
   xml: ^6.6.1
   path: ^1.9.1
   screenshot: ^3.0.0
+  haversine_distance: ^1.2.1
 
 dev_dependencies:
   flutter_test:

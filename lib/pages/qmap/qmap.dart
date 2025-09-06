@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/models/common/result.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/map_api_service.dart';
+import 'package:pipe_code_flutter/services/api_service_factory.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:tencent_map_plus/tencent_map_plus.dart';
+import 'package:haversine_distance/haversine_distance.dart' as haversine;
 
 class Qmap extends StatefulWidget {
   const Qmap({super.key});
@@ -16,11 +21,13 @@ class QmapState extends State<Qmap> {
   late TencentMapController _mapController;
   final _projectMarkers = <String, dynamic>{};
   final _storeMarkers = <String, dynamic>{};
+  late MapApiService _apiservice;
 
   @override
   void initState() {
     super.initState();
     TencentMap.init(agreePrivacy: true);
+    _apiservice = ApiServiceFactory.createMapApiService();
   }
 
   @override
@@ -100,6 +107,52 @@ class QmapState extends State<Qmap> {
     // 获取当前视野范围
     final bounds = await _mapController.getVisibleRegion();
     Logger.debug('当前视野范围: $bounds');
+    final center = haversine.Location(
+      bounds['center']['lat'],
+      bounds['center']['lng'],
+    );
+    final sw = haversine.Location(bounds['sw']['lat'], bounds['sw']['lng']);
+    final hDistance = haversine.HaversineDistance();
+    final distance = hDistance.haversine(center, sw, haversine.Unit.METER);
+    Logger.debug('当前视野半径: ${distance.toStringAsFixed(2)} 米');
+    final stores = await fetchWarehouses(
+      LatLng(bounds['center']['lat'], bounds['center']['lng']),
+      distance,
+    );
+    if (stores != null && stores.isNotEmpty) {
+      _addStoreMarkers(
+        stores.map((e) {
+          return {
+            'id': e['id'],
+            'lat': double.parse(e['lat'] as String),
+            'lng': double.parse(e['lng'] as String),
+          };
+        }).toList(),
+      );
+    }
+  }
+
+  Future<List?> fetchWarehouses(LatLng center, double r) async {
+    final lat = center.latitude;
+    final lng = center.longitude;
+    final radius = r;
+
+    try {
+      final result = await _apiservice.fetchMapWarehouses(lat, lng, radius);
+      if (result.isSuccess) {
+        Logger.debug('Fetched warehouses: ${result.data}');
+        return result.data;
+      } else {
+        Logger.error('Failed to fetch warehouses: ${result.msg}');
+        if (context.mounted)
+          context.showErrorToast('Failed to fetch warehouses: ${result.msg}');
+      }
+    } catch (e) {
+      Logger.error('Error fetching warehouses: $e');
+      if (context.mounted)
+        context.showErrorToast('Error fetching warehouses: $e');
+    }
+    return null;
   }
 
   void _onTapMarker(String markerId) {
