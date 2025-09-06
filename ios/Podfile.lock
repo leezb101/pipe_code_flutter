@@ -67,11 +67,18 @@ PODS:
     - FlutterMacOS
   - SwiftyGif (5.4.5)
   - Tencent-MapFoundation (5.1.1)
-  - Tencent-MapSDK (5.1.0):
-    - Tencent-MapFoundation (>= 3.3.0)
-  - tencent_map_flutter (0.0.1):
+  - Tencent-MapSDK (6.6.0):
+    - Tencent-MapFoundation (>= 5.1.0)
+  - Tencent-MapUtils (1.2.4):
+    - Tencent-MapSDK (>= 5.1.0)
+  - Tencent-MapVisualPlugin (3.1.3):
+    - Tencent-MapSDK (>= 5.1.0)
+  - tencent_map_plus (0.0.1):
     - Flutter
-    - Tencent-MapSDK (~> 5.1.0)
+    - Tencent-MapFoundation
+    - Tencent-MapSDK
+    - Tencent-MapUtils
+    - Tencent-MapVisualPlugin
 
 DEPENDENCIES:
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
@@ -87,7 +94,7 @@ DEPENDENCIES:
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - tencent_map_flutter (from `.symlinks/plugins/tencent_map_flutter/ios`)
+  - tencent_map_plus (from `.symlinks/plugins/tencent_map_plus/ios`)
 
 SPEC REPOS:
   trunk:
@@ -98,6 +105,8 @@ SPEC REPOS:
     - SwiftyGif
     - Tencent-MapFoundation
     - Tencent-MapSDK
+    - Tencent-MapUtils
+    - Tencent-MapVisualPlugin
 
 EXTERNAL SOURCES:
   connectivity_plus:
@@ -126,8 +135,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
-  tencent_map_flutter:
-    :path: ".symlinks/plugins/tencent_map_flutter/ios"
+  tencent_map_plus:
+    :path: ".symlinks/plugins/tencent_map_plus/ios"
 
 SPEC CHECKSUMS:
   connectivity_plus: 481668c94744c30c53b8895afb39159d1e619bdf
@@ -149,9 +158,11 @@ SPEC CHECKSUMS:
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   Tencent-MapFoundation: 16e40ddc5e747719691a4601ea8e02b9dd06e23a
-  Tencent-MapSDK: 3af9389c260dada3b351518afb4a919ea5f49ee5
-  tencent_map_flutter: 5960c2005b26d791bf7c788d08d5181fbd1e1694
+  Tencent-MapSDK: 5acd2f9dda1e8bf6ed669d2ccc7b9395152caa07
+  Tencent-MapUtils: b1a5c4578465cde2f6790aed720b98ca79eb2c61
+  Tencent-MapVisualPlugin: a0a80d6df872adb889ab4c64e2915dddfada1d51
+  tencent_map_plus: d8c526b080d3be7a428a7ac404353e3723be3798
 
-PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
+PODFILE CHECKSUM: 1cd65e10e825bc399052f0cbbdb005f2fb1361d1
 
 COCOAPODS: 1.16.2
