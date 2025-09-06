@@ -81,17 +81,6 @@ class QmapState extends State<Qmap> {
           CameraPosition(position: location.position, zoom: 13),
         );
 
-        // 添加项目标记
-        _addProjectsMarkers([
-          {'id': '1', 'lat': 34.984154, 'lng': 113.707490},
-          {'id': '2', 'lat': 34.984500, 'lng': 113.710000},
-        ]);
-        // 添加门店标记
-        _addStoreMarkers([
-          {'id': '1', 'lat': 34.985000, 'lng': 113.708000},
-          {'id': '2', 'lat': 34.983000, 'lng': 113.706000},
-        ]);
-
         // 获取当前视野范围
         final bounds = await _mapController.getVisibleRegion();
         Logger.debug('当前视野范围: $bounds');
@@ -126,6 +115,7 @@ class QmapState extends State<Qmap> {
             'id': e['id'],
             'lat': double.parse(e['lat'] as String),
             'lng': double.parse(e['lng'] as String),
+            'title': e['name'],
           };
         }).toList(),
       );
@@ -192,6 +182,7 @@ class QmapState extends State<Qmap> {
         Marker(
           id: 'store_marker_${storeInfo['id']}',
           bizId: 'store_${storeInfo['id']}',
+          title: storeInfo['title'],
           position: position,
           icon: Bitmap(asset: "images/store.png"),
         ),
