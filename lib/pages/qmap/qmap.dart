@@ -33,6 +33,7 @@ class QmapState extends State<Qmap> {
         buildings3dEnabled: true,
         myLocationEnabled: true,
         onTapMarker: (markerId) => _onTapMarker(markerId),
+        onCameraMoveEnd: (cameraPosition) => _onCameraMoveEnd(cameraPosition),
       ),
       floatingActionButton: FloatingActionButton(
         elevation: 4.0,
@@ -54,7 +55,21 @@ class QmapState extends State<Qmap> {
 
       // 定位到用户当前位置
       try {
-        final location = await _mapController.getUserLocation();
+        Future<Location> getValidLocation({int retries = 5}) async {
+          Location location = await _mapController.getUserLocation();
+          if (location.position.latitude == 0 &&
+              location.position.longitude == 0) {
+            if (retries > 0) {
+              await Future.delayed(const Duration(seconds: 1));
+              return await getValidLocation(retries: retries - 1);
+            } else {
+              throw Exception('无法获取有效的位置信息');
+            }
+          }
+          return location;
+        }
+
+        final location = await getValidLocation();
         _mapController.moveCamera(
           CameraPosition(position: location.position, zoom: 13),
         );
@@ -69,28 +84,22 @@ class QmapState extends State<Qmap> {
           {'id': '1', 'lat': 34.985000, 'lng': 113.708000},
           {'id': '2', 'lat': 34.983000, 'lng': 113.706000},
         ]);
+
+        // 获取当前视野范围
+        final bounds = await _mapController.getVisibleRegion();
+        Logger.debug('当前视野范围: $bounds');
       } catch (e) {
         // 处理获取位置失败的情况
         Logger.error('获取位置失败: $e');
         if (context.mounted) context.showErrorToast('获取位置失败: $e');
       }
-
-      // final sub = TencentMapMethodChannel.instance
-      //     .onTapMarker(mapId: controller.mapId)
-      //     .listen(
-      //       (e) {
-      //         final markerId = e.value;
-      //         _onTapMarker(markerId);
-      //       },
-      //     );
-      // FIXME: Do something with markerId }); // Keep sub and cancel it in dispose to avoid leaks.
-
-      // controller.events().listen((event) {
-      //   if (event.type == MapEventType.markerTap && event.markerId != null) {
-      //     _onTapMarker(event.markerId!);
-      //   }
-      // });
     }
+  }
+
+  void _onCameraMoveEnd(CameraPosition position) async {
+    // 获取当前视野范围
+    final bounds = await _mapController.getVisibleRegion();
+    Logger.debug('当前视野范围: $bounds');
   }
 
   void _onTapMarker(String markerId) {
