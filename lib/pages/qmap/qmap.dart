@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 // removed unused imports
 import 'package:pipe_code_flutter/services/api/interfaces/map_api_service.dart';
 import 'package:pipe_code_flutter/services/api_service_factory.dart';
@@ -224,6 +225,9 @@ class QmapState extends State<Qmap> {
     final state = _blocCtx!.read<QmapBloc>().state;
     Widget? dialogContent;
 
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
     if (markerId.startsWith('store_marker_')) {
       final storeId = markerId.replaceFirst('store_marker_', '');
       final storeData = state.stores.firstWhere(
@@ -232,7 +236,10 @@ class QmapState extends State<Qmap> {
       );
 
       if (storeData.isNotEmpty) {
-        dialogContent = _buildStoreInfoDialog(storeData);
+        dialogContent = _buildStoreInfoDialog(
+          storeData,
+          () => overlayEntry.remove(),
+        );
       }
     } else if (markerId.startsWith('project_marker_')) {
       final projectId = markerId.replaceFirst('project_marker_', '');
@@ -242,7 +249,10 @@ class QmapState extends State<Qmap> {
       );
 
       if (projectData.isNotEmpty) {
-        dialogContent = _buildProjectInfoDialog(projectData);
+        dialogContent = _buildProjectInfoDialog(
+          projectData,
+          () => overlayEntry.remove(),
+        );
       }
     }
 
@@ -262,9 +272,6 @@ class QmapState extends State<Qmap> {
         ],
       ),
     );
-
-    final overlay = Overlay.of(context);
-    late OverlayEntry overlayEntry;
     overlayEntry = OverlayEntry(
       builder: (context) => OverlayedDialog(
         child: dialogContent!,
@@ -334,7 +341,10 @@ class QmapState extends State<Qmap> {
   }
 
   // 构建仓库信息弹窗
-  Widget _buildStoreInfoDialog(Map<String, dynamic> storeData) {
+  Widget _buildStoreInfoDialog(
+    Map<String, dynamic> storeData,
+    VoidCallback? onClose,
+  ) {
     final name =
         storeData['name']?.toString() ??
         storeData['title']?.toString() ??
@@ -344,7 +354,7 @@ class QmapState extends State<Qmap> {
 
     return Container(
       width: 280,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,13 +380,18 @@ class QmapState extends State<Qmap> {
           _buildInfoRow('地址', address),
           const SizedBox(height: 8),
           _buildInfoRow('类型', isRealWarehouse ? '实体仓库' : '虚拟仓库'),
+          const SizedBox(height: 8),
+          _buildDetailButton(storeData['id'] as int?, 'warehouse', onClose),
         ],
       ),
     );
   }
 
   // 构建项目信息弹窗
-  Widget _buildProjectInfoDialog(Map<String, dynamic> projectData) {
+  Widget _buildProjectInfoDialog(
+    Map<String, dynamic> projectData,
+    VoidCallback? onClose,
+  ) {
     final name =
         projectData['name']?.toString() ??
         projectData['title']?.toString() ??
@@ -385,7 +400,7 @@ class QmapState extends State<Qmap> {
 
     return Container(
       width: 280,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -409,6 +424,8 @@ class QmapState extends State<Qmap> {
           _buildInfoRow('项目名称', name),
           const SizedBox(height: 8),
           _buildInfoRow('项目ID', id),
+          const SizedBox(height: 8),
+          _buildDetailButton(projectData['id'] as int?, 'project', onClose),
         ],
       ),
     );
@@ -432,6 +449,41 @@ class QmapState extends State<Qmap> {
         ),
         Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
       ],
+    );
+  }
+
+  // 辅助方法：构建查看详情按钮
+  Widget _buildDetailButton(int? id, String type, VoidCallback? onClose) {
+    return Align(
+      alignment: Alignment.center,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        onPressed: () {
+          // 首先关闭弹窗
+          onClose?.call();
+          // 然后实现跳转到详情页的逻辑,传递 id 参数，但是需要区分仓库和项目
+          if (id != null) {
+            // 使用 GoRouter 进行路由跳转
+            if (type == 'project') {
+              context.pushNamed(
+                'projectDetail',
+                queryParameters: {'id': id.toString()},
+              );
+            } else {
+              context.pushNamed(
+                'warehouseDetail',
+                queryParameters: {'id': id.toString()},
+              );
+            }
+          }
+        },
+        child: const Text('查看详情'),
+      ),
     );
   }
 
