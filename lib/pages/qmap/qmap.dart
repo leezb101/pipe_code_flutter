@@ -11,6 +11,7 @@ import 'package:haversine_distance/haversine_distance.dart' as haversine;
 import 'package:pipe_code_flutter/bloc/qmap/qmap_bloc.dart';
 import 'package:pipe_code_flutter/bloc/qmap/qmap_event.dart';
 import 'package:pipe_code_flutter/bloc/qmap/qmap_state.dart';
+import 'package:pipe_code_flutter/widgets/overlayed_dialog.dart';
 import 'dart:async';
 
 class Qmap extends StatefulWidget {
@@ -198,6 +199,31 @@ class QmapState extends State<Qmap> {
   void _onTapMarker(String markerId) {
     // 将点击事件交给 BLoC 触发同样的提示效果
     if (!mounted || _blocCtx == null) return;
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+    overlayEntry = OverlayEntry(
+      builder: (context) => OverlayedDialog(
+        child: Container(
+          width: 250,
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Marker Tapped',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              Text('You tapped on marker with ID: $markerId'),
+            ],
+          ),
+        ),
+        onClose: () {
+          overlayEntry.remove();
+        },
+      ),
+    );
+    overlay.insert(overlayEntry);
     _blocCtx!.read<QmapBloc>().add(MarkerTapped(markerId));
   }
 
