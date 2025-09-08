@@ -25,6 +25,7 @@ import 'cut_api_service.dart';
 import 'inventory_api_service.dart';
 import 'signin_api_service.dart';
 import 'temporary_auth_api_service.dart';
+import 'map_api_service.dart';
 
 abstract class ApiServiceInterface {
   AuthApiService get auth;
@@ -46,4 +47,5 @@ abstract class ApiServiceInterface {
   RecoveryApiService get recovery;
   SigninApiService get signin;
   TemporaryAuthApiService get temporaryAuth;
+  MapApiService get mapApi;
 }

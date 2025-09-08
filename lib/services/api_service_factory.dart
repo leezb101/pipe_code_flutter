@@ -6,22 +6,28 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:pipe_code_flutter/services/api/implementations/enum_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/install_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/inventory_api_service_impl.dart';
+import 'package:pipe_code_flutter/services/api/implementations/map_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/scrap_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/signout_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/temporary_auth_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/inventory_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/map_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/temporary_auth_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_inventory_api_service.dart';
+import 'package:pipe_code_flutter/services/api/mock/mock_map_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_temporary_auth_api_service.dart';
@@ -267,17 +273,26 @@ class ApiServiceFactory {
     }
   }
 
+  static MapApiService createMapApiService() {
+    if (AppConfig.isMockEnabled) {
+      return MockMapApiService();
+    } else {
+      final dio = _createDio();
+      return MapApiServiceImpl(dio);
+    }
+  }
+
   static Dio _createDio() {
     final dio = Dio();
 
     // if (AppConfig.isDevelopment) {
-    //   final proxyAddress = '10.3.2.51:6152';
+    //   final proxyAddress = '10.3.2.198:6152';
     //   final httpClient = HttpClient();
-    //   httpClient.findProxy = (uri) {
-    //     return "PROXY $proxyAddress";
-    //   };
+    //   // httpClient.findProxy = (uri) {
+    //   //   return "PROXY $proxyAddress";
+    //   // };
     //   httpClient.badCertificateCallback = (cert, host, port) => true;
-
+    //
     //   dio.httpClientAdapter = IOHttpClientAdapter(
     //     createHttpClient: () => httpClient,
     //   );

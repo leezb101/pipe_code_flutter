@@ -29,7 +29,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
-  static const platform = MethodChannel('com.example.pipe_code_flutter');
+  static const platform = MethodChannel('com.zzwater.pipe_code_trace');
 
   int _currentIndex = 0;
   late AnimationController _animationController;

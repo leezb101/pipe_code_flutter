@@ -1,0 +1,436 @@
+{
+ "currentVersion": 10.2,
+ "serviceDescription": "",
+ "mapName": "图层",
+ "description": "",
+ "copyrightText": "",
+ "supportsDynamicLayers": false,
+ "layers": [
+  {
+   "id": 0,
+   "name": "POI18-21",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 2256.994353,
+   "maxScale": 0
+  },
+  {
+   "id": 1,
+   "name": "POI14-17",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 20000.000000000233,
+   "maxScale": 0
+  },
+  {
+   "id": 2,
+   "name": "国家级风景名胜地",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 577790.554289,
+   "maxScale": 0
+  },
+  {
+   "id": 3,
+   "name": "加油站",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 9027.977411,
+   "maxScale": 0
+  },
+  {
+   "id": 4,
+   "name": "码头",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 9027.977411,
+   "maxScale": 0
+  },
+  {
+   "id": 5,
+   "name": "桥",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 9027.977411,
+   "maxScale": 0
+  },
+  {
+   "id": 6,
+   "name": "收费站",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 9027.977411,
+   "maxScale": 0
+  },
+  {
+   "id": 7,
+   "name": "一般景区景点",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 9027.977411,
+   "maxScale": 0
+  },
+  {
+   "id": 8,
+   "name": "世界自然文化遗产",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 288895.277144,
+   "maxScale": 0
+  },
+  {
+   "id": 9,
+   "name": "地铁出站口",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 36111.909643003644,
+   "maxScale": 0
+  },
+  {
+   "id": 10,
+   "name": "服务区",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 20000.000000000236,
+   "maxScale": 0
+  },
+  {
+   "id": 11,
+   "name": "火车站",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 250000,
+   "maxScale": 0
+  },
+  {
+   "id": 12,
+   "name": "县级市",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 617067.5518791908,
+   "maxScale": 0
+  },
+  {
+   "id": 13,
+   "name": "乡镇名",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 80000,
+   "maxScale": 0
+  },
+  {
+   "id": 14,
+   "name": "村庄名",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 80000,
+   "maxScale": 0
+  },
+  {
+   "id": 15,
+   "name": "轨道交通",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 300000.00000000355,
+   "maxScale": 0
+  },
+  {
+   "id": 16,
+   "name": "公路",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 5000.000000000178,
+   "maxScale": 0
+  },
+  {
+   "id": 17,
+   "name": "铁路",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 577790.554289,
+   "maxScale": 0
+  },
+  {
+   "id": 18,
+   "name": "公路13",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 10000,
+   "maxScale": 6000
+  },
+  {
+   "id": 19,
+   "name": "公路12",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 50000,
+   "maxScale": 12500
+  },
+  {
+   "id": 20,
+   "name": "公路11",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 124999.99999999983,
+   "maxScale": 60000
+  },
+  {
+   "id": 21,
+   "name": "公路10",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 617067.5518791908,
+   "maxScale": 100000
+  },
+  {
+   "id": 22,
+   "name": "单线水系",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 20000.000000000236,
+   "maxScale": 0
+  },
+  {
+   "id": 23,
+   "name": "居民地",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 62500.00000000043,
+   "maxScale": 0
+  },
+  {
+   "id": 24,
+   "name": "建筑物区域",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 10000.000000000116,
+   "maxScale": 0
+  },
+  {
+   "id": 25,
+   "name": "湖泊",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 125000.00000000147,
+   "maxScale": 0
+  },
+  {
+   "id": 26,
+   "name": "绿地",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 9999.999999999809,
+   "maxScale": 0
+  },
+  {
+   "id": 27,
+   "name": "面状公路",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 4999.999999999807,
+   "maxScale": 0
+  },
+  {
+   "id": 28,
+   "name": "面状水系",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 0,
+   "maxScale": 0
+  },
+  {
+   "id": 29,
+   "name": "面状水系",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 125000,
+   "maxScale": 0
+  },
+  {
+   "id": 30,
+   "name": "功能面",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 9999.999999999809,
+   "maxScale": 0
+  },
+  {
+   "id": 31,
+   "name": "县界",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 600000,
+   "maxScale": 0
+  },
+  {
+   "id": 32,
+   "name": "地区界",
+   "parentLayerId": -1,
+   "defaultVisibility": true,
+   "subLayerIds": null,
+   "minScale": 0,
+   "maxScale": 288895.277144
+  }
+ ],
+ "tables": [],
+ "spatialReference": {
+  "wkid": 4547,
+  "latestWkid": 4547
+ },
+ "singleFusedMapCache": true,
+ "tileInfo": {
+  "rows": 256,
+  "cols": 256,
+  "dpi": 96,
+  "format": "PNG32",
+  "compressionQuality": 0,
+  "origin": {
+   "x": -5123200,
+   "y": 10002100
+  },
+  "spatialReference": {
+   "wkid": 4547,
+   "latestWkid": 4547
+  },
+  "lods": [
+   {
+    "level": 0,
+    "resolution": 152.8744390822115,
+    "scale": 577792
+   },
+   {
+    "level": 1,
+    "resolution": 76.43721954110575,
+    "scale": 288896
+   },
+   {
+    "level": 2,
+    "resolution": 38.218609770552874,
+    "scale": 144448
+   },
+   {
+    "level": 3,
+    "resolution": 19.109304885276437,
+    "scale": 72224
+   },
+   {
+    "level": 4,
+    "resolution": 9.554652442638218,
+    "scale": 36112
+   },
+   {
+    "level": 5,
+    "resolution": 4.777326221319109,
+    "scale": 18056
+   },
+   {
+    "level": 6,
+    "resolution": 2.3886631106595546,
+    "scale": 9028
+   },
+   {
+    "level": 7,
+    "resolution": 1.1943315553297773,
+    "scale": 4514
+   },
+   {
+    "level": 8,
+    "resolution": 0.5971657776648887,
+    "scale": 2257
+   },
+   {
+    "level": 9,
+    "resolution": 0.2984505969011938,
+    "scale": 1128
+   },
+   {
+    "level": 10,
+    "resolution": 0.1492252984505969,
+    "scale": 564
+   },
+   {
+    "level": 11,
+    "resolution": 0.07461264922529845,
+    "scale": 282
+   },
+   {
+    "level": 12,
+    "resolution": 0.037306324612649225,
+    "scale": 141
+   }
+  ]
+ },
+ "initialExtent": {
+  "xmin": -25118.532690201202,
+  "ymin": 16440.814469532022,
+  "xmax": 125873.16313153996,
+  "ymax": 85073.40347941437,
+  "spatialReference": {
+   "wkid": 4547,
+   "latestWkid": 4547
+  }
+ },
+ "fullExtent": {
+  "xmin": -18255.273789212966,
+  "ymin": -6803.530316798482,
+  "xmax": 119009.9042305517,
+  "ymax": 72954.51596234785,
+  "spatialReference": {
+   "wkid": 4547,
+   "latestWkid": 4547
+  }
+ },
+ "minScale": 577792,
+ "maxScale": 1128,
+ "units": "esriMeters",
+ "supportedImageFormatTypes": "PNG32,PNG24,PNG,JPG,DIB,TIFF,EMF,PS,PDF,GIF,SVG,SVGZ,BMP",
+ "documentInfo": {
+  "Title": "",
+  "Author": "",
+  "Comments": "",
+  "Subject": "",
+  "Category": "",
+  "AntialiasingMode": "Best",
+  "TextAntialiasingMode": "Force",
+  "Keywords": ""
+ },
+ "capabilities": "Map,Query,Data",
+ "supportedQueryFormats": "JSON, AMF",
+ "exportTilesAllowed": false,
+ "maxRecordCount": 1000,
+ "maxImageHeight": 4096,
+ "maxImageWidth": 4096,
+ "supportedExtensions": ""
+}

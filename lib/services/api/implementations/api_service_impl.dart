@@ -36,6 +36,7 @@ import '../interfaces/signout_api_service.dart';
 import '../interfaces/dispatch_api_service.dart';
 import '../interfaces/return_api_service.dart';
 import '../interfaces/recovery_api_service.dart';
+import '../interfaces/map_api_service.dart';
 import 'auth_api_service_impl.dart';
 import 'install_api_service_impl.dart';
 import 'user_api_service_impl.dart';
@@ -44,6 +45,7 @@ import 'acceptance_api_service_impl.dart';
 import 'signout_api_service_impl.dart';
 import 'return_api_service_impl.dart';
 import 'recovery_api_service_impl.dart';
+import 'map_api_service_impl.dart';
 
 class ApiServiceImpl implements ApiServiceInterface {
   final Dio _dio;
@@ -66,6 +68,7 @@ class ApiServiceImpl implements ApiServiceInterface {
   RecoveryApiService? _recoveryApiService;
   SigninApiService? _signinApiService;
   TemporaryAuthApiService? _temporaryAuthApiService;
+  MapApiService? _mapApiService;
 
   ApiServiceImpl(this._dio);
 
@@ -137,4 +140,7 @@ class ApiServiceImpl implements ApiServiceInterface {
   @override
   TemporaryAuthApiService get temporaryAuth =>
       _temporaryAuthApiService ??= TemporaryAuthApiServiceImpl(_dio);
+
+  @override
+  MapApiService get mapApi => _mapApiService ??= MapApiServiceImpl(_dio);
 }

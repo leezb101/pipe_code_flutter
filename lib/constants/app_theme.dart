@@ -180,6 +180,12 @@ class AppTheme {
       case 'cut':
       case '切割':
         return cutColor;
+      case 'warehouse':
+      case '仓库':
+        return primaryColor;
+      case 'project':
+      case '项目':
+        return Color(0xFF4CAF50); // 绿色
       default:
         return primaryColor;
     }

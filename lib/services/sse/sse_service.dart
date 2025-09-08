@@ -180,6 +180,10 @@ class SseService {
   void _startListeningToMessages(EventFluxResponse? response) {
     _messageSubscription = response?.stream?.listen(
       (data) {
+        Logger.warning('SSE message received:\n $data \n', tag: _tag);
+        if (data.id == '' || data.data == '') {
+          return;
+        }
         _processSseMessage(data);
       },
       onError: (error) {

@@ -18,9 +18,13 @@ import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
 import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
 import 'package:pipe_code_flutter/cubits/temporary_auth.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
+import 'package:pipe_code_flutter/pages/arcgis/arcgis_page.dart';
 import 'package:pipe_code_flutter/pages/install/install_page.dart';
 import 'package:pipe_code_flutter/pages/install/install_detail_page.dart';
 import 'package:pipe_code_flutter/pages/material/material_lifecycle_page.dart';
+import 'package:pipe_code_flutter/pages/qmap/qmap.dart';
+import 'package:pipe_code_flutter/pages/qmap/warehouse_detail.dart';
+import 'package:pipe_code_flutter/pages/qmap/project_detail.dart';
 import 'package:pipe_code_flutter/pages/scrap/scrap_pages.dart';
 import 'package:pipe_code_flutter/pages/signin/signin_detail_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_audit_page.dart';
@@ -638,6 +642,42 @@ final GoRouter appRouter = GoRouter(
               create: (context) => getIt<TemporaryAuthCubit>(),
               child: const TemporaryAuthPage(),
             );
+          },
+        ),
+        GoRoute(
+          path: '/arcgis-map',
+          name: 'arcgis-map',
+          builder: (context, state) {
+            return const ArcgisPage();
+          },
+        ),
+        GoRoute(
+          path: '/qmap',
+          name: 'qmap',
+          builder: (context, state) => const Qmap(),
+        ),
+        GoRoute(
+          path: '/warehouseDetail',
+          name: 'warehouseDetail',
+          builder: (context, state) {
+            final idParam = state.uri.queryParameters['id'];
+            final warehouseId = idParam != null ? int.tryParse(idParam) : null;
+            if (warehouseId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return WarehouseDetailPage(warehouseId: warehouseId);
+          },
+        ),
+        GoRoute(
+          path: '/projectDetail',
+          name: 'projectDetail',
+          builder: (context, state) {
+            final idParam = state.uri.queryParameters['id'];
+            final projectId = idParam != null ? int.tryParse(idParam) : null;
+            if (projectId == null) {
+              return const Scaffold(body: Center(child: Text('参数错误')));
+            }
+            return ProjectDetailPage(projectId: projectId);
           },
         ),
       ],
