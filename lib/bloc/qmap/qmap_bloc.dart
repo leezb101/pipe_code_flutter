@@ -51,11 +51,17 @@ class QmapBloc extends Bloc<QmapEvent, QmapBlocState> {
           if (id == null || id.isEmpty) continue;
           final latStr = (e as Map)['lat']?.toString();
           final lngStr = e['lng']?.toString();
+          final name = e['name']?.toString() ?? '';
           newStoreMap[id] = {
             'id': id,
             'lat': double.tryParse(latStr ?? '0') ?? 0,
             'lng': double.tryParse(lngStr ?? '0') ?? 0,
-            'title': e['name']?.toString() ?? '',
+            'title': name, // 保留现有字段
+            'name': name, // 增加 name 字段，与 title 等价
+            'address': e['address']?.toString() ?? '',
+            'isRealWarehouse': e['isRealWarehouse'] ?? false,
+            // 保留所有原始字段
+            ...e,
           };
         }
 
@@ -107,11 +113,15 @@ class QmapBloc extends Bloc<QmapEvent, QmapBlocState> {
           if (id == null || id.isEmpty) continue;
           final latStr = (e as Map)['lat']?.toString();
           final lngStr = e['lng']?.toString();
+          final name = e['name']?.toString() ?? '';
           newProjectMap[id] = {
             'id': id,
             'lat': double.tryParse(latStr ?? '0') ?? 0,
             'lng': double.tryParse(lngStr ?? '0') ?? 0,
-            'title': e['name']?.toString() ?? '',
+            'title': name, // 保留现有字段
+            'name': name, // 增加 name 字段，与 title 等价
+            // 保留所有原始字段
+            ...e,
           };
         }
 
@@ -189,24 +199,25 @@ class QmapBloc extends Bloc<QmapEvent, QmapBlocState> {
 
   void _onMarkerTapped(MarkerTapped event, Emitter<QmapBlocState> emit) {
     final id = event.markerId;
-    if (id.startsWith('project_')) {
-      final projectId = id.replaceFirst('project_', '');
+    if (id.startsWith('project_marker_')) {
+      final projectId = id.replaceFirst('project_marker_', '');
+      Logger.debug('Tapped on project marker: $projectId');
+      // 不发出 toast 效果，只记录日志
+    } else if (id.startsWith('store_marker_')) {
+      final storeId = id.replaceFirst('store_marker_', '');
+      Logger.debug('Tapped on store marker: $storeId');
+      // 不发出 toast 效果，只记录日志
+    } else {
+      Logger.debug('Tapped on unknown marker: $id');
+      // 对于未知类型的 marker，可以考虑发出错误 toast
       emit(
         state.copyWith(
           effect: QmapEffect(
-            toastMessage: 'Tapped on project marker: $projectId',
+            toastMessage: 'Unknown marker type: $id',
+            error: true,
           ),
         ),
       );
-    } else if (id.startsWith('store_')) {
-      final storeId = id.replaceFirst('store_', '');
-      emit(
-        state.copyWith(
-          effect: QmapEffect(toastMessage: 'Tapped on store marker: $storeId'),
-        ),
-      );
-    } else {
-      Logger.debug('Tapped on unknown marker: $id');
     }
   }
 }

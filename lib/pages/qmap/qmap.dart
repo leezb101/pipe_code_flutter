@@ -219,25 +219,55 @@ class QmapState extends State<Qmap> {
   void _onTapMarker(String markerId) {
     // 将点击事件交给 BLoC 触发同样的提示效果
     if (!mounted || _blocCtx == null) return;
+
+    // 解析 markerId 确定类型和实际 ID
+    final state = _blocCtx!.read<QmapBloc>().state;
+    Widget? dialogContent;
+
+    if (markerId.startsWith('store_marker_')) {
+      final storeId = markerId.replaceFirst('store_marker_', '');
+      final storeData = state.stores.firstWhere(
+        (store) => store['id'].toString() == storeId,
+        orElse: () => <String, dynamic>{},
+      );
+
+      if (storeData.isNotEmpty) {
+        dialogContent = _buildStoreInfoDialog(storeData);
+      }
+    } else if (markerId.startsWith('project_marker_')) {
+      final projectId = markerId.replaceFirst('project_marker_', '');
+      final projectData = state.projects.firstWhere(
+        (project) => project['id'].toString() == projectId,
+        orElse: () => <String, dynamic>{},
+      );
+
+      if (projectData.isNotEmpty) {
+        dialogContent = _buildProjectInfoDialog(projectData);
+      }
+    }
+
+    // 如果找不到数据，显示默认信息
+    dialogContent ??= Container(
+      width: 250,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Marker Info',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 10),
+          Text('Marker ID: $markerId'),
+        ],
+      ),
+    );
+
     final overlay = Overlay.of(context);
     late OverlayEntry overlayEntry;
     overlayEntry = OverlayEntry(
       builder: (context) => OverlayedDialog(
-        child: Container(
-          width: 250,
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Marker Tapped',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 10),
-              Text('You tapped on marker with ID: $markerId'),
-            ],
-          ),
-        ),
+        child: dialogContent!,
         onClose: () {
           overlayEntry.remove();
         },
@@ -251,7 +281,10 @@ class QmapState extends State<Qmap> {
 
   void _addStoreMarkers(List<Map<String, dynamic>> storeInfos) {
     for (var storeInfo in storeInfos) {
-      var position = LatLng(storeInfo['lat'], storeInfo['lng']);
+      var position = LatLng(
+        double.tryParse(storeInfo['lat']?.toString() ?? '0') ?? 0,
+        double.tryParse(storeInfo['lng']?.toString() ?? '0') ?? 0,
+      );
       _mapController.addMarker(
         Marker(
           id: 'store_marker_${storeInfo['id']}',
@@ -275,7 +308,10 @@ class QmapState extends State<Qmap> {
 
   void _addProjectMarkers(List<Map<String, dynamic>> projectInfos) {
     for (var projectInfo in projectInfos) {
-      var position = LatLng(projectInfo['lat'], projectInfo['lng']);
+      var position = LatLng(
+        double.tryParse(projectInfo['lat']?.toString() ?? '0') ?? 0,
+        double.tryParse(projectInfo['lng']?.toString() ?? '0') ?? 0,
+      );
       _mapController.addMarker(
         Marker(
           id: 'project_marker_${projectInfo['id']}',
@@ -295,6 +331,108 @@ class QmapState extends State<Qmap> {
       // If SDK requires removal by bizId instead, uncomment next line and adjust
       // _mapController.removeMarkerByBizId('project_$id');
     }
+  }
+
+  // 构建仓库信息弹窗
+  Widget _buildStoreInfoDialog(Map<String, dynamic> storeData) {
+    final name =
+        storeData['name']?.toString() ??
+        storeData['title']?.toString() ??
+        '未知仓库';
+    final address = storeData['address']?.toString() ?? '地址未知';
+    final isRealWarehouse = storeData['isRealWarehouse'] ?? false;
+
+    return Container(
+      width: 280,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.warehouse, color: Colors.blue, size: 24),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '仓库信息',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildInfoRow('名称', name),
+          const SizedBox(height: 8),
+          _buildInfoRow('地址', address),
+          const SizedBox(height: 8),
+          _buildInfoRow('类型', isRealWarehouse ? '实体仓库' : '虚拟仓库'),
+        ],
+      ),
+    );
+  }
+
+  // 构建项目信息弹窗
+  Widget _buildProjectInfoDialog(Map<String, dynamic> projectData) {
+    final name =
+        projectData['name']?.toString() ??
+        projectData['title']?.toString() ??
+        '未知项目';
+    final id = projectData['id']?.toString() ?? '';
+
+    return Container(
+      width: 280,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.engineering, color: Colors.green, size: 24),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '项目信息',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildInfoRow('项目名称', name),
+          const SizedBox(height: 8),
+          _buildInfoRow('项目ID', id),
+        ],
+      ),
+    );
+  }
+
+  // 辅助方法：构建信息行
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 60,
+          child: Text(
+            '$label:',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+        Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
+      ],
+    );
   }
 
   void backToCurrentLocation() async {
