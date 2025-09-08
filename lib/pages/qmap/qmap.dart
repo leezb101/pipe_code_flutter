@@ -103,23 +103,29 @@ class QmapState extends State<Qmap> {
     {
       _mapController = controller;
 
-      // 定位到用户当前位置
-      try {
-        Future<Location> getValidLocation({int retries = 5}) async {
-          Location location = await _mapController.getUserLocation();
-          if (location.position.latitude == 0 &&
-              location.position.longitude == 0) {
-            if (retries > 0) {
-              await Future.delayed(const Duration(seconds: 1));
-              return await getValidLocation(retries: retries - 1);
-            } else {
-              throw Exception('无法获取有效的位置信息');
-            }
-          }
-          return location;
-        }
+      // // 定位到用户当前位置
+      // try {
+      //   Future<Location> getValidLocation({int retries = 5}) async {
+      //     Location location = await _mapController.getUserLocation();
+      //     if (location.position.latitude == 0 &&
+      //         location.position.longitude == 0) {
+      //       if (retries > 0) {
+      //         await Future.delayed(const Duration(seconds: 1));
+      //         return await getValidLocation(retries: retries - 1);
+      //       } else {
+      //         throw Exception('无法获取有效的位置信息');
+      //       }
+      //     }
+      //     return location;
+      //   }
+      //
+      //   final location = await getValidLocation();
 
-        final location = await getValidLocation();
+      try {
+        final location = await controller.getUserLocationWithRetry(
+          maxRetries: 5,
+          retryDelay: const Duration(seconds: 1),
+        );
         _mapController.moveCamera(
           CameraPosition(position: location.position, zoom: 13),
         );
@@ -128,12 +134,9 @@ class QmapState extends State<Qmap> {
         final bounds = await _mapController.getVisibleRegion();
         Logger.debug('当前视野范围: $bounds');
       } catch (e) {
-        // 处理获取位置失败的情况
-        Logger.error('获取位置失败: $e');
-        if (!context.mounted) {
-          return;
+        if (context.mounted) {
+          context.showErrorToast('获取位置失败: $e');
         }
-        context.showErrorToast('获取位置失败: $e');
       }
     }
   }
