@@ -6,4 +6,12 @@ abstract class MapApiService {
     double lng,
     double radius,
   );
+
+  Future<Result<List<dynamic>>> fetchMapProjects(
+    double lat,
+    double lng,
+    double radius,
+  );
+
+  Future<Result<Map<String, dynamic>>> fetchMapWarehouseDetail(int id);
 }

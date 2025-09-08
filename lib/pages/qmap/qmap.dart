@@ -69,6 +69,14 @@ class QmapState extends State<Qmap> {
                   effect!.storesToAdd!.isNotEmpty) {
                 _addStoreMarkers(effect.storesToAdd!);
               }
+              if (effect?.projectIdsToRemove != null &&
+                  effect!.projectIdsToRemove!.isNotEmpty) {
+                _removeProjectMarkersByIds(effect.projectIdsToRemove!);
+              }
+              if (effect?.projectsToAdd != null &&
+                  effect!.projectsToAdd!.isNotEmpty) {
+                _addProjectMarkers(effect.projectsToAdd!);
+              }
             },
             child: Scaffold(
               appBar: AppBar(title: const Text('地图')),
@@ -102,24 +110,6 @@ class QmapState extends State<Qmap> {
   ) async {
     {
       _mapController = controller;
-
-      // // 定位到用户当前位置
-      // try {
-      //   Future<Location> getValidLocation({int retries = 5}) async {
-      //     Location location = await _mapController.getUserLocation();
-      //     if (location.position.latitude == 0 &&
-      //         location.position.longitude == 0) {
-      //       if (retries > 0) {
-      //         await Future.delayed(const Duration(seconds: 1));
-      //         return await getValidLocation(retries: retries - 1);
-      //       } else {
-      //         throw Exception('无法获取有效的位置信息');
-      //       }
-      //     }
-      //     return location;
-      //   }
-      //
-      //   final location = await getValidLocation();
 
       try {
         final location = await controller.getUserLocationWithRetry(
@@ -199,6 +189,33 @@ class QmapState extends State<Qmap> {
     return null;
   }
 
+  Future<List?> fetchProjects(LatLng center, double r) async {
+    final lat = center.latitude;
+    final lng = center.longitude;
+    final radius = r;
+
+    try {
+      final result = await _apiservice.fetchMapProjects(lat, lng, radius);
+      if (result.isSuccess) {
+        Logger.debug('Fetched projects: ${result.data}');
+        return result.data;
+      } else {
+        Logger.error('Failed to fetch projects: ${result.msg}');
+        if (!mounted) {
+          return null;
+        }
+        context.showErrorToast('Failed to fetch projects: ${result.msg}');
+      }
+    } catch (e) {
+      Logger.error('Error fetching projects: $e');
+      if (!mounted) {
+        return null;
+      }
+      context.showErrorToast('Error fetching projects: $e');
+    }
+    return null;
+  }
+
   void _onTapMarker(String markerId) {
     // 将点击事件交给 BLoC 触发同样的提示效果
     if (!mounted || _blocCtx == null) return;
@@ -253,6 +270,30 @@ class QmapState extends State<Qmap> {
       _mapController.removeMarker('store_marker_$id');
       // If SDK requires removal by bizId instead, uncomment next line and adjust
       // _mapController.removeMarkerByBizId('store_$id');
+    }
+  }
+
+  void _addProjectMarkers(List<Map<String, dynamic>> projectInfos) {
+    for (var projectInfo in projectInfos) {
+      var position = LatLng(projectInfo['lat'], projectInfo['lng']);
+      _mapController.addMarker(
+        Marker(
+          id: 'project_marker_${projectInfo['id']}',
+          bizId: 'project_${projectInfo['id']}',
+          title: projectInfo['title'],
+          position: position,
+          icon: Bitmap(asset: "images/proj.png"), // 使用不同的图标
+        ),
+      );
+    }
+  }
+
+  void _removeProjectMarkersByIds(List<String> projectIds) {
+    for (final id in projectIds) {
+      // Remove by the marker id we assigned in addMarker
+      _mapController.removeMarker('project_marker_$id');
+      // If SDK requires removal by bizId instead, uncomment next line and adjust
+      // _mapController.removeMarkerByBizId('project_$id');
     }
   }
 

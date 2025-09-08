@@ -11,4 +11,14 @@ class MockMapApiService implements MapApiService {
     // TODO: implement fetchMapWarehouses
     throw UnimplementedError();
   }
+
+  @override
+  Future<Result<List>> fetchMapProjects(double lat, double lng, double radius) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Result<Map<String, dynamic>>> fetchMapWarehouseDetail(int id) {
+    throw UnimplementedError();
+  }
 }
