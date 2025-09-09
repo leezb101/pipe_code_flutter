@@ -11,8 +11,8 @@ MapProjectBase _$MapProjectBaseFromJson(Map<String, dynamic> json) =>
       projectId: (json['projectId'] as num).toInt(),
       projectName: json['projectName'] as String,
       projectCode: json['projectCode'] as String?,
-      startTime: json['startTime'] as String?,
-      auditTime: json['auditTime'] as String?,
+      startTime: (json['startTime'] as num?)?.toInt(),
+      auditTime: (json['auditTime'] as num?)?.toInt(),
       address: json['address'] as String?,
       construct: (json['construct'] as List<dynamic>?)
           ?.map((e) => SimpleOrg.fromJson(e as Map<String, dynamic>))

@@ -136,7 +136,7 @@ class MapApiServiceImpl extends BaseApiService implements MapApiService {
   @override
   Future<Result<List<MapProjectMaterialStatisticItem>>>
   fetchMapProjectMaterialStatistics(int id) async {
-    final response = await dio.get('/project/statistic/$id/material');
+    final response = await dio.get('/project/statistic/$id/detail');
     if (response.data != null) {
       final result = Result.safeFromJson(
         response.data,

@@ -10,8 +10,8 @@ class MapProjectBase extends Equatable {
   final int projectId; // 必填
   final String projectName; // 必填
   final String? projectCode;
-  final String? startTime;
-  final String? auditTime;
+  final int? startTime;
+  final int? auditTime;
   final String? address;
   final List<SimpleOrg>? construct;
   final List<SimpleOrg>? builder;
