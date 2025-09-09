@@ -13,7 +13,8 @@ class ChangePasswordApiServiceImpl extends BaseApiService
     try {
       final response = await dio.get('/mu/sms');
       if (response.data != null) {
-        final smsCode = response.headers['sms-code']?.first;
+        final headers = response.headers;
+        final smsCode = headers['sms_code']?.first;
         if (response.data['code'] == 0 && smsCode != null) {
           return Result(
             code: response.data['code'],
@@ -42,7 +43,7 @@ class ChangePasswordApiServiceImpl extends BaseApiService
     try {
       return dio
           .post(
-            '/mu/password',
+            '/mu/edit',
             data: {'password': password, 'code': code},
             options: Options(headers: {'sms_code': smsCode}),
           )

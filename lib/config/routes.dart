@@ -71,6 +71,7 @@ import '../pages/inventory/inventory_detail_page.dart';
 import '../pages/notification/pending_todo_list_page.dart';
 import '../pages/storekeeper/storekeeper_non_project_page.dart';
 import '../bloc/storekeeper_non_project/storekeeper_non_project_bloc.dart';
+import '../pages/profile/change_password_page.dart';
 import 'service_locator.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -705,6 +706,11 @@ final GoRouter appRouter = GoRouter(
           child: const StorekeeperNonProjectPage(),
         );
       },
+    ),
+    GoRoute(
+      path: '/change-password',
+      name: 'change-password',
+      builder: (context, state) => const ChangePasswordPage(),
     ),
   ],
 );

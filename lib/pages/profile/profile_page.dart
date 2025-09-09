@@ -111,6 +111,16 @@ class _ProfilePageState extends State<ProfilePage> {
                         },
                       ),
                     ),
+                    Card(
+                      child: ListTile(
+                        leading: Icon(Icons.lock_reset_outlined),
+                        title: Text('修改密码'),
+                        trailing: Icon(Icons.arrow_forward_ios),
+                        onTap: () {
+                          context.pushNamed('change-password');
+                        },
+                      ),
+                    ),
                   ] else if (userState is UserLoading) ...[
                     const Card(
                       child: ListTile(
