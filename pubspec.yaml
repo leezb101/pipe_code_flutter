@@ -86,6 +86,7 @@ dependencies:
   path: ^1.9.1
   screenshot: ^3.0.0
   haversine_distance: ^1.2.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

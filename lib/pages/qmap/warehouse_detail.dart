@@ -12,6 +12,7 @@ import 'package:pipe_code_flutter/utils/logger.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class WarehouseDetailPage extends StatefulWidget {
   final int warehouseId;
@@ -132,41 +133,12 @@ class _WarehouseDetailPageState extends State<WarehouseDetailPage> {
   }
 
   Widget _buildHeaderCard() {
-    final isRealWarehouse = _warehouseDetail?['isRealWarehouse'] ?? false;
-
     return UnifiedCard(
       title: '仓库概览',
       icon: Icons.warehouse,
       businessType: 'warehouse',
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingMedium,
-                  vertical: AppTheme.spacingSmall,
-                ),
-                decoration: BoxDecoration(
-                  color: isRealWarehouse
-                      ? Colors.blue[100]
-                      : Colors.orange[100],
-                  borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-                ),
-                child: Text(
-                  isRealWarehouse ? '实体仓库' : '虚拟仓库',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isRealWarehouse
-                        ? Colors.blue[700]
-                        : Colors.orange[700],
-                  ),
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: AppTheme.spacingMedium),
           _buildSummaryInfo(),
         ],
@@ -177,6 +149,7 @@ class _WarehouseDetailPageState extends State<WarehouseDetailPage> {
   Widget _buildSummaryInfo() {
     final name = _warehouseDetail?['name']?.toString() ?? '未知仓库';
     final warehouseUsers = _warehouseDetail?['warehouseUsers'] as List? ?? [];
+    final isRealWarehouse = _warehouseDetail?['isRealWarehouse'] ?? false;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -192,12 +165,41 @@ class _WarehouseDetailPageState extends State<WarehouseDetailPage> {
               Icon(Icons.business, size: 16, color: Colors.grey[600]),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Row(
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingMedium,
+                        vertical: AppTheme.spacingSmall,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isRealWarehouse
+                            ? Colors.blue[100]
+                            : Colors.orange[100],
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusLarge,
+                        ),
+                      ),
+                      child: Text(
+                        isRealWarehouse ? '实体仓库' : '虚拟仓库',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isRealWarehouse
+                              ? Colors.blue[700]
+                              : Colors.orange[700],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -233,12 +235,6 @@ class _WarehouseDetailPageState extends State<WarehouseDetailPage> {
       businessType: 'warehouse',
       child: Column(
         children: [
-          InfoRow(
-            label: '仓库ID',
-            value: id,
-            icon: Icons.tag,
-            iconColor: AppTheme.getBusinessColor('warehouse'),
-          ),
           const SizedBox(height: AppTheme.spacingMedium),
           InfoRow(
             label: '仓库名称',
@@ -315,22 +311,6 @@ class _WarehouseDetailPageState extends State<WarehouseDetailPage> {
             onPressed: () => _openInMap(lat, lng),
             icon: const Icon(Icons.navigation, size: 18),
             label: const Text('地图导航'),
-          ),
-        ),
-        const SizedBox(width: AppTheme.spacingMedium),
-        Expanded(
-          child: OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppTheme.getBusinessColor('warehouse'),
-              side: BorderSide(color: AppTheme.getBusinessColor('warehouse')),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-              ),
-            ),
-            onPressed: () => _copyCoordinates(lat, lng),
-            icon: const Icon(Icons.copy, size: 18),
-            label: const Text('复制坐标'),
           ),
         ),
       ],
@@ -414,13 +394,6 @@ class _WarehouseDetailPageState extends State<WarehouseDetailPage> {
                     color: Colors.black87,
                   ),
                 ),
-                if (id.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    'ID: $id',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                ],
                 if (phone.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(
@@ -451,16 +424,12 @@ class _WarehouseDetailPageState extends State<WarehouseDetailPage> {
     Logger.debug('Open navigation to: $lat, $lng');
   }
 
-  void _copyCoordinates(String lat, String lng) {
-    // TODO: 实现复制坐标功能
-    final coordinates = '$lat, $lng';
-    context.showSuccessToast('坐标已复制: $coordinates');
-    Logger.debug('Copied coordinates: $coordinates');
-  }
-
-  void _callPhone(String phone) {
-    // TODO: 实现拨打电话功能
-    context.showInfoToast('拨打电话: $phone');
-    Logger.debug('Call phone: $phone');
+  void _callPhone(String phone) async {
+    final telUrl = 'tel:$phone';
+    if (await canLaunchUrl(Uri.parse(telUrl))) {
+      await launchUrl(Uri.parse(telUrl));
+    } else {
+      if (mounted) context.showErrorToast('暂时无法拨打电话: $phone');
+    }
   }
 }

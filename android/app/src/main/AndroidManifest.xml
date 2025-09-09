@@ -27,6 +27,8 @@
   <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
   <!-- A-GPS辅助定位权限，方便GPS快速准确定位 -->
   <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS"/>
+  <!-- 拨打电话 -->
+  <uses-permission android:name="android.permission.CALL_PHONE"/>
 
 
 
