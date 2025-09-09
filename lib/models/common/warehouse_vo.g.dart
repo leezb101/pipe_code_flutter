@@ -11,6 +11,8 @@ WarehouseVO _$WarehouseVOFromJson(Map<String, dynamic> json) => WarehouseVO(
   name: json['name'] as String,
   address: json['address'] as String,
   isRealWarehouse: json['isRealWarehouse'] as bool,
+  lat: json['lat'] as String?,
+  lng: json['lng'] as String?,
 );
 
 Map<String, dynamic> _$WarehouseVOToJson(WarehouseVO instance) =>
@@ -19,4 +21,6 @@ Map<String, dynamic> _$WarehouseVOToJson(WarehouseVO instance) =>
       'name': instance.name,
       'address': instance.address,
       'isRealWarehouse': instance.isRealWarehouse,
+      'lat': instance.lat,
+      'lng': instance.lng,
     };

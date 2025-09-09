@@ -16,12 +16,16 @@ class WarehouseVO extends Equatable {
   final String name;
   final String address;
   final bool isRealWarehouse;
+  final String? lat;
+  final String? lng;
 
   const WarehouseVO({
     required this.id,
     required this.name,
     required this.address,
     required this.isRealWarehouse,
+    this.lat,
+    this.lng,
   });
 
   factory WarehouseVO.fromJson(Map<String, dynamic> json) =>
@@ -30,5 +34,5 @@ class WarehouseVO extends Equatable {
   Map<String, dynamic> toJson() => _$WarehouseVOToJson(this);
 
   @override
-  List<Object?> get props => [id, name, address, isRealWarehouse];
+  List<Object?> get props => [id, name, address, isRealWarehouse, lat, lng];
 }
