@@ -13,6 +13,8 @@ import 'package:pipe_code_flutter/bloc/qmap/qmap_bloc.dart';
 import 'package:pipe_code_flutter/bloc/qmap/qmap_event.dart';
 import 'package:pipe_code_flutter/bloc/qmap/qmap_state.dart';
 import 'package:pipe_code_flutter/widgets/overlayed_dialog.dart';
+import 'package:pipe_code_flutter/bloc/enum/enum_cubit.dart';
+import 'package:pipe_code_flutter/models/common/common_enum_vo.dart';
 import 'dart:async';
 
 class Qmap extends StatefulWidget {
@@ -392,15 +394,19 @@ class QmapState extends State<Qmap> {
     Map<String, dynamic> projectData,
     VoidCallback? onClose,
   ) {
-    final name =
+    // 解析项目数据
+    final projectName =
+        projectData['projectName']?.toString() ??
         projectData['name']?.toString() ??
         projectData['title']?.toString() ??
         '未知项目';
-    final id = projectData['id']?.toString() ?? '';
+    final projectStart = projectData['projectStart']?.toString() ?? '';
+    final createdName = projectData['createdName']?.toString() ?? '未知';
+    final status = projectData['status'] as int? ?? 0;
 
     return Container(
-      width: 280,
-      padding: const EdgeInsets.all(8),
+      width: 300,
+      padding: const EdgeInsets.all(12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,23 +427,71 @@ class QmapState extends State<Qmap> {
             ],
           ),
           const SizedBox(height: 16),
-          _buildInfoRow('项目名称', name),
+          _buildInfoRow('项目名称', projectName),
           const SizedBox(height: 8),
-          _buildInfoRow('项目ID', id),
+          _buildInfoRow('开工时间', _formatProjectDate(projectStart)),
           const SizedBox(height: 8),
+          _buildInfoRow('负责人', createdName),
+          const SizedBox(height: 8),
+          // 使用 BlocBuilder 获取项目状态名称
+          BlocBuilder<EnumCubit, EnumState>(
+            builder: (context, enumState) {
+              String statusName = '未知状态';
+              if (enumState.status == EnumStatus.success &&
+                  enumState.projectStatuses != null) {
+                final projectStatus = ProjectStatus.fromInt(status);
+                statusName = projectStatus?.name ?? '未知状态($status)';
+              }
+              return _buildInfoRow('项目状态', statusName);
+            },
+          ),
+          const SizedBox(height: 12),
           _buildDetailButton(projectData['id'] as int?, 'project', onClose),
         ],
       ),
     );
   }
 
+  // 辅助方法：格式化项目日期
+  String _formatProjectDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) {
+      return '未设置';
+    }
+
+    try {
+      // 尝试解析为时间戳（毫秒）
+      final timestamp = int.tryParse(dateStr);
+      if (timestamp != null) {
+        final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+        return '${date.year.toString().padLeft(4, '0')}-'
+            '${date.month.toString().padLeft(2, '0')}-'
+            '${date.day.toString().padLeft(2, '0')}';
+      }
+
+      // 尝试解析为 ISO 8601 格式
+      final date = DateTime.tryParse(dateStr);
+      if (date != null) {
+        return '${date.year.toString().padLeft(4, '0')}-'
+            '${date.month.toString().padLeft(2, '0')}-'
+            '${date.day.toString().padLeft(2, '0')}';
+      }
+
+      // 如果都失败了，返回原始值
+      return dateStr;
+    } catch (e) {
+      // 解析失败，返回原始值
+      return dateStr;
+    }
+  }
+
   // 辅助方法：构建信息行
   Widget _buildInfoRow(String label, String value) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 60,
+          width: 100,
           child: Text(
             '$label:',
             style: const TextStyle(
