@@ -17,22 +17,42 @@ import 'package:pipe_code_flutter/pages/qmap/project_users.dart';
 import 'package:pipe_code_flutter/models/common/org_models.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
 
-class ProjectDetailPage extends StatelessWidget {
+class ProjectDetailPage extends StatefulWidget {
   final int projectId;
 
   const ProjectDetailPage({super.key, required this.projectId});
+
+  @override
+  State<ProjectDetailPage> createState() => _ProjectDetailPageState();
+}
+
+class _ProjectDetailPageState extends State<ProjectDetailPage> {
+  // 管理各组织类型的展开状态
+  final Map<String, bool> _expandedStates = {
+    'construct': false,
+    'builder': false,
+    'supervisor': false,
+    'suppliers': false,
+  };
+
+  /// 切换展开状态
+  void _toggleExpanded(String orgType) {
+    setState(() {
+      _expandedStates[orgType] = !(_expandedStates[orgType] ?? false);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
           ProjectDetailBloc(mapApiService: getIt<MapApiService>())
-            ..add(LoadProjectDetail(projectId: projectId)),
+            ..add(LoadProjectDetail(projectId: widget.projectId)),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('项目详情'),
           elevation: 0,
-          backgroundColor: AppTheme.getBusinessColor('project'),
+          backgroundColor: AppTheme.primaryColor,
           foregroundColor: Colors.white,
           iconTheme: const IconThemeData(color: Colors.white),
           actions: [
@@ -43,7 +63,7 @@ class ProjectDetailPage extends StatelessWidget {
                       ? null
                       : () {
                           context.read<ProjectDetailBloc>().add(
-                            RefreshProjectDetail(projectId: projectId),
+                            RefreshProjectDetail(projectId: widget.projectId),
                           );
                         },
                   icon: state.hasAnyLoading
@@ -98,7 +118,7 @@ class ProjectDetailPage extends StatelessWidget {
             return RefreshIndicator(
               onRefresh: () async {
                 context.read<ProjectDetailBloc>().add(
-                  RefreshProjectDetail(projectId: projectId),
+                  RefreshProjectDetail(projectId: widget.projectId),
                 );
               },
               child: ListView(
@@ -182,7 +202,7 @@ class ProjectDetailPage extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: () {
                   context.read<ProjectDetailBloc>().add(
-                    LoadProjectDetail(projectId: projectId),
+                    LoadProjectDetail(projectId: widget.projectId),
                   );
                 },
                 icon: const Icon(Icons.refresh, size: 16),
@@ -278,6 +298,8 @@ class ProjectDetailPage extends StatelessWidget {
             projectBase.construct!,
             Icons.account_balance,
             state.projectId!,
+            'construct',
+            false,
           ),
         ],
         if (projectBase.builder != null && projectBase.builder!.isNotEmpty) ...[
@@ -288,6 +310,8 @@ class ProjectDetailPage extends StatelessWidget {
             projectBase.builder!,
             Icons.construction,
             state.projectId!,
+            'builder',
+            false,
           ),
         ],
         if (projectBase.supervisor != null &&
@@ -299,6 +323,21 @@ class ProjectDetailPage extends StatelessWidget {
             projectBase.supervisor!,
             Icons.visibility,
             state.projectId!,
+            'supervisor',
+            false,
+          ),
+        ],
+        if (projectBase.suppliers != null &&
+            projectBase.suppliers!.isNotEmpty) ...[
+          const SizedBox(height: AppTheme.spacingMedium),
+          _buildOrgSection(
+            context,
+            '供应商',
+            projectBase.suppliers!,
+            Icons.local_shipping,
+            state.projectId!,
+            'suppliers',
+            true,
           ),
         ],
       ],
@@ -312,19 +351,80 @@ class ProjectDetailPage extends StatelessWidget {
     List<SimpleOrg> orgs,
     IconData icon,
     int projectId,
+    String orgType,
+    bool isSupplier,
   ) {
+    final isExpanded = _expandedStates[orgType] ?? false;
+    final hasMultipleItems = orgs.length > 1;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: AppTheme.labelLarge.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppTheme.getBusinessColor('project'),
+        // 标题行
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: hasMultipleItems ? () => _toggleExpanded(orgType) : null,
+            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: AppTheme.spacingSmall,
+                horizontal: AppTheme.spacingSmall,
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    title,
+                    style: AppTheme.labelLarge.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.getBusinessColor('project'),
+                    ),
+                  ),
+                  if (hasMultipleItems) ...[
+                    const SizedBox(width: AppTheme.spacingSmall),
+                    Text(
+                      '(${orgs.length})',
+                      style: AppTheme.labelMedium.copyWith(
+                        color: AppTheme.getBusinessColor(
+                          'project',
+                        ).withValues(alpha: 0.7),
+                      ),
+                    ),
+                    const Spacer(),
+                    AnimatedRotation(
+                      turns: isExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        Icons.keyboard_arrow_down,
+                        color: AppTheme.getBusinessColor('project'),
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
         const SizedBox(height: AppTheme.spacingSmall),
-        ...orgs.map((org) => _buildOrgItem(context, org, icon, projectId)),
+        // 内容区域
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: Column(
+            children: [
+              // 如果只有一个item或者已展开，显示所有items
+              if (!hasMultipleItems || isExpanded)
+                ...orgs.map(
+                  (org) =>
+                      _buildOrgItem(context, org, icon, projectId, isSupplier),
+                ),
+              // 如果有多个item且未展开，只显示第一个
+              // else if (hasMultipleItems && !isExpanded)
+              // _buildOrgItem(context, orgs.first, icon, projectId, isSupplier),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -335,32 +435,39 @@ class ProjectDetailPage extends StatelessWidget {
     SimpleOrg org,
     IconData icon,
     int projectId,
+    bool isSupplier,
   ) {
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spacingSmall),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProjectUsersPage(
-                  projectId: projectId,
-                  code: org.code,
-                  orgName: org.name,
-                ),
-              ),
-            );
-          },
+          onTap: isSupplier
+              ? null
+              : () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProjectUsersPage(
+                        projectId: projectId,
+                        code: org.code,
+                        orgName: org.name,
+                      ),
+                    ),
+                  );
+                },
           borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
           child: Container(
             padding: const EdgeInsets.all(AppTheme.spacingMedium),
             decoration: BoxDecoration(
-              color: AppTheme.getBusinessColorLight('project'),
+              color: isSupplier
+                  ? AppTheme.grey100
+                  : AppTheme.getBusinessColorLight('project'),
               borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               border: Border.all(
-                color: AppTheme.getBusinessColorMedium('project'),
+                color: isSupplier
+                    ? AppTheme.grey300
+                    : AppTheme.getBusinessColorMedium('project'),
               ),
             ),
             child: Row(
@@ -368,7 +475,9 @@ class ProjectDetailPage extends StatelessWidget {
                 Icon(
                   icon,
                   size: 20,
-                  color: AppTheme.getBusinessColor('project'),
+                  color: isSupplier
+                      ? AppTheme.grey600
+                      : AppTheme.getBusinessColor('project'),
                 ),
                 const SizedBox(width: AppTheme.spacingMedium),
                 Expanded(
@@ -379,6 +488,7 @@ class ProjectDetailPage extends StatelessWidget {
                         org.name,
                         style: AppTheme.bodyMedium.copyWith(
                           fontWeight: FontWeight.w600,
+                          color: isSupplier ? AppTheme.grey700 : null,
                         ),
                       ),
                       const SizedBox(height: AppTheme.spacingXSmall),
@@ -391,11 +501,12 @@ class ProjectDetailPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: AppTheme.grey400,
-                ),
+                if (!isSupplier)
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: AppTheme.grey400,
+                  ),
               ],
             ),
           ),
@@ -463,7 +574,7 @@ class ProjectDetailPage extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: () {
                   context.read<ProjectDetailBloc>().add(
-                    LoadProjectDetail(projectId: projectId),
+                    LoadProjectDetail(projectId: widget.projectId),
                   );
                 },
                 icon: const Icon(Icons.refresh, size: 16),
@@ -649,7 +760,7 @@ class ProjectDetailPage extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: () {
                   context.read<ProjectDetailBloc>().add(
-                    LoadProjectDetail(projectId: projectId),
+                    LoadProjectDetail(projectId: widget.projectId),
                   );
                 },
                 icon: const Icon(Icons.refresh, size: 16),
