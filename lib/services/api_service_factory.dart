@@ -6,10 +6,8 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 
-import 'dart:io';
-
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
+import 'package:pipe_code_flutter/services/api/implementations/change_password_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/enum_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/install_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/inventory_api_service_impl.dart';
@@ -17,6 +15,7 @@ import 'package:pipe_code_flutter/services/api/implementations/map_api_service_i
 import 'package:pipe_code_flutter/services/api/implementations/scrap_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/signout_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/temporary_auth_api_service_impl.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/chanage_password_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/inventory_api_service.dart';
@@ -280,6 +279,11 @@ class ApiServiceFactory {
       final dio = _createDio();
       return MapApiServiceImpl(dio);
     }
+  }
+
+  static ChangePasswordApiService createChangePasswordService() {
+    final dio = _createDio();
+    return ChangePasswordApiServiceImpl(dio);
   }
 
   static Dio _createDio() {

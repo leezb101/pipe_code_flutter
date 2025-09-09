@@ -34,7 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: const Text('我的'),
         actions: [
           IconButton(
             icon: const Icon(Icons.cleaning_services_outlined),

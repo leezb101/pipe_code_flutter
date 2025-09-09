@@ -6,11 +6,13 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
+import 'package:pipe_code_flutter/services/api/implementations/change_password_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/inventory_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/project_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/scrap_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/signin_api_service_impl.dart';
 import 'package:pipe_code_flutter/services/api/implementations/temporary_auth_api_service_impl.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/chanage_password_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/cut_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/project_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
@@ -69,6 +71,7 @@ class ApiServiceImpl implements ApiServiceInterface {
   SigninApiService? _signinApiService;
   TemporaryAuthApiService? _temporaryAuthApiService;
   MapApiService? _mapApiService;
+  ChangePasswordApiService? _changePasswordApiService;
 
   ApiServiceImpl(this._dio);
 
@@ -143,4 +146,8 @@ class ApiServiceImpl implements ApiServiceInterface {
 
   @override
   MapApiService get mapApi => _mapApiService ??= MapApiServiceImpl(_dio);
+
+  @override
+  ChangePasswordApiService get changePassword =>
+      _changePasswordApiService ??= ChangePasswordApiServiceImpl(_dio);
 }

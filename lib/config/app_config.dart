@@ -101,7 +101,7 @@ class AppConfig {
       case Environment.staging:
         return 'https://staging-api.example.com';
       case Environment.production:
-        return 'https://api.example.com';
+        return 'http://10.3.6.235/m';
     }
   }
 
