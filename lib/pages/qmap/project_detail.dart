@@ -122,7 +122,10 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                 );
               },
               child: ListView(
-                padding: const EdgeInsets.all(AppTheme.spacingLarge),
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppTheme.spacingLarge,
+                  horizontal: AppTheme.spacingSmall,
+                ),
                 children: [
                   // 项目基础信息 - 独立状态
                   _buildProjectBasicInfoSection(context, state),
@@ -611,60 +614,31 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     final statistic = state.projectStatistic!;
 
     return GridView.count(
-      crossAxisCount: 3,
+      crossAxisCount: 4,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 1.0,
+      childAspectRatio: 0.8,
       mainAxisSpacing: AppTheme.spacingMedium,
       crossAxisSpacing: AppTheme.spacingMedium,
       children: [
+        _buildStatisticCard('材料总数(计截断)', statistic.num ?? 0, Colors.blue),
         _buildStatisticCard(
-          '项目内材料数量(不包括载具)',
-          statistic.num ?? 0,
-          Icons.inventory,
-          Colors.blue,
+          '材料总数(不计截断)',
+          statistic.num2 ?? 0,
+          Colors.lightBlue,
         ),
-        _buildStatisticCard(
-          '安装数量',
-          statistic.installNum ?? 0,
-          Icons.build,
-          Colors.green,
-        ),
-        _buildStatisticCard(
-          '1次收次数',
-          statistic.acceptTimes ?? 0,
-          Icons.done_all,
-          Colors.orange,
-        ),
-        _buildStatisticCard(
-          '载货数量',
-          statistic.acceptNum ?? 0,
-          Icons.local_shipping,
-          Colors.purple,
-        ),
-        _buildStatisticCard(
-          '退回数量',
-          statistic.backNum ?? 0,
-          Icons.undo,
-          Colors.red,
-        ),
-        _buildStatisticCard(
-          '废弃数量',
-          statistic.destroyNum ?? 0,
-          Icons.delete_forever,
-          Colors.grey,
-        ),
+        _buildStatisticCard('验收次数', statistic.acceptTimes ?? 0, Colors.orange),
+        _buildStatisticCard('验收数量', statistic.acceptNum ?? 0, Colors.purple),
+        _buildStatisticCard('安装数量', statistic.installNum ?? 0, Colors.green),
+        _buildStatisticCard('退回数量', statistic.backNum ?? 0, Colors.red),
+        _buildStatisticCard('截管数量', statistic.cutNum ?? 0, Colors.indigo),
+        _buildStatisticCard('报废数量', statistic.destroyNum ?? 0, Colors.grey),
       ],
     );
   }
 
   /// 构建统计卡片
-  Widget _buildStatisticCard(
-    String title,
-    int value,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildStatisticCard(String title, int value, Color color) {
     return Container(
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
@@ -675,12 +649,11 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
         padding: const EdgeInsets.all(AppTheme.spacingSmall),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: AppTheme.spacingXSmall),
             Text(
               value.toString(),
-              style: AppTheme.titleSmall.copyWith(
+              style: AppTheme.titleMedium.copyWith(
                 color: color,
                 fontWeight: FontWeight.bold,
               ),
