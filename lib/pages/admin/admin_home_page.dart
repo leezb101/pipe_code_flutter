@@ -208,24 +208,24 @@ class _AdminHomePageState extends State<AdminHomePage> {
           color: Colors.blue,
           onTap: () => _showComingSoon(context, '待办事项'),
         ),
-        const SizedBox(height: 12),
-        _buildModuleCard(
-          context: context,
-          title: '数据统计',
-          subtitle: '查看系统运营数据',
-          icon: Icons.analytics,
-          color: Colors.purple,
-          onTap: () => _showComingSoon(context, '数据统计'),
-        ),
-        const SizedBox(height: 12),
-        _buildModuleCard(
-          context: context,
-          title: '系统管理',
-          subtitle: '系统配置与管理',
-          icon: Icons.settings,
-          color: Colors.grey,
-          onTap: () => _showComingSoon(context, '系统管理'),
-        ),
+        // const SizedBox(height: 12),
+        // _buildModuleCard(
+        //   context: context,
+        //   title: '数据统计',
+        //   subtitle: '查看系统运营数据',
+        //   icon: Icons.analytics,
+        //   color: Colors.purple,
+        //   onTap: () => _showComingSoon(context, '数据统计'),
+        // ),
+        // const SizedBox(height: 12),
+        // _buildModuleCard(
+        //   context: context,
+        //   title: '系统管理',
+        //   subtitle: '系统配置与管理',
+        //   icon: Icons.settings,
+        //   color: Colors.grey,
+        //   onTap: () => _showComingSoon(context, '系统管理'),
+        // ),
       ],
     );
   }
@@ -334,18 +334,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
         ),
       ),
     );
-  }
-
-  /// 导航到扫码页面
-  void _navigateToQrScan(BuildContext context) {
-    // 使用原有的扫码配置进行扫码识别
-    final config = QrScanConfig(
-      title: '扫码识别',
-      scanMode: QrScanMode.single,
-      context: {'biz': 'identify'}, // 将业务类型放在context中
-    );
-
-    context.pushNamed('qr-scan', extra: config);
   }
 
   /// 导航到扫码页面（使用GoRouter）
