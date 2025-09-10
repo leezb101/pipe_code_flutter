@@ -116,11 +116,11 @@ class StorekeeperHomePage extends StatelessWidget {
           const SizedBox(height: 24),
 
           // 功能模块（预留）
-          _buildFunctionModules(context),
-          const SizedBox(height: 24),
+          // _buildFunctionModules(context),
+          // const SizedBox(height: 24),
 
           // 统计概览（预留）
-          _buildStatisticsOverview(context),
+          // _buildStatisticsOverview(context),
         ],
       ),
     );
@@ -213,10 +213,10 @@ class StorekeeperHomePage extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _buildActionCard(
-                title: '出库',
-                icon: Icons.remove_circle,
-                color: const Color(0xFFE74C3C),
-                onTap: () => _showComingSoon(context, '出库功能'),
+                title: '盘点',
+                icon: Icons.inventory,
+                color: const Color(0xFFf39C12),
+                onTap: () => _showComingSoon(context, '盘点功能'),
               ),
             ),
           ],
@@ -235,10 +235,10 @@ class StorekeeperHomePage extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _buildActionCard(
-                title: '盘点',
-                icon: Icons.inventory,
-                color: const Color(0xFFf39C12),
-                onTap: () => _showComingSoon(context, '盘点功能'),
+                title: '出库',
+                icon: Icons.remove_circle,
+                color: const Color(0xFFE74C3C),
+                onTap: () => _showComingSoon(context, '出库功能'),
               ),
             ),
           ],

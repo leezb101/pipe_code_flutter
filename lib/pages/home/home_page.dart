@@ -1538,11 +1538,11 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 24),
 
           // 功能模块（预留）
-          _buildStorekeeperFunctionModules(context),
-          const SizedBox(height: 24),
+          // _buildStorekeeperFunctionModules(context),
+          // const SizedBox(height: 24),
 
           // 统计概览（预留）
-          _buildStorekeeperStatisticsOverview(context),
+          // _buildStorekeeperStatisticsOverview(context),
         ],
       ),
     );
@@ -1639,10 +1639,10 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: _buildStorekeeperActionCard(
                 context: context,
-                title: '出库',
-                icon: Icons.remove_circle,
-                color: const Color(0xFFE74C3C),
-                onTap: () => _showComingSoon(context, '出库功能'),
+                title: '盘点',
+                icon: Icons.inventory,
+                color: const Color(0xFFf39C12),
+                onTap: () => context.pushNamed('inventory-list'),
               ),
             ),
           ],
@@ -1663,10 +1663,10 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: _buildStorekeeperActionCard(
                 context: context,
-                title: '盘点',
-                icon: Icons.inventory,
-                color: const Color(0xFFf39C12),
-                onTap: () => context.pushNamed('inventory-list'),
+                title: '出库',
+                icon: Icons.remove_circle,
+                color: const Color(0xFFE74C3C),
+                onTap: () => _showComingSoon(context, '出库功能'),
               ),
             ),
           ],
