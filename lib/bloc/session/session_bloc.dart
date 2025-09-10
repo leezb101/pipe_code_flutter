@@ -59,6 +59,15 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
 
       _cachedWxLoginVO = wxLoginVO;
 
+      // 检查是否为管理方用户 (admin 或 boss)
+      if (wxLoginVO.admin == true || wxLoginVO.boss == true) {
+        Logger.debug(
+          '检测到管理方用户: admin=${wxLoginVO.admin}, boss=${wxLoginVO.boss}',
+        );
+        emit(SessionAdminEstablished(wxLoginVO: wxLoginVO));
+        return;
+      }
+
       if (wxLoginVO.storekeeper == true) {
         emit(SessionIdentitySelectionRequired(wxLoginVO: wxLoginVO));
         return;

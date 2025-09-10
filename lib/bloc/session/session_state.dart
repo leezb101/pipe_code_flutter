@@ -91,6 +91,37 @@ class SessionStorekeeperEstablished extends SessionState {
   }
 }
 
+/// 管理方会话已建立
+class SessionAdminEstablished extends SessionState {
+  const SessionAdminEstablished({
+    required this.wxLoginVO,
+    this.isSwitching = false,
+  });
+
+  final WxLoginVO wxLoginVO;
+  final bool isSwitching;
+
+  @override
+  List<Object> get props => [wxLoginVO, isSwitching];
+
+  /// 获取用户信息
+  @override
+  WxLoginVO get user => wxLoginVO;
+
+  /// 是否为管理员
+  bool get isAdmin => wxLoginVO.admin;
+
+  /// 是否为老板
+  bool get isBoss => wxLoginVO.boss;
+
+  SessionAdminEstablished copyWith({WxLoginVO? wxLoginVO, bool? isSwitching}) {
+    return SessionAdminEstablished(
+      wxLoginVO: wxLoginVO ?? this.wxLoginVO,
+      isSwitching: isSwitching ?? this.isSwitching,
+    );
+  }
+}
+
 /// 项目会话已建立
 class SessionProjectEstablished extends SessionState {
   const SessionProjectEstablished({
