@@ -18,25 +18,25 @@ enum UserRole {
   suppliers(0, "suppliers", "供应商"),
 
   @JsonValue(1)
-  construction(1, "construction", "建设单位"),
+  construction(1, "construction", "建设方"),
 
   @JsonValue(2)
-  supervisor(2, "supervisor", "监理单位"),
+  supervisor(2, "supervisor", "监理方"),
 
   @JsonValue(3)
-  builder(3, "builder", "施工单位"),
+  builder(3, "builder", "施工方"),
 
   @JsonValue(4)
   check(4, "check", "质检部门"),
 
   @JsonValue(5)
-  builderSub(5, "builder_sub", "施工单位二级负责人"),
+  builderSub(5, "builder_sub", "施工方二级负责人"),
 
   @JsonValue(6)
-  laborer(6, "laborer", "劳务人员(允许代理收获和代理验收)"),
+  laborer(6, "laborer", "施工方劳务人员"),
 
   @JsonValue(7)
-  playgoer(7, "playgoer", "热心群众,无组织,游客"),
+  playgoer(7, "playgoer", "热心群众"),
 
   @JsonValue(8)
   storekeeper(8, "storekeeper", "仓库管理员");

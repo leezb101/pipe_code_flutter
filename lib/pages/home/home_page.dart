@@ -34,7 +34,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool _isProjectHeaderExpanded = true; // 项目头部是否展开
+  bool _isProjectHeaderExpanded = false; // 项目头部是否展开
   bool _showProjectSwitchingOverlay = false; // 是否显示项目切换overlay
 
   @override
@@ -608,31 +608,11 @@ class _HomePageState extends State<HomePage> {
           _buildDetailRow(
             Icons.person,
             '当前角色',
-            _getRoleDisplayName(
-              state.currentUserRoleInfo.projectRoleType.toString(),
-            ),
+            state.currentUserRoleInfo.projectRoleType.displayName,
           ),
         ],
       ),
     );
-  }
-
-  /// 获取角色显示名称
-  String _getRoleDisplayName(String? roleType) {
-    switch (roleType) {
-      case 'PROJECT_MANAGER':
-        return '项目经理';
-      case 'SUPPLIER':
-        return '供应商';
-      case 'ACCEPTANCE_INSPECTOR':
-        return '验收员';
-      case 'INSTALLATION_WORKER':
-        return '安装工';
-      case 'STORE_KEEPER':
-        return '库管员';
-      default:
-        return '未知角色';
-    }
   }
 
   /// 构建统计项
