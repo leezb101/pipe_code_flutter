@@ -87,6 +87,7 @@ dependencies:
   screenshot: ^3.0.0
   haversine_distance: ^1.2.1
   url_launcher: ^6.3.2
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
@@ -105,6 +106,10 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+flutter_icons:
+  android: true
+  ios: true
+  image_path: 'images/pipe_code_icon.png'
 
 # The following section is specific to Flutter packages.
 flutter:
