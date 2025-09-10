@@ -184,20 +184,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         const SizedBox(height: 12),
 
-                        // QMap功能
-                        Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            leading: const Icon(Icons.map, color: Colors.blue),
-                            title: const Text('QMap'),
-                            subtitle: const Text('查看地图示例'),
-                            trailing: const Icon(Icons.arrow_forward_ios),
-                            onTap: () {
-                              context.pushNamed('qmap');
-                            },
-                          ),
-                        ),
-
                         // 修改密码
                         Card(
                           margin: const EdgeInsets.only(bottom: 8),
