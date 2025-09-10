@@ -79,6 +79,8 @@ PODS:
     - Tencent-MapSDK
     - Tencent-MapUtils
     - Tencent-MapVisualPlugin
+  - url_launcher_ios (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
@@ -95,6 +97,7 @@ DEPENDENCIES:
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - tencent_map_plus (from `.symlinks/plugins/tencent_map_plus/ios`)
+  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
 SPEC REPOS:
   trunk:
@@ -137,6 +140,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   tencent_map_plus:
     :path: ".symlinks/plugins/tencent_map_plus/ios"
+  url_launcher_ios:
+    :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
   connectivity_plus: 481668c94744c30c53b8895afb39159d1e619bdf
@@ -162,6 +167,7 @@ SPEC CHECKSUMS:
   Tencent-MapUtils: b1a5c4578465cde2f6790aed720b98ca79eb2c61
   Tencent-MapVisualPlugin: a0a80d6df872adb889ab4c64e2915dddfada1d51
   tencent_map_plus: d8c526b080d3be7a428a7ac404353e3723be3798
+  url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
 
 PODFILE CHECKSUM: 1cd65e10e825bc399052f0cbbdb005f2fb1361d1
 

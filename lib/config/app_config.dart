@@ -101,7 +101,7 @@ class AppConfig {
       case Environment.staging:
         return 'https://staging-api.example.com';
       case Environment.production:
-        return 'https://swkj.zzgxwater.cn/';
+        return 'https://swkj.zzgxwater.cn/m';
     }
   }
 
@@ -114,7 +114,7 @@ class AppConfig {
       case Environment.staging:
         return 'http://10.3.6.235'; // 本地开发环境
       case Environment.production:
-        return 'hhttps://swkj.zzgxwater.cn/'; // 本地开发环境
+        return 'hhttps://swkj.zzgxwater.cn/m'; // 本地开发环境
     }
   }
 
