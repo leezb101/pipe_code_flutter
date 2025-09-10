@@ -85,11 +85,14 @@ class _SessionGuardState extends State<SessionGuard> {
         builder: (context, sessionState) {
           // 如果现在已经建立了会话，只是需要切换身份或项目，则需要保留原状态，而不是直接通过laoding状态进行重新创建组件，导致页面重建状态丢失
           if (sessionState is SessionProjectEstablished ||
-              sessionState is SessionStorekeeperEstablished) {
+              sessionState is SessionStorekeeperEstablished ||
+              sessionState is SessionAdminEstablished) {
             bool isLoading = false;
             if (sessionState is SessionProjectEstablished) {
               isLoading = sessionState.isSwitching;
             } else if (sessionState is SessionStorekeeperEstablished) {
+              isLoading = sessionState.isSwitching;
+            } else if (sessionState is SessionAdminEstablished) {
               isLoading = sessionState.isSwitching;
             }
 
@@ -97,11 +100,9 @@ class _SessionGuardState extends State<SessionGuard> {
               children: [
                 widget.child,
                 if (isLoading)
-                  const Material(
-                    color: Colors.black38,
-                    child: Center(
-                      child: CircularProgressIndicator(color: Colors.white),
-                    ),
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    child: const Center(child: CircularProgressIndicator()),
                   ),
               ],
             );
@@ -155,6 +156,7 @@ class _SessionGuardState extends State<SessionGuard> {
 
       case SessionStorekeeperEstablished():
       case SessionProjectEstablished():
+      case SessionAdminEstablished():
         // 会话已建立，显示主界面
         return widget.child;
 
