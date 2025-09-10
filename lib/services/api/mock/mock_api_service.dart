@@ -5,6 +5,7 @@
  * @LastEditTime: 2025-08-03 11:09:05
  * @copyright: Copyright © 2025 高新供水.
  */
+import 'package:pipe_code_flutter/services/api/interfaces/chanage_password_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/dispatch_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart';
@@ -139,4 +140,7 @@ class MockApiService implements ApiServiceInterface {
 
   @override
   MapApiService get mapApi => _mapApiService ??= MockMapApiService();
+
+  @override
+  ChangePasswordApiService get changePassword => throw UnimplementedError();
 }

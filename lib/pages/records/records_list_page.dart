@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/constants/app_theme.dart';
 import 'package:pipe_code_flutter/models/records/record_item.dart';
 import 'package:pipe_code_flutter/models/user/wx_login_vo.dart';
 import '../../bloc/session/session_bloc.dart';
@@ -352,8 +353,8 @@ class _RecordsListPageState extends State<RecordsListPage>
           backgroundColor: Colors.grey[50],
           appBar: AppBar(
             title: const Text('工作记录'),
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black87,
+            backgroundColor: AppTheme.primaryColor,
+            foregroundColor: Colors.white,
             elevation: 0,
             bottom: PreferredSize(
               preferredSize: Size.zero,

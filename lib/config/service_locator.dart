@@ -44,6 +44,7 @@ import 'package:pipe_code_flutter/services/api/interfaces/identification_api_ser
 import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/upload_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/map_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/chanage_password_api_service.dart';
 import 'package:pipe_code_flutter/services/api_service_factory.dart';
 import 'package:pipe_code_flutter/services/qr_scan_service.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
@@ -99,6 +100,9 @@ Future<void> setupServiceLocator({
   );
   getIt.registerLazySingleton<MapApiService>(
     () => ApiServiceFactory.createMapApiService(),
+  );
+  getIt.registerLazySingleton<ChangePasswordApiService>(
+    () => ApiServiceFactory.createChangePasswordService(),
   );
 
   // QR Scan Service
