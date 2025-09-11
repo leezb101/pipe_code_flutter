@@ -125,52 +125,54 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           ),
         ),
         child: SafeArea(
-          child: BlocConsumer<AuthBloc, AuthState>(
-            listener: (context, state) {
-              if (state is AuthLoginSuccess) {
-                context.showSuccessToast('登录成功');
-                // 登录成功后初始化Session
-                context.read<SessionBloc>().add(
-                  SessionInitializeRequested(wxLoginVO: state.wxLoginVO),
-                );
-                context.go('/');
-              } else if (state is AuthSmsCodeSent) {
-                context.showSuccessToast('验证码已发送到 ${state.phone}');
-                _startCountdown();
-              } else if (state is AuthCaptchaFailure) {
-                // 图形验证码获取失败，只提示，不自动刷新验证码
-                context.showErrorToast(state.error);
-              } else if (state is AuthFailure || state is AuthLoginFailure) {
-                context.showErrorToast(
-                  state is AuthFailure
-                      ? state.error
-                      : (state as AuthLoginFailure).error,
-                );
-                // 登录失败时刷新验证码
-                if (_isPasswordMode) {
-                  context.read<AuthBloc>().add(const AuthCaptchaRequested());
-                  _captchaController.clear();
+          child: SizedBox.expand(
+            child: BlocConsumer<AuthBloc, AuthState>(
+              listener: (context, state) {
+                if (state is AuthLoginSuccess) {
+                  context.showSuccessToast('登录成功');
+                  // 登录成功后初始化Session
+                  context.read<SessionBloc>().add(
+                    SessionInitializeRequested(wxLoginVO: state.wxLoginVO),
+                  );
+                  context.go('/');
+                } else if (state is AuthSmsCodeSent) {
+                  context.showSuccessToast('验证码已发送到 ${state.phone}');
+                  _startCountdown();
+                } else if (state is AuthCaptchaFailure) {
+                  // 图形验证码获取失败，只提示，不自动刷新验证码
+                  context.showErrorToast(state.error);
+                } else if (state is AuthFailure || state is AuthLoginFailure) {
+                  context.showErrorToast(
+                    state is AuthFailure
+                        ? state.error
+                        : (state as AuthLoginFailure).error,
+                  );
+                  // 登录失败时刷新验证码
+                  if (_isPasswordMode) {
+                    context.read<AuthBloc>().add(const AuthCaptchaRequested());
+                    _captchaController.clear();
+                  }
                 }
-              }
-            },
-            builder: (context, state) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    // const SizedBox(height: 30),
-                    // 应用Logo和标题
-                    _buildHeader(),
-                    const SizedBox(height: 20),
-                    // 登录表单卡片（带翻转动画）
-                    _buildFlipLoginCard(state),
-                    const SizedBox(height: 30),
-                    // 其他选项
-                    _buildFooter(),
-                  ],
-                ),
-              );
-            },
+              },
+              builder: (context, state) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      // const SizedBox(height: 30),
+                      // 应用Logo和标题
+                      _buildHeader(),
+                      const SizedBox(height: 20),
+                      // 登录表单卡片（带翻转动画）
+                      _buildFlipLoginCard(state),
+                      const SizedBox(height: 30),
+                      // 其他选项
+                      _buildFooter(),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -196,11 +198,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               ),
             ],
           ),
-          child: const Icon(
-            Icons.water_drop,
-            size: 40,
-            color: Color(0xFF1976D2),
-          ),
+          // child: const Icon(
+          //   Icons.water_drop,
+          //   size: 40,
+          //   color: Color(0xFF1976D2),
+          // ),
+          child: Image.asset('images/pipe_code_icon.png'),
         ),
         const SizedBox(height: 20),
         const Text(
@@ -854,11 +857,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         context.showErrorToast('验证码状态异常，请重新获取');
         return;
       }
+    } else {
+      context.showErrorToast('请先获取短信验证码');
+      return;
     }
-    // else {
-    //   context.showErrorToast('请先获取短信验证码');
-    //   return;
-    // }
 
     context.read<AuthBloc>().add(
       AuthLoginWithSmsRequested(phone: phone, code: code, smsCode: smsCode),
