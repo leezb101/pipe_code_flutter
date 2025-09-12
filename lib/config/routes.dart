@@ -34,6 +34,7 @@ import 'package:pipe_code_flutter/pages/temporary_auth/temporary_auth_page.dart'
 import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
 import '../bloc/dispatch/dispatch_bloc.dart';
 import '../pages/auth/login_page.dart';
+import '../pages/auth/boot_page.dart';
 import '../pages/auth/register_page.dart';
 import '../pages/cut/cut_page.dart';
 import '../pages/dispatch/dispatch_application_page.dart';
@@ -78,8 +79,13 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: navigatorKey,
-  initialLocation: '/login',
+  initialLocation: '/boot',
   routes: [
+    GoRoute(
+      path: '/boot',
+      name: 'boot',
+      builder: (context, state) => const BootPage(),
+    ),
     GoRoute(
       path: '/login',
       name: 'login',
