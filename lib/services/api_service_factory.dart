@@ -91,6 +91,7 @@ const List<String> _locationEndpointPatterns = [
   r'^/waste/do$',
   // Example for a path with a dynamic parameter:
   r'^/wx/login/sms',
+  r'^/wx/login/unite/password',
 ];
 
 class ApiServiceFactory {
