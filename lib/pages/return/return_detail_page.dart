@@ -8,6 +8,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_state.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import '../../bloc/return/return_bloc.dart';
@@ -232,6 +234,20 @@ class _ReturnDetailPageState extends State<ReturnDetailPage> {
   }
 
   Widget _buildAttachmentSection(List<AttachmentVO> attachments) {
+    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
+    final token = authState.wxLoginVO.tk;
+    final attachmentsWithTk = attachments.map((e) {
+      final urlWithTk = e.url.contains('?')
+          ? '${e.url}&auth_toke=$token'
+          : '${e.url}?auth_toke=$token';
+      return AttachmentVO(
+        attachFormat: e.attachFormat,
+        name: e.name,
+        url: urlWithTk,
+        type: e.type,
+      );
+    }).toList();
+
     return UnifiedCard(
       title: '相关图片 (${attachments.length})',
       icon: Icons.attach_file,
@@ -246,7 +262,7 @@ class _ReturnDetailPageState extends State<ReturnDetailPage> {
                 ),
               ),
             )
-          : AttachmentDisplayWidget(attachments: attachments),
+          : AttachmentDisplayWidget(attachments: attachmentsWithTk),
     );
   }
 }

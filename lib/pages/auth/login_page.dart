@@ -141,6 +141,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 } else if (state is AuthCaptchaFailure) {
                   // 图形验证码获取失败，只提示，不自动刷新验证码
                   context.showErrorToast(state.error);
+                } else if (state is AuthSmsCodeFailure) {
+                  // 短信验证码发送失败，弹出错误提示，不开启倒计时
+                  context.showErrorToast(state.error);
                 } else if (state is AuthFailure || state is AuthLoginFailure) {
                   context.showErrorToast(
                     state is AuthFailure

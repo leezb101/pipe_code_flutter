@@ -7,7 +7,10 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fancy_tree_view/flutter_fancy_tree_view.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_state.dart';
 import '../../models/cut/pipe_cutting_tree_node.dart';
 import '../../models/cut/pipe_cutting_record.dart';
 
@@ -114,10 +117,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.blue[400]!,
-            Colors.blue[600]!,
-          ],
+          colors: [Colors.blue[400]!, Colors.blue[600]!],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -174,7 +174,8 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
                 ),
               ],
             ),
-            if (widget.cuttingRecord.name.isNotEmpty || widget.cuttingRecord.spec != null) ...[
+            if (widget.cuttingRecord.name.isNotEmpty ||
+                widget.cuttingRecord.spec != null) ...[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -188,11 +189,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
                     if (widget.cuttingRecord.name.isNotEmpty) ...[
                       Row(
                         children: [
-                          Icon(
-                            Icons.label,
-                            color: Colors.white70,
-                            size: 16,
-                          ),
+                          Icon(Icons.label, color: Colors.white70, size: 16),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -370,11 +367,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.location_on,
-                  size: 14,
-                  color: Colors.white,
-                ),
+                Icon(Icons.location_on, size: 14, color: Colors.white),
                 const SizedBox(width: 4),
                 Text(
                   '当前',
@@ -449,10 +442,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Colors.blue[400]!,
-                      Colors.blue[600]!,
-                    ],
+                    colors: [Colors.blue[400]!, Colors.blue[600]!],
                   ),
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(20),
@@ -503,28 +493,33 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
               ),
               // Content
               Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (node.img != null && node.img!.isNotEmpty)
-                        _buildImagePreview(context, node.img!),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: details.length,
-                          itemBuilder: (context, index) {
-                            final detail = details[index];
-                            return _buildDetailRow(detail.$1, detail.$2);
-                          },
-                          separatorBuilder: (context, index) =>
-                              const Divider(height: 1, indent: 16, endIndent: 16),
+                child: BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (node.img != null && node.img!.isNotEmpty)
+                          _buildImagePreview(context, node.img!),
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: details.length,
+                            itemBuilder: (context, index) {
+                              final detail = details[index];
+                              return _buildDetailRow(detail.$1, detail.$2);
+                            },
+                            separatorBuilder: (context, index) => const Divider(
+                              height: 1,
+                              indent: 16,
+                              endIndent: 16,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    );
+                  },
                 ),
               ),
               // Footer
@@ -549,10 +544,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
                   ),
                   child: const Text(
                     '关闭',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -579,11 +571,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.label,
-                  size: 16,
-                  color: Colors.grey[600],
-                ),
+                Icon(Icons.label, size: 16, color: Colors.grey[600]),
                 const SizedBox(width: 8),
                 Text(
                   label,
@@ -614,6 +602,12 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
   }
 
   Widget _buildImagePreview(BuildContext context, String imageUrl) {
+    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
+    final token = authState.wxLoginVO.tk;
+    final urlWithTk = imageUrl.contains('?')
+        ? '$imageUrl&auth_token=$token'
+        : '$imageUrl?auth_token=$token';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Column(
@@ -621,11 +615,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.image,
-                size: 16,
-                color: Colors.grey[600],
-              ),
+              Icon(Icons.image, size: 16, color: Colors.grey[600]),
               const SizedBox(width: 8),
               Text(
                 '相关图片',
@@ -639,7 +629,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
           ),
           const SizedBox(height: 12),
           GestureDetector(
-            onTap: () => _showFullScreenImage(context, imageUrl),
+            onTap: () => _showFullScreenImage(context, urlWithTk),
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
@@ -654,7 +644,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.network(
-                  imageUrl,
+                  urlWithTk,
                   height: 180,
                   width: double.infinity,
                   fit: BoxFit.cover,
@@ -672,7 +662,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
                           CircularProgressIndicator(
                             value: loadingProgress.expectedTotalBytes != null
                                 ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
+                                      loadingProgress.expectedTotalBytes!
                                 : null,
                             valueColor: AlwaysStoppedAnimation<Color>(
                               Colors.blue[400]!,
@@ -773,7 +763,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
                             CircularProgressIndicator(
                               value: loadingProgress.expectedTotalBytes != null
                                   ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
+                                        loadingProgress.expectedTotalBytes!
                                   : null,
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 Colors.blue[400]!,

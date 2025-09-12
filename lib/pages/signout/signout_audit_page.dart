@@ -8,11 +8,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_state.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_event.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_state.dart';
 import 'package:pipe_code_flutter/bloc/user/user_bloc.dart';
 import 'package:pipe_code_flutter/bloc/user/user_state.dart';
+import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
@@ -180,18 +183,23 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
   }
 
   Widget _buildPhotoGrid(BuildContext context, SignoutReady state) {
+    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
+    final token = authState.wxLoginVO.tk;
     return Row(
       children: <Widget>[
         if (state.signoutDetail?.imageList.isNotEmpty ?? false)
           ...state.signoutDetail!.imageList.asMap().entries.map((entry) {
-            final photo = entry.value;
+            AttachmentVO photo = entry.value;
+            final imgurlWithTk = photo.url.contains('?')
+                ? '${photo.url}&auth_toke=$token'
+                : '${photo.url}?auth_toke=$token';
             final index = entry.key;
             return Padding(
               padding: const EdgeInsets.only(right: 16),
               child: InkWell(
                 onTap: () => _previewImages(context, state, index),
                 child: Image.network(
-                  photo.url,
+                  imgurlWithTk,
                   width: 80,
                   height: 80,
                   fit: BoxFit.cover,
@@ -207,7 +215,14 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
     Navigator.of(context).push(
       FadeScaleRoute(
         page: ImagePreviewWidget(
-          imageUrls: state.signoutDetail!.imageList.map((e) => e.url).toList(),
+          imageUrls: state.signoutDetail!.imageList.map((e) => e.url).map((e) {
+            final authState =
+                context.read<AuthBloc>().state as AuthLoginSuccess;
+            final token = authState.wxLoginVO.tk;
+            return e.contains('?')
+                ? '$e&auth_toke=$token'
+                : '$e?auth_toke=$token';
+          }).toList(),
           initialIndex: index,
           onUrlsChanged: (p0) => {},
         ),
