@@ -39,7 +39,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   // UI state
   bool _isPasswordVisible = false;
   bool _isPasswordMode =
-      false; // true for password login, false for SMS login (default to SMS)
+      true; // true for password login, false for SMS login (default to SMS)
 
   // Animation controller for flip animation
   late AnimationController _flipAnimationController;
@@ -69,7 +69,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     );
 
     // 默认展示短信验证码登录（背面），将翻转动画值设置为1.0
-    _flipAnimationController.value = 1.0;
+    _flipAnimationController.value = 0.0;
 
     // 监听验证码输入变化
     _captchaController.addListener(() {
@@ -324,8 +324,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             // 用户名输入框
             CustomTextFormField(
               controller: _usernameController,
-              hintText: '请输入用户名',
-              labelText: '用户名',
+              hintText: '请输入手机号',
+              labelText: '手机号',
               prefixIcon: const Icon(Icons.person_outline),
               hasError: _fieldErrors.containsKey('username'),
               onChanged: (value) {
