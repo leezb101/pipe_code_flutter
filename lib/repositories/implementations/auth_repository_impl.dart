@@ -139,7 +139,17 @@ class AuthRepositoryImpl implements AuthRepository {
         return const Result(code: 401, msg: '未登录', data: null);
       }
 
-      return await _apiService.auth.checkToken(tk: token);
+      final result = await _apiService.auth.checkToken(tk: token);
+      // 如果校验成功，刷新本地登录信息，确保后续请求具备最新凭据
+      if (result.isSuccess && result.data != null) {
+        final wxLogin = result.data!;
+        // 保存并覆盖可能更新过的 tk 与用户信息
+        await _storageService.saveAuthToken(wxLogin.tk);
+        await _storageService.saveUserData(wxLogin.toJson());
+        // 同步到 API 层（部分服务可能使用该 Header）
+        _apiService.auth.setAuthToken(wxLogin.tk);
+      }
+      return result;
     } catch (e) {
       return Result(code: -1, msg: e.toString(), data: null);
     }
@@ -234,8 +244,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   bool get isLoggedIn {
-    // 这里可以检查token是否存在
-    // 实际实现可能需要异步检查
-    return true; // 简化实现
+    // 简单依据本地是否存在token判断（详细有效性由 checkToken 异步确认）
+    return _storageService.getAuthToken() != null;
   }
 }

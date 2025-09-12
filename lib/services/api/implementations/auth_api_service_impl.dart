@@ -8,6 +8,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:pipe_code_flutter/utils/rsa_encryption_util.dart';
 import '../interfaces/auth_api_service.dart';
 import 'base_api_service.dart';
 import '../../../models/common/result.dart';
@@ -143,7 +144,11 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
       );
 
       // 检查响应体中的数据
-      final apiResult = Result.safeFromJson(response.data, (json) => json, 'SmsCodeResponse');
+      final apiResult = Result.safeFromJson(
+        response.data,
+        (json) => json,
+        'SmsCodeResponse',
+      );
       if (apiResult.isSuccess) {
         // 创建SmsCodeResult对象
         final smsCodeResult = SmsCodeResult.create(
@@ -242,7 +247,9 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
   @override
   Future<Result<WxLoginVO>> checkToken({String? tk}) async {
     try {
-      final queryParams = tk != null ? {'tk': tk} : <String, dynamic>{};
+      // 对tk进行rsa加密
+      final encryptedTk = RSAEncryptionUtil.encryptPassword(tk ?? '');
+      final queryParams = <String, dynamic>{'tk': encryptedTk};
       final response = await dio.get('/wx/check', queryParameters: queryParams);
       return Result.safeFromJson(
         response.data,
@@ -251,6 +258,8 @@ class AuthApiServiceImpl extends BaseApiService implements AuthApiService {
       );
     } on DioException catch (e) {
       throw handleError(e);
+    } catch (e) {
+      rethrow;
     }
   }
 
