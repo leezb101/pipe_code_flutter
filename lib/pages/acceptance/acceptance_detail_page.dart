@@ -424,8 +424,8 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
     final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
     final token = authState.wxLoginVO.tk;
     final urlWithTk = imagePath.contains('?')
-        ? '$imagePath&auth_token=$token'
-        : '$imagePath?auth_token=$token';
+        ? '$imagePath&auth_toke=$token'
+        : '$imagePath?auth_toke=$token';
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -445,7 +445,7 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
             color: AppTheme.acceptanceColor.withValues(alpha: 0.3),
           ),
           image: DecorationImage(
-            image: NetworkImage(imagePath),
+            image: NetworkImage(urlWithTk),
             fit: BoxFit.cover,
           ),
         ),

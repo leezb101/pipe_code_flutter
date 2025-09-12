@@ -7,7 +7,12 @@
  */
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_state.dart';
+import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
+import 'package:pipe_code_flutter/bloc/session/session_state.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/models/user/wx_login_vo.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/upload_api_service.dart';
 import 'file_upload_state.dart';
 
@@ -46,6 +51,24 @@ class FileUploadCubit extends Cubit<List<FileUploadState>> {
       errorMessage: null,
     );
 
+    // 执行上传
+    // 获取authBloc中的token
+    final sessionState = getIt<SessionBloc>().state;
+    String? token;
+    if (sessionState is SessionProjectEstablished ||
+        sessionState is SessionStorekeeperEstablished) {
+      token = (sessionState.user as WxLoginVO?)?.tk;
+    }
+    if (token == null) {
+      _updateState(
+        uniqueId,
+        status: UploadStatus.failure,
+        errorMessage: '用户未认证，无法上传',
+      );
+      return;
+    }
+
+    _uploadApiService.setAuthToken(token);
     final result = await _uploadApiService.uploadFile(
       currentState.file,
       onProgress: (progress) {

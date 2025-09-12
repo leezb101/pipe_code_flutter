@@ -696,68 +696,112 @@ class _HomePageState extends State<HomePage> {
   ) {
     showModalBottomSheet(
       context: context,
+      // 允许自定义高度（半屏），Sheet 本身不需要可拖动
+      isScrollControlled: true,
+      enableDrag: false,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '选择工程',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            ...state.availableProjects.map((project) {
-              final isCurrentProject =
-                  project.projectId == state.project.projectId;
-              return ListTile(
-                leading: Icon(
-                  isCurrentProject ? Icons.check_circle : Icons.business,
-                  color: isCurrentProject ? Colors.green : Colors.grey,
-                ),
-                title: Text(
-                  project.projectName,
-                  style: TextStyle(
-                    fontWeight: isCurrentProject
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.5, // 固定半屏高度
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          child: Material(
+            color: Theme.of(context).canvasColor,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                // 顶部小把手（视觉提示，非拖动）
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade400,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-                subtitle: Text(project.orgName ?? '无组织信息'),
-                trailing: isCurrentProject
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                const SizedBox(height: 12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    '选择工程',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // 列表区域滚动
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                    itemCount: state.availableProjects.length,
+                    itemBuilder: (context, index) {
+                      final project = state.availableProjects[index];
+                      final isCurrentProject =
+                          project.projectId == state.project.projectId;
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 6,
+                          horizontal: 4,
                         ),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          '当前',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
+                        child: ListTile(
+                          leading: Icon(
+                            isCurrentProject
+                                ? Icons.check_circle
+                                : Icons.business,
+                            color: isCurrentProject
+                                ? Colors.green
+                                : Colors.grey,
                           ),
+                          title: Text(
+                            project.projectName,
+                            style: TextStyle(
+                              fontWeight: isCurrentProject
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                          subtitle: Text(project.orgName ?? '无组织信息'),
+                          trailing: isCurrentProject
+                              ? Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Text(
+                                    '当前',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                )
+                              : null,
+                          onTap: isCurrentProject
+                              ? null
+                              : () {
+                                  Navigator.pop(context);
+                                  context.read<SessionBloc>().add(
+                                    SessionSelectProject(
+                                      projectId: project.projectId,
+                                    ),
+                                  );
+                                },
                         ),
-                      )
-                    : null,
-                onTap: isCurrentProject
-                    ? null
-                    : () {
-                        Navigator.pop(context);
-                        context.read<SessionBloc>().add(
-                          SessionSelectProject(projectId: project.projectId),
-                        );
-                      },
-              );
-            }),
-          ],
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

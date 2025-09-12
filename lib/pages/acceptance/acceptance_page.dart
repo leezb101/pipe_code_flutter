@@ -449,6 +449,28 @@ class _AcceptancePageState extends State<AcceptancePage> {
           child: DropdownButtonHideUnderline(
             child: DropdownButton<int>(
               value: _selectedWarehouseId,
+              isExpanded: true,
+              // 允许下拉项根据内容自适应高度（多行展示）
+              itemHeight: null,
+              // 限制下拉菜单的最大高度，避免过长遮挡
+              menuMaxHeight: 400,
+              // 选中项在收起状态下的自定义展示，单行省略号
+              selectedItemBuilder: (BuildContext context) {
+                return _warehouseList.map<Widget>((warehouse) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      '${warehouse.name} - ${warehouse.address}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }).toList();
+              },
+              hint: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Text('请选择仓库', overflow: TextOverflow.ellipsis),
+              ),
               onChanged: (int? newValue) {
                 setState(() {
                   _selectedWarehouseId = newValue!;
@@ -461,17 +483,40 @@ class _AcceptancePageState extends State<AcceptancePage> {
                   );
                 }
               },
-              items: _warehouseList.map<DropdownMenuItem<int>>((
-                WarehouseVO warehouse,
-              ) {
-                return DropdownMenuItem<int>(
-                  value: warehouse.id,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('${warehouse.name} - ${warehouse.address}'),
-                  ),
-                );
-              }).toList(),
+              items: List<DropdownMenuItem<int>>.generate(
+                _warehouseList.length,
+                (index) {
+                  final warehouse = _warehouseList[index];
+                  final isLast = index == _warehouseList.length - 1;
+                  return DropdownMenuItem<int>(
+                    value: warehouse.id,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          child: Text(
+                            '${warehouse.name} - ${warehouse.address}',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            softWrap: true,
+                          ),
+                        ),
+                        if (!isLast)
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: Colors.grey[300],
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),
