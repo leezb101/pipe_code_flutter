@@ -13,8 +13,8 @@ CurrentUserOnProjectRoleInfo _$CurrentUserOnProjectRoleInfoFromJson(
   currentProjectId: (json['currentProjectId'] as num).toInt(),
   currentProjectCode: json['currentProjectCode'] as String,
   currentProjectName: json['currentProjectName'] as String,
-  currentOrgCode: json['currentOrgCode'] as String,
-  currentOrgName: json['currentOrgName'] as String,
+  currentOrgCode: json['currentOrgCode'] as String? ?? '',
+  currentOrgName: json['currentOrgName'] as String? ?? '',
   currentProjectSuperiorUserId: (json['currentProjectSuperiorUserId'] as num?)
       ?.toInt(),
   currentProjectAuthorUserId: (json['currentProjectAuthorUserId'] as num?)

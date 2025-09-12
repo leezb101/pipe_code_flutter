@@ -13,7 +13,7 @@ BusinessRecord _$BusinessRecordFromJson(Map<String, dynamic> json) =>
       projectName: json['projectName'] as String?,
       projectCode: json['projectCode'] as String?,
       materialNum: (json['materialNum'] as num?)?.toInt(),
-      userName: json['userName'] as String,
+      userName: json['userName'] as String? ?? '',
       doTime: BusinessRecord._timestampToDateTime(json['doTime']),
     );
 
