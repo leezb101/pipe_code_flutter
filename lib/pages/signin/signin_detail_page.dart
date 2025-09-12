@@ -344,13 +344,13 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
     final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
     final token = authState.wxLoginVO.tk;
     final urlWithTk = imageUrl.contains('?')
-        ? '$imageUrl&auth_token=$token'
-        : '$imageUrl?auth_token=$token';
+        ? '$imageUrl&auth_toke=$token'
+        : '$imageUrl?auth_toke=$token';
 
     allImageUrls = allImageUrls.map((url) {
       return url.contains('?')
-          ? '$url&auth_token=$token'
-          : '$url?auth_token=$token';
+          ? '$url&auth_toke=$token'
+          : '$url?auth_toke=$token';
     }).toList();
     return GestureDetector(
       onTap: () {

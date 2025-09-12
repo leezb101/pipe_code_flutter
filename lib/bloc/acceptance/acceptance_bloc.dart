@@ -248,8 +248,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     LoadAcceptanceUsers event,
     Emitter<AcceptanceState> emit,
   ) async {
+    // Preserve AcceptanceEditingState for AcceptancePage so materials aren't cleared
+    final resumeEditing = state is AcceptanceEditingState
+        ? state as AcceptanceEditingState
+        : null;
     try {
-      emit(const AcceptanceUsersLoading());
+      if (resumeEditing == null) {
+        emit(const AcceptanceUsersLoading());
+      }
       Logger.info(
         'Loading acceptance users for project: ${event.projectId}, role: ${event.roleType}',
         tag: 'AcceptanceBloc',
@@ -272,9 +278,17 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           tag: 'AcceptanceBloc',
         );
       }
+      // After delivering side-effect state to listeners, restore editing view state if needed
+      if (resumeEditing != null) {
+        emit(resumeEditing.copyWith());
+      }
     } catch (e) {
       emit(AcceptanceError(message: '获取验收用户失败，请重试'));
       Logger.error('Error loading acceptance users: $e', tag: 'AcceptanceBloc');
+      // Restore editing view state even on error
+      if (resumeEditing != null) {
+        emit(resumeEditing.copyWith());
+      }
     }
   }
 
@@ -282,8 +296,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     LoadWarehouseUsers event,
     Emitter<AcceptanceState> emit,
   ) async {
+    // Preserve AcceptanceEditingState for AcceptancePage so materials aren't cleared
+    final resumeEditing = state is AcceptanceEditingState
+        ? state as AcceptanceEditingState
+        : null;
     try {
-      emit(const WarehouseUsersLoading());
+      if (resumeEditing == null) {
+        emit(const WarehouseUsersLoading());
+      }
       Logger.info(
         'Loading warehouse users for warehouse: ${event.warehouseId}',
         tag: 'AcceptanceBloc',
@@ -306,9 +326,17 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           tag: 'AcceptanceBloc',
         );
       }
+      // After delivering side-effect state to listeners, restore editing view state if needed
+      if (resumeEditing != null) {
+        emit(resumeEditing.copyWith());
+      }
     } catch (e) {
       emit(AcceptanceError(message: '获取仓库用户失败，请重试'));
       Logger.error('Error loading warehouse users: $e', tag: 'AcceptanceBloc');
+      // Restore editing view state even on error
+      if (resumeEditing != null) {
+        emit(resumeEditing.copyWith());
+      }
     }
   }
 
@@ -316,8 +344,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     LoadWarehouseList event,
     Emitter<AcceptanceState> emit,
   ) async {
+    // Preserve AcceptanceEditingState for AcceptancePage so materials aren't cleared
+    final resumeEditing = state is AcceptanceEditingState
+        ? state as AcceptanceEditingState
+        : null;
     try {
-      emit(const WarehouseListLoading());
+      if (resumeEditing == null) {
+        emit(const WarehouseListLoading());
+      }
       Logger.info('Loading warehouse list', tag: 'AcceptanceBloc');
 
       final result = await _repository.getWarehouseList();
@@ -335,9 +369,17 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           tag: 'AcceptanceBloc',
         );
       }
+      // After delivering side-effect state to listeners, restore editing view state if needed
+      if (resumeEditing != null) {
+        emit(resumeEditing.copyWith());
+      }
     } catch (e) {
       emit(AcceptanceError(message: '获取仓库列表失败，请重试'));
       Logger.error('Error loading warehouse list: $e', tag: 'AcceptanceBloc');
+      // Restore editing view state even on error
+      if (resumeEditing != null) {
+        emit(resumeEditing.copyWith());
+      }
     }
   }
 

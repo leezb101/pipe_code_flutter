@@ -163,6 +163,9 @@ class _AcceptancePageState extends State<AcceptancePage> {
           context.read<AcceptanceBloc>().add(
             InitializeEditingMaterials(initial: state.materials),
           );
+        } else if (state is AcceptanceError) {
+          // 只提示错误，不清空或变更当前编辑中的待提交信息
+          context.showErrorToast('验收失败: ${state.message}');
         } else if (state is AcceptanceEditingState) {
           // 编辑态下的反馈消息
           if (state.message != null && state.message!.isNotEmpty) {
