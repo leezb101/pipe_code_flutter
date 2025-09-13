@@ -259,8 +259,8 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
     final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
     final token = authState.wxLoginVO.tk;
     final urlWithTk = imageUrl.contains('?')
-        ? '$imageUrl&auth_token=$token'
-        : '$imageUrl?auth_token=$token';
+        ? '$imageUrl&auth_toke=$token'
+        : '$imageUrl?auth_toke=$token';
     return GestureDetector(
       onTap: () => _showImageViewer(urlWithTk, label),
       child: Container(
@@ -531,8 +531,11 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
   }
 
   Widget _buildInstallImageThumbnail(AttachmentVO image) {
+    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
+    final token = authState.wxLoginVO.tk;
+
     return GestureDetector(
-      onTap: () => _previewPhoto(image),
+      onTap: () => _previewPhoto(image, token),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -541,7 +544,9 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image.network(
-            image.url,
+            image.url.contains('?')
+                ? '${image.url}&auth_toke=$token'
+                : '${image.url}?auth_toke=$token',
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) => Container(
               color: Colors.green[100],
@@ -1127,8 +1132,10 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
   }
 
   Widget _buildImageThumbnail(AttachmentVO image) {
+    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
+    final token = authState.wxLoginVO.tk;
     return GestureDetector(
-      onTap: () => _previewPhoto(image),
+      onTap: () => _previewPhoto(image, token),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -1137,7 +1144,9 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image.network(
-            image.url,
+            image.url.contains('?')
+                ? '${image.url}&auth_toke=$token'
+                : '${image.url}?auth_toke=$token',
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) => Container(
               color: Colors.grey[200],
@@ -1178,7 +1187,10 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
     );
   }
 
-  void _previewPhoto(AttachmentVO photo) {
+  void _previewPhoto(AttachmentVO photo, String token) {
+    final url = photo.url.contains('?')
+        ? '${photo.url}&auth_toke=$token'
+        : '${photo.url}?auth_toke=$token';
     showDialog(
       context: context,
       barrierColor: Colors.black87,
@@ -1189,7 +1201,7 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
             Center(
               child: InteractiveViewer(
                 child: Image.network(
-                  photo.url,
+                  url,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) => Container(
                     padding: const EdgeInsets.all(24),
@@ -1267,8 +1279,8 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
     final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
     final token = authState.wxLoginVO.tk;
     final urlWithTk = pdfUrl.contains('?')
-        ? '$pdfUrl&auth_token=$token'
-        : '$pdfUrl?auth_token=$token';
+        ? '$pdfUrl&auth_toke=$token'
+        : '$pdfUrl?auth_toke=$token';
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => PdfPreviewer(url: urlWithTk)),

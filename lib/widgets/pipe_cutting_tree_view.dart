@@ -605,8 +605,8 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
     final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
     final token = authState.wxLoginVO.tk;
     final urlWithTk = imageUrl.contains('?')
-        ? '$imageUrl&auth_token=$token'
-        : '$imageUrl?auth_token=$token';
+        ? '$imageUrl&auth_toke=$token'
+        : '$imageUrl?auth_toke=$token';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),

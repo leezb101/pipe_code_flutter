@@ -359,8 +359,8 @@ class _InstallDetailPageState extends State<InstallDetailPage> {
     final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
     final token = authState.wxLoginVO.tk;
     final urlWithTk = imageUrl.contains('?')
-        ? '$imageUrl&auth_token=$token'
-        : '$imageUrl?auth_token=$token';
+        ? '$imageUrl&auth_toke=$token'
+        : '$imageUrl?auth_toke=$token';
     return Expanded(
       child: GestureDetector(
         onTap: () => _previewImage(urlWithTk),
