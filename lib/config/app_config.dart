@@ -96,7 +96,7 @@ class AppConfig {
         // return 'https://dev-api.example.com';
         // return 'http://10.2.220.12:8775/m';
         return 'http://10.3.3.213:9000/m'; // 孙煊
-      // return 'http://10.3.2.223:8775/m'; // 和宇翔
+      // return 'http://10.3.2.223:9000/m'; // 和宇翔
       // return 'http://10.3.6.235/m';
       case Environment.staging:
         return 'https://staging-api.example.com';
@@ -112,6 +112,7 @@ class AppConfig {
         // 默认情况下与 apiBaseUrl 相同，但可以根据需要单独配置
         return 'http://10.3.6.235'; // 本地开发环境
       // return 'http://10.3.3.213:9000'; // 孙煊
+      // return 'http://10.3.2.223:9000'; // 和宇翔
       case Environment.staging:
         return 'http://10.3.6.235'; // 本地开发环境
       case Environment.production:
