@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_state.dart';
 import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
@@ -308,9 +310,15 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
   }
 
   void _openPdf(String url) {
+    // 从auth_bloc获取token
+    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
+    final token = authState.wxLoginVO.tk;
+    final urlWithTk = url.contains('?')
+        ? '$url&auth_toke=$token'
+        : '$url?auth_toke=$token';
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => PdfPreviewer(url: url)));
+    ).push(MaterialPageRoute(builder: (_) => PdfPreviewer(url: urlWithTk)));
   }
 
   String _extractFileName(String url) {
@@ -413,12 +421,17 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
   }
 
   Widget _buildImagePreview(String imagePath) {
+    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
+    final token = authState.wxLoginVO.tk;
+    final urlWithTk = imagePath.contains('?')
+        ? '$imagePath&auth_toke=$token'
+        : '$imagePath?auth_toke=$token';
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) =>
-                ImagePreviewWidget(imageUrls: [imagePath], initialIndex: 0),
+                ImagePreviewWidget(imageUrls: [urlWithTk], initialIndex: 0),
           ),
         );
       },
@@ -432,7 +445,7 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
             color: AppTheme.acceptanceColor.withValues(alpha: 0.3),
           ),
           image: DecorationImage(
-            image: NetworkImage(imagePath),
+            image: NetworkImage(urlWithTk),
             fit: BoxFit.cover,
           ),
         ),

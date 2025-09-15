@@ -10,6 +10,7 @@ class BusinessRecord extends Equatable {
   final String? projectName;
   final String? projectCode;
   final int? materialNum;
+  @JsonKey(defaultValue: '')
   final String userName;
   @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
   final DateTime? doTime;

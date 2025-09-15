@@ -46,9 +46,11 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
   final String currentProjectName;
 
   /// 当前组织代码
+  @JsonKey(defaultValue: '')
   final String currentOrgCode;
 
   /// 当前组织名称
+  @JsonKey(defaultValue: '')
   final String currentOrgName;
 
   /// 当前选中项目上级授权用户userId，施工方角色存在此字段

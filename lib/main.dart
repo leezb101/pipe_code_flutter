@@ -21,6 +21,7 @@ import 'config/service_locator.dart';
 import 'config/app_config.dart';
 import 'bloc/auth/auth_bloc.dart';
 import 'bloc/auth/auth_state.dart';
+import 'bloc/auth/auth_event.dart';
 import 'bloc/user/user_bloc.dart';
 import 'bloc/user/user_event.dart';
 import 'bloc/project/project_bloc.dart';
@@ -88,7 +89,8 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<AuthBloc>(
           create: (context) =>
-              AuthBloc(authRepository: getIt<AuthRepository>()),
+              AuthBloc(authRepository: getIt<AuthRepository>())
+                ..add(AuthCheckRequested()),
         ),
         BlocProvider<SessionBloc>(create: (context) => getIt<SessionBloc>()),
         BlocProvider<UserBloc>(

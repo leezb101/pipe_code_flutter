@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_state.dart';
 import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
@@ -282,6 +284,8 @@ class _AcceptanceConfirmationPageState
   }
 
   Widget _buildPhotoWidget(AttachmentVO photo) {
+    final authState = context.read<AuthBloc>().state;
+    final token = (authState is AuthLoginSuccess) ? authState.wxLoginVO.tk : '';
     return GestureDetector(
       onTap: () => _previewPhoto(photo),
       child: Container(
@@ -294,7 +298,9 @@ class _AcceptanceConfirmationPageState
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image.network(
-            photo.url,
+            photo.url.contains('?')
+                ? '${photo.url}&auth_toke=$token'
+                : '${photo.url}?auth_toke=$token',
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) => Container(
               color: Colors.grey.shade100,
@@ -339,6 +345,8 @@ class _AcceptanceConfirmationPageState
   }
 
   Widget _buildDocumentInfo(String label, String? name, String? documentUrl) {
+    final authState = context.read<AuthBloc>().state;
+    final token = (authState is AuthLoginSuccess) ? authState.wxLoginVO.tk : '';
     return Row(
       children: [
         Text(
@@ -351,7 +359,12 @@ class _AcceptanceConfirmationPageState
             onTap: () {
               if (documentUrl?.isNotEmpty == true) {
                 // 通过documentUrl打开一个预览地址，一般为PDF
-                context.push('/pdf-preview', extra: documentUrl);
+                context.push(
+                  '/pdf-preview',
+                  extra: documentUrl!.contains('?')
+                      ? '$documentUrl&auth_toke=$token'
+                      : '$documentUrl?auth_toke=$token',
+                );
               }
             },
             child: Text(
@@ -390,53 +403,61 @@ class _AcceptanceConfirmationPageState
   void _previewPhoto(AttachmentVO photo) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.image, color: Colors.green),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      photo.name ?? '',
-                      style: const TextStyle(fontWeight: FontWeight.w500),
+      builder: (context) {
+        final authState = context.read<AuthBloc>().state;
+        final token = (authState is AuthLoginSuccess)
+            ? authState.wxLoginVO.tk
+            : '';
+        return Dialog(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.image, color: Colors.green),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        photo.name ?? '',
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.6,
+                    maxWidth: MediaQuery.of(context).size.width * 0.9,
+                  ),
+                  child: Image.network(
+                    photo.url.contains('?')
+                        ? '${photo.url}&auth_toke=$token'
+                        : '${photo.url}?auth_toke=$token',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 200,
+                      width: double.infinity,
+                      color: Colors.grey.shade100,
+                      child: const Icon(
+                        Icons.image_not_supported,
+                        color: Colors.grey,
+                        size: 48,
+                      ),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.6,
-                  maxWidth: MediaQuery.of(context).size.width * 0.9,
                 ),
-                child: Image.network(
-                  photo.url,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    height: 200,
-                    width: double.infinity,
-                    color: Colors.grey.shade100,
-                    child: const Icon(
-                      Icons.image_not_supported,
-                      color: Colors.grey,
-                      size: 48,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

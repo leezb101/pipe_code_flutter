@@ -7,6 +7,8 @@
  */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_state.dart';
 import 'package:pipe_code_flutter/models/acceptance/sign_in_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
@@ -339,6 +341,17 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
     int index,
     List<String> allImageUrls,
   ) {
+    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
+    final token = authState.wxLoginVO.tk;
+    final urlWithTk = imageUrl.contains('?')
+        ? '$imageUrl&auth_toke=$token'
+        : '$imageUrl?auth_toke=$token';
+
+    allImageUrls = allImageUrls.map((url) {
+      return url.contains('?')
+          ? '$url&auth_toke=$token'
+          : '$url?auth_toke=$token';
+    }).toList();
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -360,7 +373,7 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           child: Image.network(
-            imageUrl,
+            urlWithTk,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) => Container(
               color: Colors.grey.shade100,

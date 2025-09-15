@@ -282,7 +282,15 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Flutter Bloc Template',
+                                '建设一码通',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '© 2025 郑州水务科技有限公司',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[600],

@@ -70,7 +70,7 @@ class UploadApiServiceImpl extends BaseApiService implements UploadApiService {
       );
 
       final response = await dio.post(
-        AppConfig.uploadUrl,
+        '${AppConfig.uploadUrl}?auth_toke=$_authToken',
         data: formData,
         options: options,
         onSendProgress: (sent, total) {

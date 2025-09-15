@@ -7,6 +7,8 @@
  */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_state.dart';
 import 'package:pipe_code_flutter/models/install/install_detail_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
@@ -354,9 +356,14 @@ class _InstallDetailPageState extends State<InstallDetailPage> {
   }
 
   Widget _buildImagePreview(String imageUrl, String label) {
+    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
+    final token = authState.wxLoginVO.tk;
+    final urlWithTk = imageUrl.contains('?')
+        ? '$imageUrl&auth_toke=$token'
+        : '$imageUrl?auth_toke=$token';
     return Expanded(
       child: GestureDetector(
-        onTap: () => _previewImage(imageUrl),
+        onTap: () => _previewImage(urlWithTk),
         child: Container(
           height: 80,
           decoration: BoxDecoration(
@@ -481,20 +488,28 @@ class _InstallDetailPageState extends State<InstallDetailPage> {
   }
 
   void _previewPdf(AttachmentVO attachment) {
+    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
+    final token = authState.wxLoginVO.tk;
+    final urlWithTk = attachment.url.contains('?')
+        ? '${attachment.url}&auth_toke=$token'
+        : '${attachment.url}?auth_toke=$token';
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => PdfPreviewer(url: attachment.url),
-      ),
+      MaterialPageRoute(builder: (context) => PdfPreviewer(url: urlWithTk)),
     );
   }
 
   void _openQualityReport(String url) {
+    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
+    final token = authState.wxLoginVO.tk;
+    final urlWithTk = url.contains('?')
+        ? '$url&auth_toke=$token'
+        : '$url?auth_toke=$token';
     if (_isPdfUrl(url)) {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (context) => PdfPreviewer(url: url)));
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => PdfPreviewer(url: urlWithTk)),
+      );
     } else {
-      _previewImage(url);
+      _previewImage(urlWithTk);
     }
   }
 }

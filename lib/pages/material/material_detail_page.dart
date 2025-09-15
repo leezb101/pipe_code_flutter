@@ -10,6 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_bloc.dart';
+import 'package:pipe_code_flutter/bloc/auth/auth_state.dart';
 import '../../constants/material_field_maps.dart';
 import '../../models/material/scan_identification_response.dart';
 import '../../utils/toast_utils.dart';
@@ -119,8 +122,8 @@ class MaterialDetailView extends StatelessWidget {
               _buildProjectInfo(data, context),
               const SizedBox(height: 16),
               _buildDetailsCard(data, context),
-              const SizedBox(height: 16),
-              _buildLocationInfo(data, context),
+              // const SizedBox(height: 16),
+              // _buildLocationInfo(data, context),
             ],
           ),
         ),
@@ -264,6 +267,9 @@ class MaterialDetailView extends StatelessWidget {
       ...data.info.extendedFields,
     };
 
+    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
+    final token = authState.wxLoginVO.tk;
+
     fieldMap.forEach((key, label) {
       if (combinedFields.containsKey(key)) {
         final value = combinedFields[key];
@@ -271,8 +277,13 @@ class MaterialDetailView extends StatelessWidget {
           // 特殊处理文件字段
           if (key == 'warrantyUrl') {
             // 质保书字段
-            final currentWarrantyUrl = combinedFields['currentWarrantyUrl']
-                ?.toString();
+            String currentWarrantyUrl =
+                '${combinedFields['currentWarrantyUrl']?.toString()}';
+            if (currentWarrantyUrl.contains('?')) {
+              currentWarrantyUrl = '$currentWarrantyUrl&auth_toke=$token';
+            } else {
+              currentWarrantyUrl = '$currentWarrantyUrl?auth_toke=$token';
+            }
             allDisplayFields.add(
               _buildFileInfoRow(
                 label,
@@ -283,8 +294,13 @@ class MaterialDetailView extends StatelessWidget {
             );
           } else if (key == 'certificateUrl') {
             // 合格证字段
-            final currentCertificateUrl =
-                combinedFields['currentCertificateUrl']?.toString();
+            String currentCertificateUrl =
+                '${combinedFields['currentCertificateUrl']?.toString()}';
+            if (currentCertificateUrl.contains('?')) {
+              currentCertificateUrl = '$currentCertificateUrl&auth_toke=$token';
+            } else {
+              currentCertificateUrl = '$currentCertificateUrl?auth_toke=$token';
+            }
             allDisplayFields.add(
               _buildFileInfoRow(
                 label,
@@ -345,8 +361,8 @@ class MaterialDetailView extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             if (data.lat != null && data.lng != null) ...[
-              _buildInfoRow('纬度', data.lat!.toStringAsFixed(6), context),
-              _buildInfoRow('经度', data.lng!.toStringAsFixed(6), context),
+              _buildInfoRow('纬度', data.lat!.substring(0, 6), context),
+              _buildInfoRow('经度', data.lng!.substring(0, 6), context),
             ],
             if (data.img != null) _buildInfoRow('图片', data.img!, context),
           ],
@@ -511,15 +527,15 @@ class MaterialDetailView extends StatelessWidget {
       buffer.writeln();
     }
 
-    if (data.lat != null || data.lng != null) {
-      buffer.writeln('=== 位置信息 ===');
-      if (data.lat != null) {
-        buffer.writeln('纬度: ${data.lat!.toStringAsFixed(6)}');
-      }
-      if (data.lng != null) {
-        buffer.writeln('经度: ${data.lng!.toStringAsFixed(6)}');
-      }
-    }
+    // if (data.lat != null || data.lng != null) {
+    //   buffer.writeln('=== 位置信息 ===');
+    //   if (data.lat != null) {
+    //     buffer.writeln('纬度: ${data.lat!.substring(0, 6)}');
+    //   }
+    //   if (data.lng != null) {
+    //     buffer.writeln('经度: ${data.lng!.substring(0, 6)}');
+    //   }
+    // }
 
     Clipboard.setData(ClipboardData(text: buffer.toString()));
     context.showSuccessToast('材料详情已复制到剪贴板');

@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart'
     show initializeAppData;
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/auth/auth_bloc.dart';
+import '../bloc/auth/auth_event.dart';
 import 'package:pipe_code_flutter/services/network_permission_service.dart';
 
 class StartupGate extends StatefulWidget {
@@ -20,6 +23,7 @@ class _StartupGateState extends State<StartupGate> with WidgetsBindingObserver {
   bool _loading = true;
   NetworkAccessStatus? _status;
   String? _error;
+  bool _authChecked = false;
 
   @override
   void initState() {
@@ -59,6 +63,11 @@ class _StartupGateState extends State<StartupGate> with WidgetsBindingObserver {
       try {
         await initializeAppData();
         if (!mounted) return;
+        // 在网络就绪并完成初始化后，触发一次登录状态检查以支持自动登录
+        if (!_authChecked) {
+          context.read<AuthBloc>().add(AuthCheckRequested());
+          _authChecked = true;
+        }
         setState(() {
           _ready = true;
           _loading = false;

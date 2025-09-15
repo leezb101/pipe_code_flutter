@@ -63,10 +63,10 @@ class ScanIdentificationData extends Equatable {
   final int group;
 
   /// 纬度
-  final double? lat;
+  final String? lat;
 
   /// 经度
-  final double? lng;
+  final String? lng;
 
   /// 图片
   final String? img;
