@@ -52,6 +52,7 @@ import 'package:pipe_code_flutter/services/storage_service.dart';
 import 'package:pipe_code_flutter/services/notification/background_handler.dart';
 import 'package:pipe_code_flutter/services/notification/notification_manager.dart';
 import 'package:pipe_code_flutter/services/sse/sse_service.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -112,6 +113,7 @@ Future<void> setupServiceLocator({
   );
 
   // Notification Services
+  getIt.registerLazySingleton<TracingManager>(() => TracingManager());
   getIt.registerSingleton<NotificationManager>(NotificationManager.instance);
   getIt.registerSingleton<BackgroundNotificationHandler>(
     BackgroundNotificationHandler.instance,

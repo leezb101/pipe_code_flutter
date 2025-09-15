@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/widgets/tracing_button.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
@@ -384,7 +385,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             // 登录按钮
             SizedBox(
               height: 50,
-              child: ElevatedButton(
+              child: TracingElevatedButton(
                 onPressed: state is AuthLoading ? null : _passwordLogin,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1976D2),
@@ -395,6 +396,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   padding: EdgeInsets.all(0),
                   elevation: 3,
                 ),
+                actionTitle: state is AuthLoading ? null : '账号登录',
                 child: state is AuthLoading
                     ? const SizedBox(
                         width: 24,
@@ -544,7 +546,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 SizedBox(
                   width: 80,
                   height: 56,
-                  child: ElevatedButton(
+                  child: TracingElevatedButton(
                     onPressed: (_canRequestSms && state is! AuthSmsCodeSending)
                         ? _requestSmsCode
                         : null,
@@ -556,6 +558,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       ),
                       elevation: 0,
                     ),
+                    actionTitle: state is AuthSmsCodeSending ? null : '获取短信验证码',
                     child: state is AuthSmsCodeSending
                         ? const SizedBox(
                             width: 16,
@@ -580,7 +583,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             // 登录按钮
             SizedBox(
               height: 50,
-              child: ElevatedButton(
+              child: TracingElevatedButton(
                 onPressed: state is AuthLoading ? null : _smsLogin,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1976D2),
@@ -591,6 +594,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   padding: EdgeInsets.all(0),
                   elevation: 3,
                 ),
+                actionTitle: state is AuthLoading ? null : '验证码登录',
                 child: state is AuthLoading
                     ? const SizedBox(
                         width: 24,
