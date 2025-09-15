@@ -14,11 +14,11 @@ class TracingInterceptor extends Interceptor {
 
     if (tracingContext != null) {
       final contextJson = jsonEncode(tracingContext.toJson());
-      final contextBase64 = base64Url.encode(utf8.encode(contextJson));
-      options.headers[headerKey] = contextBase64;
+      final contextUriEncode = Uri.encodeComponent(contextJson);
+      options.headers[headerKey] = contextUriEncode;
 
       Logger.debug(
-        'TracingInterceptor: Added tracing header: $headerKey: $contextBase64',
+        'TracingInterceptor: Added tracing header: $headerKey: $contextUriEncode',
         tag: 'TracingInterceptor',
       );
     }

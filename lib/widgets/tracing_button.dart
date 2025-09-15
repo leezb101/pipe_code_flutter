@@ -55,12 +55,10 @@ class TracingElevatedButton extends StatelessWidget {
               }
               title ??= '未命名操作';
 
-              await tracingManager.scopeActionWithTitle(title, () async {
-                final result = onPressed!();
-                if (result is Future) {
-                  await result;
-                }
-              });
+              await tracingManager.scopeActionWithTitle(
+                title,
+                () async => await onPressed!(),
+              );
             },
       style: style,
       focusNode: focusNode,
