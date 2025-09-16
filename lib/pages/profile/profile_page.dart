@@ -38,7 +38,7 @@ class _ProfilePageState extends State<ProfilePage> {
           if (state is AuthUnauthenticated) {
             // Ensure SSE is fully disconnected when user logs out
             getIt<SseService>().disconnect();
-            context.pushReplacementNamed('login');
+            context.replaceNamed('login');
           }
         },
         child: BlocBuilder<UserBloc, UserState>(

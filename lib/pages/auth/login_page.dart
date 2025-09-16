@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
 import 'package:pipe_code_flutter/widgets/tracing_button.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
@@ -386,7 +387,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             SizedBox(
               height: 50,
               child: TracingElevatedButton(
-                onPressed: state is AuthLoading ? null : _passwordLogin,
+                enabled: state is! AuthLoading,
+                onPressed: _passwordLogin,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1976D2),
                   foregroundColor: Colors.white,
@@ -547,9 +549,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   width: 80,
                   height: 56,
                   child: TracingElevatedButton(
-                    onPressed: (_canRequestSms && state is! AuthSmsCodeSending)
-                        ? _requestSmsCode
-                        : null,
+                    enabled: _canRequestSms && state is! AuthSmsCodeSending,
+                    onPressed: _requestSmsCode,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1976D2),
                       foregroundColor: Colors.white,
@@ -584,7 +585,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             SizedBox(
               height: 50,
               child: TracingElevatedButton(
-                onPressed: state is AuthLoading ? null : _smsLogin,
+                enabled: state is! AuthLoading,
+                onPressed: _smsLogin,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1976D2),
                   foregroundColor: Colors.white,
@@ -782,7 +784,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     return isValid;
   }
 
-  void _passwordLogin() {
+  void _passwordLogin(TracingContext tracingContext) {
     if (!_validatePasswordForm()) {
       return;
     }
@@ -819,6 +821,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
     context.read<AuthBloc>().add(
       AuthLoginWithPasswordRequested(
+        tracingContext: tracingContext,
         loginRequest: LoginAccountVO(
           account: _usernameController.text.trim(),
           password: encryptedPassword,
@@ -829,7 +832,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     );
   }
 
-  void _requestSmsCode() {
+  void _requestSmsCode(TracingContext tracingContext) {
     final phone = _phoneController.text.trim();
 
     // 只验证手机号，不依赖表单的完整验证
@@ -843,10 +846,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       return;
     }
 
-    context.read<AuthBloc>().add(AuthSmsCodeRequested(phone: phone));
+    context.read<AuthBloc>().add(
+      AuthSmsCodeRequested(tracingContext: tracingContext, phone: phone),
+    );
   }
 
-  void _smsLogin() {
+  void _smsLogin(TracingContext tracingContext) {
     if (!_validateSmsForm()) {
       return;
     }
@@ -870,7 +875,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     }
 
     context.read<AuthBloc>().add(
-      AuthLoginWithSmsRequested(phone: phone, code: code, smsCode: smsCode),
+      AuthLoginWithSmsRequested(
+        tracingContext: tracingContext,
+        phone: phone,
+        code: code,
+        smsCode: smsCode,
+      ),
     );
   }
 

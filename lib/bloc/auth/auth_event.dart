@@ -6,6 +6,7 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:equatable/equatable.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
 import '../../models/auth/login_account_vo.dart';
 
 abstract class AuthEvent extends Equatable {
@@ -15,24 +16,40 @@ abstract class AuthEvent extends Equatable {
   List<Object> get props => [];
 }
 
+abstract class TracableAuthEvent extends AuthEvent {
+  const TracableAuthEvent({required this.tracingContext});
+
+  final TracingContext tracingContext;
+
+  @override
+  List<Object> get props => [tracingContext];
+}
+
 /// 账号密码登录请求
-class AuthLoginWithPasswordRequested extends AuthEvent {
+class AuthLoginWithPasswordRequested extends TracableAuthEvent {
   const AuthLoginWithPasswordRequested({
+    required super.tracingContext,
     required this.loginRequest,
     this.imgCode,
   });
 
   final LoginAccountVO loginRequest;
+
   /// 验证码标识符，来自验证码接口response header的img_code字段
   final String? imgCode;
 
   @override
-  List<Object> get props => [loginRequest, if (imgCode != null) imgCode!];
+  List<Object> get props => [
+    loginRequest,
+    if (imgCode != null) imgCode!,
+    super.props,
+  ];
 }
 
 /// 短信验证码登录请求
-class AuthLoginWithSmsRequested extends AuthEvent {
+class AuthLoginWithSmsRequested extends TracableAuthEvent {
   const AuthLoginWithSmsRequested({
+    required super.tracingContext,
     required this.phone,
     required this.code,
     this.smsCode,
@@ -40,23 +57,30 @@ class AuthLoginWithSmsRequested extends AuthEvent {
 
   final String phone;
   final String code;
+
   /// SMS验证码标识符，来自短信验证码接口response header的sms_code字段
   final String? smsCode;
 
   @override
-  List<Object> get props => [phone, code, if (smsCode != null) smsCode!];
+  List<Object> get props => [
+    phone,
+    code,
+    if (smsCode != null) smsCode!,
+    super.props,
+  ];
 }
 
 /// 请求短信验证码
-class AuthSmsCodeRequested extends AuthEvent {
+class AuthSmsCodeRequested extends TracableAuthEvent {
   const AuthSmsCodeRequested({
+    required super.tracingContext,
     required this.phone,
   });
 
   final String phone;
 
   @override
-  List<Object> get props => [phone];
+  List<Object> get props => [phone, super.props];
 }
 
 /// 请求图片验证码
@@ -75,9 +99,7 @@ class AuthCheckRequested extends AuthEvent {}
 
 /// 刷新Token
 class AuthTokenRefreshRequested extends AuthEvent {
-  const AuthTokenRefreshRequested({
-    required this.uid,
-  });
+  const AuthTokenRefreshRequested({required this.uid});
 
   final String uid;
 
