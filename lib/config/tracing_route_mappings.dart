@@ -1,11 +1,32 @@
 import 'tracing_info.dart';
 
+const String homeTabRouteName = 'main/home';
+const String recordsTabRouteName = 'main/records';
+const String profileTabRouteName = 'main/profile';
+const String adminHomeTabRouteName = 'main/admin_home';
+
 final Map<String, TracingInfo> tracingRouteMappings = {
   /// ==== 主要功能模块 ====
   'boot': const TracingInfo(source: 'boot_page', description: '启动页'),
   'login': const TracingInfo(source: 'login_page', description: '登录页'),
   'register': const TracingInfo(source: 'register_page', description: '注册页'),
   'main': const TracingInfo(source: 'main_page', description: '主页面'),
+  homeTabRouteName: const TracingInfo(
+    source: 'home_tab_page',
+    description: '首页',
+  ),
+  recordsTabRouteName: const TracingInfo(
+    source: 'records_tab_page',
+    description: '业务记录',
+  ),
+  profileTabRouteName: const TracingInfo(
+    source: 'profile_tab_page',
+    description: '我的',
+  ),
+  adminHomeTabRouteName: const TracingInfo(
+    source: 'admin_home_tab_page',
+    description: '管理员首页',
+  ),
   // 业务流程
   'dispatch-application': const TracingInfo(
     source: 'dispatch_application_page',

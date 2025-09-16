@@ -8,8 +8,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/config/tracing_route_mappings.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
@@ -35,8 +39,15 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   static const platform = MethodChannel('com.zzwater.pipe_code_trace');
 
   int _currentIndex = 0;
+  final TracingManager _tracingManager = getIt<TracingManager>();
+  List<String> _routeNames = [];
+  bool _isUiInitialized = false;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+
+  List<Widget> _pages = [];
+  // 用于动态存储当前角色对应的页面、路由名和导航项
+  List<BottomNavigationBarItem> _navItems = [];
 
   Future<void> _moveToBack() async {
     try {
@@ -46,13 +57,10 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     }
   }
 
-  late List<Widget> _pages;
-  late List<BottomNavigationBarItem> _navItems;
-
   @override
   void initState() {
     super.initState();
-    _initializePagesAndNavigation();
+    // _initializePagesAndNavigation();
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -105,6 +113,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   @override
   void dispose() {
     _animationController.dispose();
+    _tracingManager.popContext();
     super.dispose();
   }
 
@@ -132,11 +141,31 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   /// 构建主界面
   Widget _buildMainInterface() {
-    return BlocBuilder<SessionBloc, SessionState>(
+    return BlocConsumer<SessionBloc, SessionState>(
+      listener: (context, state) {
+        if ((state is SessionAdminEstablished ||
+                state is SessionProjectEstablished ||
+                state is SessionStorekeeperEstablished) &&
+            !_isUiInitialized) {
+          // 根据用户角色初始化标签页和导航
+          bool isAdmin = state is SessionAdminEstablished;
+          _setupTabsForRole(isAdmin);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _updateTabContext(0, isInitial: true);
+            }
+          });
+          setState(() {
+            _isUiInitialized = true;
+          });
+        }
+      },
       builder: (context, sessionState) {
-        // 根据会话状态决定页面配置
-        _updatePagesBasedOnSession(sessionState);
-
+        if (!_isUiInitialized) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
         return Scaffold(
           body: FadeTransition(
             opacity: _fadeAnimation,
@@ -152,6 +181,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                   _currentIndex = index;
                 });
                 _animationController.forward();
+                _updateTabContext(index);
               }
             },
             items: _navItems,
@@ -159,6 +189,73 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         );
       },
     );
+  }
+
+  /// 根据会话状态更新页面和追踪配置
+  void _setupTabsForRole(bool isAdmin) {
+    if (isAdmin) {
+      _pages = [const AdminHomePage(), const ProfilePage()];
+      _routeNames = [adminHomeTabRouteName, profileTabRouteName];
+      _navItems = const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.admin_panel_settings_outlined),
+          activeIcon: Icon(Icons.admin_panel_settings),
+          label: '管理',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          activeIcon: Icon(Icons.person),
+          label: '我的',
+        ),
+      ];
+    } else {
+      _pages = [const HomePage(), const RecordsListPage(), const ProfilePage()];
+      _routeNames = [
+        homeTabRouteName,
+        recordsTabRouteName,
+        profileTabRouteName,
+      ];
+      _navItems = const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home_outlined),
+          activeIcon: Icon(Icons.home),
+          label: '首页',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.list_alt_outlined),
+          activeIcon: Icon(Icons.list_alt),
+          label: '记录',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          activeIcon: Icon(Icons.person),
+          label: '我的',
+        ),
+      ];
+    }
+  }
+
+  /// Tracing 方法：更新当前 Tab 的上下文
+  void _updateTabContext(int index, {bool isInitial = false}) {
+    // 对于非首次加载（即用户手动切换 Tab），先弹出上一个 Tab 的上下文。
+    if (!isInitial) {
+      _tracingManager.popContext();
+    }
+
+    // 确保索引在安全范围内
+    if (index < _routeNames.length) {
+      final routeName = _routeNames[index];
+      final tracingInfo = tracingRouteMappings[routeName];
+
+      if (tracingInfo != null) {
+        final context = TracingContext(
+          source: tracingInfo.source,
+          action: isInitial ? 'enter_main_subpage' : 'switch_tab',
+          description: tracingInfo.description,
+        );
+        _tracingManager.pushContext(context);
+      }
+    }
   }
 
   /// 根据会话状态更新页面配置
