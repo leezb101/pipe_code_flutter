@@ -4,6 +4,7 @@
  */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
 import 'lib/config/service_locator.dart';
 import 'lib/config/app_config.dart';
 import 'lib/bloc/auth/auth_bloc.dart';
@@ -32,7 +33,10 @@ class NetworkLogTestApp extends StatelessWidget {
     return MaterialApp(
       title: '网络日志测试',
       home: BlocProvider(
-        create: (context) => AuthBloc(authRepository: getIt<AuthRepository>()),
+        create: (context) => AuthBloc(
+          authRepository: getIt<AuthRepository>(),
+          tracingManager: getIt<TracingManager>(),
+        ),
         child: const TestPage(),
       ),
     );

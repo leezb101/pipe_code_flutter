@@ -1,45 +1,54 @@
+import 'dart:collection';
+import 'package:path/path.dart';
+
 import 'tracing_context.dart';
 import '../../utils/logger.dart';
 
 /// 全局追踪上下文处理器（单例）
 class TracingManager {
-  /// 私有构造函数，确保单例
-  TracingManager._internal();
+  /// 使用双端队列实现堆栈，性能更优
+  final Queue<TracingContext> _contextStack = Queue<TracingContext>();
 
-  /// 获取单例实例
-  static final TracingManager _instance = TracingManager._internal();
+  /// 获取当前上下文堆栈(仅用于调试)
+  List<TracingContext> get stack => _contextStack.toList();
 
-  /// 工厂构造函数，每次调用都返回同一个实例
-  factory TracingManager() => _instance;
+  /// 获取当前上下文，即堆栈顶部
+  TracingContext? get currentContext =>
+      _contextStack.isNotEmpty ? _contextStack.last : null;
 
-  /// 使用List作为栈来管理上下文，以支持嵌套导航和临时操作
-  final List<TracingContext> _contextStack = [];
-
-  /// 供NavigatorObserver使用，压入新的上下文
+  /// 压入一个新的上下文到堆栈
   void pushContext(TracingContext context) {
-    _contextStack.add(context);
+    _contextStack.addLast(context);
     Logger.debug(
       'TracingManager: Pushed context: $context. Stack size: ${_contextStack.length}',
       tag: 'TracingManager',
     );
   }
 
-  /// 供NavigatorObserver使用，弹出当前上下文
-  /// 如果栈为空则不进行任何操作
+  /// 从堆栈顶部弹出一个上下文，如果堆栈为空则不进行任何操作
   void popContext() {
     if (_contextStack.isNotEmpty) {
-      final poppedContext = _contextStack.removeLast();
+      final poped = _contextStack.removeLast();
       Logger.debug(
-        'TracingManager: Popped context: $poppedContext. Stack size: ${_contextStack.length}',
+        'TracingManager: Popped context: $poped. Stack size: ${_contextStack.length}',
         tag: 'TracingManager',
       );
     }
   }
 
-  TracingContext? get currentContext =>
-      _contextStack.isNotEmpty ? _contextStack.last : null;
+  /// 从堆栈中移除一个特定的上下文实例
+  /// 对于处理复杂场景的导航（如go_router的替换）有用
+  /// 因为被移除的路由对应的上下文不一定在栈顶
+  void removeContext(TracingContext context) {
+    // 从后向前搜索并移除，因为导航相关的上下文通常在栈顶附近
+    if (_contextStack.remove(context)) {
+      Logger.debug(
+        'TracingManager: Removed specific context: $context. Stack size: ${_contextStack.length}',
+        tag: 'TracingManager',
+      );
+    }
+  }
 
-  /// 需要处理精细化日志的地方
   Future<T> scopeAction<T>(
     TracingContext context,
     Future<T> Function() action,
@@ -48,28 +57,54 @@ class TracingManager {
     try {
       return await action();
     } finally {
-      popContext();
+      if (currentContext == context) {
+        popContext();
+      } else {
+        // 这是一个异常情况，可能意味着scopeAction内部发生了意外的导航
+        Logger.warning(
+          'TracingManager: mismatched context on scopeAction pop. Expected $context but found $currentContext',
+          tag: 'TracingManager',
+        );
+        // 作为安全措施，尝试移除指定的上下文
+        removeContext(context);
+      }
     }
   }
 
-  /// 便利方法，根据标题包装一个操作
-  ///
-  /// 此方法会自动获取当前页面上下文，结合传入的actionTitle
-  /// [actionTitle]：操作的标题，通常是按钮的文本
-  /// [action]：要执行的异步函数
+  /// [scopeAction]的便利版本，用于快速包装由UI标题触发的操作
   Future<T> scopeActionWithTitle<T>(
     String actionTitle,
     Future<T> Function() action,
   ) async {
-    final pageContext = currentContext;
-    if (pageContext == null) {
-      // 如果没有上下文，直接进行操作（这种情况极其罕见）
-      return await action();
-    }
+    final pageContext =
+        currentContext ??
+        const TracingContext(
+          source: '未知页面',
+          action: 'unknown',
+          description: '未知页面',
+        );
     final actionContext = pageContext.copyWith(
-      action: 'click_button',
+      action: 'ui-action',
       description: '${pageContext.description} - $actionTitle',
     );
-    return await scopeAction(actionContext, action);
+
+    return scopeAction(actionContext, action);
   }
+
+  void clear() {
+    _contextStack.clear();
+    Logger.debug(
+      'TracingManager: Cleared all contexts. Stack size: ${_contextStack.length}',
+      tag: 'TracingManager',
+    );
+  }
+
+  /// 私有构造函数，确保单例
+  TracingManager._internal();
+
+  /// 获取单例实例
+  static final TracingManager _instance = TracingManager._internal();
+
+  /// 工厂构造函数，每次调用都返回同一个实例
+  factory TracingManager() => _instance;
 }

@@ -46,7 +46,7 @@ class _RegisterPageState extends State<RegisterPage> {
             context.read<SessionBloc>().add(
               SessionInitializeRequested(wxLoginVO: state.wxLoginVO),
             );
-            context.go('/');
+            context.goNamed('main');
           } else if (state is AuthFailure) {
             context.showErrorToast(state.error);
           }

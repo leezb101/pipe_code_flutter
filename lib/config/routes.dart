@@ -99,7 +99,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const RegisterPage(),
     ),
     GoRoute(
-      path: '/',
+      path: '/main',
       name: 'main',
       builder: (context, state) => const MainPage(),
       routes: [

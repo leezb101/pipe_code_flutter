@@ -136,7 +136,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   context.read<SessionBloc>().add(
                     SessionInitializeRequested(wxLoginVO: state.wxLoginVO),
                   );
-                  context.go('/');
+                  context.goNamed('main');
                 } else if (state is AuthSmsCodeSent) {
                   context.showSuccessToast('验证码已发送到 ${state.phone}');
                   _startCountdown();

@@ -39,7 +39,9 @@ class _BootPageState extends State<BootPage> {
     if (!_navigated) {
       if (state is AuthLoginSuccess) {
         _navigated = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) => context.go('/'));
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => context.goNamed('main'),
+        );
       } else if (state is AuthUnauthenticated || state is AuthLoginFailure) {
         _navigated = true;
         WidgetsBinding.instance.addPostFrameCallback(

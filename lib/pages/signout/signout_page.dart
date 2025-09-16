@@ -136,7 +136,7 @@ class _SignoutPageState extends State<SignoutPage> {
             if (context.mounted) {
               GoRouter.of(context).popUntil(
                 predicate: (route) {
-                  return route.name == '/';
+                  return route.name == 'main';
                 },
               );
             }

@@ -5,8 +5,7 @@ final Map<String, TracingInfo> tracingRouteMappings = {
   'boot': const TracingInfo(source: 'boot_page', description: '启动页'),
   'login': const TracingInfo(source: 'login_page', description: '登录页'),
   'register': const TracingInfo(source: 'register_page', description: '注册页'),
-  '': const TracingInfo(source: 'main_page', description: '主页面'),
-
+  'main': const TracingInfo(source: 'main_page', description: '主页面'),
   // 业务流程
   'dispatch-application': const TracingInfo(
     source: 'dispatch_application_page',
