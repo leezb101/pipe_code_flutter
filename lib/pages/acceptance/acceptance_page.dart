@@ -194,16 +194,16 @@ class _AcceptancePageState extends State<AcceptancePage> {
           foregroundColor: Colors.black,
           elevation: 0,
           centerTitle: true,
-          actions: [
-            TextButton(
-              onPressed: _handleViewRecords,
-              child: const Text(
-                '验收记录',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
+          // actions: [
+          //   TextButton(
+          //     onPressed: _handleViewRecords,
+          //     child: const Text(
+          //       '验收记录',
+          //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          //     ),
+          //   ),
+          //   const SizedBox(width: 8),
+          // ],
         ),
         backgroundColor: AppTheme.grey50,
         body: Column(

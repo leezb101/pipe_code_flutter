@@ -108,14 +108,14 @@ class _InstallViewState extends State<InstallView> {
         title: const Text('一管一码'),
         backgroundColor: AppTheme.getBusinessColor('install'),
         foregroundColor: Colors.white,
-        actions: [
-          TextButton(
-            onPressed: () {
-              // TODO: 导航到安装记录页面
-            },
-            child: const Text('安装记录', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+        // actions: [
+        //   TextButton(
+        //     onPressed: () {
+        //       // TODO: 导航到安装记录页面
+        //     },
+        //     child: const Text('安装记录', style: TextStyle(color: Colors.white)),
+        //   ),
+        // ],
       ),
       body: BlocConsumer<InstallBloc, InstallState>(
         buildWhen: (previous, current) => current is! InstallSuccess,

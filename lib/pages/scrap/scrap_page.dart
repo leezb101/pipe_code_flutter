@@ -158,17 +158,17 @@ class _ScrapPageState extends State<ScrapPage> {
         foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: true,
-        actions: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Text('报废记录', style: TextStyle(fontSize: 12)),
-          ),
-          const SizedBox(width: 16),
-        ],
+        // actions: [
+        //   Container(
+        //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        //     decoration: BoxDecoration(
+        //       color: Colors.grey[200],
+        //       borderRadius: BorderRadius.circular(16),
+        //     ),
+        //     child: const Text('报废记录', style: TextStyle(fontSize: 12)),
+        //   ),
+        //   const SizedBox(width: 16),
+        // ],
       ),
       backgroundColor: Colors.grey[50],
       body: BlocListener<ScrapBloc, ScrapState>(

@@ -72,15 +72,15 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
         elevation: 0,
         backgroundColor: AppTheme.getBusinessColor('dispatch'),
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // TODO: Navigate to dispatch records page
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.white),
-            child: const Text('调拨记录'),
-          ),
-        ],
+        // actions: [
+        //   TextButton(
+        //     onPressed: () {
+        //       // TODO: Navigate to dispatch records page
+        //     },
+        //     style: TextButton.styleFrom(foregroundColor: Colors.white),
+        //     child: const Text('调拨记录'),
+        //   ),
+        // ],
       ),
       backgroundColor: AppTheme.grey50,
       body: BlocConsumer<DispatchBloc, DispatchState>(
