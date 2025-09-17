@@ -671,7 +671,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
             (state) => AttachmentVO(
               type: 1, // 1 for image
               name: state.uploadResult!.fileName,
-              url: state.uploadResult!.fileUrl,
+              url: state.uploadResult!.filePath,
               attachFormat: state.uploadResult!.fileType,
             ),
           ),
@@ -685,7 +685,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
                     s.status == UploadStatus.success && s.uploadResult != null,
               )
               .uploadResult
-              ?.fileUrl;
+              ?.filePath;
     // 3. 验收报告
     final String? acceptReportUrl = _acceptanceReportsCubit.state.isEmpty
         ? null
@@ -695,7 +695,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
                     s.status == UploadStatus.success && s.uploadResult != null,
               )
               .uploadResult
-              ?.fileUrl;
+              ?.filePath;
 
     // 创建DoAcceptVO对象
     final doAcceptVO = DoAcceptVO(

@@ -474,7 +474,7 @@ class _ReturnPageState extends State<ReturnPage> {
           (state) => AttachmentVO(
             type: 1, // 1 for image
             name: state.uploadResult!.fileName,
-            url: state.uploadResult!.fileUrl,
+            url: state.uploadResult!.filePath,
             attachFormat: state.uploadResult!.fileType,
           ),
         )

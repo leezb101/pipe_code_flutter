@@ -114,7 +114,7 @@ class _InventoryPageState extends State<InventoryPage> {
     }
 
     final photoUrls = uploadStates
-        .map((s) => s.uploadResult?.fileUrl)
+        .map((s) => s.uploadResult?.filePath)
         .where((url) => url != null)
         .cast<String>()
         .toList();

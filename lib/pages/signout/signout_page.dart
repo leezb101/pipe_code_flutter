@@ -724,7 +724,7 @@ class _SignoutPageState extends State<SignoutPage> {
           (state) => AttachmentVO(
             type: 1, // 1 for image
             name: state.uploadResult!.fileName,
-            url: state.uploadResult!.fileUrl,
+            url: state.uploadResult!.filePath,
             attachFormat: state.uploadResult!.fileType,
           ),
         )

@@ -497,10 +497,10 @@ class _InstallViewState extends State<InstallView> {
       return material.copyWith(
         installPileNo: stakeNumber,
         installImageUrl1: photoStates.isNotEmpty
-            ? photoStates[0].uploadResult?.fileUrl
+            ? photoStates[0].uploadResult?.filePath
             : null,
         installImageUrl2: photoStates.length > 1
-            ? photoStates[1].uploadResult?.fileUrl
+            ? photoStates[1].uploadResult?.filePath
             : null,
       );
     }).toList();
@@ -511,7 +511,7 @@ class _InstallViewState extends State<InstallView> {
     final request = DoInstallVo(
       materialList: updatedMaterials,
       imageList: const [], // 照片信息已在materialList中
-      installQualityUrl: reportResult?.fileUrl,
+      installQualityUrl: reportResult?.filePath,
       signOutId: widget.signOutId != null
           ? int.tryParse(widget.signOutId!)
           : null,

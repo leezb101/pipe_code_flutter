@@ -206,7 +206,7 @@ class _CutViewState extends State<CutView> {
                         successState.uploadResult != null) {
                       context.read<CutBloc>().add(
                         CutOriginalPhotoUpdated(
-                          successState.uploadResult!.fileUrl,
+                          successState.uploadResult!.filePath,
                         ),
                       );
                     }
@@ -344,7 +344,7 @@ class _CutViewState extends State<CutView> {
                 context.read<CutBloc>().add(
                   CutNewItemPhotoUpdated(
                     index: index,
-                    photoPath: successState.uploadResult!.fileUrl,
+                    photoPath: successState.uploadResult!.filePath,
                   ),
                 );
               }

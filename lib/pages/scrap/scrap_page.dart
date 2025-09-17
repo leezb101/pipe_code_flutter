@@ -84,7 +84,7 @@ class _ScrapPageState extends State<ScrapPage> {
         .where(
           (s) => s.status == UploadStatus.success && s.uploadResult != null,
         )
-        .map((state) => state.uploadResult!.fileUrl)
+        .map((state) => state.uploadResult!.filePath)
         .toList();
 
     // 更新bloc中的照片列表

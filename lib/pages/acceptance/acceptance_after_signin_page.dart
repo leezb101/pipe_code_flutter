@@ -545,7 +545,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
           return AttachmentVO(
             type: 1,
             name: state.uploadResult!.fileName,
-            url: state.uploadResult!.fileUrl,
+            url: state.uploadResult!.filePath,
             attachFormat: state.uploadResult!.fileType,
           );
         })
