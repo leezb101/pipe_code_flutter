@@ -252,12 +252,17 @@ class _QrScanPageState extends State<QrScanPage> {
       "ZZWATER:729960879520481280",
     ];
 
-    testCode = '''
-新兴铸管
+    //     testCode = '''
+    // 新兴铸管
+    // XT08K3312501260020
+    // 13dedfwe
+    // 2dac42
+    // ''';
+
+    testCode = '''新兴铸管
 XT08K3312501260020
 13dedfwe
-2dac42
-''';
+2dac42''';
     // testCode = testCodePool[Random().nextInt(testCodePool.length)];
 
     context.read<QrScanBloc>().add(CodeScanned(testCode));
