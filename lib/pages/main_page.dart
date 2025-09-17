@@ -161,6 +161,25 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         }
       },
       builder: (context, sessionState) {
+        // 首次挂载后可能错过已建立状态的变更（例如仓管员场景不会有后续状态刷新），
+        // 因此在 builder 中检测一次并进行初始化，确保 UI 能正确展示。
+        if (!_isUiInitialized &&
+            (sessionState is SessionAdminEstablished ||
+                sessionState is SessionProjectEstablished ||
+                sessionState is SessionStorekeeperEstablished)) {
+          final bool isAdmin = sessionState is SessionAdminEstablished;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted || _isUiInitialized) return;
+            _setupTabsForRole(isAdmin);
+            _updateTabContext(0, isInitial: true);
+            setState(() {
+              _isUiInitialized = true;
+            });
+          });
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
         if (!_isUiInitialized) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
