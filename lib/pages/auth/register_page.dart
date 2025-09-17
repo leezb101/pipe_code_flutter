@@ -139,7 +139,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () => context.go('/login'),
+                    onPressed: () => context.goNamed('login'),
                     child: const Text('Already have an account? Login'),
                   ),
                 ],

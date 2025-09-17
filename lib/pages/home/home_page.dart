@@ -1228,7 +1228,7 @@ class _HomePageState extends State<HomePage> {
   ) async {
     if (!context.mounted) return;
     if (menuItem.isPageMenu && menuItem.route != null) {
-      final result = await context.push(menuItem.route!);
+      final result = await context.pushNamed(menuItem.route!);
       if (result == true && context.mounted) {
         final recordsBloc = context.read<RecordsBloc>();
         // 刷新待办
@@ -1288,7 +1288,7 @@ class _HomePageState extends State<HomePage> {
             scanMode: QrScanMode.batch,
             context: const {
               'entry': 'standalone',
-              'route': '/signout',
+              'route': 'signout',
               'data': <String, dynamic>{},
             },
           ),
@@ -1301,7 +1301,7 @@ class _HomePageState extends State<HomePage> {
             scanMode: QrScanMode.batch,
             context: const {
               'entry': 'standalone',
-              'route': '/dispatch-application',
+              'route': 'dispatch-application',
               'data': <String, dynamic>{},
             },
           ),
@@ -1314,7 +1314,7 @@ class _HomePageState extends State<HomePage> {
             scanMode: QrScanMode.batch,
             context: const {
               'entry': 'standalone',
-              'route': '/return-material',
+              'route': 'return-material',
               'data': <String, dynamic>{},
             },
           ),
@@ -1333,7 +1333,7 @@ class _HomePageState extends State<HomePage> {
             scanMode: QrScanMode.batch,
             context: const {
               'entry': 'standalone',
-              'route': '/scrap',
+              'route': 'scrap',
               'data': <String, dynamic>{},
             },
           ),
@@ -1346,7 +1346,7 @@ class _HomePageState extends State<HomePage> {
             scanMode: QrScanMode.single,
             context: const {
               'entry': 'standalone',
-              'route': '/material-detail',
+              'route': 'material-detail',
               'data': <String, dynamic>{},
             },
           ),
@@ -1439,7 +1439,7 @@ class _HomePageState extends State<HomePage> {
                         scanMode: QrScanMode.single,
                         context: const {
                           'entry': 'standalone',
-                          'route': '/acceptance',
+                          'route': 'acceptance',
                           'data': <String, dynamic>{},
                         },
                       )
@@ -1460,7 +1460,7 @@ class _HomePageState extends State<HomePage> {
                         scanMode: QrScanMode.batch,
                         context: const {
                           'entry': 'standalone',
-                          'route': '/acceptance',
+                          'route': 'acceptance',
                           'data': <String, dynamic>{},
                         },
                       )

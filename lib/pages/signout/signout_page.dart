@@ -695,7 +695,7 @@ class _SignoutPageState extends State<SignoutPage> {
   }
 
   void _handleViewRecords() {
-    context.go('/records?tab=signout');
+    context.goNamed('records', queryParameters: {'tab': 'signout'});
   }
 
   void _handleSubmit() {
@@ -817,7 +817,10 @@ class _SignoutPageState extends State<SignoutPage> {
       title: '继续扫码',
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.addedCodes.isEmpty) return;
@@ -841,7 +844,10 @@ class _SignoutPageState extends State<SignoutPage> {
       title: '扫码剔除',
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.removedCodes.isEmpty) return;

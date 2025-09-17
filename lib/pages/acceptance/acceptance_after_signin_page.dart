@@ -464,7 +464,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
       title: '扫码入库',
     );
     final config = flow.buildConfig(request);
-    context.push<List<dynamic>>('/qr-scan', extra: config).then((raw) {
+    context.pushNamed<List<dynamic>>('qr-scan', extra: config).then((raw) {
       if (!mounted) return;
       final res = flow.normalize(request, raw);
       if (res.addedCodes.isEmpty) return;
@@ -485,7 +485,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
       title: '扫码剔除',
     );
     final config = flow.buildConfig(request);
-    context.push<List<dynamic>>('/qr-scan', extra: config).then((raw) {
+    context.pushNamed<List<dynamic>>('qr-scan', extra: config).then((raw) {
       if (!mounted) return;
       final res = flow.normalize(request, raw);
       if (res.removedCodes.isEmpty) return;

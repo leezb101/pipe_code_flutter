@@ -439,7 +439,7 @@ class _ReturnPageState extends State<ReturnPage> {
 
   void _handleViewRecords() {
     // Navigate to records page with return tab selected
-    context.go('/records?tab=return');
+    context.goNamed('records', queryParameters: {'tab': 'accept'});
   }
 
   void _handleSubmitReturn() {
@@ -513,7 +513,10 @@ class _ReturnPageState extends State<ReturnPage> {
       },
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     final res = flow.normalize(request, raw);
     if (!mounted) return;
     if (res.addedCodes.isEmpty) return;
@@ -575,7 +578,10 @@ class _ReturnPageState extends State<ReturnPage> {
       },
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     final res = flow.normalize(request, raw);
     if (!mounted) return;
     if (res.removedCodes.isEmpty) return;

@@ -131,7 +131,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         listener: (context, state) {
           if (state is AuthUnauthenticated) {
             // 用户未认证，跳转到登录页面
-            context.go('/login');
+            context.goNamed('login');
           }
         },
         child: SessionGuard(child: _buildMainInterface()),

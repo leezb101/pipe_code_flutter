@@ -478,7 +478,10 @@ class _RecoveryViewState extends State<RecoveryView> {
 
     // 导航到扫描页面
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     final res = flow.normalize(request, raw);
     if (res.rawResults.isEmpty) return;
     if (!context.mounted) return;
@@ -616,7 +619,10 @@ class _RecoveryViewState extends State<RecoveryView> {
     try {
       // 导航到扫描页面
       final config = flow.buildConfig(request);
-      final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+      final raw = await context.pushNamed<List<dynamic>>(
+        'qr-scan',
+        extra: config,
+      );
       final res = flow.normalize(request, raw);
 
       if (res.rawResults.isEmpty) {

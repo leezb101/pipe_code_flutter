@@ -462,7 +462,7 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
   }
 
   void _handleViewRecords() {
-    context.go('/records?tab=signout');
+    context.goNamed('records', queryParameters: {'tab': 'signout'});
   }
 
   void _handleConfirm() {

@@ -632,7 +632,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
 
   void _handleViewRecords() {
     // Navigate to records page with acceptance tab selected
-    context.go('/records?tab=accept');
+    context.goNamed('records', queryParameters: {'tab': 'accept'});
   }
 
   void _handleScanAcceptance() {
@@ -793,7 +793,10 @@ class _AcceptancePageState extends State<AcceptancePage> {
       title: '继续扫码',
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.addedCodes.isEmpty) return;
@@ -822,7 +825,10 @@ class _AcceptancePageState extends State<AcceptancePage> {
       title: '扫码剔除',
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.removedCodes.isEmpty) return;

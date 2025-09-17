@@ -61,7 +61,10 @@ class _InventoryPageState extends State<InventoryPage> {
     final config = QrScanConfig(scanMode: QrScanMode.batch, title: '盘点扫码');
 
     try {
-      final result = await context.push('/qr-scan', extra: config);
+      final result = await context.pushNamed<List<dynamic>>(
+        'qr-scan',
+        extra: config,
+      );
       if (result != null && result is List<QrScanResult>) {
         // 获取扫码的二维码列表
         final qrCodes = result.map((r) => r.code).toList();
