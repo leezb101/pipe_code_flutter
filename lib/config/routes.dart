@@ -31,6 +31,7 @@ import 'package:pipe_code_flutter/pages/signout/signout_page.dart';
 import 'package:pipe_code_flutter/pages/signout/signout_detail_page.dart';
 import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
 import 'package:pipe_code_flutter/pages/temporary_auth/temporary_auth_page.dart';
+import 'package:pipe_code_flutter/utils/tracing_navigator_observer.dart';
 import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
 import '../bloc/dispatch/dispatch_bloc.dart';
 import '../pages/auth/login_page.dart';
@@ -80,6 +81,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final GoRouter appRouter = GoRouter(
   navigatorKey: navigatorKey,
   initialLocation: '/boot',
+  observers: [TracingNavigatorObserver()],
   routes: [
     GoRoute(
       path: '/boot',
@@ -97,7 +99,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const RegisterPage(),
     ),
     GoRoute(
-      path: '/',
+      path: '/main',
       name: 'main',
       builder: (context, state) => const MainPage(),
       routes: [
@@ -137,7 +139,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/spare-qr',
+          path: 'spare-qr',
           name: 'spare-qr',
           builder: (context, state) {
             return BlocProvider(
@@ -147,7 +149,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/qr-scan',
+          path: 'qr-scan',
           name: 'qr-scan',
           builder: (context, state) {
             final config = state.extra as QrScanConfig?;
@@ -161,7 +163,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/acceptance',
+          path: 'acceptance',
           name: 'acceptance',
           builder: (context, state) {
             final data = state.extra as Map<String, dynamic>?;
@@ -179,7 +181,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/acceptance-detail',
+          path: 'acceptance-detail',
           name: 'acceptance-detail',
           builder: (context, state) {
             final acceptanceIdParam = state.uri.queryParameters['id'];
@@ -196,7 +198,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/acceptance-confirmation',
+          path: 'acceptance-confirmation',
           name: 'acceptance-confirmation',
           builder: (context, state) {
             final acceptanceIdParam = state.uri.queryParameters['id'];
@@ -213,7 +215,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/acceptance-after-signin',
+          path: 'acceptance-after-signin',
           name: 'acceptance-after-signin',
           builder: (context, state) {
             final acceptanceIdParam = state.uri.queryParameters['id'];
@@ -239,7 +241,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/dispatch-confirmation',
+          path: 'dispatch-confirmation',
           name: 'dispatch-confirmation',
           builder: (context, state) {
             final dispatchIdParam = state.uri.queryParameters['id'];
@@ -256,7 +258,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/dispatch-detail',
+          path: 'dispatch-detail',
           name: 'dispatch-detail',
           builder: (context, state) {
             final dispatchIdParam = state.uri.queryParameters['id'];
@@ -273,7 +275,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/dispatch-after-signin',
+          path: 'dispatch-after-signin',
           name: 'dispatch-after-signin',
           builder: (context, state) {
             final dispatchIdParam = state.uri.queryParameters['id'];
@@ -297,7 +299,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/signin-detail',
+          path: 'signin-detail',
           name: 'signin-detail',
           builder: (context, state) {
             final signinIdParam = state.uri.queryParameters['id'];
@@ -315,7 +317,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/signout',
+          path: 'signout',
           name: 'signout',
           builder: (context, state) {
             final data = state.extra as Map<String, dynamic>?;
@@ -332,7 +334,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/signout-audit',
+          path: 'signout-audit',
           name: 'signout-audit',
           builder: (context, state) {
             final signoutIdParam = state.uri.queryParameters['id'];
@@ -349,7 +351,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/signout-detail',
+          path: 'signout-detail',
           name: 'signout-detail',
           builder: (context, state) {
             final signoutIdParam = state.uri.queryParameters['id'];
@@ -366,14 +368,14 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/recovery',
+          path: 'recovery',
           name: 'recovery',
           builder: (context, state) {
             return const RecoveryPage();
           },
         ),
         GoRoute(
-          path: '/install',
+          path: 'install',
           name: 'install',
           builder: (context, state) {
             final signOutId = state.uri.queryParameters['id'];
@@ -387,7 +389,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/install-detail',
+          path: 'install-detail',
           name: 'install-detail',
           builder: (context, state) {
             final installIdParam = state.uri.queryParameters['id'];
@@ -404,7 +406,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/records',
+          path: 'records',
           name: 'records',
           builder: (context, state) {
             final tabParam = state.uri.queryParameters['tab'];
@@ -425,7 +427,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/material-detail',
+          path: 'material-detail',
           name: 'material-detail',
           builder: (context, state) {
             final data = state.extra as Map<String, dynamic>?;
@@ -481,7 +483,7 @@ final GoRouter appRouter = GoRouter(
           ],
         ),
         GoRoute(
-          path: '/project-initiation',
+          path: 'project-initiation',
           name: 'project-initiation',
           builder: (context, state) {
             final projectId = state.uri.queryParameters['projectId'];
@@ -494,7 +496,7 @@ final GoRouter appRouter = GoRouter(
           },
           routes: [
             GoRoute(
-              path: '/material-selection',
+              path: 'material-selection',
               name: 'material-selection',
               builder: (context, state) {
                 final data = state.extra as Map<String, dynamic>?;
@@ -511,7 +513,7 @@ final GoRouter appRouter = GoRouter(
           ],
         ),
         GoRoute(
-          path: '/return-material',
+          path: 'return-material',
           name: 'return-material',
           builder: (context, state) {
             final data = state.extra as Map<String, dynamic>?;
@@ -529,7 +531,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/return-detail',
+          path: 'return-detail',
           name: 'return-detail',
           builder: (context, state) {
             final returnIdParam = state.uri.queryParameters['id'];
@@ -546,17 +548,17 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/cut-pipe',
+          path: 'cut-pipe',
           name: 'cut-pipe',
           builder: (context, state) => const CutPage(),
         ),
         GoRoute(
-          path: '/inventory',
+          path: 'inventory',
           name: 'inventory-list',
           builder: (context, state) => const InventoryListPage(),
         ),
         GoRoute(
-          path: '/inventory-apply',
+          path: 'inventory-apply',
           name: 'inventory-apply',
           builder: (context, state) {
             final taskId = state.extra as int?;
@@ -574,7 +576,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/inventory-detail',
+          path: 'inventory-detail',
           name: 'inventory-detail',
           builder: (context, state) {
             final taskId =
@@ -590,7 +592,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/scrap',
+          path: 'scrap',
           name: 'scrap',
           builder: (context, state) {
             final data = state.extra as Map<String, dynamic>?;
@@ -624,7 +626,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/scrap-detail',
+          path: 'scrap-detail',
           name: 'scrap-detail',
           builder: (context, state) {
             final scrapIdParam = state.uri.queryParameters['id'];
@@ -641,7 +643,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/temporary-auth',
+          path: 'temporary-auth',
           name: 'temporary-auth',
           builder: (context, state) {
             return BlocProvider(
@@ -651,12 +653,12 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/qmap',
+          path: 'qmap',
           name: 'qmap',
           builder: (context, state) => const Qmap(),
         ),
         GoRoute(
-          path: '/warehouseDetail',
+          path: 'warehouseDetail',
           name: 'warehouseDetail',
           builder: (context, state) {
             final idParam = state.uri.queryParameters['id'];
@@ -668,7 +670,7 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/projectDetail',
+          path: 'projectDetail',
           name: 'projectDetail',
           builder: (context, state) {
             final idParam = state.uri.queryParameters['id'];

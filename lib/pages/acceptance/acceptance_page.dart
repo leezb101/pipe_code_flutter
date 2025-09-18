@@ -194,16 +194,16 @@ class _AcceptancePageState extends State<AcceptancePage> {
           foregroundColor: Colors.black,
           elevation: 0,
           centerTitle: true,
-          actions: [
-            TextButton(
-              onPressed: _handleViewRecords,
-              child: const Text(
-                '验收记录',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
+          // actions: [
+          //   TextButton(
+          //     onPressed: _handleViewRecords,
+          //     child: const Text(
+          //       '验收记录',
+          //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          //     ),
+          //   ),
+          //   const SizedBox(width: 8),
+          // ],
         ),
         backgroundColor: AppTheme.grey50,
         body: Column(
@@ -632,7 +632,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
 
   void _handleViewRecords() {
     // Navigate to records page with acceptance tab selected
-    context.go('/records?tab=accept');
+    context.goNamed('records', queryParameters: {'tab': 'accept'});
   }
 
   void _handleScanAcceptance() {
@@ -671,7 +671,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
             (state) => AttachmentVO(
               type: 1, // 1 for image
               name: state.uploadResult!.fileName,
-              url: state.uploadResult!.fileUrl,
+              url: state.uploadResult!.filePath,
               attachFormat: state.uploadResult!.fileType,
             ),
           ),
@@ -685,7 +685,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
                     s.status == UploadStatus.success && s.uploadResult != null,
               )
               .uploadResult
-              ?.fileUrl;
+              ?.filePath;
     // 3. 验收报告
     final String? acceptReportUrl = _acceptanceReportsCubit.state.isEmpty
         ? null
@@ -695,7 +695,7 @@ class _AcceptancePageState extends State<AcceptancePage> {
                     s.status == UploadStatus.success && s.uploadResult != null,
               )
               .uploadResult
-              ?.fileUrl;
+              ?.filePath;
 
     // 创建DoAcceptVO对象
     final doAcceptVO = DoAcceptVO(
@@ -793,7 +793,10 @@ class _AcceptancePageState extends State<AcceptancePage> {
       title: '继续扫码',
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.addedCodes.isEmpty) return;
@@ -822,7 +825,10 @@ class _AcceptancePageState extends State<AcceptancePage> {
       title: '扫码剔除',
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.removedCodes.isEmpty) return;

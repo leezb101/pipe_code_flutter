@@ -81,7 +81,7 @@ class _StorekeeperNonProjectPageState extends State<StorekeeperNonProjectPage> {
         .where(
           (s) => s.status == UploadStatus.success && s.uploadResult != null,
         )
-        .map((state) => state.uploadResult!.fileUrl)
+        .map((state) => state.uploadResult!.filePath)
         .toList();
 
     // 更新bloc中的照片列表
@@ -571,7 +571,10 @@ class _StorekeeperNonProjectPageState extends State<StorekeeperNonProjectPage> {
     );
 
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     final result = flow.normalize(request, raw);
 
     if (!mounted) return;

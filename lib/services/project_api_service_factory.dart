@@ -6,6 +6,7 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:dio/dio.dart';
+import 'package:pipe_code_flutter/utils/tracing_interceptor.dart';
 import '../config/app_config.dart';
 import '../utils/logger.dart';
 import 'api/interfaces/project_api_service.dart';

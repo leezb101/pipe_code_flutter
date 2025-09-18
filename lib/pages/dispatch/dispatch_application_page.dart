@@ -72,15 +72,15 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
         elevation: 0,
         backgroundColor: AppTheme.getBusinessColor('dispatch'),
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // TODO: Navigate to dispatch records page
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.white),
-            child: const Text('调拨记录'),
-          ),
-        ],
+        // actions: [
+        //   TextButton(
+        //     onPressed: () {
+        //       // TODO: Navigate to dispatch records page
+        //     },
+        //     style: TextButton.styleFrom(foregroundColor: Colors.white),
+        //     child: const Text('调拨记录'),
+        //   ),
+        // ],
       ),
       backgroundColor: AppTheme.grey50,
       body: BlocConsumer<DispatchBloc, DispatchState>(
@@ -430,7 +430,10 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
       title: '继续扫码',
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.addedCodes.isEmpty || !context.mounted) return;
@@ -453,7 +456,10 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
       title: '继续扫码',
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.removedCodes.isEmpty || !context.mounted) return;

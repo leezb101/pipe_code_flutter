@@ -136,7 +136,7 @@ class _SignoutPageState extends State<SignoutPage> {
             if (context.mounted) {
               GoRouter.of(context).popUntil(
                 predicate: (route) {
-                  return route.name == '/';
+                  return route.name == 'main';
                 },
               );
             }
@@ -155,20 +155,20 @@ class _SignoutPageState extends State<SignoutPage> {
           ),
           elevation: 0,
           centerTitle: true,
-          actions: [
-            TextButton(
-              onPressed: _handleViewRecords,
-              child: const Text(
-                '出库记录',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
+          // actions: [
+          //   TextButton(
+          //     onPressed: _handleViewRecords,
+          //     child: const Text(
+          //       '出库记录',
+          //       style: TextStyle(
+          //         fontSize: 16,
+          //         fontWeight: FontWeight.w600,
+          //         color: Colors.white,
+          //       ),
+          //     ),
+          //   ),
+          //   const SizedBox(width: 8),
+          // ],
         ),
         backgroundColor: AppTheme.grey50,
         body: Column(
@@ -695,7 +695,7 @@ class _SignoutPageState extends State<SignoutPage> {
   }
 
   void _handleViewRecords() {
-    context.go('/records?tab=signout');
+    context.goNamed('records', queryParameters: {'tab': 'signout'});
   }
 
   void _handleSubmit() {
@@ -724,7 +724,7 @@ class _SignoutPageState extends State<SignoutPage> {
           (state) => AttachmentVO(
             type: 1, // 1 for image
             name: state.uploadResult!.fileName,
-            url: state.uploadResult!.fileUrl,
+            url: state.uploadResult!.filePath,
             attachFormat: state.uploadResult!.fileType,
           ),
         )
@@ -817,7 +817,10 @@ class _SignoutPageState extends State<SignoutPage> {
       title: '继续扫码',
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.addedCodes.isEmpty) return;
@@ -841,7 +844,10 @@ class _SignoutPageState extends State<SignoutPage> {
       title: '扫码剔除',
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.removedCodes.isEmpty) return;

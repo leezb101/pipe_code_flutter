@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
+import 'package:pipe_code_flutter/widgets/tracing_button.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
@@ -35,9 +37,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Register'),
-      ),
+      appBar: AppBar(title: const Text('Register')),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthLoginSuccess) {
@@ -46,7 +46,7 @@ class _RegisterPageState extends State<RegisterPage> {
             context.read<SessionBloc>().add(
               SessionInitializeRequested(wxLoginVO: state.wxLoginVO),
             );
-            context.go('/');
+            context.goNamed('main');
           } else if (state is AuthFailure) {
             context.showErrorToast(state.error);
           }
@@ -129,8 +129,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: state is AuthLoading ? null : _register,
+                    child: TracingElevatedButton(
+                      enabled: state is! AuthLoading,
+                      onPressed: _register,
                       child: state is AuthLoading
                           ? const CircularProgressIndicator()
                           : const Text('Register'),
@@ -138,7 +139,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () => context.go('/login'),
+                    onPressed: () => context.goNamed('login'),
                     child: const Text('Already have an account? Login'),
                   ),
                 ],
@@ -150,17 +151,18 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  void _register() {
+  void _register(TracingContext tracingContext) {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
-            AuthLoginWithPasswordRequested(
-              loginRequest: LoginAccountVO(
-                account: _usernameController.text,
-                password: _passwordController.text,
-                code: '', // 密码登录不需要验证码
-              ),
-            ),
-          );
+        AuthLoginWithPasswordRequested(
+          tracingContext: tracingContext,
+          loginRequest: LoginAccountVO(
+            account: _usernameController.text,
+            password: _passwordController.text,
+            code: '', // 密码登录不需要验证码
+          ),
+        ),
+      );
     }
   }
 }

@@ -84,7 +84,7 @@ class _ScrapPageState extends State<ScrapPage> {
         .where(
           (s) => s.status == UploadStatus.success && s.uploadResult != null,
         )
-        .map((state) => state.uploadResult!.fileUrl)
+        .map((state) => state.uploadResult!.filePath)
         .toList();
 
     // 更新bloc中的照片列表
@@ -108,7 +108,10 @@ class _ScrapPageState extends State<ScrapPage> {
       },
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     final result = flow.normalize(request, raw);
     if (!mounted) return;
     if (result.addedCodes.isNotEmpty) {
@@ -133,7 +136,10 @@ class _ScrapPageState extends State<ScrapPage> {
       },
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     final result = flow.normalize(request, raw);
     if (!mounted) return;
     if (result.removedCodes.isNotEmpty) {
@@ -152,17 +158,17 @@ class _ScrapPageState extends State<ScrapPage> {
         foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: true,
-        actions: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Text('报废记录', style: TextStyle(fontSize: 12)),
-          ),
-          const SizedBox(width: 16),
-        ],
+        // actions: [
+        //   Container(
+        //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        //     decoration: BoxDecoration(
+        //       color: Colors.grey[200],
+        //       borderRadius: BorderRadius.circular(16),
+        //     ),
+        //     child: const Text('报废记录', style: TextStyle(fontSize: 12)),
+        //   ),
+        //   const SizedBox(width: 16),
+        // ],
       ),
       backgroundColor: Colors.grey[50],
       body: BlocListener<ScrapBloc, ScrapState>(

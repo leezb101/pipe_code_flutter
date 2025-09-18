@@ -230,8 +230,8 @@ class QmapState extends State<Qmap> {
     final overlay = Overlay.of(context);
     late OverlayEntry overlayEntry;
 
-    if (markerId.startsWith('store_marker_')) {
-      final storeId = markerId.replaceFirst('store_marker_', '');
+    if (markerId.startsWith('store_')) {
+      final storeId = markerId.replaceFirst('store_', '');
       final storeData = state.stores.firstWhere(
         (store) => store['id'].toString() == storeId,
         orElse: () => <String, dynamic>{},
@@ -243,8 +243,8 @@ class QmapState extends State<Qmap> {
           () => overlayEntry.remove(),
         );
       }
-    } else if (markerId.startsWith('project_marker_')) {
-      final projectId = markerId.replaceFirst('project_marker_', '');
+    } else if (markerId.startsWith('project_')) {
+      final projectId = markerId.replaceFirst('project_', '');
       final projectData = state.projects.firstWhere(
         (project) => project['id'].toString() == projectId,
         orElse: () => <String, dynamic>{},

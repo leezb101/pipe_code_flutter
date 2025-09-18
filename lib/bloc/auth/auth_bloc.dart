@@ -6,6 +6,7 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
 import '../../repositories/interfaces/auth_repository.dart';
 import '../../models/auth/rf.dart';
 import 'auth_event.dart';
@@ -13,10 +14,14 @@ import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
+  final TracingManager _tracingManager;
 
-  AuthBloc({required AuthRepository authRepository})
-    : _authRepository = authRepository,
-      super(AuthInitial()) {
+  AuthBloc({
+    required AuthRepository authRepository,
+    required TracingManager tracingManager,
+  }) : _tracingManager = tracingManager,
+       _authRepository = authRepository,
+       super(AuthInitial()) {
     on<AuthLoginWithPasswordRequested>(_onLoginWithPasswordRequested);
     on<AuthLoginWithSmsRequested>(_onLoginWithSmsRequested);
     on<AuthSmsCodeRequested>(_onSmsCodeRequested);
@@ -32,10 +37,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      final result = await _authRepository.loginWithPassword(
-        event.loginRequest,
-        imgCode: event.imgCode,
+      final result = await _tracingManager.scopeAction(
+        event.tracingContext,
+        () => _authRepository.loginWithPassword(
+          event.loginRequest,
+          imgCode: event.imgCode,
+        ),
       );
+      // final result = await _authRepository.loginWithPassword(
+      //   event.loginRequest,
+      //   imgCode: event.imgCode,
+      // );
       if (result.isSuccess) {
         _handleLoginSuccess(result.data!, emit);
       } else {
@@ -52,11 +64,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      final result = await _authRepository.loginWithSms(
-        event.phone,
-        event.code,
-        smsCode: event.smsCode,
+      final result = await _tracingManager.scopeAction(
+        event.tracingContext,
+        () => _authRepository.loginWithSms(
+          event.phone,
+          event.code,
+          smsCode: event.smsCode,
+        ),
       );
+      // final result = await _authRepository.loginWithSms(
+      //   event.phone,
+      //   event.code,
+      //   smsCode: event.smsCode,
+      // );
       if (result.isSuccess) {
         _handleLoginSuccess(result.data!, emit);
       } else {

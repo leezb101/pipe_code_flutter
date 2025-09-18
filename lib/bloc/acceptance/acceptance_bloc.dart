@@ -248,12 +248,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     LoadAcceptanceUsers event,
     Emitter<AcceptanceState> emit,
   ) async {
-    // Preserve AcceptanceEditingState for AcceptancePage so materials aren't cleared
-    final resumeEditing = state is AcceptanceEditingState
+    // Preserve primary AcceptancePage state (editing or initialized materials)
+    final AcceptanceState? resumePrimary = state is AcceptanceEditingState
         ? state as AcceptanceEditingState
+        : state is AcceptanceMaterialsResolved
+        ? state as AcceptanceMaterialsResolved
         : null;
     try {
-      if (resumeEditing == null) {
+      if (resumePrimary == null) {
         emit(const AcceptanceUsersLoading());
       }
       Logger.info(
@@ -278,16 +280,35 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           tag: 'AcceptanceBloc',
         );
       }
-      // After delivering side-effect state to listeners, restore editing view state if needed
-      if (resumeEditing != null) {
-        emit(resumeEditing.copyWith());
+      // After delivering side-effect state to listeners, restore primary view state if needed
+      if (resumePrimary != null) {
+        if (resumePrimary is AcceptanceEditingState) {
+          emit(resumePrimary.copyWith());
+        } else if (resumePrimary is AcceptanceMaterialsResolved) {
+          // Re-emit to restore initialized materials on AcceptancePage
+          emit(
+            AcceptanceMaterialsResolved(
+              materials: resumePrimary.materials,
+              message: resumePrimary.message,
+            ),
+          );
+        }
       }
     } catch (e) {
       emit(AcceptanceError(message: '获取验收用户失败，请重试'));
       Logger.error('Error loading acceptance users: $e', tag: 'AcceptanceBloc');
-      // Restore editing view state even on error
-      if (resumeEditing != null) {
-        emit(resumeEditing.copyWith());
+      // Restore primary view state even on error
+      if (resumePrimary != null) {
+        if (resumePrimary is AcceptanceEditingState) {
+          emit(resumePrimary.copyWith());
+        } else if (resumePrimary is AcceptanceMaterialsResolved) {
+          emit(
+            AcceptanceMaterialsResolved(
+              materials: resumePrimary.materials,
+              message: resumePrimary.message,
+            ),
+          );
+        }
       }
     }
   }
@@ -296,12 +317,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     LoadWarehouseUsers event,
     Emitter<AcceptanceState> emit,
   ) async {
-    // Preserve AcceptanceEditingState for AcceptancePage so materials aren't cleared
-    final resumeEditing = state is AcceptanceEditingState
+    // Preserve primary AcceptancePage state (editing or initialized materials)
+    final AcceptanceState? resumePrimary = state is AcceptanceEditingState
         ? state as AcceptanceEditingState
+        : state is AcceptanceMaterialsResolved
+        ? state as AcceptanceMaterialsResolved
         : null;
     try {
-      if (resumeEditing == null) {
+      if (resumePrimary == null) {
         emit(const WarehouseUsersLoading());
       }
       Logger.info(
@@ -326,16 +349,34 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           tag: 'AcceptanceBloc',
         );
       }
-      // After delivering side-effect state to listeners, restore editing view state if needed
-      if (resumeEditing != null) {
-        emit(resumeEditing.copyWith());
+      // After delivering side-effect state to listeners, restore primary view state if needed
+      if (resumePrimary != null) {
+        if (resumePrimary is AcceptanceEditingState) {
+          emit(resumePrimary.copyWith());
+        } else if (resumePrimary is AcceptanceMaterialsResolved) {
+          emit(
+            AcceptanceMaterialsResolved(
+              materials: resumePrimary.materials,
+              message: resumePrimary.message,
+            ),
+          );
+        }
       }
     } catch (e) {
       emit(AcceptanceError(message: '获取仓库用户失败，请重试'));
       Logger.error('Error loading warehouse users: $e', tag: 'AcceptanceBloc');
-      // Restore editing view state even on error
-      if (resumeEditing != null) {
-        emit(resumeEditing.copyWith());
+      // Restore primary view state even on error
+      if (resumePrimary != null) {
+        if (resumePrimary is AcceptanceEditingState) {
+          emit(resumePrimary.copyWith());
+        } else if (resumePrimary is AcceptanceMaterialsResolved) {
+          emit(
+            AcceptanceMaterialsResolved(
+              materials: resumePrimary.materials,
+              message: resumePrimary.message,
+            ),
+          );
+        }
       }
     }
   }
@@ -344,12 +385,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     LoadWarehouseList event,
     Emitter<AcceptanceState> emit,
   ) async {
-    // Preserve AcceptanceEditingState for AcceptancePage so materials aren't cleared
-    final resumeEditing = state is AcceptanceEditingState
+    // Preserve primary AcceptancePage state (editing or initialized materials)
+    final AcceptanceState? resumePrimary = state is AcceptanceEditingState
         ? state as AcceptanceEditingState
+        : state is AcceptanceMaterialsResolved
+        ? state as AcceptanceMaterialsResolved
         : null;
     try {
-      if (resumeEditing == null) {
+      if (resumePrimary == null) {
         emit(const WarehouseListLoading());
       }
       Logger.info('Loading warehouse list', tag: 'AcceptanceBloc');
@@ -369,16 +412,34 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           tag: 'AcceptanceBloc',
         );
       }
-      // After delivering side-effect state to listeners, restore editing view state if needed
-      if (resumeEditing != null) {
-        emit(resumeEditing.copyWith());
+      // After delivering side-effect state to listeners, restore primary view state if needed
+      if (resumePrimary != null) {
+        if (resumePrimary is AcceptanceEditingState) {
+          emit(resumePrimary.copyWith());
+        } else if (resumePrimary is AcceptanceMaterialsResolved) {
+          emit(
+            AcceptanceMaterialsResolved(
+              materials: resumePrimary.materials,
+              message: resumePrimary.message,
+            ),
+          );
+        }
       }
     } catch (e) {
       emit(AcceptanceError(message: '获取仓库列表失败，请重试'));
       Logger.error('Error loading warehouse list: $e', tag: 'AcceptanceBloc');
-      // Restore editing view state even on error
-      if (resumeEditing != null) {
-        emit(resumeEditing.copyWith());
+      // Restore primary view state even on error
+      if (resumePrimary != null) {
+        if (resumePrimary is AcceptanceEditingState) {
+          emit(resumePrimary.copyWith());
+        } else if (resumePrimary is AcceptanceMaterialsResolved) {
+          emit(
+            AcceptanceMaterialsResolved(
+              materials: resumePrimary.materials,
+              message: resumePrimary.message,
+            ),
+          );
+        }
       }
     }
   }
@@ -515,6 +576,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
             );
       if (rsp.isSuccess && rsp.data != null) {
         final MaterialInfoForBusiness bundle = rsp.data!;
+        Logger.debug('扫码进入并完成获取信息，即将发出结果');
         emit(
           AcceptanceMaterialsResolved(
             materials: bundle.normals,
@@ -522,6 +584,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
             message: 'init@${DateTime.now().microsecondsSinceEpoch}',
           ),
         );
+        Logger.debug('扫码进入并完成获取信息，【完成】发出结果');
       } else {
         emit(AcceptanceError(message: rsp.msg));
       }

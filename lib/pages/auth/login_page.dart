@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
+import 'package:pipe_code_flutter/widgets/tracing_button.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
@@ -134,7 +136,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   context.read<SessionBloc>().add(
                     SessionInitializeRequested(wxLoginVO: state.wxLoginVO),
                   );
-                  context.go('/');
+                  context.goNamed('main');
                 } else if (state is AuthSmsCodeSent) {
                   context.showSuccessToast('验证码已发送到 ${state.phone}');
                   _startCountdown();
@@ -384,8 +386,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             // 登录按钮
             SizedBox(
               height: 50,
-              child: ElevatedButton(
-                onPressed: state is AuthLoading ? null : _passwordLogin,
+              child: TracingElevatedButton(
+                enabled: state is! AuthLoading,
+                onPressed: _passwordLogin,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1976D2),
                   foregroundColor: Colors.white,
@@ -395,6 +398,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   padding: EdgeInsets.all(0),
                   elevation: 3,
                 ),
+                actionTitle: state is AuthLoading ? null : '账号登录',
                 child: state is AuthLoading
                     ? const SizedBox(
                         width: 24,
@@ -544,10 +548,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 SizedBox(
                   width: 80,
                   height: 56,
-                  child: ElevatedButton(
-                    onPressed: (_canRequestSms && state is! AuthSmsCodeSending)
-                        ? _requestSmsCode
-                        : null,
+                  child: TracingElevatedButton(
+                    enabled: _canRequestSms && state is! AuthSmsCodeSending,
+                    onPressed: _requestSmsCode,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1976D2),
                       foregroundColor: Colors.white,
@@ -556,6 +559,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       ),
                       elevation: 0,
                     ),
+                    actionTitle: state is AuthSmsCodeSending ? null : '获取短信验证码',
                     child: state is AuthSmsCodeSending
                         ? const SizedBox(
                             width: 16,
@@ -580,8 +584,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             // 登录按钮
             SizedBox(
               height: 50,
-              child: ElevatedButton(
-                onPressed: state is AuthLoading ? null : _smsLogin,
+              child: TracingElevatedButton(
+                enabled: state is! AuthLoading,
+                onPressed: _smsLogin,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1976D2),
                   foregroundColor: Colors.white,
@@ -591,6 +596,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   padding: EdgeInsets.all(0),
                   elevation: 3,
                 ),
+                actionTitle: state is AuthLoading ? null : '验证码登录',
                 child: state is AuthLoading
                     ? const SizedBox(
                         width: 24,
@@ -778,7 +784,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     return isValid;
   }
 
-  void _passwordLogin() {
+  void _passwordLogin(TracingContext tracingContext) {
     if (!_validatePasswordForm()) {
       return;
     }
@@ -815,6 +821,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
     context.read<AuthBloc>().add(
       AuthLoginWithPasswordRequested(
+        tracingContext: tracingContext,
         loginRequest: LoginAccountVO(
           account: _usernameController.text.trim(),
           password: encryptedPassword,
@@ -825,7 +832,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     );
   }
 
-  void _requestSmsCode() {
+  void _requestSmsCode(TracingContext tracingContext) {
     final phone = _phoneController.text.trim();
 
     // 只验证手机号，不依赖表单的完整验证
@@ -839,10 +846,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       return;
     }
 
-    context.read<AuthBloc>().add(AuthSmsCodeRequested(phone: phone));
+    context.read<AuthBloc>().add(
+      AuthSmsCodeRequested(tracingContext: tracingContext, phone: phone),
+    );
   }
 
-  void _smsLogin() {
+  void _smsLogin(TracingContext tracingContext) {
     if (!_validateSmsForm()) {
       return;
     }
@@ -866,7 +875,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     }
 
     context.read<AuthBloc>().add(
-      AuthLoginWithSmsRequested(phone: phone, code: code, smsCode: smsCode),
+      AuthLoginWithSmsRequested(
+        tracingContext: tracingContext,
+        phone: phone,
+        code: code,
+        smsCode: smsCode,
+      ),
     );
   }
 

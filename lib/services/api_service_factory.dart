@@ -30,6 +30,7 @@ import 'package:pipe_code_flutter/services/api/mock/mock_map_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_temporary_auth_api_service.dart';
+import 'package:pipe_code_flutter/utils/tracing_interceptor.dart';
 import '../config/app_config.dart';
 import '../utils/logger.dart';
 import '../utils/network_logger.dart';
@@ -345,6 +346,8 @@ class ApiServiceFactory {
         },
       ),
     );
+
+    dio.interceptors.add(TracingInterceptor());
 
     return dio;
   }

@@ -252,7 +252,23 @@ class _QrScanPageState extends State<QrScanPage> {
       "ZZWATER:729960879520481280",
     ];
 
-    testCode = testCodePool[Random().nextInt(testCodePool.length)];
+    //     testCode = '''
+    // 新兴铸管
+    // XT08K3312501260020
+    // 13dedfwe
+    // 2dac42
+    // ''';
+
+    //     testCode = '''新兴铸管
+    // XT08K3312501260020
+    // 13dedfwe
+    // 2dac42''';
+
+    testCode = '''新兴铸管
+XT08K3312501260015
+13dedfwe
+2dac42''';
+    // testCode = testCodePool[Random().nextInt(testCodePool.length)];
 
     context.read<QrScanBloc>().add(CodeScanned(testCode));
   }
@@ -263,7 +279,8 @@ class _QrScanPageState extends State<QrScanPage> {
       appBar: AppBar(
         title: Text(widget.config.displayTitle),
         actions: [
-          if (AppConfig.isDevelopment)
+          // TODO: 这里为了演示，现在在生产模式也放开，后面需要去掉
+          if (AppConfig.isDevelopment || AppConfig.isProduction)
             BlocBuilder<QrScanBloc, QrScanState>(
               builder: (context, state) {
                 return IconButton(
@@ -283,6 +300,7 @@ class _QrScanPageState extends State<QrScanPage> {
                     onPressed: () {
                       context.read<QrScanBloc>().add(const FinishBatchScan());
                     },
+                    style: TextButton.styleFrom(foregroundColor: Colors.white),
                     child: const Text('结束扫码'),
                   );
                 }
@@ -497,7 +515,8 @@ class _QrScanPageState extends State<QrScanPage> {
 
     // 🎯 使用pushReplacement：销毁QrScanPage，直接替换为业务页面
     // 这样导航栈变成：Home → BusinessPage（QrScanPage被完全销毁）
-    context.pushReplacement(route, extra: data);
+    // context.pushReplacement(route, extra: data);
+    context.pushReplacementNamed(route, extra: data);
   }
 
   void _popWithResult(BuildContext context, List<QrScanResult> result) {

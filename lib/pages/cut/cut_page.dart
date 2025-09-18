@@ -206,7 +206,7 @@ class _CutViewState extends State<CutView> {
                         successState.uploadResult != null) {
                       context.read<CutBloc>().add(
                         CutOriginalPhotoUpdated(
-                          successState.uploadResult!.fileUrl,
+                          successState.uploadResult!.filePath,
                         ),
                       );
                     }
@@ -344,7 +344,7 @@ class _CutViewState extends State<CutView> {
                 context.read<CutBloc>().add(
                   CutNewItemPhotoUpdated(
                     index: index,
-                    photoPath: successState.uploadResult!.fileUrl,
+                    photoPath: successState.uploadResult!.filePath,
                   ),
                 );
               }
@@ -443,7 +443,10 @@ class _CutViewState extends State<CutView> {
       context: const {'source': 'cutPage_original'},
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     final res = flow.normalize(request, raw);
     if (!mounted) return;
     if (res.addedCodes.isNotEmpty) {
@@ -470,7 +473,10 @@ class _CutViewState extends State<CutView> {
       skipValidation: true,
     );
     final config = flow.buildConfig(request);
-    final raw = await context.push<List<dynamic>>('/qr-scan', extra: config);
+    final raw = await context.pushNamed<List<dynamic>>(
+      'qr-scan',
+      extra: config,
+    );
     final res = flow.normalize(request, raw);
     if (!mounted) return;
     if (res.addedCodes.isNotEmpty) {

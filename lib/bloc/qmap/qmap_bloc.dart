@@ -199,12 +199,12 @@ class QmapBloc extends Bloc<QmapEvent, QmapBlocState> {
 
   void _onMarkerTapped(MarkerTapped event, Emitter<QmapBlocState> emit) {
     final id = event.markerId;
-    if (id.startsWith('project_marker_')) {
-      final projectId = id.replaceFirst('project_marker_', '');
+    if (id.startsWith('project_')) {
+      final projectId = id.replaceFirst('project_', '');
       Logger.debug('Tapped on project marker: $projectId');
       // 不发出 toast 效果，只记录日志
-    } else if (id.startsWith('store_marker_')) {
-      final storeId = id.replaceFirst('store_marker_', '');
+    } else if (id.startsWith('store_')) {
+      final storeId = id.replaceFirst('store_', '');
       Logger.debug('Tapped on store marker: $storeId');
       // 不发出 toast 效果，只记录日志
     } else {
