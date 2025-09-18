@@ -259,8 +259,13 @@ class _QrScanPageState extends State<QrScanPage> {
     // 2dac42
     // ''';
 
+    //     testCode = '''新兴铸管
+    // XT08K3312501260020
+    // 13dedfwe
+    // 2dac42''';
+
     testCode = '''新兴铸管
-XT08K3312501260020
+XT08K3312501260015
 13dedfwe
 2dac42''';
     // testCode = testCodePool[Random().nextInt(testCodePool.length)];
