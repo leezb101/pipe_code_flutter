@@ -88,6 +88,8 @@ dependencies:
   haversine_distance: ^1.2.1
   url_launcher: ^6.3.2
   flutter_launcher_icons: ^0.14.4
+  speech_to_text: ^7.3.0
+  meta: ^1.16.0
 
 dev_dependencies:
   flutter_test:

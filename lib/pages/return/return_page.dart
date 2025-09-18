@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
+import 'package:pipe_code_flutter/widgets/speech_input_widget.dart';
 import '../../models/acceptance/attachment_vo.dart';
 import '../../widgets/file_upload/image_upload_widget.dart';
 import '../../bloc/return/return_bloc.dart';
@@ -39,6 +40,7 @@ class _ReturnPageState extends State<ReturnPage> {
   int _returnType = 0; // 默认质量不合格退库
   String _returnRemark = '';
   late final FileUploadCubit _imageUploadCubit;
+  final TextEditingController _remarkController = TextEditingController();
 
   @override
   void initState() {
@@ -310,7 +312,8 @@ class _ReturnPageState extends State<ReturnPage> {
       title: '退库原因',
       icon: Icons.note_alt,
       businessType: 'return',
-      child: TextField(
+      child: SpeechInputWidget(
+        controller: _remarkController,
         maxLines: 4,
         decoration: InputDecoration(
           hintText: '请详细说明退库原因...',

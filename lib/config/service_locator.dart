@@ -48,6 +48,7 @@ import 'package:pipe_code_flutter/services/api/interfaces/chanage_password_api_s
 import 'package:pipe_code_flutter/services/api_service_factory.dart';
 import 'package:pipe_code_flutter/services/qr_scan_service.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
+import 'package:pipe_code_flutter/services/speech_to_text_service.dart';
 import 'package:pipe_code_flutter/services/storage_service.dart';
 import 'package:pipe_code_flutter/services/notification/background_handler.dart';
 import 'package:pipe_code_flutter/services/notification/notification_manager.dart';
@@ -85,6 +86,7 @@ Future<void> setupServiceLocator({
     () => SseService(),
     dispose: (service) => service.dispose(),
   );
+  getIt.registerLazySingleton<SpeechToTextService>(() => SpeechToTextService());
 
   // API Services needed by Blocs or other services directly
   getIt.registerLazySingleton<CommonQueryApiService>(
