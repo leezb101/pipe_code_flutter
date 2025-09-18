@@ -1,20 +1,27 @@
 // speech_to_text_service.dart
 
-import 'package:pipe_code_flutter/utils/logger.dart';
+import 'dart:async';
+
 import 'package:speech_to_text/speech_to_text.dart';
 
 class SpeechToTextService {
   final SpeechToText _speechToText = SpeechToText();
   bool _isInitialized = false;
 
-  Future<bool> initialize() async {
-    _isInitialized = await _speechToText.initialize();
-    // final localeInfo = await _speechToText.locales();
+  /// 广播streamController处理状态更新
+  final _statusStreamController = StreamController<String>.broadcast();
 
-    // for (var element in localeInfo) {
-    //   Logger.debug('可用的语言: ${element.localeId} - ${element.name}');
-    // }
-    return _isInitialized;
+  /// 暴露stream给外部bloc们监听
+  Stream<String> get statusStream => _statusStreamController.stream;
+
+  /// 封装一个确保初始化的方法
+  Future<void> ensureInitialized() async {
+    if (_isInitialized) return;
+    await _speechToText.initialize(
+      onStatus: (status) => _statusStreamController.add(status),
+      onError: (error) => _statusStreamController.addError(error),
+    );
+    _isInitialized = true;
   }
 
   void startListening({required Function(String) onResult}) {
@@ -38,5 +45,7 @@ class SpeechToTextService {
     _speechToText.stop();
   }
 
-  bool get isListening => _speechToText.isListening;
+  void dispose() {
+    _statusStreamController.close();
+  }
 }

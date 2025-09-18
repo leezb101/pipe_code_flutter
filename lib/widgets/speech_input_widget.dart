@@ -34,6 +34,7 @@ class SpeechInputWidget extends StatefulWidget {
 
 class SpeechInputWidgetState extends State<SpeechInputWidget> {
   late final SpeechToTextBloc _speechToTextBloc;
+  String _textBeforeListening = '';
 
   @override
   void initState() {
@@ -54,14 +55,22 @@ class SpeechInputWidgetState extends State<SpeechInputWidget> {
       child: BlocListener<SpeechToTextBloc, SpeechToTextState>(
         listener: (context, state) {
           if (state is SpeechToTextLoaded) {
-            widget.controller.text = state.recognizedWords;
+            final newText = _textBeforeListening.isEmpty
+                ? state.recognizedWords
+                : '$_textBeforeListening${state.recognizedWords}';
+            widget.controller.text = newText;
             widget.controller.selection = TextSelection.fromPosition(
               TextPosition(offset: widget.controller.text.length),
             );
+            // 手动触发 onChanged 回调
+            if (widget.onChanged != null) {
+              widget.onChanged!(newText);
+            }
           }
         },
         child: BlocBuilder<SpeechToTextBloc, SpeechToTextState>(
           builder: (context, state) {
+            final isListening = state is SpeechToTextListening;
             return TextField(
               controller: widget.controller,
               style: widget.style,
@@ -69,19 +78,15 @@ class SpeechInputWidgetState extends State<SpeechInputWidget> {
               strutStyle: widget.strutStyle,
               textAlign: widget.textAlign,
               textAlignVertical: widget.textAlignVertical,
-              // ... (pass all other parameters to the TextField)
               decoration: (widget.decoration ?? const InputDecoration())
                   .copyWith(
                     suffixIcon: IconButton(
-                      icon: Icon(
-                        state is SpeechToTextListening
-                            ? Icons.mic_off
-                            : Icons.mic,
-                      ),
+                      icon: Icon(isListening ? Icons.stop : Icons.mic),
                       onPressed: () {
-                        if (state is SpeechToTextListening) {
+                        if (isListening) {
                           _speechToTextBloc.add(SpeechToTextStop());
                         } else {
+                          _textBeforeListening = widget.controller.text;
                           _speechToTextBloc.add(SpeechToTextStart());
                         }
                       },

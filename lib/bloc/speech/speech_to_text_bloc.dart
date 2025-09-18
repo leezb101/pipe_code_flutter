@@ -1,18 +1,23 @@
 // speech_to_text_bloc.dart
 
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../services/speech_to_text_service.dart';
 import '../../config/service_locator.dart';
 
 class SpeechToTextBloc extends Bloc<SpeechToTextEvent, SpeechToTextState> {
   final SpeechToTextService _speechToTextService = getIt<SpeechToTextService>();
+  StreamSubscription<String>? _statusSubscription;
 
   SpeechToTextBloc() : super(SpeechToTextInitial()) {
+    // 构造函数中订阅service的状态流
+    _statusSubscription = _speechToTextService.statusStream.listen((status) {
+      add(_SpeechToTextStatusChanged(status));
+    });
+
     on<SpeechToTextInitialize>((event, emit) async {
-      final isInitialized = await _speechToTextService.initialize();
-      if (!isInitialized) {
-        emit(SpeechToTextError("Speech recognition not available"));
-      }
+      await _speechToTextService.ensureInitialized();
     });
 
     on<SpeechToTextStart>((event, emit) {
@@ -21,17 +26,39 @@ class SpeechToTextBloc extends Bloc<SpeechToTextEvent, SpeechToTextState> {
           add(SpeechToTextResult(result));
         },
       );
-      emit(SpeechToTextListening());
     });
 
     on<SpeechToTextStop>((event, emit) {
       _speechToTextService.stopListening();
-      emit(SpeechToTextInitial());
     });
 
     on<SpeechToTextResult>((event, emit) {
       emit(SpeechToTextLoaded(event.recognizedWords));
     });
+
+    // 统一处理所有状态变化
+    on<_SpeechToTextStatusChanged>((event, emit) {
+      switch (event.status) {
+        case 'listening':
+          emit(SpeechToTextListening());
+          break;
+        case 'notListening':
+        case 'done':
+          // 只有在当前是聆听状态时才切换为 Initial，防止不必要的UI刷新
+          if (state is SpeechToTextListening) {
+            emit(SpeechToTextInitial());
+          }
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _statusSubscription?.cancel();
+    return super.close();
   }
 }
 
@@ -48,6 +75,11 @@ class SpeechToTextStop extends SpeechToTextEvent {}
 class SpeechToTextResult extends SpeechToTextEvent {
   final String recognizedWords;
   SpeechToTextResult(this.recognizedWords);
+}
+
+class _SpeechToTextStatusChanged extends SpeechToTextEvent {
+  final String status;
+  _SpeechToTextStatusChanged(this.status);
 }
 
 // speech_to_text_state.dart
