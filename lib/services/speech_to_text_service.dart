@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:pipe_code_flutter/utils/logger.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 class SpeechToTextService {
@@ -19,7 +20,10 @@ class SpeechToTextService {
     if (_isInitialized) return;
     await _speechToText.initialize(
       onStatus: (status) => _statusStreamController.add(status),
-      onError: (error) => _statusStreamController.addError(error),
+      onError: (error) {
+        Logger.error('SpeechToText Error: $error', tag: '【speech】');
+        _statusStreamController.addError(error);
+      },
     );
     _isInitialized = true;
   }

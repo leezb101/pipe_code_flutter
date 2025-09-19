@@ -27,7 +27,15 @@
   <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS"/>
   <!-- 拨打电话 -->
   <uses-permission android:name="android.permission.CALL_PHONE"/>
-
+  <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+  <uses-permission android:name="android.permission.BLUETOOTH"/>
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+  <queries>
+    <intent>
+      <action android:name="android.speech.RecognitionService" />
+    </intent>
+  </queries>
 
 
   <application android:label="建设一码通" android:name="${applicationName}" android:icon="@mipmap/ic_launcher" android:requestLegacyExternalStorage="true" android:enableOnBackInvokedCallback="true">
