@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/speech/speech_to_text_bloc.dart';
+import '../utils/platform_utils.dart';
 
 class SpeechInputWidget extends StatefulWidget {
   final TextEditingController controller;
@@ -33,25 +34,42 @@ class SpeechInputWidget extends StatefulWidget {
 }
 
 class SpeechInputWidgetState extends State<SpeechInputWidget> {
-  late final SpeechToTextBloc _speechToTextBloc;
+  SpeechToTextBloc? _speechToTextBloc; // 改为可空类型
   String _textBeforeListening = '';
 
   @override
   void initState() {
     super.initState();
-    _speechToTextBloc = SpeechToTextBloc()..add(SpeechToTextInitialize());
+    // 仅在支持语音识别的平台上创建和初始化SpeechToTextBloc
+    if (PlatformUtils.supportsSpeechToText) {
+      _speechToTextBloc = SpeechToTextBloc()..add(SpeechToTextInitialize());
+    }
   }
 
   @override
   void dispose() {
-    _speechToTextBloc.close();
+    _speechToTextBloc?.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // 如果不支持语音识别，直接返回普通的TextField
+    if (!PlatformUtils.supportsSpeechToText || _speechToTextBloc == null) {
+      return TextField(
+        controller: widget.controller,
+        style: widget.style,
+        maxLines: widget.maxLines,
+        strutStyle: widget.strutStyle,
+        textAlign: widget.textAlign,
+        textAlignVertical: widget.textAlignVertical,
+        decoration: widget.decoration,
+        onChanged: widget.onChanged,
+      );
+    }
+
     return BlocProvider.value(
-      value: _speechToTextBloc,
+      value: _speechToTextBloc!,
       child: BlocListener<SpeechToTextBloc, SpeechToTextState>(
         listener: (context, state) {
           if (state is SpeechToTextListening) {
@@ -87,10 +105,10 @@ class SpeechInputWidgetState extends State<SpeechInputWidget> {
                       icon: Icon(isListening ? Icons.stop : Icons.mic),
                       onPressed: () {
                         if (isListening) {
-                          _speechToTextBloc.add(SpeechToTextStop());
+                          _speechToTextBloc!.add(SpeechToTextStop());
                         } else {
                           _textBeforeListening = widget.controller.text;
-                          _speechToTextBloc.add(SpeechToTextStart());
+                          _speechToTextBloc!.add(SpeechToTextStart());
                         }
                       },
                     ),

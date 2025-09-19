@@ -4,25 +4,38 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
-import '../../services/speech_to_text_service.dart';
+import 'package:pipe_code_flutter/utils/platform_utils.dart';
+import '../../services/base_speech_service.dart';
 import '../../config/service_locator.dart';
 
 class SpeechToTextBloc extends Bloc<SpeechToTextEvent, SpeechToTextState> {
-  final SpeechToTextService _speechToTextService = getIt<SpeechToTextService>();
+  final BaseSpeechService _speechService = getIt<BaseSpeechService>();
   StreamSubscription<String>? _statusSubscription;
 
   SpeechToTextBloc() : super(SpeechToTextInitial()) {
-    // 构造函数中订阅service的状态流
-    _statusSubscription = _speechToTextService.statusStream.listen((status) {
-      add(_SpeechToTextStatusChanged(status));
-    });
+    // 仅在支持语音识别的平台上初始化和订阅服务
+    if (PlatformUtils.supportsSpeechToText) {
+      // 构造函数中订阅service的状态流
+      _statusSubscription = _speechService.statusStream.listen((status) {
+        add(_SpeechToTextStatusChanged(status));
+      });
+    }
 
     on<SpeechToTextInitialize>((event, emit) async {
-      await _speechToTextService.ensureInitialized();
+      if (!PlatformUtils.supportsSpeechToText) {
+        Logger.info('当前平台不支持语音识别功能', tag: '【speech】');
+        emit(SpeechToTextError('当前平台不支持语音识别功能'));
+        return;
+      }
+      await _speechService.ensureInitialized();
     });
 
     on<SpeechToTextStart>((event, emit) {
-      _speechToTextService.startListening(
+      if (!PlatformUtils.supportsSpeechToText) {
+        Logger.warning('当前平台不支持语音识别功能', tag: '【speech】');
+        return;
+      }
+      _speechService.startListening(
         onResult: (result) {
           add(SpeechToTextResult(result));
         },
@@ -30,7 +43,8 @@ class SpeechToTextBloc extends Bloc<SpeechToTextEvent, SpeechToTextState> {
     });
 
     on<SpeechToTextStop>((event, emit) {
-      _speechToTextService.stopListening();
+      if (!PlatformUtils.supportsSpeechToText) return;
+      _speechService.stopListening();
     });
 
     on<SpeechToTextResult>((event, emit) {
