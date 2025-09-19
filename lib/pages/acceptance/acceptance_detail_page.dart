@@ -535,7 +535,7 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
                         ],
                       ),
                     ),
-                    if (user.messageTo != null)
+                    if (user.realHandler == true)
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
@@ -546,7 +546,7 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
-                          '推送',
+                          '已处理',
                           style: TextStyle(
                             fontSize: 10,
                             color: Colors.green.shade700,

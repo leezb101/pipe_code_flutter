@@ -809,7 +809,7 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              '已推送',
+              user.realHandler == true ? '已处理' : '',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -878,13 +878,6 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
                         color: Colors.black87,
                       ),
                     ),
-                    if (signoutDetail.installUserId != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        'ID: ${signoutDetail.installUserId}',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -895,7 +888,7 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '负责安装',
+                  '安装负责人',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -939,13 +932,6 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
               ],
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(
-              '关联出库ID',
-              installInfo.signOutId.toString(),
-              icon: Icons.link,
-              color: Colors.green[600],
-            ),
-            const SizedBox(height: 12),
             _buildInfoRow(
               '是否仅安装',
               installInfo.onlyInstall ? '是' : '否',
