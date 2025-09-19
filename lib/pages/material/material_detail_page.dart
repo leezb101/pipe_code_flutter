@@ -226,7 +226,6 @@ class MaterialDetailView extends StatelessWidget {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            _buildInfoRow('项目ID', data.projectId.toString(), context),
             if (data.projectName != null)
               _buildInfoRow('项目名称', data.projectName!, context),
             if (data.projectAddress != null)
@@ -502,7 +501,6 @@ class MaterialDetailView extends StatelessWidget {
     buffer.writeln();
 
     buffer.writeln('=== 项目信息 ===');
-    buffer.writeln('项目ID: ${data.projectId}');
     if (data.projectName != null) buffer.writeln('项目名称: ${data.projectName}');
     if (data.projectAddress != null) {
       buffer.writeln('项目地址: ${data.projectAddress}');

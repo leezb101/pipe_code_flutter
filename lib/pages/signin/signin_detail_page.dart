@@ -122,10 +122,6 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
         children: [
           if (signinInfo.projectName != null)
             InfoRow(label: '项目名称', value: signinInfo.projectName!),
-          if (signinInfo.projectName != null && signinInfo.projectId != null)
-            SizedBox(height: AppTheme.spacingSmall),
-          if (signinInfo.projectId != null)
-            InfoRow(label: '项目ID', value: signinInfo.projectId.toString()),
         ],
       ),
     );
@@ -140,9 +136,6 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
         children: [
           if (signinInfo.warehouseName != null)
             InfoRow(label: '仓库名称', value: signinInfo.warehouseName!),
-          if (signinInfo.warehouseName != null)
-            SizedBox(height: AppTheme.spacingSmall),
-          InfoRow(label: '仓库ID', value: signinInfo.warehouseId.toString()),
         ],
       ),
     );

@@ -112,7 +112,10 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
             value: acceptanceInfo.warehouseTypeDescription,
           ),
           const SizedBox(height: AppTheme.spacingSmall),
-          InfoRow(label: '仓库ID', value: acceptanceInfo.warehouseId.toString()),
+          InfoRow(
+            label: '仓库名称',
+            value: acceptanceInfo.warehouseName.toString(),
+          ),
           const SizedBox(height: AppTheme.spacingMedium),
           _buildUserListSection('仓库负责人', acceptanceInfo.warehouseUsers),
           _buildUserListSection('监理方负责人', acceptanceInfo.supervisorUsers),
@@ -349,7 +352,7 @@ class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InfoRow(label: '入库仓库ID', value: signInInfo.warehouseId.toString()),
+          InfoRow(label: '入库仓库', value: signInInfo.warehouseName.toString()),
           const SizedBox(height: AppTheme.spacingLarge),
           Text('入库物料', style: AppTheme.titleSmall),
           const SizedBox(height: AppTheme.spacingSmall),

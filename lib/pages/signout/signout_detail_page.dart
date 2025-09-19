@@ -601,15 +601,6 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
             icon: Icons.home_work,
             iconColor: AppTheme.getBusinessColor('signout'),
           ),
-          if (signoutDetail.warehouseId != null) ...[
-            SizedBox(height: AppTheme.spacingMedium),
-            InfoRow(
-              label: '仓库ID',
-              value: signoutDetail.warehouseId.toString(),
-              icon: Icons.tag,
-              iconColor: AppTheme.getBusinessColor('signout'),
-            ),
-          ],
         ],
       ),
     );

@@ -394,7 +394,10 @@ class _AcceptanceConfirmationPageState
             value: acceptanceInfo.warehouseTypeDescription,
           ),
           const SizedBox(height: AppTheme.spacingSmall),
-          InfoRow(label: '仓库ID', value: acceptanceInfo.warehouseId.toString()),
+          InfoRow(
+            label: '仓库名称',
+            value: acceptanceInfo.warehouseName.toString(),
+          ),
         ],
       ),
     );
