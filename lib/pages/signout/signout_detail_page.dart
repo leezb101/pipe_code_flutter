@@ -931,7 +931,6 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
             _buildInfoRow(
               '是否仅安装',
               installInfo.onlyInstall ? '是' : '否',
