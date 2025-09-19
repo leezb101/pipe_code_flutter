@@ -54,17 +54,20 @@ class SpeechInputWidgetState extends State<SpeechInputWidget> {
       value: _speechToTextBloc,
       child: BlocListener<SpeechToTextBloc, SpeechToTextState>(
         listener: (context, state) {
-          if (state is SpeechToTextLoaded) {
-            final newText = _textBeforeListening.isEmpty
-                ? state.recognizedWords
-                : '$_textBeforeListening${state.recognizedWords}';
-            widget.controller.text = newText;
-            widget.controller.selection = TextSelection.fromPosition(
-              TextPosition(offset: widget.controller.text.length),
-            );
-            // 手动触发 onChanged 回调
-            if (widget.onChanged != null) {
-              widget.onChanged!(newText);
+          if (state is SpeechToTextListening) {
+            if (state.recognizedWords.isNotEmpty) {
+              // 只有当识别出有效文本时才进行拼接和更新
+              final newText = _textBeforeListening.isEmpty
+                  ? state.recognizedWords
+                  : '$_textBeforeListening${state.recognizedWords}';
+              widget.controller.text = newText;
+              widget.controller.selection = TextSelection.fromPosition(
+                TextPosition(offset: widget.controller.text.length),
+              );
+              // 手动触发 onChanged 回调
+              if (widget.onChanged != null) {
+                widget.onChanged!(newText);
+              }
             }
           }
         },

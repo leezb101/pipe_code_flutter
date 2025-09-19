@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/utils/logger.dart';
 import '../../services/speech_to_text_service.dart';
 import '../../config/service_locator.dart';
 
@@ -33,11 +34,15 @@ class SpeechToTextBloc extends Bloc<SpeechToTextEvent, SpeechToTextState> {
     });
 
     on<SpeechToTextResult>((event, emit) {
-      emit(SpeechToTextLoaded(event.recognizedWords));
+      emit(SpeechToTextListening(event.recognizedWords));
     });
 
     // 统一处理所有状态变化
     on<_SpeechToTextStatusChanged>((event, emit) {
+      Logger.debug(
+        'SpeechToText Status Changed: ${event.status}',
+        tag: '【speech】',
+      );
       switch (event.status) {
         case 'listening':
           emit(SpeechToTextListening());
@@ -88,11 +93,9 @@ abstract class SpeechToTextState {}
 
 class SpeechToTextInitial extends SpeechToTextState {}
 
-class SpeechToTextListening extends SpeechToTextState {}
-
-class SpeechToTextLoaded extends SpeechToTextState {
+class SpeechToTextListening extends SpeechToTextState {
   final String recognizedWords;
-  SpeechToTextLoaded(this.recognizedWords);
+  SpeechToTextListening([this.recognizedWords = '']);
 }
 
 class SpeechToTextError extends SpeechToTextState {
