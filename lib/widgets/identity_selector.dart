@@ -29,9 +29,10 @@ class IdentitySelector extends StatelessWidget {
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // 顶部用户信息
             _buildUserInfoCard(context),
@@ -42,14 +43,12 @@ class IdentitySelector extends StatelessWidget {
             const SizedBox(height: 30),
 
             // 身份选择卡片
-            Expanded(
-              child: Column(
-                children: [
-                  _buildProjectModeCard(context),
-                  const SizedBox(height: 20),
-                  _buildStorekeeperModeCard(context),
-                ],
-              ),
+            Column(
+              children: [
+                _buildProjectModeCard(context),
+                const SizedBox(height: 20),
+                _buildStorekeeperModeCard(context),
+              ],
             ),
 
             // 底部说明
@@ -240,30 +239,6 @@ class IdentitySelector extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  /// 构建选择说明
-  Widget _buildSelectionNote() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE9ECEF)),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.info_outline, color: Color(0xFF6C757D), size: 20),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              '每次登录都需要重新选择身份，确保符合当前工作需要',
-              style: TextStyle(fontSize: 13, color: Color(0xFF6C757D)),
-            ),
-          ),
-        ],
       ),
     );
   }
