@@ -61,7 +61,7 @@ class _InventoryListPageState extends State<InventoryListPage> {
   }
 
   void _onItemTap(InventoryListItemVO item) {
-    context.push('/inventory-apply', extra: item.id);
+    context.goNamed('inventory-apply', extra: item.id);
   }
 
   @override
