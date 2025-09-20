@@ -6,12 +6,24 @@ import '../../utils/logger.dart';
 import 'records_event.dart';
 import 'records_state.dart';
 
+// 内部类：用于存储待刷新的参数
+class _PendingRefreshParams {
+  final RecordType recordType;
+  final int? projectId;
+  final int? userId;
+
+  _PendingRefreshParams({
+    required this.recordType,
+    this.projectId,
+    this.userId,
+  });
+}
+
 class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
   final RecordsRepository _repository;
-  Timer? _refreshDebounceTimer;
-  RecordType? _pendingRefreshTab;
-  int? _pendingProjectId;
-  int? _pendingUserId;
+  // 为每个recordType维护独立的防抖timer和参数
+  final Map<RecordType, Timer> _refreshDebounceTimers = {};
+  final Map<RecordType, _PendingRefreshParams> _pendingRefreshParams = {};
 
   RecordsBloc(this._repository) : super(const RecordsInitial()) {
     on<LoadRecords>(_onLoadRecords);
@@ -142,30 +154,38 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     }
   }
 
-  /// 去抖入口：1秒内多次RefreshRecords只触发一次
+  /// 去抖入口：1秒内多次RefreshRecords只触发一次，但不同recordType可以并发执行
   Future<void> _onRefreshRecordsDebounced(
     RefreshRecords event,
     Emitter<RecordsState> emit,
   ) async {
-    // 记录最新一次的请求参数
-    _pendingRefreshTab = event.recordType;
-    _pendingProjectId = event.projectId;
-    _pendingUserId = event.userId;
+    final recordType = event.recordType;
 
-    _refreshDebounceTimer?.cancel();
-    _refreshDebounceTimer = Timer(const Duration(seconds: 1), () {
-      final tab = _pendingRefreshTab;
-      if (tab == null) return;
-      add(
-        DebouncedRefreshRecords(
-          recordType: tab,
-          projectId: _pendingProjectId,
-          userId: _pendingUserId,
-        ),
-      );
-      _pendingRefreshTab = null;
-      _pendingProjectId = null;
-      _pendingUserId = null;
+    // 存储当前recordType的待刷新参数
+    _pendingRefreshParams[recordType] = _PendingRefreshParams(
+      recordType: recordType,
+      projectId: event.projectId,
+      userId: event.userId,
+    );
+
+    // 取消该recordType之前的定时器
+    _refreshDebounceTimers[recordType]?.cancel();
+
+    // 为当前recordType设置新的定时器
+    _refreshDebounceTimers[recordType] = Timer(const Duration(seconds: 1), () {
+      final params = _pendingRefreshParams[recordType];
+      if (params != null) {
+        add(
+          DebouncedRefreshRecords(
+            recordType: params.recordType,
+            projectId: params.projectId,
+            userId: params.userId,
+          ),
+        );
+        // 清理该recordType的缓存参数
+        _pendingRefreshParams.remove(recordType);
+        _refreshDebounceTimers.remove(recordType);
+      }
     });
   }
 
@@ -269,7 +289,12 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
 
   @override
   Future<void> close() {
-    _refreshDebounceTimer?.cancel();
+    // 取消所有recordType的防抖定时器
+    for (final timer in _refreshDebounceTimers.values) {
+      timer.cancel();
+    }
+    _refreshDebounceTimers.clear();
+    _pendingRefreshParams.clear();
     return super.close();
   }
 }
