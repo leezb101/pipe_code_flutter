@@ -242,32 +242,32 @@ class _RecordsListPageState extends State<RecordsListPage>
 
   void handleGoTodoDetail(BuildContext context, TodoRecordItem rec) {
     // 根据待办的具体类型（type.name）或名称（todoName）导航
-    if (rec.todo.type.name == '验收确认') {
+    if (rec.todo.type.value == 1) {
       context.goNamed(
         'acceptance-confirmation',
         queryParameters: {'id': rec.todo.businessId.toString()},
       );
-    } else if (rec.todo.type.name == '验收后入库') {
+    } else if (rec.todo.type.value == 2) {
       context.goNamed(
         'acceptance-after-signin',
         queryParameters: {'id': rec.todo.businessId.toString()},
       );
-    } else if (rec.todo.todoName == 'sign_out') {
+    } else if (rec.todo.type.value == 3) {
       context.goNamed(
         'signout-audit',
         queryParameters: {'id': rec.todo.businessId.toString()},
       );
-    } else if (rec.todo.todoName == 'sign_out_install') {
+    } else if (rec.todo.type.value == 4) {
       context.goNamed(
         'install',
         queryParameters: {'id': rec.todo.businessId.toString()},
       );
-    } else if (rec.todo.todoName == 'dispatch') {
+    } else if (rec.todo.type.value == 5) {
       context.goNamed(
         'dispatch-confirmation',
         queryParameters: {'id': rec.todo.businessId.toString()},
       );
-    } else if (rec.todo.todoName == 'dispatch_sign_in') {
+    } else if (rec.todo.type.value == 6) {
       context.goNamed(
         'dispatch-after-signin',
         queryParameters: {'id': rec.todo.businessId.toString()},
