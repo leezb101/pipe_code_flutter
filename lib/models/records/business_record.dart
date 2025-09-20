@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pipe_code_flutter/models/common/common_enum_vo.dart';
 
 part 'business_record.g.dart';
 
@@ -64,24 +65,8 @@ class BusinessRecord extends Equatable {
   String get businessTypeDescription {
     if (bizType == null) return '未知业务';
 
-    switch (bizType) {
-      case 1:
-        return '建设方验收确认';
-      case 2:
-        return '调拨收货确认';
-      case 3:
-        return '材料入库登记';
-      case 4:
-        return '设备安装确认';
-      case 5:
-        return '材料退库处理';
-      case 6:
-        return '设备报废处理';
-      case 7:
-        return '库存盘点';
-      default:
-        return '业务处理';
-    }
+    final businessType = BusinessType.fromInt(bizType!);
+    return businessType?.name ?? '未知业务';
   }
 
   static DateTime? _timestampToDateTime(dynamic timestamp) {
