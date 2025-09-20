@@ -21,8 +21,8 @@ class MaterialDetailBloc
     extends Bloc<MaterialDetailEvent, MaterialDetailState> {
   final MaterialDetailRepository _repository;
 
-  MaterialDetailBloc()
-    : _repository = getIt<MaterialDetailRepository>(),
+  MaterialDetailBloc({MaterialDetailRepository? repository})
+    : _repository = repository ?? getIt<MaterialDetailRepository>(),
       super(MaterialDetailInitial()) {
     on<LoadMaterialDetail>(_onLoadMaterialDetail);
     on<RefreshMaterialDetail>(_onRefreshMaterialDetail);
