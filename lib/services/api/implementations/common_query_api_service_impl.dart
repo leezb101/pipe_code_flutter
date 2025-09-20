@@ -108,7 +108,7 @@ class CommonQueryApiServiceImpl implements CommonQueryApiService {
         queryParameters: {'materialId': materialId},
       );
 
-      if (response.data['id'] == null) {
+      if (response.data == null || response.data['data']['id'] == null) {
         throw '项目不存在或未找到';
       }
       return Result.safeFromJson<ProjectSimpleVo>(
