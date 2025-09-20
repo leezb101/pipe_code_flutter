@@ -13,6 +13,8 @@ import 'package:go_router/go_router.dart';
 import 'package:path/path.dart';
 import 'package:pipe_code_flutter/bloc/auth/auth_bloc.dart';
 import 'package:pipe_code_flutter/bloc/auth/auth_state.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_detail_repository.dart';
 import '../../constants/material_field_maps.dart';
 import '../../models/material/scan_identification_response.dart';
 import '../../utils/toast_utils.dart';
@@ -27,7 +29,7 @@ class MaterialDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
-          MaterialDetailBloc()
+          MaterialDetailBloc(repository: getIt<MaterialDetailRepository>())
             ..add(LoadMaterialDetail(materialCode: materialCode)),
       child: const MaterialDetailView(),
     );

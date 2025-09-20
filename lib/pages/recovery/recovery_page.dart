@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/recovery/recovery.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/recovery_repository.dart';
 import 'package:pipe_code_flutter/models/recovery/material_categories.dart';
 import 'package:pipe_code_flutter/models/recovery/vendors_map.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart';
@@ -28,7 +29,8 @@ class RecoveryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
-          getIt<RecoveryBloc>()..add(const RecoveryInitialized()),
+          RecoveryBloc(repository: getIt<RecoveryRepository>())
+            ..add(const RecoveryInitialized()),
       child: const RecoveryView(),
     );
   }

@@ -16,7 +16,9 @@ import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/signout_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/signin_repository.dart';
 import 'package:pipe_code_flutter/cubits/temporary_auth.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/pages/install/install_page.dart';
@@ -75,6 +77,8 @@ import '../pages/inventory/inventory_detail_page.dart';
 import '../pages/notification/pending_todo_list_page.dart';
 import '../pages/storekeeper/storekeeper_non_project_page.dart';
 import '../bloc/storekeeper_non_project/storekeeper_non_project_bloc.dart';
+import '../repositories/interfaces/storekeeper_non_project_repository.dart';
+import '../services/qr_scan_flow/qr_scan_flow_service.dart';
 import '../pages/profile/change_password_page.dart';
 import 'service_locator.dart';
 
@@ -122,7 +126,8 @@ final GoRouter appRouter = GoRouter(
           name: 'spare-qr',
           builder: (context, state) {
             return BlocProvider(
-              create: (context) => getIt<SpareQrBloc>(),
+              create: (context) =>
+                  SpareQrBloc(repository: getIt<SpareqrRepository>()),
               child: const SpareQrPage(),
             );
           },
@@ -278,7 +283,8 @@ final GoRouter appRouter = GoRouter(
             }
             return BlocProvider(
               create: (context) =>
-                  getIt<SigninDetailCubit>()..loadSigninDetail(signinId),
+                  SigninDetailCubit(signinRepository: getIt<SigninRepository>())
+                    ..loadSigninDetail(signinId),
               child: SigninDetailPage(signinId: signinId),
             );
           },
@@ -694,7 +700,10 @@ final GoRouter appRouter = GoRouter(
       name: 'storekeeper-non-project',
       builder: (context, state) {
         return BlocProvider(
-          create: (context) => getIt<StorekeeperNonProjectBloc>(),
+          create: (context) => StorekeeperNonProjectBloc(
+            repository: getIt<StorekeeperNonProjectRepository>(),
+            qrScanFlowService: getIt<QrScanFlowService>(),
+          ),
           child: const StorekeeperNonProjectPage(),
         );
       },
