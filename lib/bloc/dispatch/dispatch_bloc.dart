@@ -392,6 +392,11 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       state.copyWith(
         status: DispatchStatus.loadingSourceInfo,
         materialList: event.materials,
+        // 清空之前的错误信息
+        sourceProjectError: null,
+        sourceWarehouseError: null,
+        availableProjectsError: null,
+        availableWarehousesError: null,
       ),
     );
 
@@ -401,46 +406,102 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       }
       final materialId = event.materials.first.materialId;
 
-      // 并行获取可选项目和仓库列表
-      final futures = [
-        _commonQueryApiService.getCurrentLegalProjectList(),
-        _commonQueryApiService.getWarehouseList(),
-        _commonQueryApiService.getProjectByMaterial(materialId),
-        _commonQueryApiService.getWarehouseByMaterial(materialId),
-      ];
+      // 单独处理每个请求，能够捕获具体错误
+      ProjectSimpleVo? sourceProject;
+      WarehouseVO? sourceWarehouse;
+      List<ProjectSimpleVo> availableProjects = [];
+      List<WarehouseVO> availableWarehouses = [];
+      List<CommonUserVO> users = [];
 
-      final results = await Future.wait(futures);
+      String? sourceProjectError;
+      String? sourceWarehouseError;
+      String? availableProjectsError;
+      String? availableWarehousesError;
 
-      final projectsResult = results[0] as dynamic;
-      final warehousesResult = results[1] as dynamic;
-      final sourceProjectResult = results[2] as dynamic;
-      final sourceWarehouseResult = results[3] as dynamic;
-
-      // 检查并行获取的结果
-      if (!projectsResult.isSuccess ||
-          !warehousesResult.isSuccess ||
-          !sourceProjectResult.isSuccess ||
-          !sourceWarehouseResult.isSuccess) {
-        throw Exception("获取基础数据失败");
+      // 获取可选项目列表
+      try {
+        final projectsResult = await _commonQueryApiService
+            .getCurrentLegalProjectList();
+        if (projectsResult.isSuccess) {
+          availableProjects = projectsResult.data ?? [];
+        } else {
+          availableProjectsError = projectsResult.msg.isEmpty
+              ? '获取项目列表失败'
+              : projectsResult.msg;
+        }
+      } catch (e) {
+        availableProjectsError = '获取项目列表异常: ${e.toString()}';
       }
 
-      final sourceWarehouse = sourceWarehouseResult.data as WarehouseVO;
-      List<CommonUserVO> users = [];
-      final usersResult = await _commonQueryApiService.getWarehouseUsers(
-        warehousesResult.data.first.id,
-      );
-      if (usersResult.isSuccess && usersResult.data != null) {
-        users = usersResult.data!.warehouseUsers;
+      // 获取可选仓库列表
+      try {
+        final warehousesResult = await _commonQueryApiService
+            .getWarehouseList();
+        if (warehousesResult.isSuccess) {
+          availableWarehouses = warehousesResult.data ?? [];
+          // 如果仓库列表获取成功，尝试获取第一个仓库的用户列表
+          if (availableWarehouses.isNotEmpty) {
+            try {
+              final usersResult = await _commonQueryApiService
+                  .getWarehouseUsers(availableWarehouses.first.id);
+              if (usersResult.isSuccess && usersResult.data != null) {
+                users = usersResult.data!.warehouseUsers;
+              }
+            } catch (e) {
+              // 用户列表获取失败不影响主流程
+            }
+          }
+        } else {
+          availableWarehousesError = warehousesResult.msg.isEmpty
+              ? '获取仓库列表失败'
+              : warehousesResult.msg;
+        }
+      } catch (e) {
+        availableWarehousesError = '获取仓库列表异常: ${e.toString()}';
+      }
+
+      // 获取出库方项目信息
+      try {
+        final sourceProjectResult = await _commonQueryApiService
+            .getProjectByMaterial(materialId);
+        if (sourceProjectResult.isSuccess) {
+          sourceProject = sourceProjectResult.data;
+        } else {
+          sourceProjectError = sourceProjectResult.msg.isEmpty
+              ? '获取出库方项目失败'
+              : sourceProjectResult.msg;
+        }
+      } catch (e) {
+        sourceProjectError = e.toString();
+      }
+
+      // 获取出库方仓库信息
+      try {
+        final sourceWarehouseResult = await _commonQueryApiService
+            .getWarehouseByMaterial(materialId);
+        if (sourceWarehouseResult.isSuccess) {
+          sourceWarehouse = sourceWarehouseResult.data;
+        } else {
+          sourceWarehouseError = sourceWarehouseResult.msg.isEmpty
+              ? '获取出库方仓库失败'
+              : sourceWarehouseResult.msg;
+        }
+      } catch (e) {
+        sourceWarehouseError = '获取出库方仓库异常: ${e.toString()}';
       }
 
       emit(
         state.copyWith(
           status: DispatchStatus.success,
-          availableProjects: projectsResult.data,
-          availableWarehouses: warehousesResult.data,
-          sourceProject: sourceProjectResult.data,
+          sourceProject: sourceProject,
           sourceWarehouse: sourceWarehouse,
+          availableProjects: availableProjects,
+          availableWarehouses: availableWarehouses,
           availableWarehouseUsers: users,
+          sourceProjectError: sourceProjectError,
+          sourceWarehouseError: sourceWarehouseError,
+          availableProjectsError: availableProjectsError,
+          availableWarehousesError: availableWarehousesError,
         ),
       );
     } catch (e) {

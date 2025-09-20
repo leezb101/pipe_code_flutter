@@ -26,6 +26,10 @@ class DispatchState extends Equatable {
     this.matchedMaterials = const {},
     this.matchMessage,
     this.errorMessage,
+    this.sourceProjectError,
+    this.sourceWarehouseError,
+    this.availableProjectsError,
+    this.availableWarehousesError,
   });
 
   // 当前状态
@@ -53,6 +57,11 @@ class DispatchState extends Equatable {
   final String? matchMessage;
   // 错误信息
   final String? errorMessage;
+  // 各数据项的错误信息
+  final String? sourceProjectError;
+  final String? sourceWarehouseError;
+  final String? availableProjectsError;
+  final String? availableWarehousesError;
 
   DispatchState copyWith({
     DispatchStatus? status,
@@ -68,6 +77,10 @@ class DispatchState extends Equatable {
     Set<MaterialVO>? matchedMaterials,
     String? matchMessage,
     String? errorMessage,
+    String? sourceProjectError,
+    String? sourceWarehouseError,
+    String? availableProjectsError,
+    String? availableWarehousesError,
   }) {
     return DispatchState(
       status: status ?? this.status,
@@ -84,6 +97,12 @@ class DispatchState extends Equatable {
       matchedMaterials: matchedMaterials ?? this.matchedMaterials,
       matchMessage: matchMessage ?? this.matchMessage,
       errorMessage: errorMessage ?? this.errorMessage,
+      sourceProjectError: sourceProjectError ?? this.sourceProjectError,
+      sourceWarehouseError: sourceWarehouseError ?? this.sourceWarehouseError,
+      availableProjectsError:
+          availableProjectsError ?? this.availableProjectsError,
+      availableWarehousesError:
+          availableWarehousesError ?? this.availableWarehousesError,
     );
   }
 
@@ -102,5 +121,9 @@ class DispatchState extends Equatable {
     matchedMaterials,
     matchMessage,
     errorMessage,
+    sourceProjectError,
+    sourceWarehouseError,
+    availableProjectsError,
+    availableWarehousesError,
   ];
 }

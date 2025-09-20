@@ -70,6 +70,11 @@ class _AcceptancePageState extends State<AcceptancePage> {
   final Set<int> _materialIds = <int>{};
   late List<MaterialInfo> _currentMaterials;
 
+  // 标记是否已经加载了用户数据，避免重复加载
+  bool _hasLoadedUsers = false;
+  // 标记是否已经加载了仓库列表，避免重复加载
+  bool _hasLoadedWarehouses = false;
+
   @override
   void initState() {
     super.initState();
@@ -99,26 +104,13 @@ class _AcceptancePageState extends State<AcceptancePage> {
     }
 
     // 用传入 materials 作为编辑态初始值
-    context.read<AcceptanceBloc>().add(
-      InitializeEditingMaterials(initial: _currentMaterials),
-    );
+    // context.read<AcceptanceBloc>().add(
+    //   InitializeEditingMaterials(initial: _currentMaterials),
+    // );
 
     // Load initial user data
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Load warehouse list first
-      context.read<AcceptanceBloc>().add(const LoadWarehouseList());
-
-      // Get project ID from SessionBloc
-      final sessionState = context.read<SessionBloc>().state;
-      if (sessionState is SessionProjectEstablished) {
-        final projectId = sessionState.currentUserRoleInfo.currentProjectId;
-        context.read<AcceptanceBloc>().add(
-          LoadAcceptanceUsers(
-            projectId: projectId,
-            roleType: 1, // Example role type
-          ),
-        );
-      }
+      // LoadWarehouseList 和 LoadAcceptanceUsers 将在 materialList 状态稳定后通过 BlocListener 触发
     });
   }
 
@@ -163,6 +155,10 @@ class _AcceptancePageState extends State<AcceptancePage> {
           context.read<AcceptanceBloc>().add(
             InitializeEditingMaterials(initial: state.materials),
           );
+
+          // 在 materialList 初始化完成后，触发加载用户数据和仓库列表
+          _loadUsersIfNeeded(context);
+          _loadWarehousesIfNeeded(context);
         } else if (state is AcceptanceError) {
           // 只提示错误，不清空或变更当前编辑中的待提交信息
           context.showErrorToast('验收失败: ${state.message}');
@@ -180,6 +176,10 @@ class _AcceptancePageState extends State<AcceptancePage> {
             }
             // 清理一次消息，避免后续无关状态变更时重复弹出
             context.read<AcceptanceBloc>().add(const ClearEditingMessage());
+          } else {
+            // 如果没有消息，说明是初始化状态，触发加载用户数据和仓库列表
+            _loadUsersIfNeeded(context);
+            _loadWarehousesIfNeeded(context);
           }
         } else if (state is AcceptanceSubmitted) {
           // Toast弹窗提示并pop出去
@@ -630,11 +630,6 @@ class _AcceptancePageState extends State<AcceptancePage> {
     );
   }
 
-  void _handleViewRecords() {
-    // Navigate to records page with acceptance tab selected
-    context.goNamed('records', queryParameters: {'tab': 'accept'});
-  }
-
   void _handleScanAcceptance() {
     // 优先从编辑态取材；否则退回到本地集合
     final currentState = context.read<AcceptanceBloc>().state;
@@ -835,6 +830,33 @@ class _AcceptancePageState extends State<AcceptancePage> {
     context.read<AcceptanceBloc>().add(
       RemoveEditingMaterialsByCodes(codes: res.removedCodes),
     );
+  }
+
+  // 在 materialList 状态稳定后触发加载用户数据，避免重复加载
+  void _loadUsersIfNeeded(BuildContext context) {
+    if (_hasLoadedUsers) return;
+
+    _hasLoadedUsers = true;
+
+    // Get project ID from SessionBloc
+    final sessionState = context.read<SessionBloc>().state;
+    if (sessionState is SessionProjectEstablished) {
+      final projectId = sessionState.currentUserRoleInfo.currentProjectId;
+      context.read<AcceptanceBloc>().add(
+        LoadAcceptanceUsers(
+          projectId: projectId,
+          roleType: 1, // Example role type
+        ),
+      );
+    }
+  }
+
+  // 在 materialList 状态稳定后触发加载仓库列表，避免重复加载
+  void _loadWarehousesIfNeeded(BuildContext context) {
+    if (_hasLoadedWarehouses) return;
+
+    _hasLoadedWarehouses = true;
+    context.read<AcceptanceBloc>().add(const LoadWarehouseList());
   }
 
   // 已移除高亮及匹配辅助逻辑，直接基于 _currentMaterials 操作。

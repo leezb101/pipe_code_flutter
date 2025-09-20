@@ -155,42 +155,6 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       }
       emit(AcceptanceError(message: result.msg));
     }
-    // try {
-    //   emit(const AcceptanceSigningIn());
-    //   Logger.info(
-    //     'Processing acceptance sign-in for id: ${event.request.acceptId}',
-    //     tag: 'AcceptanceBloc',
-    //   );
-
-    //   final result = await _repository.doAcceptanceSignIn(event.request);
-
-    //   if (result.isSuccess) {
-    //     emit(const AcceptanceSignedIn());
-    //     Logger.info(
-    //       'Acceptance sign-in processed successfully',
-    //       tag: 'AcceptanceBloc',
-    //     );
-    //   } else {
-    //     // 验收入库失败后，需要恢复之前的详情页状态态，不是简单的error状态
-    //     final currentState = state;
-    //     if (currentState is AcceptanceDetailLoaded) {
-    //       emit(currentState);
-    //       emit(AcceptanceError(message: result.msg ?? '验收入库失败'));
-    //     } else {
-    //       emit(AcceptanceError(message: result.msg ?? '验收入库失败'));
-    //     }
-    //     Logger.error(
-    //       'Failed to process acceptance sign-in: ${result.msg}',
-    //       tag: 'AcceptanceBloc',
-    //     );
-    //   }
-    // } catch (e) {
-    //   emit(AcceptanceError(message: '验收入库失败，请重试'));
-    //   Logger.error(
-    //     'Error processing acceptance sign-in: $e',
-    //     tag: 'AcceptanceBloc',
-    //   );
-    // }
   }
 
   Future<void> _onLoadAcceptanceList(
@@ -576,7 +540,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
             );
       if (rsp.isSuccess && rsp.data != null) {
         final MaterialInfoForBusiness bundle = rsp.data!;
-        Logger.debug('扫码进入并完成获取信息，即将发出结果');
+        Logger.debug('扫码进入并完成获取信息，即将发出结果', tag: 'AcceptanceBloc');
         emit(
           AcceptanceMaterialsResolved(
             materials: bundle.normals,
@@ -584,7 +548,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
             message: 'init@${DateTime.now().microsecondsSinceEpoch}',
           ),
         );
-        Logger.debug('扫码进入并完成获取信息，【完成】发出结果');
+        Logger.debug('扫码进入并完成获取信息，【完成】发出结果', tag: 'AcceptanceBloc');
       } else {
         emit(AcceptanceError(message: rsp.msg));
       }
@@ -624,6 +588,10 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           emit(
             currentState.copyWith(matchedMaterials: newSet, matchMessage: msg),
           );
+          Logger.debug(
+            'AppendMaterialsByCodes - matched $added new materials',
+            tag: 'AcceptanceBloc',
+          );
         } else {
           // AcceptancePage: 将解析结果抛给页面自行处理
           emit(
@@ -631,6 +599,10 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
               materials: rsp.data!.normals,
               message: 'append@${DateTime.now().microsecondsSinceEpoch}',
             ),
+          );
+          Logger.debug(
+            'AppendMaterialsByCodes - emitted append event with ${rsp.data!.normals.length} materials',
+            tag: 'AcceptanceBloc',
           );
         }
       } else {
@@ -675,6 +647,10 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
               message: 'remove@${DateTime.now().microsecondsSinceEpoch}',
             ),
           );
+          Logger.debug(
+            'RemoveMaterialsByCodes - emitted remove event with ${rsp.data!.normals.length} materials',
+            tag: 'AcceptanceBloc',
+          );
         }
       } else {
         emit(const AcceptanceError(message: '未匹配到可剔除的码'));
@@ -697,6 +673,10 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         materialIds: ids,
         message: null,
       ),
+    );
+    Logger.debug(
+      'Initialized editing materials with ${event.initial.length} items',
+      tag: 'AcceptanceBloc',
     );
   }
 
@@ -740,6 +720,10 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
               ? '新增 $added 个${dup > 0 ? '，忽略重复 $dup 个' : ''}'
               : '暂无可新增物料',
         ),
+      );
+      Logger.debug(
+        'AppendEditingMaterialsByCodes - added $added new materials, ignored $dup duplicates',
+        tag: 'AcceptanceBloc',
       );
     } catch (e) {
       Logger.error(
@@ -789,6 +773,10 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           materialIds: newIds,
           message: msg,
         ),
+      );
+      Logger.debug(
+        'RemoveEditingMaterialsByCodes - removed $removed materials, ignored $unmatched unmatched',
+        tag: 'AcceptanceBloc',
       );
     } catch (e) {
       Logger.error(

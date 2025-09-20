@@ -50,7 +50,8 @@ class QrScanBloc extends Bloc<QrScanEvent, QrScanState> {
     }
 
     // 防止扫描相同的二维码（在当前处理中）
-    if (state.currentCode == event.code) {
+    if (state.config?.supportsBatch == false &&
+        state.currentCode == event.code) {
       return;
     }
 

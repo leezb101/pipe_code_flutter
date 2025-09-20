@@ -108,15 +108,18 @@ class CommonQueryApiServiceImpl implements CommonQueryApiService {
         queryParameters: {'materialId': materialId},
       );
 
+      if (response.data['id'] == null) {
+        throw '项目不存在或未找到';
+      }
       return Result.safeFromJson<ProjectSimpleVo>(
         response.data,
         (data) => ProjectSimpleVo.fromJson(data as Map<String, dynamic>),
         'ProjectSimpleVo',
       );
     } on DioException catch (e) {
-      throw Exception('获取项目信息失败: ${e.message}');
+      throw '获取项目信息失败: ${e.message}';
     } catch (e) {
-      throw Exception('获取项目信息失败: $e');
+      throw '获取项目信息失败: $e';
     }
   }
 

@@ -224,7 +224,12 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InfoRow(label: '出库方项目', value: state.sourceProject?.name ?? '加载中...'),
+          _buildInfoRowWithError(
+            label: '出库方项目',
+            value: state.sourceProject?.name,
+            errorMessage: state.sourceProjectError,
+            loadingText: '加载中...',
+          ),
           SizedBox(height: AppTheme.spacingMedium),
           _buildDropdownRow<ProjectSimpleVo>(
             label: '入库方项目:',
@@ -237,12 +242,16 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
             },
             itemBuilder: (item) =>
                 DropdownMenuItem(value: item, child: Text(item.name)),
+            errorMessage: state.availableProjectsError,
           ),
           SizedBox(height: AppTheme.spacingMedium),
-          InfoRow(
+          _buildInfoRowWithError(
             label: '发出仓库',
-            value:
-                '${state.sourceWarehouse?.name ?? "加载中..."} - ${state.sourceWarehouse?.address ?? ""}',
+            value: state.sourceWarehouse != null
+                ? '${state.sourceWarehouse!.name} - ${state.sourceWarehouse!.address}'
+                : null,
+            errorMessage: state.sourceWarehouseError,
+            loadingText: '加载中...',
           ),
           SizedBox(height: AppTheme.spacingMedium),
           _buildDropdownRow<WarehouseVO>(
@@ -263,6 +272,7 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
               value: item,
               child: Text('${item.name} - ${item.address}'),
             ),
+            errorMessage: state.availableWarehousesError,
           ),
           SizedBox(height: AppTheme.spacingMedium),
           InfoRow(label: '借货人', value: userName),
@@ -288,18 +298,85 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
     required List<T> items,
     required ValueChanged<T?> onChanged,
     required DropdownMenuItem<T> Function(T) itemBuilder,
+    String? errorMessage,
   }) {
-    return DropdownButtonFormField<T>(
-      value: value,
-      items: items.map(itemBuilder).toList(),
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
-      validator: (value) => value == null ? '请选择一个选项' : null,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (errorMessage != null) ...[
+          // 显示错误信息
+          Row(
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.getBusinessColor('dispatch'),
+                ),
+              ),
+              SizedBox(width: AppTheme.spacingSmall),
+              Expanded(
+                child: Text(
+                  errorMessage,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ] else ...[
+          // 正常的下拉框
+          DropdownButtonFormField<T>(
+            initialValue: value,
+            items: items.map(itemBuilder).toList(),
+            onChanged: onChanged,
+            decoration: InputDecoration(
+              labelText: label,
+              border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+            ),
+            validator: (value) => value == null ? '请选择一个选项' : null,
+          ),
+        ],
+      ],
     );
+  }
+
+  Widget _buildInfoRowWithError({
+    required String label,
+    required String? value,
+    required String? errorMessage,
+    required String loadingText,
+  }) {
+    if (errorMessage != null) {
+      // 显示错误状态
+      return Row(
+        children: [
+          Expanded(flex: 3, child: Text(label, style: AppTheme.labelLarge)),
+          SizedBox(width: AppTheme.spacingSmall),
+          Expanded(
+            flex: 4,
+            child: Text(
+              errorMessage,
+              style: AppTheme.bodyMedium.copyWith(color: Colors.red),
+            ),
+          ),
+        ],
+      );
+    } else if (value != null) {
+      // 显示正常数据
+      return InfoRow(label: label, value: value);
+    } else {
+      // 显示加载状态
+      return InfoRow(label: label, value: loadingText);
+    }
   }
 
   Widget _buildWarehouseUserList(List<CommonUserVO> users) {
