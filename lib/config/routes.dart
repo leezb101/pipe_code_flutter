@@ -18,6 +18,7 @@ import 'package:pipe_code_flutter/repositories/interfaces/material_handle_reposi
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/signin_repository.dart';
 import 'package:pipe_code_flutter/cubits/temporary_auth.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/pages/install/install_page.dart';
@@ -282,7 +283,7 @@ final GoRouter appRouter = GoRouter(
             }
             return BlocProvider(
               create: (context) =>
-                  getIt<SigninDetailCubit>()..loadSigninDetail(signinId),
+                  SigninDetailCubit(signinRepository: getIt<SigninRepository>())..loadSigninDetail(signinId),
               child: SigninDetailPage(signinId: signinId),
             );
           },

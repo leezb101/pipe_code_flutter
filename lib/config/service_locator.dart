@@ -2,7 +2,6 @@ import 'package:get_it/get_it.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/records/records_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
-import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
 import 'package:pipe_code_flutter/cubits/temporary_auth.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/auth_repository.dart';
@@ -202,10 +201,6 @@ Future<void> setupServiceLocator({
       inventoryRepository: getIt<InventoryRepository>(),
       materialHandleRepository: getIt<MaterialHandleRepository>(),
     ),
-  );
-
-  getIt.registerFactory<SigninDetailCubit>(
-    () => SigninDetailCubit(signinRepository: getIt<SigninRepository>()),
   );
 
   getIt.registerFactory<TemporaryAuthCubit>(
