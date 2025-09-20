@@ -7,6 +7,8 @@ import 'package:pipe_code_flutter/bloc/cut/cut_event.dart';
 import 'package:pipe_code_flutter/bloc/cut/cut_state.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_state.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/cut_repository.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
@@ -24,7 +26,9 @@ class CutPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => CutBloc()),
+        BlocProvider(
+          create: (context) => CutBloc(cutRepository: getIt<CutRepository>()),
+        ),
         // MaterialHandleCubit is used for QR scan results
         BlocProvider(create: (context) => MaterialHandleCubit()),
       ],
