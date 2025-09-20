@@ -16,6 +16,7 @@ import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/signout_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
 import 'package:pipe_code_flutter/cubits/temporary_auth.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
@@ -122,7 +123,8 @@ final GoRouter appRouter = GoRouter(
           name: 'spare-qr',
           builder: (context, state) {
             return BlocProvider(
-              create: (context) => getIt<SpareQrBloc>(),
+              create: (context) =>
+                  SpareQrBloc(repository: getIt<SpareqrRepository>()),
               child: const SpareQrPage(),
             );
           },
