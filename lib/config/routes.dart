@@ -13,6 +13,8 @@ import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/scrap/scrap_bloc.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/signout_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
 import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
 import 'package:pipe_code_flutter/cubits/temporary_auth.dart';
@@ -66,7 +68,6 @@ import '../pages/return/return_page.dart';
 import '../pages/return/return_detail_page.dart';
 import '../bloc/return/return_bloc.dart';
 import '../repositories/interfaces/return_repository.dart';
-import '../repositories/interfaces/material_handle_repository.dart';
 import '../repositories/interfaces/scrap_repository.dart';
 import '../pages/inventory/inventory_list_page.dart';
 import '../pages/inventory/inventory_page.dart';
@@ -294,7 +295,10 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) => getIt<SignoutBloc>(),
+              create: (context) => SignoutBloc(
+                getIt<SignoutRepository>(),
+                getIt<MaterialHandleRepository>(),
+              ),
               child: SignoutPage(initialCodes: codes, initialIsBatch: isBatch),
             );
           },
@@ -311,7 +315,10 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) => getIt<SignoutBloc>(),
+              create: (context) => SignoutBloc(
+                getIt<SignoutRepository>(),
+                getIt<MaterialHandleRepository>(),
+              ),
               child: SignoutAuditPage(signoutId: signoutId),
             );
           },
@@ -328,7 +335,10 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) => getIt<SignoutBloc>(),
+              create: (context) => SignoutBloc(
+                getIt<SignoutRepository>(),
+                getIt<MaterialHandleRepository>(),
+              ),
               child: SignoutDetailPage(signoutId: signoutId),
             );
           },
