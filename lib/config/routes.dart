@@ -65,6 +65,8 @@ import '../bloc/material_detail/material_detail_bloc.dart';
 import '../pages/return/return_page.dart';
 import '../pages/return/return_detail_page.dart';
 import '../bloc/return/return_bloc.dart';
+import '../repositories/interfaces/return_repository.dart';
+import '../repositories/interfaces/material_handle_repository.dart';
 import '../pages/inventory/inventory_list_page.dart';
 import '../pages/inventory/inventory_page.dart';
 import '../pages/inventory/inventory_detail_page.dart';
@@ -479,7 +481,10 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) => getIt<ReturnBloc>(),
+              create: (context) => ReturnBloc(
+                returnRepository: getIt<ReturnRepository>(),
+                materialHandleRepository: getIt<MaterialHandleRepository>(),
+              ),
               child: ReturnPage(codes: data['codes'] as List<String>),
             );
           },
@@ -496,7 +501,10 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) => getIt<ReturnBloc>(),
+              create: (context) => ReturnBloc(
+                returnRepository: getIt<ReturnRepository>(),
+                materialHandleRepository: getIt<MaterialHandleRepository>(),
+              ),
               child: ReturnDetailPage(id: returnId),
             );
           },
