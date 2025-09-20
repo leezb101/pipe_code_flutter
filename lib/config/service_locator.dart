@@ -2,7 +2,6 @@ import 'package:get_it/get_it.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/records/records_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
-import 'package:pipe_code_flutter/bloc/storekeeper_non_project/storekeeper_non_project_bloc.dart';
 import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
 import 'package:pipe_code_flutter/cubits/temporary_auth.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
@@ -209,12 +208,6 @@ Future<void> setupServiceLocator({
     () => SigninDetailCubit(signinRepository: getIt<SigninRepository>()),
   );
 
-  getIt.registerFactory<StorekeeperNonProjectBloc>(
-    () => StorekeeperNonProjectBloc(
-      repository: getIt<StorekeeperNonProjectRepository>(),
-      qrScanFlowService: getIt<QrScanFlowService>(),
-    ),
-  );
   getIt.registerFactory<TemporaryAuthCubit>(
     () => TemporaryAuthCubit(
       sessionBloc: getIt<SessionBloc>(),

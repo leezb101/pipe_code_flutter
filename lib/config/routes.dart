@@ -76,6 +76,8 @@ import '../pages/inventory/inventory_detail_page.dart';
 import '../pages/notification/pending_todo_list_page.dart';
 import '../pages/storekeeper/storekeeper_non_project_page.dart';
 import '../bloc/storekeeper_non_project/storekeeper_non_project_bloc.dart';
+import '../repositories/interfaces/storekeeper_non_project_repository.dart';
+import '../services/qr_scan_flow/qr_scan_flow_service.dart';
 import '../pages/profile/change_password_page.dart';
 import 'service_locator.dart';
 
@@ -696,7 +698,10 @@ final GoRouter appRouter = GoRouter(
       name: 'storekeeper-non-project',
       builder: (context, state) {
         return BlocProvider(
-          create: (context) => getIt<StorekeeperNonProjectBloc>(),
+          create: (context) => StorekeeperNonProjectBloc(
+            repository: getIt<StorekeeperNonProjectRepository>(),
+            qrScanFlowService: getIt<QrScanFlowService>(),
+          ),
           child: const StorekeeperNonProjectPage(),
         );
       },
