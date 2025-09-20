@@ -335,11 +335,22 @@ class _HomePageState extends State<HomePage> {
                   bottomRight: Radius.circular(16),
                 ),
               ),
-              child: Icon(
-                _isProjectHeaderExpanded
-                    ? Icons.keyboard_arrow_up
-                    : Icons.keyboard_arrow_down,
-                color: Colors.white,
+              child: Row(
+                children: [
+                  Spacer(),
+                  Icon(
+                    _isProjectHeaderExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    _isProjectHeaderExpanded ? '收起' : '展开',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  Spacer(),
+                ],
               ),
             ),
           ),
@@ -763,7 +774,10 @@ class _HomePageState extends State<HomePage> {
                                   : FontWeight.normal,
                             ),
                           ),
-                          subtitle: Text(project.orgName ?? '无组织信息'),
+                          subtitle: Text(
+                            project.projectRoleType.displayName,
+                            style: TextStyle(color: Colors.lightBlueAccent),
+                          ),
                           trailing: isCurrentProject
                               ? Container(
                                   padding: const EdgeInsets.symmetric(
@@ -1497,7 +1511,7 @@ class _HomePageState extends State<HomePage> {
         title = scanMode == QrScanMode.single ? '单个物料盘点' : '批量物料盘点';
         break;
       case 'acceptance':
-        title = scanMode == QrScanMode.single ? '单个物料验收' : '批量物料验收';
+        title = scanMode == QrScanMode.single ? '一码整单' : '批量扫码';
         break;
       default:
         title = scanMode.toString();
@@ -1531,8 +1545,8 @@ class _HomePageState extends State<HomePage> {
         break;
       case 'acceptance':
         subtitle = scanMode == QrScanMode.single
-            ? '扫描单个物料进行验收操作'
-            : '连续扫描多个物料进行批量验收';
+            ? '单个物料按验收单整单验收'
+            : '连续扫描全部物料码验收';
         break;
       default:
         subtitle = '选择扫码模式';

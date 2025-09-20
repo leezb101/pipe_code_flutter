@@ -48,9 +48,8 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
 
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
-        // type: FileType.custom,
-        type: FileType.any,
-        // allowedExtensions: widget.allowedExtensions,
+        type: FileType.custom,
+        allowedExtensions: widget.allowedExtensions,
         allowMultiple: true,
       );
 

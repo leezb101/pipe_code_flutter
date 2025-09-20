@@ -83,6 +83,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     SubmitAcceptance event,
     Emitter<AcceptanceState> emit,
   ) async {
+    final currentState = state;
     try {
       emit(const AcceptanceSubmitting());
       Logger.info('Submitting acceptance', tag: 'AcceptanceBloc');
@@ -98,10 +99,22 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           'Failed to submit acceptance: ${result.msg}',
           tag: 'AcceptanceBloc',
         );
+        // 恢复提交前的状态，保留materialList等信息
+        if (currentState is AcceptanceDetailLoaded) {
+          emit(currentState);
+        } else if (currentState is AcceptanceEditingState) {
+          emit(currentState);
+        }
       }
     } catch (e) {
       emit(AcceptanceError(message: '提交验收失败，请重试'));
       Logger.error('Error submitting acceptance: $e', tag: 'AcceptanceBloc');
+      // 恢复提交前的状态，保留materialList等信息
+      if (currentState is AcceptanceDetailLoaded) {
+        emit(currentState);
+      } else if (currentState is AcceptanceEditingState) {
+        emit(currentState);
+      }
     }
   }
 
