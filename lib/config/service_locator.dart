@@ -1,7 +1,5 @@
 import 'package:get_it/get_it.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
-import 'package:pipe_code_flutter/bloc/project_initiation/project_initiation_bloc.dart';
-import 'package:pipe_code_flutter/bloc/qr_scan/qr_scan_bloc.dart';
 import 'package:pipe_code_flutter/bloc/records/records_bloc.dart';
 import 'package:pipe_code_flutter/bloc/return/return_bloc.dart';
 import 'package:pipe_code_flutter/bloc/scrap/scrap_bloc.dart';
@@ -204,10 +202,6 @@ Future<void> setupServiceLocator({
     ),
   );
 
-  getIt.registerFactory<ProjectInitiationBloc>(() => ProjectInitiationBloc());
-  getIt.registerFactory<QrScanBloc>(
-    () => QrScanBloc(qrScanService: getIt<QrScanService>()),
-  );
   getIt.registerFactory<RecordsBloc>(
     () => RecordsBloc(getIt<RecordsRepository>()),
   );

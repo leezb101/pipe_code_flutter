@@ -15,17 +15,32 @@ import '../../widgets/project_initiation/project_user_selector.dart';
 import '../../widgets/project_initiation/material_summary_widget.dart';
 
 /// 立项表单页面
-class ProjectInitiationFormPage extends StatefulWidget {
+class ProjectInitiationFormPage extends StatelessWidget {
   final int? projectId; // 为空表示新建，有值表示编辑
 
   const ProjectInitiationFormPage({super.key, this.projectId});
 
   @override
-  State<ProjectInitiationFormPage> createState() =>
-      _ProjectInitiationFormPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider<ProjectInitiationBloc>(
+      create: (context) => ProjectInitiationBloc(),
+      child: _ProjectInitiationFormPageView(projectId: projectId),
+    );
+  }
 }
 
-class _ProjectInitiationFormPageState extends State<ProjectInitiationFormPage> {
+class _ProjectInitiationFormPageView extends StatefulWidget {
+  final int? projectId;
+
+  const _ProjectInitiationFormPageView({required this.projectId});
+
+  @override
+  State<_ProjectInitiationFormPageView> createState() =>
+      _ProjectInitiationFormPageViewState();
+}
+
+class _ProjectInitiationFormPageViewState
+    extends State<_ProjectInitiationFormPageView> {
   final _formKey = GlobalKey<FormState>();
   final _projectNameController = TextEditingController();
   final _projectCodeController = TextEditingController();

@@ -53,7 +53,7 @@ import '../pages/project_initiation/project_initiation_form_page.dart';
 import '../pages/project_initiation/material_selection_page.dart';
 import '../pages/records/records_list_page.dart';
 import '../bloc/qr_scan/qr_scan_bloc.dart';
-import '../bloc/project_initiation/project_initiation_bloc.dart';
+import '../services/qr_scan_service.dart';
 import '../bloc/records/records_bloc.dart';
 import '../cubits/material_selection_cubit.dart';
 import '../models/qr_scan/qr_scan_config.dart';
@@ -132,7 +132,8 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('扫码配置错误')));
             }
             return BlocProvider(
-              create: (context) => getIt<QrScanBloc>(),
+              create: (context) =>
+                  QrScanBloc(qrScanService: getIt<QrScanService>()),
               child: QrScanPage(config: config),
             );
           },
@@ -443,11 +444,8 @@ final GoRouter appRouter = GoRouter(
           name: 'project-initiation',
           builder: (context, state) {
             final projectId = state.uri.queryParameters['projectId'];
-            return BlocProvider(
-              create: (context) => getIt<ProjectInitiationBloc>(),
-              child: ProjectInitiationFormPage(
-                projectId: projectId != null ? int.tryParse(projectId) : null,
-              ),
+            return ProjectInitiationFormPage(
+              projectId: projectId != null ? int.tryParse(projectId) : null,
             );
           },
           routes: [
