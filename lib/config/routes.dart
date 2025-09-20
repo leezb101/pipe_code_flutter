@@ -283,7 +283,8 @@ final GoRouter appRouter = GoRouter(
             }
             return BlocProvider(
               create: (context) =>
-                  SigninDetailCubit(signinRepository: getIt<SigninRepository>())..loadSigninDetail(signinId),
+                  SigninDetailCubit(signinRepository: getIt<SigninRepository>())
+                    ..loadSigninDetail(signinId),
               child: SigninDetailPage(signinId: signinId),
             );
           },
