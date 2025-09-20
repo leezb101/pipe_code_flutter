@@ -1,5 +1,4 @@
 import 'package:get_it/get_it.dart';
-import 'package:pipe_code_flutter/bloc/acceptance/acceptance_bloc.dart';
 import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
 import 'package:pipe_code_flutter/bloc/install/install_bloc.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
@@ -206,12 +205,7 @@ Future<void> setupServiceLocator({
       projectRepository: getIt<ProjectRepository>(),
     ),
   );
-  getIt.registerFactory<AcceptanceBloc>(
-    () => AcceptanceBloc(
-      getIt<AcceptanceRepository>(),
-      getIt<MaterialHandleRepository>(),
-    ),
-  );
+
   getIt.registerFactory<DispatchBloc>(
     () => DispatchBloc(
       dispatchRepository: getIt<DispatchRepository>(),

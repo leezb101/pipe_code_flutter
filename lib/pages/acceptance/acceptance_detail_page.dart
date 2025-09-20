@@ -12,17 +12,38 @@ import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/image_preview_widget.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 
-class AcceptanceDetailPage extends StatefulWidget {
+class AcceptanceDetailPage extends StatelessWidget {
   final int acceptanceId;
 
   const AcceptanceDetailPage({super.key, required this.acceptanceId});
 
   @override
-  State<AcceptanceDetailPage> createState() => _AcceptanceDetailPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => AcceptanceBloc(
+        getIt<AcceptanceRepository>(),
+        getIt<MaterialHandleRepository>(),
+      ),
+      child: _AcceptanceDetailPageView(acceptanceId: acceptanceId),
+    );
+  }
 }
 
-class _AcceptanceDetailPageState extends State<AcceptanceDetailPage> {
+class _AcceptanceDetailPageView extends StatefulWidget {
+  final int acceptanceId;
+
+  const _AcceptanceDetailPageView({required this.acceptanceId});
+
+  @override
+  State<_AcceptanceDetailPageView> createState() =>
+      _AcceptanceDetailPageViewState();
+}
+
+class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView> {
   @override
   void initState() {
     super.initState();

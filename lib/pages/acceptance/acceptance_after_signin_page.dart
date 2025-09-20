@@ -24,26 +24,24 @@ import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 
 class AcceptanceAfterSigninPage extends StatelessWidget {
   final int acceptanceId;
+
   const AcceptanceAfterSigninPage({super.key, required this.acceptanceId});
-
-  // Map<int, bool> _scannedMaterials = {};
-  // final List<XFile> _warehousePhotos = [];
-  // final ImagePicker _picker = ImagePicker();
-  // bool _isSubmitting = false;
-
-  // void _initializeScannedMaterials(List<MaterialVO> materials) {
-  //   _scannedMaterials = {
-  //     for (var material in materials) material.materialId: false,
-  //   };
-  // }
 
   @override
   Widget build(BuildContext context) {
-    // 页面直接负责导航与分发 Append/Remove 事件，仓库解析交给 AcceptanceBloc
-    return AcceptanceAfterSigninView(acceptanceId: acceptanceId);
+    return BlocProvider(
+      create: (context) => AcceptanceBloc(
+        getIt<AcceptanceRepository>(),
+        getIt<MaterialHandleRepository>(),
+      )..add(LoadAcceptanceDetail(acceptanceId: acceptanceId)),
+      child: AcceptanceAfterSigninView(acceptanceId: acceptanceId),
+    );
   }
 }
 

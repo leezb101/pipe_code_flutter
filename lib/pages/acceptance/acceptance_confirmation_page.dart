@@ -17,19 +17,39 @@ import 'package:pipe_code_flutter/models/records/record_type.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 
-class AcceptanceConfirmationPage extends StatefulWidget {
+class AcceptanceConfirmationPage extends StatelessWidget {
   final int acceptanceId;
 
   const AcceptanceConfirmationPage({super.key, required this.acceptanceId});
 
   @override
-  State<AcceptanceConfirmationPage> createState() =>
-      _AcceptanceConfirmationPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => AcceptanceBloc(
+        getIt<AcceptanceRepository>(),
+        getIt<MaterialHandleRepository>(),
+      ),
+      child: _AcceptanceConfirmationPageView(acceptanceId: acceptanceId),
+    );
+  }
 }
 
-class _AcceptanceConfirmationPageState
-    extends State<AcceptanceConfirmationPage> {
+class _AcceptanceConfirmationPageView extends StatefulWidget {
+  final int acceptanceId;
+
+  const _AcceptanceConfirmationPageView({required this.acceptanceId});
+
+  @override
+  State<_AcceptanceConfirmationPageView> createState() =>
+      _AcceptanceConfirmationPageViewState();
+}
+
+class _AcceptanceConfirmationPageViewState
+    extends State<_AcceptanceConfirmationPageView> {
   bool _isSubmitting = false;
 
   @override

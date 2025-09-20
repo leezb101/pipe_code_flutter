@@ -30,8 +30,11 @@ import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dar
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
     show QrScanOperation;
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 
-class AcceptancePage extends StatefulWidget {
+class AcceptancePage extends StatelessWidget {
   const AcceptancePage({
     super.key,
     this.materials,
@@ -44,10 +47,37 @@ class AcceptancePage extends StatefulWidget {
   final bool? initialIsBatch;
 
   @override
-  State<AcceptancePage> createState() => _AcceptancePageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => AcceptanceBloc(
+        getIt<AcceptanceRepository>(),
+        getIt<MaterialHandleRepository>(),
+      ),
+      child: _AcceptancePageView(
+        materials: materials,
+        initialCodes: initialCodes,
+        initialIsBatch: initialIsBatch,
+      ),
+    );
+  }
 }
 
-class _AcceptancePageState extends State<AcceptancePage> {
+class _AcceptancePageView extends StatefulWidget {
+  const _AcceptancePageView({
+    this.materials,
+    this.initialCodes,
+    this.initialIsBatch,
+  });
+
+  final MaterialInfoForBusiness? materials;
+  final List<String>? initialCodes;
+  final bool? initialIsBatch;
+
+  @override
+  State<_AcceptancePageView> createState() => _AcceptancePageViewState();
+}
+
+class _AcceptancePageViewState extends State<_AcceptancePageView> {
   // 为每个上传组件创建一个Cubit
   late final FileUploadCubit _acceptancePhotosCubit;
   late final FileUploadCubit _inspectionReportsCubit;
