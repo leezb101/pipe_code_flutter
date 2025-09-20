@@ -21,11 +21,26 @@ import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
 
 class InstallPage extends StatelessWidget {
   final String? signOutId;
 
   const InstallPage({super.key, this.signOutId});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<InstallBloc>(
+      create: (context) => InstallBloc(installRepository: getIt()),
+      child: _InstallPageView(signOutId: signOutId),
+    );
+  }
+}
+
+class _InstallPageView extends StatelessWidget {
+  final String? signOutId;
+
+  const _InstallPageView({required this.signOutId});
 
   @override
   Widget build(BuildContext context) {

@@ -16,6 +16,8 @@ import 'package:pipe_code_flutter/models/common/warehouse_vo.dart';
 import 'package:pipe_code_flutter/models/dispatch/do_dispatch_apply_vo.dart';
 
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
@@ -37,8 +39,8 @@ class DispatchApplicationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<DispatchBloc>(
       create: (context) => DispatchBloc(
-        dispatchRepository: getIt(),
-        commonQueryApiService: getIt(),
+        dispatchRepository: getIt<DispatchRepository>(),
+        commonQueryApiService: getIt<CommonQueryApiService>(),
       ),
       child: _DispatchApplicationPageView(initialCodes: initialCodes),
     );

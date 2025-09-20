@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
-import 'package:pipe_code_flutter/bloc/install/install_bloc.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/scrap/scrap_bloc.dart';
@@ -342,11 +341,8 @@ final GoRouter appRouter = GoRouter(
           name: 'install',
           builder: (context, state) {
             final signOutId = state.uri.queryParameters['id'];
-            return MultiBlocProvider(
-              providers: [
-                BlocProvider(create: (context) => getIt<InstallBloc>()),
-                BlocProvider(create: (context) => MaterialHandleCubit()),
-              ],
+            return BlocProvider(
+              create: (context) => MaterialHandleCubit(),
               child: InstallPage(signOutId: signOutId),
             );
           },
@@ -362,10 +358,7 @@ final GoRouter appRouter = GoRouter(
             if (installId == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            return BlocProvider(
-              create: (context) => getIt<InstallBloc>(),
-              child: InstallDetailPage(installId: installId),
-            );
+            return InstallDetailPage(installId: installId);
           },
         ),
         GoRoute(

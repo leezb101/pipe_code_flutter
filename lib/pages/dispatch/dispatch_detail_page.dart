@@ -5,6 +5,8 @@ import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
@@ -18,8 +20,8 @@ class DispatchDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<DispatchBloc>(
       create: (context) => DispatchBloc(
-        dispatchRepository: getIt(),
-        commonQueryApiService: getIt(),
+        dispatchRepository: getIt<DispatchRepository>(),
+        commonQueryApiService: getIt<CommonQueryApiService>(),
       ),
       child: _DispatchDetailPageView(dispatchId: dispatchId),
     );

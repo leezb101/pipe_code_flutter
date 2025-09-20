@@ -7,6 +7,8 @@ import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
 import 'package:pipe_code_flutter/bloc/records/records_bloc.dart';
 import 'package:pipe_code_flutter/bloc/records/records_event.dart';
 import 'package:pipe_code_flutter/models/records/record_type.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
@@ -21,8 +23,8 @@ class DispatchConfirmationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<DispatchBloc>(
       create: (context) => DispatchBloc(
-        dispatchRepository: getIt(),
-        commonQueryApiService: getIt(),
+        dispatchRepository: getIt<DispatchRepository>(),
+        commonQueryApiService: getIt<CommonQueryApiService>(),
       ),
       child: _DispatchConfirmationPageView(dispatchId: dispatchId),
     );

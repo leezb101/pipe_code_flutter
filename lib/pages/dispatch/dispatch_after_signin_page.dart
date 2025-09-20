@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import '../../bloc/dispatch/dispatch_bloc.dart';
 import '../../bloc/records/records_bloc.dart';
 import '../../bloc/records/records_event.dart';
@@ -29,8 +31,8 @@ class DispatchAfterSigninPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<DispatchBloc>(
       create: (context) => DispatchBloc(
-        dispatchRepository: getIt(),
-        commonQueryApiService: getIt(),
+        dispatchRepository: getIt<DispatchRepository>(),
+        commonQueryApiService: getIt<CommonQueryApiService>(),
       ),
       child: _DispatchAfterSigninPageView(dispatchId: dispatchId),
     );
@@ -65,6 +67,7 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
   void initState() {
     super.initState();
     _fileUploadCubit = FileUploadCubit();
+    context.read<DispatchBloc>().add(LoadDispatchDetail(widget.dispatchId));
   }
 
   @override

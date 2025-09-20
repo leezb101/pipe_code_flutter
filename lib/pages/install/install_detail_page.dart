@@ -18,17 +18,32 @@ import 'package:pipe_code_flutter/bloc/install/install_state.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
 
-class InstallDetailPage extends StatefulWidget {
+class InstallDetailPage extends StatelessWidget {
   final int installId;
 
   const InstallDetailPage({super.key, required this.installId});
 
   @override
-  State<InstallDetailPage> createState() => _InstallDetailPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider<InstallBloc>(
+      create: (context) => InstallBloc(installRepository: getIt()),
+      child: _InstallDetailPageView(installId: installId),
+    );
+  }
 }
 
-class _InstallDetailPageState extends State<InstallDetailPage> {
+class _InstallDetailPageView extends StatefulWidget {
+  final int installId;
+
+  const _InstallDetailPageView({required this.installId});
+
+  @override
+  State<_InstallDetailPageView> createState() => _InstallDetailPageViewState();
+}
+
+class _InstallDetailPageViewState extends State<_InstallDetailPageView> {
   @override
   void initState() {
     super.initState();
