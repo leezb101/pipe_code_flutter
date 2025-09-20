@@ -33,7 +33,6 @@ import 'package:pipe_code_flutter/pages/spare_qr/spare_qr_page.dart';
 import 'package:pipe_code_flutter/pages/temporary_auth/temporary_auth_page.dart';
 import 'package:pipe_code_flutter/utils/tracing_navigator_observer.dart';
 import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
-import '../bloc/dispatch/dispatch_bloc.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/boot_page.dart';
 import '../pages/auth/register_page.dart';
@@ -112,10 +111,7 @@ final GoRouter appRouter = GoRouter(
             if (codes == null || codes.isEmpty) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            return BlocProvider(
-              create: (context) => getIt<DispatchBloc>(),
-              child: DispatchApplicationPage(initialCodes: codes),
-            );
+            return DispatchApplicationPage(initialCodes: codes);
             // final config = state.extra as Map<String, dynamic>?;
             // if (config == null || config.isEmpty) {
             //   return const Scaffold(body: Center(child: Text('参数错误')));
@@ -251,10 +247,7 @@ final GoRouter appRouter = GoRouter(
             if (dispatchId == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            return BlocProvider(
-              create: (context) => getIt<DispatchBloc>(),
-              child: DispatchConfirmationPage(dispatchId: dispatchId),
-            );
+            return DispatchConfirmationPage(dispatchId: dispatchId);
           },
         ),
         GoRoute(
@@ -268,10 +261,7 @@ final GoRouter appRouter = GoRouter(
             if (dispatchId == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            return BlocProvider(
-              create: (context) => getIt<DispatchBloc>(),
-              child: DispatchDetailPage(dispatchId: dispatchId),
-            );
+            return DispatchDetailPage(dispatchId: dispatchId);
           },
         ),
         GoRoute(
@@ -285,15 +275,8 @@ final GoRouter appRouter = GoRouter(
             if (dispatchId == null) {
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
-            return MultiBlocProvider(
-              providers: [
-                BlocProvider(
-                  create: (context) =>
-                      getIt<DispatchBloc>()
-                        ..add(LoadDispatchDetail(dispatchId)),
-                ),
-                BlocProvider(create: (context) => MaterialHandleCubit()),
-              ],
+            return BlocProvider(
+              create: (context) => MaterialHandleCubit(),
               child: DispatchAfterSigninPage(dispatchId: dispatchId),
             );
           },

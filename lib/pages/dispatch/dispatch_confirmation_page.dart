@@ -10,18 +10,37 @@ import 'package:pipe_code_flutter/models/records/record_type.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
 
-class DispatchConfirmationPage extends StatefulWidget {
+class DispatchConfirmationPage extends StatelessWidget {
   final int dispatchId;
 
   const DispatchConfirmationPage({super.key, required this.dispatchId});
 
   @override
-  State<DispatchConfirmationPage> createState() =>
-      _DispatchConfirmationPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider<DispatchBloc>(
+      create: (context) => DispatchBloc(
+        dispatchRepository: getIt(),
+        commonQueryApiService: getIt(),
+      ),
+      child: _DispatchConfirmationPageView(dispatchId: dispatchId),
+    );
+  }
 }
 
-class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
+class _DispatchConfirmationPageView extends StatefulWidget {
+  final int dispatchId;
+
+  const _DispatchConfirmationPageView({required this.dispatchId});
+
+  @override
+  State<_DispatchConfirmationPageView> createState() =>
+      _DispatchConfirmationPageViewState();
+}
+
+class _DispatchConfirmationPageViewState
+    extends State<_DispatchConfirmationPageView> {
   bool _isSubmitting = false;
 
   @override

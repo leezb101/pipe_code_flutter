@@ -1,5 +1,4 @@
 import 'package:get_it/get_it.dart';
-import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
 import 'package:pipe_code_flutter/bloc/install/install_bloc.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/project_initiation/project_initiation_bloc.dart';
@@ -206,12 +205,6 @@ Future<void> setupServiceLocator({
     ),
   );
 
-  getIt.registerFactory<DispatchBloc>(
-    () => DispatchBloc(
-      dispatchRepository: getIt<DispatchRepository>(),
-      commonQueryApiService: getIt<CommonQueryApiService>(),
-    ),
-  );
   getIt.registerFactory<InstallBloc>(
     () => InstallBloc(installRepository: getIt<InstallRepository>()),
   );

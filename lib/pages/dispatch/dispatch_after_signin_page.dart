@@ -19,10 +19,27 @@ import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
 
 class DispatchAfterSigninPage extends StatelessWidget {
   final int dispatchId;
   const DispatchAfterSigninPage({super.key, required this.dispatchId});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<DispatchBloc>(
+      create: (context) => DispatchBloc(
+        dispatchRepository: getIt(),
+        commonQueryApiService: getIt(),
+      ),
+      child: _DispatchAfterSigninPageView(dispatchId: dispatchId),
+    );
+  }
+}
+
+class _DispatchAfterSigninPageView extends StatelessWidget {
+  final int dispatchId;
+  const _DispatchAfterSigninPageView({required this.dispatchId});
 
   @override
   Widget build(BuildContext context) {

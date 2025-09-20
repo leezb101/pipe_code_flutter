@@ -25,6 +25,7 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
 import '../../bloc/user/user_state.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
 
 class DispatchApplicationPage extends StatelessWidget {
   // final MaterialInfoForBusiness materials;
@@ -34,7 +35,23 @@ class DispatchApplicationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // BlocProvider is now handled by the router, so we just return the view.
+    return BlocProvider<DispatchBloc>(
+      create: (context) => DispatchBloc(
+        dispatchRepository: getIt(),
+        commonQueryApiService: getIt(),
+      ),
+      child: _DispatchApplicationPageView(initialCodes: initialCodes),
+    );
+  }
+}
+
+class _DispatchApplicationPageView extends StatelessWidget {
+  final List<String> initialCodes;
+
+  const _DispatchApplicationPageView({required this.initialCodes});
+
+  @override
+  Widget build(BuildContext context) {
     return DispatchApplicationView(initialCodes: initialCodes);
   }
 }

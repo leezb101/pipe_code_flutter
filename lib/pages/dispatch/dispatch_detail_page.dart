@@ -7,17 +7,36 @@ import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
 
-class DispatchDetailPage extends StatefulWidget {
+class DispatchDetailPage extends StatelessWidget {
   final int dispatchId;
 
   const DispatchDetailPage({super.key, required this.dispatchId});
 
   @override
-  State<DispatchDetailPage> createState() => _DispatchDetailPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider<DispatchBloc>(
+      create: (context) => DispatchBloc(
+        dispatchRepository: getIt(),
+        commonQueryApiService: getIt(),
+      ),
+      child: _DispatchDetailPageView(dispatchId: dispatchId),
+    );
+  }
 }
 
-class _DispatchDetailPageState extends State<DispatchDetailPage> {
+class _DispatchDetailPageView extends StatefulWidget {
+  final int dispatchId;
+
+  const _DispatchDetailPageView({required this.dispatchId});
+
+  @override
+  State<_DispatchDetailPageView> createState() =>
+      _DispatchDetailPageViewState();
+}
+
+class _DispatchDetailPageViewState extends State<_DispatchDetailPageView> {
   @override
   void initState() {
     super.initState();
