@@ -1,7 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/records/records_bloc.dart';
-import 'package:pipe_code_flutter/bloc/scrap/scrap_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/spare_qr/spare_qr_bloc.dart';
@@ -229,13 +228,6 @@ Future<void> setupServiceLocator({
 
   getIt.registerFactory<SigninDetailCubit>(
     () => SigninDetailCubit(signinRepository: getIt<SigninRepository>()),
-  );
-
-  getIt.registerFactory<ScrapBloc>(
-    () => ScrapBloc(
-      scrapRepository: getIt<ScrapRepository>(),
-      materialHandleRepository: getIt<MaterialHandleRepository>(),
-    ),
   );
 
   getIt.registerFactory<StorekeeperNonProjectBloc>(

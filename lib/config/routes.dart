@@ -67,6 +67,7 @@ import '../pages/return/return_detail_page.dart';
 import '../bloc/return/return_bloc.dart';
 import '../repositories/interfaces/return_repository.dart';
 import '../repositories/interfaces/material_handle_repository.dart';
+import '../repositories/interfaces/scrap_repository.dart';
 import '../pages/inventory/inventory_list_page.dart';
 import '../pages/inventory/inventory_page.dart';
 import '../pages/inventory/inventory_detail_page.dart';
@@ -562,7 +563,11 @@ final GoRouter appRouter = GoRouter(
               return MultiBlocProvider(
                 providers: [
                   BlocProvider<ScrapBloc>(
-                    create: (context) => getIt<ScrapBloc>(),
+                    create: (context) => ScrapBloc(
+                      scrapRepository: getIt<ScrapRepository>(),
+                      materialHandleRepository:
+                          getIt<MaterialHandleRepository>(),
+                    ),
                   ),
                   BlocProvider<MaterialHandleCubit>(
                     create: (context) => MaterialHandleCubit(),
@@ -576,7 +581,11 @@ final GoRouter appRouter = GoRouter(
               return MultiBlocProvider(
                 providers: [
                   BlocProvider<ScrapBloc>(
-                    create: (context) => getIt<ScrapBloc>(),
+                    create: (context) => ScrapBloc(
+                      scrapRepository: getIt<ScrapRepository>(),
+                      materialHandleRepository:
+                          getIt<MaterialHandleRepository>(),
+                    ),
                   ),
                   BlocProvider<MaterialHandleCubit>(
                     create: (context) => MaterialHandleCubit(),
@@ -599,7 +608,10 @@ final GoRouter appRouter = GoRouter(
               return const Scaffold(body: Center(child: Text('参数错误')));
             }
             return BlocProvider(
-              create: (context) => getIt<ScrapBloc>(),
+              create: (context) => ScrapBloc(
+                scrapRepository: getIt<ScrapRepository>(),
+                materialHandleRepository: getIt<MaterialHandleRepository>(),
+              ),
               child: ScrapDetailPage(scrapId: scrapId),
             );
           },
