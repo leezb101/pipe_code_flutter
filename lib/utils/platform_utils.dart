@@ -10,7 +10,7 @@ class PlatformUtils {
   static bool get isAndroid => Platform.isAndroid;
 
   /// 检查是否支持语音识别（目前仅iOS支持）
-  static bool get supportsSpeechToText => isIOS;
+  static bool get supportsSpeechToText => isIOS || isAndroid;
 
   /// 获取当前平台名称
   static String get platformName {

@@ -39,6 +39,10 @@ android {
         versionName = flutter.versionName
     }
 
+    dependencies {
+      implementation(files("libs/SparkChain.aar"))
+    }
+
     signingConfigs {
         create("release") {
           keyAlias = keystoreProperties.getProperty("keyAlias") as String

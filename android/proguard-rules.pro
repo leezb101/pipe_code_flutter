@@ -63,3 +63,6 @@
 -keepclassmembers class * extends android.webkit.webViewClient {
     public void *(android.webkit.webView, jav.lang.String);
 }
+
+-keep class com.iflytek.sparkchain.** {*;}
+-keep class com.iflytek.sparkchain.**

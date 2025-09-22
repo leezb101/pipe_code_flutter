@@ -10,11 +10,11 @@ import 'base_speech_service.dart';
 class AndroidSpeechService implements BaseSpeechService {
   final _xfAsrPlugin = XfAsrPlugin.instance;
   final _statusStreamController = StreamController<String>.broadcast();
-  
+
   StreamSubscription<XfAsrResult>? _resultSubscription;
   StreamSubscription<XfAsrError>? _errorSubscription;
   StreamSubscription<String>? _statusSubscription;
-  
+
   Function(String)? _currentOnResult;
   bool _isInitialized = false;
 
@@ -42,9 +42,9 @@ class AndroidSpeechService implements BaseSpeechService {
       );
 
       Logger.info('开始初始化讯飞语音识别SDK...', tag: '【speech】');
-      
+
       final success = await _xfAsrPlugin.initialize(config);
-      
+
       if (success) {
         Logger.info('讯飞语音识别SDK初始化成功', tag: '【speech】');
         _isInitialized = true;
@@ -64,9 +64,12 @@ class AndroidSpeechService implements BaseSpeechService {
     // 监听识别结果
     _resultSubscription?.cancel();
     _resultSubscription = _xfAsrPlugin.onResult.listen((result) {
-      Logger.debug('收到识别结果: ${result.text}, isLast: ${result.isLast}', tag: '【speech】');
+      Logger.debug(
+        '收到识别结果: ${result.text}, isLast: ${result.isLast}',
+        tag: '【speech】',
+      );
       _currentOnResult?.call(result.text);
-      
+
       // 如果是最终结果，更新状态为非监听状态
       if (result.isLast) {
         _statusStreamController.add('done');
@@ -99,18 +102,21 @@ class AndroidSpeechService implements BaseSpeechService {
 
     Logger.info('开始语音识别...', tag: '【speech】');
     _currentOnResult = onResult;
-    
-    _xfAsrPlugin.startListening().then((success) {
-      if (success) {
-        Logger.info('语音识别启动成功', tag: '【speech】');
-      } else {
-        Logger.error('语音识别启动失败', tag: '【speech】');
-        _statusStreamController.add('error');
-      }
-    }).catchError((error) {
-      Logger.error('启动语音识别异常: $error', tag: '【speech】');
-      _statusStreamController.add('error');
-    });
+
+    _xfAsrPlugin
+        .startListening()
+        .then((success) {
+          if (success) {
+            Logger.info('语音识别启动成功', tag: '【speech】');
+          } else {
+            Logger.error('语音识别启动失败', tag: '【speech】');
+            _statusStreamController.add('error');
+          }
+        })
+        .catchError((error) {
+          Logger.error('启动语音识别异常: $error', tag: '【speech】');
+          _statusStreamController.add('error');
+        });
   }
 
   @override
@@ -121,31 +127,34 @@ class AndroidSpeechService implements BaseSpeechService {
     }
 
     Logger.info('停止语音识别...', tag: '【speech】');
-    
-    _xfAsrPlugin.stopListening().then((success) {
-      if (success) {
-        Logger.info('语音识别已停止', tag: '【speech】');
-      } else {
-        Logger.warning('停止语音识别失败', tag: '【speech】');
-      }
-    }).catchError((error) {
-      Logger.error('停止语音识别异常: $error', tag: '【speech】');
-    });
+
+    _xfAsrPlugin
+        .stopListening()
+        .then((success) {
+          if (success) {
+            Logger.info('语音识别已停止', tag: '【speech】');
+          } else {
+            Logger.warning('停止语音识别失败', tag: '【speech】');
+          }
+        })
+        .catchError((error) {
+          Logger.error('停止语音识别异常: $error', tag: '【speech】');
+        });
   }
 
   @override
   void dispose() {
     Logger.info('释放语音识别服务资源...', tag: '【speech】');
-    
+
     _resultSubscription?.cancel();
-    _errorSubscription?.cancel();  
+    _errorSubscription?.cancel();
     _statusSubscription?.cancel();
     _statusStreamController.close();
-    
+
     _xfAsrPlugin.dispose();
     _isInitialized = false;
     _currentOnResult = null;
-    
+
     Logger.info('语音识别服务资源已释放', tag: '【speech】');
   }
 }
