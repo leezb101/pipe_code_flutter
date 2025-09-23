@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/speech/speech_to_text_bloc.dart';
+import '../services/base_voice_recording_service.dart';
+import '../config/service_locator.dart';
 import '../utils/platform_utils.dart';
 
 class SpeechInputWidget extends StatefulWidget {
@@ -14,6 +16,7 @@ class SpeechInputWidget extends StatefulWidget {
   final TextAlign textAlign;
   final TextAlignVertical? textAlignVertical;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onVoiceRecordingPath; // 新增：录音文件路径回调
   // ... (add all other TextField parameters that you need)
 
   const SpeechInputWidget({
@@ -26,6 +29,7 @@ class SpeechInputWidget extends StatefulWidget {
     this.textAlign = TextAlign.start,
     this.textAlignVertical,
     this.onChanged,
+    this.onVoiceRecordingPath,
     // ... (initialize other parameters)
   });
 
@@ -35,6 +39,7 @@ class SpeechInputWidget extends StatefulWidget {
 
 class SpeechInputWidgetState extends State<SpeechInputWidget> {
   SpeechToTextBloc? _speechToTextBloc; // 改为可空类型
+  BaseVoiceRecordingService? _voiceRecordingService; // 新增：录音服务
   String _textBeforeListening = '';
 
   @override
@@ -43,12 +48,17 @@ class SpeechInputWidgetState extends State<SpeechInputWidget> {
     // 仅在支持语音识别的平台上创建和初始化SpeechToTextBloc
     if (PlatformUtils.supportsSpeechToText) {
       _speechToTextBloc = SpeechToTextBloc()..add(SpeechToTextInitialize());
+      
+      // 初始化录音服务
+      _voiceRecordingService = getIt<BaseVoiceRecordingService>();
+      _voiceRecordingService!.initialize();
     }
   }
 
   @override
   void dispose() {
     _speechToTextBloc?.close();
+    _voiceRecordingService?.dispose();
     super.dispose();
   }
 
@@ -105,10 +115,27 @@ class SpeechInputWidgetState extends State<SpeechInputWidget> {
                       icon: Icon(isListening ? Icons.stop : Icons.mic),
                       onPressed: () {
                         if (isListening) {
+                          // 停止语音识别和录音
                           _speechToTextBloc!.add(SpeechToTextStop());
+                          _voiceRecordingService?.stopRecording();
                         } else {
+                          // 开始语音识别和录音
                           _textBeforeListening = widget.controller.text;
                           _speechToTextBloc!.add(SpeechToTextStart());
+                          
+                          // 同时开始录音
+                          _voiceRecordingService?.startRecording(
+                            onResult: (filePath) {
+                              // 录音上传完成，通知上层组件
+                              if (widget.onVoiceRecordingPath != null) {
+                                widget.onVoiceRecordingPath!(filePath);
+                              }
+                            },
+                            onError: (error) {
+                              // 处理录音错误（可选）
+                              print('录音错误: $error');
+                            },
+                          );
                         }
                       },
                     ),
