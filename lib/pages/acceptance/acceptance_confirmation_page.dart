@@ -183,8 +183,8 @@ class _AcceptanceConfirmationPageState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildQrCodeSection(acceptanceInfo),
-                const SizedBox(height: AppTheme.spacingLarge),
+                // _buildQrCodeSection(acceptanceInfo),
+                // const SizedBox(height: AppTheme.spacingLarge),
                 _buildMaterialsList(acceptanceInfo),
                 const SizedBox(height: AppTheme.spacingLarge),
                 _buildAttachmentsSection(acceptanceInfo),
