@@ -24,6 +24,7 @@ class ReturnState extends Equatable {
     this.returnDetail,
     this.returnType = 1, // 默认为多余件退库
     this.returnRemark = '',
+    this.returnRemarkVoice = const [],
     this.imageList = const [],
     this.errorMessage,
   });
@@ -40,6 +41,8 @@ class ReturnState extends Equatable {
   final int returnType;
   // 退库备注
   final String returnRemark;
+  // 退库备注的语音文件路径列表
+  final List<String>? returnRemarkVoice;
   // 图片附件列表
   final List<AttachmentVO> imageList;
   // 错误信息
@@ -52,6 +55,7 @@ class ReturnState extends Equatable {
     ReturnDetailVo? returnDetail,
     int? returnType,
     String? returnRemark,
+    List<String>? reasonVoice,
     List<AttachmentVO>? imageList,
     String? errorMessage,
   }) {
@@ -62,6 +66,7 @@ class ReturnState extends Equatable {
       returnDetail: returnDetail ?? this.returnDetail,
       returnType: returnType ?? this.returnType,
       returnRemark: returnRemark ?? this.returnRemark,
+      returnRemarkVoice: reasonVoice ?? this.returnRemarkVoice,
       imageList: imageList ?? this.imageList,
       errorMessage: errorMessage ?? this.errorMessage,
     );
@@ -75,6 +80,7 @@ class ReturnState extends Equatable {
     returnDetail,
     returnType,
     returnRemark,
+    returnRemarkVoice,
     imageList,
     errorMessage,
   ];

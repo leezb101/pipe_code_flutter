@@ -143,6 +143,7 @@ class SignoutAuditController {
   Future<void> rejectAudit({
     required int signoutId,
     required String reason,
+    List<String>? reasonVoice,
   }) async {
     if (currentState.isSubmitting) return;
 
@@ -156,7 +157,12 @@ class SignoutAuditController {
 
     try {
       final result = await _repository.auditSignout(
-        CommonDoBusinessAuditVO(id: signoutId, pass: false, reason: reason),
+        CommonDoBusinessAuditVO(
+          id: signoutId,
+          pass: false,
+          reason: reason,
+          reasonVoice: reasonVoice ?? [],
+        ),
       );
 
       if (result.isSuccess) {

@@ -17,6 +17,7 @@ class CutBloc extends Bloc<CutEvent, CutState> {
     on<CutOriginalMaterialScanned>(_onOriginalMaterialScanned);
     on<CutOriginalPhotoUpdated>(_onOriginalPhotoUpdated);
     on<CutDescriptionUpdated>(_onDescriptionUpdated);
+    on<CutDescriptionVoiceUpdated>(_onDescriptionVoiceUpdated);
     on<CutNewMaterialsScanned>(_onNewMaterialsScanned);
     on<CutNewItemLengthUpdated>(_onNewItemLengthUpdated);
     on<CutNewItemPhotoUpdated>(_onNewItemPhotoUpdated);
@@ -67,6 +68,19 @@ class CutBloc extends Bloc<CutEvent, CutState> {
     emit(
       state.copyWith(
         cutDescription: event.description,
+        status: CutStatus.initial,
+        clearMessages: true,
+      ),
+    );
+  }
+
+  void _onDescriptionVoiceUpdated(
+    CutDescriptionVoiceUpdated event,
+    Emitter<CutState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        cutDescriptionVoicePaths: event.voicePaths,
         status: CutStatus.initial,
         clearMessages: true,
       ),
@@ -232,6 +246,7 @@ class CutBloc extends Bloc<CutEvent, CutState> {
             state.originalMaterialInfo!.normals.first.baseInfo.materialCode!,
         img: state.originalMaterialPhotoPath!,
         description: state.cutDescription,
+        descriptionVoice: state.cutDescriptionVoicePaths,
         cutMaterialSubVOS: subItems,
       );
 

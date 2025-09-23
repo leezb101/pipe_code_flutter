@@ -29,6 +29,7 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
   late DispatchConfirmationController _controller;
   bool _hasShownSuccessMessage = false;
   final TextEditingController _remarkController = TextEditingController();
+  final List<String> _reasonVoice = [];
 
   @override
   void initState() {
@@ -55,6 +56,7 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
     _controller.rejectDispatch(
       dispatchId: widget.dispatchId,
       reason: _remarkController.text,
+      reasonVoice: _reasonVoice,
     );
   }
 
@@ -309,6 +311,9 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
           title: Text('驳回调拨'),
           content: SpeechInputWidget(
             controller: _remarkController,
+            onVoiceRecordingPath: (filePath) {
+              _reasonVoice.add(filePath);
+            },
             maxLines: 3,
             decoration: InputDecoration(
               hintText: '请输入驳回原因',

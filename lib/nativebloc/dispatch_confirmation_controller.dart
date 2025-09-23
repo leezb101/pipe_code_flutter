@@ -143,6 +143,7 @@ class DispatchConfirmationController {
   Future<void> rejectDispatch({
     required int dispatchId,
     required String reason,
+    List<String>? reasonVoice,
   }) async {
     if (_currentState.isSubmitting) return;
     _updateState(
@@ -154,7 +155,12 @@ class DispatchConfirmationController {
     );
     try {
       final result = await _repository.auditDispatch(
-        CommonDoBusinessAuditVO(id: dispatchId, pass: false, reason: reason),
+        CommonDoBusinessAuditVO(
+          id: dispatchId,
+          pass: false,
+          reason: reason,
+          reasonVoice: reasonVoice ?? [],
+        ),
       );
       if (result.isSuccess) {
         _updateState(

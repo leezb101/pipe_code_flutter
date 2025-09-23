@@ -13,6 +13,9 @@ CutRequestVo _$CutRequestVoFromJson(Map<String, dynamic> json) => CutRequestVo(
   qrCode: json['qrCode'] as String,
   img: json['img'] as String,
   description: json['description'] as String?,
+  descriptionVoice: (json['descriptionVoice'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
 );
 
 Map<String, dynamic> _$CutRequestVoToJson(CutRequestVo instance) =>
@@ -21,4 +24,5 @@ Map<String, dynamic> _$CutRequestVoToJson(CutRequestVo instance) =>
       'qrCode': instance.qrCode,
       'img': instance.img,
       'description': instance.description,
+      'descriptionVoice': instance.descriptionVoice,
     };

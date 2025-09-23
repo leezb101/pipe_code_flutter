@@ -17,16 +17,24 @@ class CutRequestVo extends Equatable {
   final String qrCode;
   final String img;
   final String? description;
+  final List<String>? descriptionVoice;
 
   const CutRequestVo({
     required this.cutMaterialSubVOS,
     required this.qrCode,
     required this.img,
     this.description,
+    this.descriptionVoice,
   });
 
   @override
-  List<Object?> get props => [cutMaterialSubVOS, qrCode, img, description];
+  List<Object?> get props => [
+    cutMaterialSubVOS,
+    qrCode,
+    img,
+    description,
+    descriptionVoice,
+  ];
 
   factory CutRequestVo.fromJson(Map<String, dynamic> json) =>
       _$CutRequestVoFromJson(json);

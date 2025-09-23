@@ -35,6 +35,15 @@ class CutDescriptionUpdated extends CutEvent {
   List<Object?> get props => [description];
 }
 
+class CutDescriptionVoiceUpdated extends CutEvent {
+  final List<String> voicePaths;
+
+  const CutDescriptionVoiceUpdated(this.voicePaths);
+
+  @override
+  List<Object?> get props => [voicePaths];
+}
+
 class CutNewMaterialsScanned extends CutEvent {
   final List<String> qrCodes;
 

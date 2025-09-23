@@ -20,6 +20,9 @@ DoReturnReqVo _$DoReturnReqVoFromJson(Map<String, dynamic> json) =>
           [],
       returnType: (json['returnType'] as num?)?.toInt() ?? 0,
       returnRemark: json['returnRemark'] as String? ?? '',
+      returnRemarkVoice: (json['returnRemarkVoice'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$DoReturnReqVoToJson(DoReturnReqVo instance) =>
@@ -28,4 +31,5 @@ Map<String, dynamic> _$DoReturnReqVoToJson(DoReturnReqVo instance) =>
       'imageList': instance.imageList,
       'returnType': instance.returnType,
       'returnRemark': instance.returnRemark,
+      'returnRemarkVoice': instance.returnRemarkVoice,
     };
