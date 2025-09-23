@@ -1,73 +1,97 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pipe_code_flutter/models/dispatch/dispatch_detail_vo.dart';
-import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
-import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
 import 'package:pipe_code_flutter/bloc/records/records_bloc.dart';
 import 'package:pipe_code_flutter/bloc/records/records_event.dart';
-import 'package:pipe_code_flutter/models/records/record_type.dart';
-import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
-import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
-import 'package:pipe_code_flutter/utils/toast_utils.dart';
-import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
-import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
+import 'package:pipe_code_flutter/models/dispatch/dispatch_detail_vo.dart';
+import 'package:pipe_code_flutter/models/records/record_type.dart';
+import 'package:pipe_code_flutter/nativebloc/dispatch_confirmation_controller.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
+import 'package:pipe_code_flutter/utils/logger.dart';
+import 'package:pipe_code_flutter/utils/toast_utils.dart';
+import 'package:pipe_code_flutter/widgets/optimized_stream_builder.dart';
+import 'package:pipe_code_flutter/widgets/speech_input_widget.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 
-class DispatchConfirmationPage extends StatelessWidget {
+class DispatchConfirmationPage extends StatefulWidget {
   final int dispatchId;
-
   const DispatchConfirmationPage({super.key, required this.dispatchId});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider<DispatchBloc>(
-      create: (context) => DispatchBloc(
-        dispatchRepository: getIt<DispatchRepository>(),
-        commonQueryApiService: getIt<CommonQueryApiService>(),
-      ),
-      child: _DispatchConfirmationPageView(dispatchId: dispatchId),
-    );
-  }
+  State<DispatchConfirmationPage> createState() =>
+      _DispatchConfirmationPageState();
 }
 
-class _DispatchConfirmationPageView extends StatefulWidget {
-  final int dispatchId;
-
-  const _DispatchConfirmationPageView({required this.dispatchId});
-
-  @override
-  State<_DispatchConfirmationPageView> createState() =>
-      _DispatchConfirmationPageViewState();
-}
-
-class _DispatchConfirmationPageViewState
-    extends State<_DispatchConfirmationPageView> {
-  bool _isSubmitting = false;
+class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
+  late DispatchConfirmationController _controller;
+  bool _hasShownSuccessMessage = false;
+  final TextEditingController _remarkController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _controller = DispatchConfirmationController(getIt<DispatchRepository>());
     _loadDispatchDetail();
   }
 
-  void _loadDispatchDetail() {
-    context.read<DispatchBloc>().add(LoadDispatchDetail(widget.dispatchId));
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
-  void _confirmDispatch(bool isApproved) async {
-    if (_isSubmitting) return;
+  void _loadDispatchDetail() {
+    _controller.loadDispatchDetail(widget.dispatchId);
+  }
 
-    setState(() {
-      _isSubmitting = true;
-    });
+  void _confirmDispatch() {
+    _controller.confirmDispatch(widget.dispatchId);
+  }
 
-    final request = CommonDoBusinessAuditVO(
-      id: widget.dispatchId,
-      pass: isApproved,
+  void _rejectDispatch() {
+    _controller.rejectDispatch(
+      dispatchId: widget.dispatchId,
+      reason: _remarkController.text,
     );
+  }
 
-    context.read<DispatchBloc>().add(AuditDispatch(request));
+  void _handleStateChange(DispatchConfirmationState state) {
+    // 处理成功状态
+    if (state.isSuccess && !_hasShownSuccessMessage) {
+      _hasShownSuccessMessage = true;
+      context.showSuccessToast('调拨确认成功', isGlobal: true);
+      // 刷新记录列表
+      try {
+        context.read<RecordsBloc>().add(
+          RefreshRecords(recordType: RecordType.todo),
+        );
+        context.read<RecordsBloc>().add(
+          RefreshRecords(recordType: RecordType.dispatch),
+        );
+      } catch (e) {
+        Logger.debug('刷新记录列表失败: $e', tag: 'DispatchConfirmationPage');
+      }
+
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          context.pop();
+        }
+      });
+    }
+
+    // 处理错误状态
+    if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
+      context.showErrorToast('操作失败: ${state.errorMessage}');
+      // 清除错误消息，避免重复显示
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          _controller.clearError();
+        }
+      });
+    }
   }
 
   @override
@@ -80,84 +104,61 @@ class _DispatchConfirmationPageViewState
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
-      body: _buildBody(),
+      body: OptimizedStreamBuilder<DispatchConfirmationState>(
+        stream: _controller.state,
+        builder: (context, state) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _handleStateChange(state);
+          });
+          return _buildBody(state);
+        },
+        loadingBuilder: (context) => common.LoadingWidget(),
+        errorBuilder: (context, error) => common.ErrorWidget(
+          message: error.toString(),
+          onRetry: _loadDispatchDetail,
+        ),
+      ),
     );
   }
 
-  Widget _buildBody() {
-    return BlocListener<DispatchBloc, DispatchState>(
-      listener: (context, state) {
-        if (state.status == DispatchStatus.auditSuccess) {
-          setState(() {
-            _isSubmitting = false;
-          });
-          context.showSuccessToast('调拨确认成功', isGlobal: true);
+  Widget _buildBody(DispatchConfirmationState state) {
+    if (state.isLoading && state.dispatchDetail == null) {
+      return common.LoadingWidget();
+    }
+    if (state.errorMessage != null && state.dispatchDetail == null) {
+      return common.ErrorWidget(
+        message: state.errorMessage!,
+        onRetry: _loadDispatchDetail,
+      );
+    }
 
-          // 刷新记录列表
-          try {
-            context.read<RecordsBloc>().add(
-              RefreshRecords(recordType: RecordType.todo),
-            );
-            context.read<RecordsBloc>().add(
-              RefreshRecords(recordType: RecordType.dispatch),
-            );
-          } catch (e) {
-            // 忽略刷新错误，不影响主流程
-          }
+    if (state.dispatchDetail != null) {
+      return Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(AppTheme.spacingLarge),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildMaterialsList(state.dispatchDetail!),
+                  SizedBox(height: AppTheme.spacingLarge),
+                  _buildProjectInfo(state.dispatchDetail!),
+                  SizedBox(height: AppTheme.spacingLarge),
+                  _buildWarehouseInfo(state.dispatchDetail!),
+                  SizedBox(height: AppTheme.spacingLarge),
+                  _buildResponsiblePersonsSection(state.dispatchDetail!),
+                  SizedBox(height: AppTheme.spacingXXLarge * 2),
+                ],
+              ),
+            ),
+          ),
+          _buildConfirmationButtons(state),
+        ],
+      );
+    }
 
-          context.pop();
-        } else if (state.status == DispatchStatus.failure) {
-          setState(() {
-            _isSubmitting = false;
-          });
-          context.showErrorToast('调拨确认失败: ${state.errorMessage}');
-        }
-      },
-      child: BlocBuilder<DispatchBloc, DispatchState>(
-        builder: (context, state) {
-          if (state.status == DispatchStatus.loading) {
-            return common.LoadingWidget();
-          }
-
-          if (state.status == DispatchStatus.failure) {
-            return common.ErrorWidget(
-              message: state.errorMessage ?? '加载失败',
-              onRetry: _loadDispatchDetail,
-            );
-          }
-
-          if (state.dispatchDetail != null) {
-            return Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.all(AppTheme.spacingLarge),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildMaterialsList(state.dispatchDetail!),
-                        SizedBox(height: AppTheme.spacingLarge),
-                        _buildProjectInfo(state.dispatchDetail!),
-                        SizedBox(height: AppTheme.spacingLarge),
-                        _buildWarehouseInfo(state.dispatchDetail!),
-                        SizedBox(height: AppTheme.spacingLarge),
-                        _buildResponsiblePersonsSection(state.dispatchDetail!),
-                        SizedBox(
-                          height: AppTheme.spacingXXLarge * 2,
-                        ), // 为底部按钮留出空间
-                      ],
-                    ),
-                  ),
-                ),
-                _buildConfirmationButtons(),
-              ],
-            );
-          }
-
-          return const Center(child: Text('暂无数据'));
-        },
-      ),
-    );
+    return const Center(child: Text('暂无数据'));
   }
 
   Widget _buildMaterialsList(DispatchDetailVo dispatchDetail) {
@@ -170,8 +171,10 @@ class _DispatchConfirmationPageViewState
             .map(
               (material) => MaterialListItem(
                 materialName: material.materialName,
+                materialId: material.materialId.toString(),
                 quantity: material.num,
                 showQuantityBadge: true,
+                businessType: 'dispatch',
               ),
             )
             .toList(),
@@ -187,11 +190,16 @@ class _DispatchConfirmationPageViewState
       child: Column(
         children: [
           InfoRow(
+            icon: Icons.launch,
             label: '发出项目',
             value: dispatchDetail.fromProjectName ?? '未知项目',
           ),
           SizedBox(height: AppTheme.spacingSmall),
-          InfoRow(label: '接收项目', value: dispatchDetail.toProjectName ?? '未知项目'),
+          InfoRow(
+            icon: Icons.download,
+            label: '接收项目',
+            value: dispatchDetail.toProjectName ?? '未知项目',
+          ),
         ],
       ),
     );
@@ -205,11 +213,13 @@ class _DispatchConfirmationPageViewState
       child: Column(
         children: [
           InfoRow(
+            icon: Icons.outbox,
             label: '发出仓库',
             value: dispatchDetail.fromWarehouseName ?? '未知仓库',
           ),
           SizedBox(height: AppTheme.spacingSmall),
           InfoRow(
+            icon: Icons.inbox,
             label: '接收仓库',
             value: dispatchDetail.toWarehouseName ?? '未知仓库',
           ),
@@ -221,74 +231,61 @@ class _DispatchConfirmationPageViewState
   Widget _buildResponsiblePersonsSection(DispatchDetailVo dispatchDetail) {
     return Column(
       children: [
-        UnifiedCard(
-          businessType: 'dispatch',
-          title: '发出方负责人',
-          icon: Icons.person_outline,
-          child: Column(
-            children: dispatchDetail.fromWarehouseUsers
-                .map(
-                  (user) => UserInfoWidget(
-                    name: user.name,
-                    phone: user.phone,
-                    trailing: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: AppTheme.spacingSmall,
-                        vertical: AppTheme.spacingXSmall,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppTheme.grey400),
-                        borderRadius: BorderRadius.circular(
-                          AppTheme.radiusSmall,
-                        ),
-                      ),
-                      child: Text(
-                        '推送',
-                        style: TextStyle(fontSize: 14, color: AppTheme.grey600),
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
+        if (dispatchDetail.fromWarehouseUsers.isNotEmpty)
+          UnifiedCard(
+            businessType: 'dispatch',
+            title: '发出方负责人',
+            icon: Icons.person_outline,
+            child: Column(
+              children: dispatchDetail.fromWarehouseUsers
+                  .map((user) => _buildUserInfoItem(user))
+                  .toList(),
+            ),
           ),
-        ),
-        SizedBox(height: AppTheme.spacingLarge),
-        UnifiedCard(
-          businessType: 'dispatch',
-          title: '接收方负责人',
-          icon: Icons.person,
-          child: Column(
-            children: dispatchDetail.toWarehouseUsers
-                .map(
-                  (user) => UserInfoWidget(
-                    name: user.name,
-                    phone: user.phone,
-                    trailing: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: AppTheme.spacingSmall,
-                        vertical: AppTheme.spacingXSmall,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppTheme.grey400),
-                        borderRadius: BorderRadius.circular(
-                          AppTheme.radiusSmall,
-                        ),
-                      ),
-                      child: Text(
-                        '推送',
-                        style: TextStyle(fontSize: 14, color: AppTheme.grey600),
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
+        if (dispatchDetail.fromWarehouseUsers.isNotEmpty &&
+            dispatchDetail.toWarehouseUsers.isNotEmpty)
+          SizedBox(height: AppTheme.spacingLarge),
+        if (dispatchDetail.toWarehouseUsers.isNotEmpty)
+          UnifiedCard(
+            businessType: 'dispatch',
+            title: '接收方负责人',
+            icon: Icons.person,
+            child: Column(
+              children: dispatchDetail.toWarehouseUsers
+                  .map((user) => _buildUserInfoItem(user))
+                  .toList(),
+            ),
           ),
-        ),
       ],
     );
   }
 
-  Widget _buildConfirmationButtons() {
+  Widget _buildUserInfoItem(CommonUserVO user) {
+    return UserInfoWidget(
+      name: user.name,
+      phone: user.phone,
+      trailing: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppTheme.spacingSmall,
+          vertical: AppTheme.spacingXSmall,
+        ),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppTheme.grey400),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+        ),
+        child: Text(
+          '推送',
+          style: TextStyle(fontSize: 12, color: AppTheme.grey600),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConfirmationButtons(DispatchConfirmationState state) {
+    final isSubmitting = state.isSubmitting;
+    final isLoading = state.isLoading;
+    final isDisabled = isSubmitting || isLoading || state.isSuccess;
+
     return Container(
       padding: EdgeInsets.all(AppTheme.spacingLarge),
       decoration: BoxDecoration(
@@ -297,7 +294,7 @@ class _DispatchConfirmationPageViewState
           BoxShadow(
             color: AppTheme.grey300,
             blurRadius: 4,
-            offset: const Offset(0, -2),
+            offset: Offset(0, -2),
           ),
         ],
       ),
@@ -306,10 +303,12 @@ class _DispatchConfirmationPageViewState
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: _isSubmitting ? null : () => _confirmDispatch(true),
+                onPressed: isDisabled ? null : () => _confirmDispatch(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.getBusinessColor('dispatch'),
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppTheme.grey400,
+                  disabledForegroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(
                     vertical: AppTheme.spacingLarge,
                   ),
@@ -317,7 +316,7 @@ class _DispatchConfirmationPageViewState
                     borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                   ),
                 ),
-                child: _isSubmitting
+                child: isSubmitting
                     ? SizedBox(
                         height: 20,
                         width: 20,
@@ -329,7 +328,7 @@ class _DispatchConfirmationPageViewState
                         ),
                       )
                     : Text(
-                        '调拨确认',
+                        '确认',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -339,26 +338,65 @@ class _DispatchConfirmationPageViewState
             ),
             SizedBox(width: AppTheme.spacingMedium),
             Expanded(
-              child: OutlinedButton(
-                onPressed: _isSubmitting ? null : () => context.pop(),
-                style: OutlinedButton.styleFrom(
+              child: ElevatedButton(
+                onPressed: isDisabled ? null : () => _showRejectionDialog(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(
                     vertical: AppTheme.spacingLarge,
                   ),
-                  side: BorderSide(color: AppTheme.grey600),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                   ),
                 ),
-                child: Text(
-                  '返回',
-                  style: TextStyle(fontSize: 16, color: AppTheme.grey600),
-                ),
+                child: Text('驳回', style: TextStyle(fontSize: 16)),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showRejectionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('驳回调拨'),
+          content: SpeechInputWidget(
+            controller: _remarkController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: '请输入驳回原因',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('取消'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.returnColor,
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingLarge,
+                  vertical: AppTheme.spacingMedium,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _rejectDispatch();
+              },
+              child: Text('确认驳回'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

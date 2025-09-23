@@ -22,6 +22,7 @@ import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/fade_scale_route.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/image_preview_widget.dart';
+import 'package:pipe_code_flutter/widgets/speech_input_widget.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class SignoutAuditPage extends StatefulWidget {
@@ -72,20 +73,20 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
           iconTheme: const IconThemeData(color: Colors.white),
           elevation: 0,
           centerTitle: true,
-          actions: [
-            TextButton(
-              onPressed: _handleViewRecords,
-              child: const Text(
-                '出库记录',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            SizedBox(width: AppTheme.spacingSmall),
-          ],
+          // actions: [
+          //   TextButton(
+          //     onPressed: _handleViewRecords,
+          //     child: const Text(
+          //       '出库记录',
+          //       style: TextStyle(
+          //         fontSize: 16,
+          //         fontWeight: FontWeight.w600,
+          //         color: Colors.white,
+          //       ),
+          //     ),
+          //   ),
+          //   SizedBox(width: AppTheme.spacingSmall),
+          // ],
         ),
         backgroundColor: Colors.grey[50],
         body: BlocBuilder<SignoutBloc, SignoutState>(
@@ -421,7 +422,7 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton(
-                onPressed: _handleReject,
+                onPressed: _showRejectDialog,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   foregroundColor: Colors.white,
@@ -463,6 +464,47 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
 
   void _handleViewRecords() {
     context.goNamed('records', queryParameters: {'tab': 'signout'});
+  }
+
+  void _showRejectDialog() {
+    final TextEditingController controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('驳回流程'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16),
+              SpeechInputWidget(
+                controller: controller,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: '请输入驳回原因',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _handleReject();
+              },
+              child: const Text('确认'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _handleConfirm() {
