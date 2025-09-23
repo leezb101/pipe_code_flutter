@@ -15,7 +15,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
-import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/models/project/project_simple_vo.dart';
@@ -51,7 +50,6 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     on<InitializeMaterialsFromCodes>(_onInitializeMaterialsFromCodes);
     on<LoadApplicationData>(_onLoadApplicationData);
     on<SubmitDispatchApplication>(_onSubmitDispatchApplication);
-    on<AuditDispatch>(_onAuditDispatch);
     on<SubmitDispatchSignIn>(_onSubmitDispatchSignIn);
     on<UpdateScannedMaterials>(_onUpdateScannedMaterials);
     on<UpdateWarehouseUsersList>(_onUpdateWarehouseUsersList);
@@ -548,25 +546,6 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     final result = await _dispatchRepository.doDispatch(event.request);
     if (result.isSuccess) {
       emit(state.copyWith(status: DispatchStatus.applySuccess));
-    } else {
-      emit(
-        state.copyWith(
-          status: DispatchStatus.failure,
-          errorMessage: result.msg,
-        ),
-      );
-    }
-  }
-
-  // 处理审核调拨事件
-  Future<void> _onAuditDispatch(
-    AuditDispatch event,
-    Emitter<DispatchState> emit,
-  ) async {
-    emit(state.copyWith(status: DispatchStatus.loading));
-    final result = await _dispatchRepository.auditDispatch(event.request);
-    if (result.isSuccess) {
-      emit(state.copyWith(status: DispatchStatus.auditSuccess));
     } else {
       emit(
         state.copyWith(

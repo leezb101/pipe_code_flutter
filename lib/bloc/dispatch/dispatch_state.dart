@@ -7,7 +7,6 @@ enum DispatchStatus {
   success, // 通用成功
   failure, // 通用失败
   applySuccess, // 调拨申请提交成功
-  auditSuccess, // 调拨审核成功
   signInSuccess, // 调拨入库成功
 }
 

@@ -46,16 +46,6 @@ class SubmitDispatchApplication extends DispatchEvent {
   List<Object> get props => [request];
 }
 
-/// 审核调拨请求
-class AuditDispatch extends DispatchEvent {
-  final CommonDoBusinessAuditVO request;
-
-  const AuditDispatch(this.request);
-
-  @override
-  List<Object> get props => [request];
-}
-
 /// 提交调拨后入库
 class SubmitDispatchSignIn extends DispatchEvent {
   final DoDispatchSignInVo request;
