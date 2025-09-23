@@ -331,7 +331,7 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
               return ImageUploadWidget(
                 title: '验收照片',
                 states: states,
-                maxImages: 6,
+                maxImages: 2,
                 onAdd: (files) => _acceptancePhotosCubit.addFiles(files),
                 onRemove: (uniqueId) =>
                     _acceptancePhotosCubit.removeFile(uniqueId),
@@ -348,7 +348,7 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
                 title: '报验单',
                 states: states,
                 allowedExtensions: const ['pdf', 'doc', 'docx'],
-                maxFiles: 3,
+                maxFiles: 2,
                 onAdd: (files) => _inspectionReportsCubit.addFiles(files),
                 onRemove: (uniqueId) =>
                     _inspectionReportsCubit.removeFile(uniqueId),
@@ -365,7 +365,7 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
                 title: '验收报告',
                 states: states,
                 allowedExtensions: const ['pdf', 'doc', 'docx'],
-                maxFiles: 3,
+                maxFiles: 2,
                 onAdd: (files) => _acceptanceReportsCubit.addFiles(files),
                 onRemove: (uniqueId) =>
                     _acceptanceReportsCubit.removeFile(uniqueId),

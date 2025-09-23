@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
+import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'image_preview_widget.dart';
 import 'fade_scale_route.dart';
 
@@ -46,15 +47,17 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   Future<void> _pickImages() async {
     final context = this.context;
     if (widget.states.length >= widget.maxImages) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('最多只能上传 ${widget.maxImages} 张图片')));
+      // ScaffoldMessenger.of(
+      //   context,
+      // ).showSnackBar(SnackBar(content: Text('最多只能上传 ${widget.maxImages} 张图片')));
+      context.showErrorToast('最多只能上传 ${widget.maxImages} 张图片');
       return;
     }
     try {
       final List<XFile> pickedFiles = await _picker.pickMultiImage(
         imageQuality: 80,
         maxWidth: 1920,
+        limit: widget.maxImages - widget.states.length,
       );
       if (pickedFiles.isNotEmpty) {
         final newImages = pickedFiles.map((file) => File(file.path)).toList();
