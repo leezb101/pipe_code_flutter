@@ -25,6 +25,7 @@ class SignoutInfoVo extends Equatable {
   final List<CommonUserVO> warehouseUsers;
   final int? installUserId;
   final String? installUserName;
+  final String? installUserPhone;
   final DoInstallVo? installInfo;
 
   const SignoutInfoVo({
@@ -36,6 +37,7 @@ class SignoutInfoVo extends Equatable {
     required this.warehouseUsers,
     this.installUserId,
     this.installUserName,
+    this.installUserPhone,
     this.installInfo,
   });
 
@@ -54,6 +56,7 @@ class SignoutInfoVo extends Equatable {
     warehouseUsers,
     installUserId,
     installUserName,
+    installUserPhone,
     installInfo,
   ];
 
@@ -66,6 +69,7 @@ class SignoutInfoVo extends Equatable {
     List<CommonUserVO>? warehouseUsers,
     int? installUserId,
     String? installUserName,
+    String? installUserPhone,
     DoInstallVo? installInfo,
   }) {
     return SignoutInfoVo(

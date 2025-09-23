@@ -92,6 +92,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
   speech_to_text: ^7.3.0
   meta: ^1.16.0
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:

@@ -26,6 +26,7 @@ SignoutInfoVo _$SignoutInfoVoFromJson(Map<String, dynamic> json) =>
           .toList(),
       installUserId: (json['installUserId'] as num?)?.toInt(),
       installUserName: json['installUserName'] as String?,
+      installUserPhone: json['installUserPhone'] as String?,
       installInfo: json['installInfo'] == null
           ? null
           : DoInstallVo.fromJson(json['installInfo'] as Map<String, dynamic>),
@@ -41,5 +42,6 @@ Map<String, dynamic> _$SignoutInfoVoToJson(SignoutInfoVo instance) =>
       'warehouseUsers': instance.warehouseUsers,
       'installUserId': instance.installUserId,
       'installUserName': instance.installUserName,
+      'installUserPhone': instance.installUserPhone,
       'installInfo': instance.installInfo,
     };
