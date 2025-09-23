@@ -22,7 +22,6 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     : super(const AcceptanceInitial()) {
     on<LoadAcceptanceDetail>(_onLoadAcceptanceDetail);
     on<SubmitAcceptance>(_onSubmitAcceptance);
-    on<AuditAcceptance>(_onAuditAcceptance);
     on<DoAcceptanceSignIn>(_onDoAcceptanceSignIn);
     on<LoadAcceptanceList>(_onLoadAcceptanceList);
     on<RefreshAcceptanceDetail>(_onRefreshAcceptanceDetail);
@@ -115,35 +114,6 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       } else if (currentState is AcceptanceEditingState) {
         emit(currentState);
       }
-    }
-  }
-
-  Future<void> _onAuditAcceptance(
-    AuditAcceptance event,
-    Emitter<AcceptanceState> emit,
-  ) async {
-    try {
-      emit(const AcceptanceAuditing());
-      Logger.info(
-        'Auditing acceptance with id: ${event.request.id}',
-        tag: 'AcceptanceBloc',
-      );
-
-      final result = await _repository.auditAcceptance(event.request);
-
-      if (result.isSuccess) {
-        emit(const AcceptanceAudited());
-        Logger.info('Acceptance audited successfully', tag: 'AcceptanceBloc');
-      } else {
-        emit(AcceptanceError(message: result.msg));
-        Logger.error(
-          'Failed to audit acceptance: ${result.msg}',
-          tag: 'AcceptanceBloc',
-        );
-      }
-    } catch (e) {
-      emit(AcceptanceError(message: '审核验收失败，请重试'));
-      Logger.error('Error auditing acceptance: $e', tag: 'AcceptanceBloc');
     }
   }
 

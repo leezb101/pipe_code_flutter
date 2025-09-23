@@ -3,7 +3,6 @@ import 'package:pipe_code_flutter/models/material/material_info_for_business.dar
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import '../../models/acceptance/do_accept_vo.dart';
 import '../../models/acceptance/do_accept_sign_in_vo.dart';
-import '../../models/acceptance/common_do_business_audit_vo.dart';
 
 abstract class AcceptanceEvent extends Equatable {
   const AcceptanceEvent();
@@ -25,15 +24,6 @@ class SubmitAcceptance extends AcceptanceEvent {
   final DoAcceptVO request;
 
   const SubmitAcceptance({required this.request});
-
-  @override
-  List<Object?> get props => [request];
-}
-
-class AuditAcceptance extends AcceptanceEvent {
-  final CommonDoBusinessAuditVO request;
-
-  const AuditAcceptance({required this.request});
 
   @override
   List<Object?> get props => [request];

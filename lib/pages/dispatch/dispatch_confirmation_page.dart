@@ -282,80 +282,22 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
   }
 
   Widget _buildConfirmationButtons(DispatchConfirmationState state) {
-    final isSubmitting = state.isSubmitting;
-    final isLoading = state.isLoading;
-    final isDisabled = isSubmitting || isLoading || state.isSuccess;
-
-    return Container(
-      padding: EdgeInsets.all(AppTheme.spacingLarge),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.grey300,
-            blurRadius: 4,
-            offset: Offset(0, -2),
-          ),
-        ],
+    return UnifiedActionButtons(
+      primaryButton: UnifiedButton(
+        text: '确认调拨',
+        type: UnifiedButtonType.primary,
+        onPressed: state.isSubmitting ? null : _confirmDispatch,
+        isLoading: state.isSubmitting,
+        backgroundColor: AppTheme.getBusinessColor('dispatch'),
       ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: isDisabled ? null : () => _confirmDispatch(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.getBusinessColor('dispatch'),
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: AppTheme.grey400,
-                  disabledForegroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(
-                    vertical: AppTheme.spacingLarge,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                  ),
-                ),
-                child: isSubmitting
-                    ? SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                    : Text(
-                        '确认',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-              ),
-            ),
-            SizedBox(width: AppTheme.spacingMedium),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: isDisabled ? null : () => _showRejectionDialog(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(
-                    vertical: AppTheme.spacingLarge,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                  ),
-                ),
-                child: Text('驳回', style: TextStyle(fontSize: 16)),
-              ),
-            ),
-          ],
-        ),
+      secondaryButton: UnifiedButton(
+        text: '驳回',
+        type: UnifiedButtonType.outlined,
+        onPressed: state.isSubmitting ? null : _showRejectionDialog,
+        foregroundColor: Colors.redAccent,
+        borderColor: Colors.redAccent,
       ),
+      isFullWidth: true,
     );
   }
 

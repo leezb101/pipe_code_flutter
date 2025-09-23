@@ -7,171 +7,196 @@ import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
-import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
-import 'package:pipe_code_flutter/bloc/acceptance/acceptance_bloc.dart';
-import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
-import 'package:pipe_code_flutter/bloc/acceptance/acceptance_state.dart';
 import 'package:pipe_code_flutter/bloc/records/records_bloc.dart';
 import 'package:pipe_code_flutter/bloc/records/records_event.dart';
 import 'package:pipe_code_flutter/models/records/record_type.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
-import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/utils/logger.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/widgets/speech_input_widget.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
-import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
+import 'package:pipe_code_flutter/nativebloc/acceptance_confirmation_controller.dart';
 
-class AcceptanceConfirmationPage extends StatelessWidget {
+class AcceptanceConfirmationPage extends StatefulWidget {
   final int acceptanceId;
 
   const AcceptanceConfirmationPage({super.key, required this.acceptanceId});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => AcceptanceBloc(
-        getIt<AcceptanceRepository>(),
-        getIt<MaterialHandleRepository>(),
-      ),
-      child: _AcceptanceConfirmationPageView(acceptanceId: acceptanceId),
-    );
-  }
+  State<AcceptanceConfirmationPage> createState() =>
+      _AcceptanceConfirmationPageState();
 }
 
-class _AcceptanceConfirmationPageView extends StatefulWidget {
-  final int acceptanceId;
-
-  const _AcceptanceConfirmationPageView({required this.acceptanceId});
-
-  @override
-  State<_AcceptanceConfirmationPageView> createState() =>
-      _AcceptanceConfirmationPageViewState();
-}
-
-class _AcceptanceConfirmationPageViewState
-    extends State<_AcceptanceConfirmationPageView> {
-  bool _isSubmitting = false;
+class _AcceptanceConfirmationPageState
+    extends State<AcceptanceConfirmationPage> {
+  late AcceptanceConfirmationController _controller;
+  bool _hasShownSuccessMessage = false;
+  final TextEditingController _remarkController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _controller = AcceptanceConfirmationController(
+      getIt<AcceptanceRepository>(),
+    );
     _loadAcceptanceDetail();
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    _remarkController.dispose();
+    super.dispose();
+  }
+
   void _loadAcceptanceDetail() {
-    context.read<AcceptanceBloc>().add(
-      LoadAcceptanceDetail(acceptanceId: widget.acceptanceId),
+    _controller.loadAcceptanceDetail(widget.acceptanceId);
+  }
+
+  void _confirmAcceptance() {
+    _controller.confirmAcceptance(widget.acceptanceId);
+  }
+
+  void _rejectAcceptance() {
+    _controller.rejectAcceptance(
+      acceptanceId: widget.acceptanceId,
+      reason: _remarkController.text,
     );
   }
 
-  void _confirmAcceptance(bool isApproved) async {
-    if (_isSubmitting) return;
+  void _handleStateChange(AcceptanceConfirmationState state) {
+    // 处理成功状态
+    if (state.isSuccess && !_hasShownSuccessMessage) {
+      _hasShownSuccessMessage = true;
+      context.showSuccessToast('验收确认成功', isGlobal: true);
 
-    setState(() {
-      _isSubmitting = true;
-    });
+      // 刷新记录列表
+      try {
+        context.read<RecordsBloc>().add(
+          RefreshRecords(recordType: RecordType.todo),
+        );
+        context.read<RecordsBloc>().add(
+          RefreshRecords(recordType: RecordType.accept),
+        );
+      } catch (e) {
+        Logger.debug('刷新记录列表失败: $e', tag: 'AcceptanceConfirmationPage');
+      }
 
-    final request = CommonDoBusinessAuditVO(
-      id: widget.acceptanceId,
-      pass: isApproved,
-    );
+      // 延迟pop，让用户看到成功消息
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          context.pop();
+        }
+      });
+    }
 
-    context.read<AcceptanceBloc>().add(AuditAcceptance(request: request));
+    // 处理错误状态
+    if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
+      context.showErrorToast('操作失败: ${state.errorMessage}');
+      // 清除错误消息，避免重复显示
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          _controller.clearError();
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('验收确认'), elevation: 0),
-      backgroundColor: AppTheme.grey50,
-      body: _buildBody(),
+    return StreamBuilder<AcceptanceConfirmationState>(
+      stream: _controller.state,
+      initialData: AcceptanceConfirmationState(),
+      builder: (context, snapshot) {
+        final state = snapshot.data ?? AcceptanceConfirmationState();
+
+        // 延迟处理状态变化，避免在构建期间调用 setState
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _handleStateChange(state);
+        });
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFF5F7FA),
+          appBar: AppBar(
+            title: const Text('验收确认'),
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => context.pop(),
+            ),
+          ),
+          body: _buildBody(context, state),
+        );
+      },
     );
   }
 
-  Widget _buildBody() {
-    return BlocListener<AcceptanceBloc, AcceptanceState>(
-      listener: (context, state) {
-        if (state is AcceptanceAudited) {
-          setState(() {
-            _isSubmitting = false;
-          });
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   const SnackBar(
-          //     content: Text('验收确认成功'),
-          //     backgroundColor: Colors.green,
-          //   ),
-          // );
-          // Navigator.of(context).pop(true);
-          // 刷新记录列表
-          try {
-            context.read<RecordsBloc>().add(
-              RefreshRecords(recordType: RecordType.todo),
-            );
-            context.read<RecordsBloc>().add(
-              RefreshRecords(recordType: RecordType.accept),
-            );
-          } catch (e) {
-            // 忽略刷新错误，不影响主流程
-          }
-          context.showSuccessToast('验收确认成功', isGlobal: true);
-          context.pop();
-        } else if (state is AcceptanceError) {
-          setState(() {
-            _isSubmitting = false;
-          });
-          context.showErrorToast('验收确认失败: ${state.message}');
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   SnackBar(
-          //     content: Text('验收确认失败: ${state.message}'),
-          //     backgroundColor: Colors.red,
-          //   ),
-          // );
-        }
-      },
-      child: BlocBuilder<AcceptanceBloc, AcceptanceState>(
-        builder: (context, state) {
-          if (state is AcceptanceLoading) {
-            return common.LoadingWidget();
-          }
+  Widget _buildBody(BuildContext context, AcceptanceConfirmationState state) {
+    if (state.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-          if (state is AcceptanceError) {
-            return common.ErrorWidget(
-              message: state.message,
-              onRetry: _loadAcceptanceDetail,
-            );
-          }
+    if (state.errorMessage != null &&
+        state.errorMessage!.isNotEmpty &&
+        state.acceptanceInfo == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              '加载失败: ${state.errorMessage}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadAcceptanceDetail,
+              child: const Text('重新加载'),
+            ),
+          ],
+        ),
+      );
+    }
 
-          if (state is AcceptanceDetailLoaded) {
-            return Column(
+    if (state.acceptanceInfo != null) {
+      return _buildAcceptanceDetail(context, state.acceptanceInfo!, state);
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildAcceptanceDetail(
+    BuildContext context,
+    AcceptanceInfoVO acceptanceInfo,
+    AcceptanceConfirmationState state,
+  ) {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppTheme.spacingLarge),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(AppTheme.spacingLarge),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildQrCodeSection(state.acceptanceInfo),
-                        const SizedBox(height: AppTheme.spacingLarge),
-                        _buildMaterialsList(state.acceptanceInfo),
-                        const SizedBox(height: AppTheme.spacingLarge),
-                        _buildAttachmentsSection(state.acceptanceInfo),
-                        const SizedBox(height: AppTheme.spacingLarge),
-                        _buildWarehouseInfo(state.acceptanceInfo),
-                        const SizedBox(height: AppTheme.spacingLarge),
-                        _buildResponsiblePersonsSection(state.acceptanceInfo),
-                        const SizedBox(height: 100), // 为底部按钮留出空间
-                      ],
-                    ),
-                  ),
-                ),
-                _buildConfirmationButtons(),
+                _buildQrCodeSection(acceptanceInfo),
+                const SizedBox(height: AppTheme.spacingLarge),
+                _buildMaterialsList(acceptanceInfo),
+                const SizedBox(height: AppTheme.spacingLarge),
+                _buildAttachmentsSection(acceptanceInfo),
+                const SizedBox(height: AppTheme.spacingLarge),
+                _buildWarehouseInfo(acceptanceInfo),
+                const SizedBox(height: AppTheme.spacingLarge),
+                _buildResponsiblePersonsSection(acceptanceInfo),
+                const SizedBox(height: 100), // 为底部按钮留出空间
               ],
-            );
-          }
-
-          return const Center(child: Text('暂无数据'));
-        },
-      ),
+            ),
+          ),
+        ),
+        _buildConfirmationButtons(),
+      ],
     );
   }
 
@@ -536,22 +561,73 @@ class _AcceptanceConfirmationPageViewState
   }
 
   Widget _buildConfirmationButtons() {
-    return UnifiedActionButtons(
-      primaryButton: UnifiedButton(
-        text: '验收确认',
-        type: UnifiedButtonType.primary,
-        onPressed: _isSubmitting ? null : () => _confirmAcceptance(true),
-        isLoading: _isSubmitting,
-        backgroundColor: AppTheme.acceptanceColor,
+    return StreamBuilder<AcceptanceConfirmationState>(
+      stream: _controller.state,
+      builder: (context, snapshot) {
+        final state = snapshot.data ?? AcceptanceConfirmationState();
+        return UnifiedActionButtons(
+          primaryButton: UnifiedButton(
+            text: '验收确认',
+            type: UnifiedButtonType.primary,
+            onPressed: state.isSubmitting ? null : _confirmAcceptance,
+            isLoading: state.isSubmitting,
+            backgroundColor: AppTheme.acceptanceColor,
+          ),
+          secondaryButton: UnifiedButton(
+            text: '驳回',
+            type: UnifiedButtonType.outlined,
+            onPressed: state.isSubmitting ? null : _showRejectDialog,
+            foregroundColor: AppTheme.warningColor,
+            borderColor: AppTheme.warningColor,
+          ),
+          isFullWidth: true,
+        );
+      },
+    );
+  }
+
+  void _showRejectDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('拒绝验收'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('请说明驳回原因：'),
+            const SizedBox(height: 16),
+            SpeechInputWidget(
+              controller: _remarkController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                hintText: '请输入驳回原因',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.returnColor,
+              padding: EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingLarge,
+                vertical: AppTheme.spacingMedium,
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              _rejectAcceptance();
+            },
+            child: const Text('确认驳回'),
+          ),
+        ],
       ),
-      secondaryButton: UnifiedButton(
-        text: '不合格',
-        type: UnifiedButtonType.outlined,
-        onPressed: _isSubmitting ? null : () => _confirmAcceptance(false),
-        foregroundColor: AppTheme.warningColor,
-        borderColor: AppTheme.warningColor,
-      ),
-      isFullWidth: true,
     );
   }
 

@@ -71,14 +71,6 @@ class AcceptanceSubmitted extends AcceptanceState {
   const AcceptanceSubmitted();
 }
 
-class AcceptanceAuditing extends AcceptanceState {
-  const AcceptanceAuditing();
-}
-
-class AcceptanceAudited extends AcceptanceState {
-  const AcceptanceAudited();
-}
-
 class AcceptanceSigningIn extends AcceptanceState {
   const AcceptanceSigningIn();
 }
