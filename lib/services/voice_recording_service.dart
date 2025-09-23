@@ -4,6 +4,10 @@ import 'dart:async';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
+import 'package:pipe_code_flutter/bloc/session/session_state.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/models/user/wx_login_vo.dart';
 import 'package:record/record.dart';
 import 'package:pipe_code_flutter/services/base_voice_recording_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/upload_api_service.dart';
@@ -196,6 +200,19 @@ class VoiceRecordingService extends BaseVoiceRecordingService {
     try {
       _emitStatus(VoiceRecordingStatus.uploading);
 
+      // 获取authBloc中的token
+      final sessionState = getIt<SessionBloc>().state;
+      String? token;
+      if (sessionState is SessionProjectEstablished ||
+          sessionState is SessionStorekeeperEstablished) {
+        token = (sessionState.user as WxLoginVO?)?.tk;
+      }
+      if (token == null) {
+        _emitError('用户未认证，无法上传');
+        return;
+      }
+
+      _uploadService.setAuthToken(token);
       final result = await _uploadService.uploadFile(
         file,
         onProgress: (progress) {

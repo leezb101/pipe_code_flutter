@@ -51,6 +51,11 @@ class UploadApiServiceImpl extends BaseApiService implements UploadApiService {
         'xlsx':
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'txt': 'text/plain',
+        // 增加录音文件格式的支持
+        'm4a': 'audio/m4a',
+        'mp3': 'audio/mpeg',
+        'wav': 'audio/wav',
+        'aac': 'audio/aac',
       };
 
       final contentType =
