@@ -27,11 +27,14 @@ class DoReturnReqVo extends Equatable {
   @JsonKey(defaultValue: '')
   final String returnRemark;
 
+  final List<String>? returnRemarkVoice;
+
   const DoReturnReqVo({
     required this.materialList,
     required this.imageList,
     required this.returnType,
     this.returnRemark = '',
+    this.returnRemarkVoice,
   }) : assert(returnType == 0 || returnType == 1, 'returnType字段只能为0或1');
 
   factory DoReturnReqVo.fromJson(Map<String, dynamic> json) =>
@@ -45,5 +48,6 @@ class DoReturnReqVo extends Equatable {
     imageList,
     returnType,
     returnRemark,
+    returnRemarkVoice,
   ];
 }

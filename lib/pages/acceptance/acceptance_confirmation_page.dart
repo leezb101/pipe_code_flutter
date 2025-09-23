@@ -33,6 +33,7 @@ class _AcceptanceConfirmationPageState
   late AcceptanceConfirmationController _controller;
   bool _hasShownSuccessMessage = false;
   final TextEditingController _remarkController = TextEditingController();
+  final List<String> _reasonVoice = [];
 
   @override
   void initState() {
@@ -62,6 +63,7 @@ class _AcceptanceConfirmationPageState
     _controller.rejectAcceptance(
       acceptanceId: widget.acceptanceId,
       reason: _remarkController.text,
+      reasonVoice: _reasonVoice,
     );
   }
 
@@ -599,6 +601,10 @@ class _AcceptanceConfirmationPageState
             const SizedBox(height: 16),
             SpeechInputWidget(
               controller: _remarkController,
+              onVoiceRecordingPath: (filePath) {
+                // 录音上传完成，保存路径
+                _reasonVoice.add(filePath);
+              },
               maxLines: 3,
               decoration: const InputDecoration(
                 hintText: '请输入驳回原因',

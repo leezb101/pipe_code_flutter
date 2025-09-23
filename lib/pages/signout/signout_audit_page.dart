@@ -560,6 +560,7 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
   late SignoutAuditController _controller;
   bool _hasShownSuccessMessage = false;
   final TextEditingController _rejectReasonController = TextEditingController();
+  final List<String>? _reasonVoice = [];
 
   @override
   void initState() {
@@ -589,7 +590,11 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
       context.showErrorToast('请填写驳回原因');
       return;
     }
-    _controller.rejectAudit(signoutId: widget.signoutId, reason: reason);
+    _controller.rejectAudit(
+      signoutId: widget.signoutId,
+      reason: reason,
+      reasonVoice: _reasonVoice,
+    );
   }
 
   void _handleStateChange(SignoutAuditState state) {
@@ -926,6 +931,9 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
           title: const Text('驳回出库'),
           content: SpeechInputWidget(
             controller: _rejectReasonController,
+            onVoiceRecordingPath: (filePath) {
+              _reasonVoice?.add(filePath);
+            },
             maxLines: 3,
             decoration: const InputDecoration(
               hintText: '请输入驳回原因',

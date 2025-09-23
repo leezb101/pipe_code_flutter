@@ -34,6 +34,7 @@ class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
     on<LoadReturnMaterialCodes>(_onLoadReturnMaterialCodes);
     on<UpdateReturnType>(_onUpdateReturnType);
     on<UpdateReturnRemark>(_onUpdateReturnRemark);
+    on<UpdateReturnRemarkVoice>(_onUpdateReturnRemarkVoice);
     on<UpdateImageList>(_onUpdateImageList);
     on<SubmitReturn>(_onSubmitReturn);
     on<ResetState>(_onResetState);
@@ -124,6 +125,13 @@ class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
     emit(state.copyWith(returnRemark: event.returnRemark));
   }
 
+  Future<void> _onUpdateReturnRemarkVoice(
+    UpdateReturnRemarkVoice event,
+    Emitter<ReturnState> emit,
+  ) async {
+    emit(state.copyWith(reasonVoice: event.reasonVoice));
+  }
+
   // 处理更新图片附件事件
   Future<void> _onUpdateImageList(
     UpdateImageList event,
@@ -152,6 +160,7 @@ class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
         imageList: state.imageList,
         returnType: state.returnType,
         returnRemark: state.returnRemark,
+        returnRemarkVoice: state.returnRemarkVoice,
       );
 
       // 调用退库API

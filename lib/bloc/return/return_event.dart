@@ -45,6 +45,15 @@ class UpdateReturnRemark extends ReturnEvent {
   List<Object?> get props => [returnRemark];
 }
 
+class UpdateReturnRemarkVoice extends ReturnEvent {
+  const UpdateReturnRemarkVoice({required this.reasonVoice});
+
+  final List<String> reasonVoice;
+
+  @override
+  List<Object?> get props => [reasonVoice];
+}
+
 // 更新图片附件事件
 class UpdateImageList extends ReturnEvent {
   const UpdateImageList({required this.imageList});

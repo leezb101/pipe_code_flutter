@@ -157,6 +157,7 @@ class AcceptanceConfirmationController {
   Future<void> rejectAcceptance({
     required int acceptanceId,
     required String reason,
+    List<String>? reasonVoice,
   }) async {
     if (_currentState.isSubmitting) return; // 防止重复提交
 
@@ -173,6 +174,7 @@ class AcceptanceConfirmationController {
         id: acceptanceId,
         pass: false,
         reason: reason,
+        reasonVoice: reasonVoice ?? [],
       );
       final result = await _repository.auditAcceptance(request);
 

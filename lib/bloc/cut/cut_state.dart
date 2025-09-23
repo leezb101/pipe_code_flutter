@@ -51,6 +51,7 @@ class CutState extends Equatable {
   final MaterialInfoForBusiness? originalMaterialInfo;
   final String? originalMaterialPhotoPath;
   final String? cutDescription;
+  final List<String>? cutDescriptionVoicePaths;
   final List<NewCutMaterialItem> newCutItems;
   final String? tipMessage;
   final String? errorMessage;
@@ -60,6 +61,7 @@ class CutState extends Equatable {
     this.originalMaterialInfo,
     this.originalMaterialPhotoPath,
     this.cutDescription,
+    this.cutDescriptionVoicePaths,
     this.newCutItems = const [],
     this.tipMessage,
     this.errorMessage,
@@ -70,6 +72,7 @@ class CutState extends Equatable {
     MaterialInfoForBusiness? originalMaterialInfo,
     String? originalMaterialPhotoPath,
     String? cutDescription,
+    List<String>? cutDescriptionVoicePaths,
     List<NewCutMaterialItem>? newCutItems,
     String? tipMessage,
     String? errorMessage,
@@ -88,10 +91,14 @@ class CutState extends Equatable {
       cutDescription: clearOriginalMaterial
           ? null
           : cutDescription ?? this.cutDescription,
+      cutDescriptionVoicePaths: clearOriginalMaterial
+          ? null
+          : cutDescriptionVoicePaths ?? this.cutDescriptionVoicePaths,
       newCutItems: newCutItems ?? this.newCutItems,
       tipMessage: clearMessages ? tipMessage : (tipMessage ?? this.tipMessage),
-      errorMessage:
-          clearMessages ? errorMessage : (errorMessage ?? this.errorMessage),
+      errorMessage: clearMessages
+          ? errorMessage
+          : (errorMessage ?? this.errorMessage),
     );
   }
 
@@ -101,6 +108,7 @@ class CutState extends Equatable {
     originalMaterialInfo,
     originalMaterialPhotoPath,
     cutDescription,
+    cutDescriptionVoicePaths,
     newCutItems,
     tipMessage,
     errorMessage,

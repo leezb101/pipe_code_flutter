@@ -18,6 +18,7 @@ import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
+import 'package:pipe_code_flutter/widgets/speech_input_widget.dart';
 
 class CutPage extends StatelessWidget {
   const CutPage({super.key});
@@ -375,7 +376,7 @@ class _CutViewState extends State<CutView> {
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: TextFormField(
+        child: SpeechInputWidget(
           controller: _descriptionController,
           decoration: const InputDecoration(
             labelText: '业务描述',
