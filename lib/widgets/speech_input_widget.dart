@@ -48,7 +48,7 @@ class SpeechInputWidgetState extends State<SpeechInputWidget> {
     // 仅在支持语音识别的平台上创建和初始化SpeechToTextBloc
     if (PlatformUtils.supportsSpeechToText) {
       _speechToTextBloc = SpeechToTextBloc()..add(SpeechToTextInitialize());
-      
+
       // 初始化录音服务
       _voiceRecordingService = getIt<BaseVoiceRecordingService>();
       _voiceRecordingService!.initialize();
@@ -122,7 +122,7 @@ class SpeechInputWidgetState extends State<SpeechInputWidget> {
                           // 开始语音识别和录音
                           _textBeforeListening = widget.controller.text;
                           _speechToTextBloc!.add(SpeechToTextStart());
-                          
+
                           // 同时开始录音
                           _voiceRecordingService?.startRecording(
                             onResult: (filePath) {

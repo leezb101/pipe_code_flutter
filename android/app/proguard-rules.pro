@@ -66,3 +66,28 @@
 
 -keep class com.iflytek.sparkchain.** {*;}
 -keep class com.iflytek.sparkchain.**
+
+# Gson相关keep规则
+-keepattributes Signature
+-keepattributes *Annotation*
+-dontwarn sun.misc.**
+
+# 保持Gson相关类
+-keep class com.google.gson.** { *; }
+-keep class com.google.gson.annotations.** { *; }
+
+# 保持使用了@SerializedName注解的字段
+-keepclassmembers,allowobfuscation class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# 保持实现了Serializable接口的类
+-keep class * implements java.io.Serializable { *; }
+
+# 保持Parcelable的所有类
+-keep class * implements android.os.Parcelable {
+    public static final android.os.Parcelable$Creator *;
+}
+
+# R8 missing rules - 来自missing_rules.txt的建议
+-dontwarn com.google.gson.annotations.SerializedName
