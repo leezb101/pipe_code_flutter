@@ -98,6 +98,6 @@ class AcceptanceInfoVO extends Equatable {
   }
 
   String get warehouseTypeDescription {
-    return realWarehouse ? '独立仓库: $warehouseName' : '项目现场: $warehouseName';
+    return realWarehouse ? '独立仓库' : '项目现场';
   }
 }
