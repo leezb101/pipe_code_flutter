@@ -6,7 +6,6 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:equatable/equatable.dart';
-import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
 import 'package:pipe_code_flutter/models/signout/do_signout_request_vo.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 
@@ -30,15 +29,6 @@ class SubmitSignout extends SignoutEvent {
   final DoSignoutRequestVo request;
 
   const SubmitSignout({required this.request});
-
-  @override
-  List<Object?> get props => [request];
-}
-
-class AuditSignout extends SignoutEvent {
-  final CommonDoBusinessAuditVO request;
-
-  const AuditSignout({required this.request});
 
   @override
   List<Object?> get props => [request];

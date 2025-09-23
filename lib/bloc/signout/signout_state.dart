@@ -35,7 +35,6 @@ class SignoutReady extends SignoutState {
   final WarehouseVO? warehouseInfo;
   final WarehouseUserInfoVO? warehouseUsers;
   final String? submitError;
-  final String? auditError;
   final bool clearError;
 
   const SignoutReady({
@@ -47,7 +46,6 @@ class SignoutReady extends SignoutState {
     this.warehouseUsers,
     this.warehouseUsersError,
     this.submitError,
-    this.auditError,
     this.clearError = true,
   });
 
@@ -61,7 +59,6 @@ class SignoutReady extends SignoutState {
     warehouseInfo,
     warehouseInfoError,
     isWarehouseInfoLoading,
-    auditError,
   ];
 
   SignoutReady copyWith({
@@ -73,7 +70,6 @@ class SignoutReady extends SignoutState {
     String? warehouseUsersError,
     WarehouseUserInfoVO? warehouseUsers,
     String? submitError,
-    String? auditError,
     bool? clearError,
   }) {
     return SignoutReady(
@@ -83,7 +79,6 @@ class SignoutReady extends SignoutState {
       warehouseUsersError: warehouseUsersError ?? this.warehouseUsersError,
       warehouseUsers: warehouseUsers ?? this.warehouseUsers,
       submitError: submitError ?? this.submitError,
-      auditError: auditError ?? this.auditError,
       warehouseInfo: warehouseInfo ?? this.warehouseInfo,
       warehouseInfoError: warehouseInfoError ?? this.warehouseInfoError,
       isWarehouseInfoLoading:
@@ -108,14 +103,6 @@ class SignoutSubmitting extends SignoutState {
 
 class SignoutSubmitted extends SignoutState {
   const SignoutSubmitted();
-}
-
-class SignoutAuditing extends SignoutState {
-  const SignoutAuditing();
-}
-
-class SignoutAudited extends SignoutState {
-  const SignoutAudited();
 }
 
 /// Editing state for SignoutPage driven by QR scanning and in-page operations

@@ -14,7 +14,6 @@ class SignoutBloc extends Bloc<SignoutEvent, SignoutState> {
     : super(SignoutInitial()) {
     on<LoadSignoutDetail>(_onLoadSignoutDetail);
     on<SubmitSignout>(_onSubmitSignout);
-    on<AuditSignout>(_onAuditSignout);
     on<RefreshSignoutDetail>(_onRefreshSignoutDetail);
     on<LoadWarehouseUsers>(_onLoadWarehouseUsers);
     on<LoadWarehouseInfo>(_onLoadWarehouseInfo);
@@ -205,24 +204,6 @@ class SignoutBloc extends Bloc<SignoutEvent, SignoutState> {
         emit(const SignoutSubmitted());
       } else {
         emit(currentState.copyWith(submitError: result.msg));
-      }
-    }
-  }
-
-  Future<void> _onAuditSignout(
-    AuditSignout event,
-    Emitter<SignoutState> emit,
-  ) async {
-    final currentState = state;
-    if (currentState is SignoutReady) {
-      // Emit auditing state so UI can show progress instead of falling back to unknown error
-      emit(const SignoutAuditing());
-      final result = await _repository.auditSignout(event.request);
-      if (result.isSuccess) {
-        emit(SignoutAudited());
-      } else {
-        // Recover to ready state with error so page stays visible and shows error via listener
-        emit(currentState.copyWith(auditError: result.msg));
       }
     }
   }
