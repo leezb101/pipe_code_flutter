@@ -58,7 +58,7 @@ class SpeechInputWidgetState extends State<SpeechInputWidget> {
   @override
   void dispose() {
     _speechToTextBloc?.close();
-    _voiceRecordingService?.dispose();
+    // _voiceRecordingService?.dispose();
     super.dispose();
   }
 

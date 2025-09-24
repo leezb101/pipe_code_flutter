@@ -484,6 +484,7 @@ class _InventoryPageState extends State<InventoryPage> {
             : const Icon(Icons.qr_code_scanner),
         label: Text(isScanning ? '正在处理扫码结果...' : '扫码盘点'),
         style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.all(0),
           backgroundColor: AppTheme.getBusinessColor('inventory'),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

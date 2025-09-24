@@ -312,7 +312,11 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
           content: SpeechInputWidget(
             controller: _remarkController,
             onVoiceRecordingPath: (filePath) {
-              _reasonVoice.add(filePath);
+              setState(() {
+                // 重命名为 returnRemarkVoice 以更清晰地表达其用途
+                // _reasonVoice.add(filePath); --- IGNORE ---
+                _reasonVoice.add(filePath);
+              });
             },
             maxLines: 3,
             decoration: InputDecoration(
