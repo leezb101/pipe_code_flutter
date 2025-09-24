@@ -78,9 +78,12 @@ class CutBloc extends Bloc<CutEvent, CutState> {
     CutDescriptionVoiceUpdated event,
     Emitter<CutState> emit,
   ) {
+    // 获取原本的录音文件路径列表
+    final existingPaths = state.cutDescriptionVoicePaths ?? [];
+    existingPaths.addAll(event.voicePaths);
     emit(
       state.copyWith(
-        cutDescriptionVoicePaths: event.voicePaths,
+        cutDescriptionVoicePaths: existingPaths,
         status: CutStatus.initial,
         clearMessages: true,
       ),

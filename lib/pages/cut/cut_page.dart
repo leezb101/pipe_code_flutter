@@ -386,6 +386,9 @@ class _CutViewState extends State<CutView> {
           maxLines: 3,
           onChanged: (value) =>
               context.read<CutBloc>().add(CutDescriptionUpdated(value)),
+          onVoiceRecordingPath: (value) {
+            context.read<CutBloc>().add(CutDescriptionVoiceUpdated([value]));
+          },
         ),
       ),
     );

@@ -932,7 +932,9 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
           content: SpeechInputWidget(
             controller: _rejectReasonController,
             onVoiceRecordingPath: (filePath) {
-              _reasonVoice?.add(filePath);
+              setState(() {
+                _reasonVoice?.add(filePath);
+              });
             },
             maxLines: 3,
             decoration: const InputDecoration(
