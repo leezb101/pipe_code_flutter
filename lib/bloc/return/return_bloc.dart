@@ -129,7 +129,12 @@ class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
     UpdateReturnRemarkVoice event,
     Emitter<ReturnState> emit,
   ) async {
-    emit(state.copyWith(reasonVoice: event.reasonVoice));
+    final currentState = state;
+    // 先获取原本的语音列表，再将新进的语音列表的元素添加进去
+    final updatedVoiceList = List<String>.from(
+      (currentState.returnRemarkVoice ?? []).map((e) => e),
+    )..addAll(event.returnRemarkVoice);
+    emit(state.copyWith(returnRemarkVoice: updatedVoiceList));
   }
 
   // 处理更新图片附件事件

@@ -338,11 +338,8 @@ class _ReturnPageState extends State<ReturnPage> {
           });
         },
         onVoiceRecordingPath: (value) {
-          final List<String> currentVoices =
-              context.read<ReturnBloc>().state.returnRemarkVoice ?? [];
-          currentVoices.add(value);
           context.read<ReturnBloc>().add(
-            UpdateReturnRemarkVoice(reasonVoice: currentVoices),
+            UpdateReturnRemarkVoice(returnRemarkVoice: [value]),
           );
         },
       ),

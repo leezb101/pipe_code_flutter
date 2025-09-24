@@ -55,7 +55,7 @@ class ReturnState extends Equatable {
     ReturnDetailVo? returnDetail,
     int? returnType,
     String? returnRemark,
-    List<String>? reasonVoice,
+    List<String>? returnRemarkVoice,
     List<AttachmentVO>? imageList,
     String? errorMessage,
   }) {
@@ -66,7 +66,7 @@ class ReturnState extends Equatable {
       returnDetail: returnDetail ?? this.returnDetail,
       returnType: returnType ?? this.returnType,
       returnRemark: returnRemark ?? this.returnRemark,
-      returnRemarkVoice: reasonVoice ?? this.returnRemarkVoice,
+      returnRemarkVoice: returnRemarkVoice ?? this.returnRemarkVoice,
       imageList: imageList ?? this.imageList,
       errorMessage: errorMessage ?? this.errorMessage,
     );
