@@ -209,8 +209,8 @@ class _InstallViewState extends State<InstallView> {
           ],
           const SizedBox(height: 16),
           _buildScanButton(context, scannedMaterials),
-          const SizedBox(height: 16),
-          _buildQualityReportSection(),
+          // const SizedBox(height: 16),
+          // _buildQualityReportSection(),
           const SizedBox(height: 32),
           _buildActionButtons(
             context,
@@ -430,11 +430,11 @@ class _InstallViewState extends State<InstallView> {
     }
 
     // 检查质量验收报告
-    final reportStates = _qualityReportCubit.state;
-    if (reportStates.isEmpty ||
-        reportStates.any((s) => s.status != UploadStatus.success)) {
-      return false;
-    }
+    // final reportStates = _qualityReportCubit.state;
+    // if (reportStates.isEmpty ||
+    //     reportStates.any((s) => s.status != UploadStatus.success)) {
+    //   return false;
+    // }
 
     return true;
   }
@@ -486,7 +486,8 @@ class _InstallViewState extends State<InstallView> {
   void _submitInstall(BuildContext context, List<MaterialVO> materials) {
     // 增加上传状态检查
     final allPhotoCubits = _materialPhotoCubits.values.toList();
-    final allCubits = [...allPhotoCubits, _qualityReportCubit];
+    // final allCubits = [...allPhotoCubits, _qualityReportCubit];
+    final allCubits = [...allPhotoCubits];
     final isUploading = allCubits
         .expand((cubit) => cubit.state)
         .any((s) => s.status == UploadStatus.uploading);
@@ -521,12 +522,12 @@ class _InstallViewState extends State<InstallView> {
     }).toList();
 
     // 获取质量验收报告的URL
-    final reportResult = _qualityReportCubit.state.first.uploadResult;
+    // final reportResult = _qualityReportCubit.state.first.uploadResult;
 
     final request = DoInstallVo(
       materialList: updatedMaterials,
       imageList: const [], // 照片信息已在materialList中
-      installQualityUrl: reportResult?.filePath,
+      // installQualityUrl: reportResult?.filePath,
       signOutId: widget.signOutId != null
           ? int.tryParse(widget.signOutId!)
           : null,
