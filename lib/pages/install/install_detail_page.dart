@@ -371,9 +371,10 @@ class _InstallDetailPageViewState extends State<_InstallDetailPageView> {
   Widget _buildImagePreview(String imageUrl, String label) {
     final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
     final token = authState.wxLoginVO.tk;
-    final urlWithTk = imageUrl.contains('?')
-        ? '$imageUrl&auth_toke=$token'
-        : '$imageUrl?auth_toke=$token';
+    final urlWithoutQuery = imageUrl.split('?').first;
+    final urlWithTk = urlWithoutQuery.contains('?')
+        ? '$urlWithoutQuery&auth_toke=$token'
+        : '$urlWithoutQuery?auth_toke=$token';
     return Expanded(
       child: GestureDetector(
         onTap: () => _previewImage(urlWithTk),
@@ -447,11 +448,15 @@ class _InstallDetailPageViewState extends State<_InstallDetailPageView> {
 
   bool _isImageUrl(String url) {
     final lowerUrl = url.toLowerCase();
-    return lowerUrl.endsWith('.jpg') ||
-        lowerUrl.endsWith('.jpeg') ||
-        lowerUrl.endsWith('.png') ||
-        lowerUrl.endsWith('.gif') ||
-        lowerUrl.endsWith('.webp');
+    final lowerUrlWithoutQuery = lowerUrl.split('?').first;
+    if (lowerUrlWithoutQuery.endsWith('.jpg') ||
+        lowerUrlWithoutQuery.endsWith('.jpeg') ||
+        lowerUrlWithoutQuery.endsWith('.png') ||
+        lowerUrlWithoutQuery.endsWith('.gif') ||
+        lowerUrlWithoutQuery.endsWith('.webp')) {
+      return true;
+    }
+    return false;
   }
 
   bool _isPdfUrl(String url) {

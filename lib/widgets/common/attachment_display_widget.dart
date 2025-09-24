@@ -48,9 +48,12 @@ class AttachmentDisplayWidget extends StatelessWidget {
   }
 
   Widget _buildAttachmentContent(AttachmentVO attachment) {
-    if (attachment.attachFormat == 'image' || attachment.url.toLowerCase().endsWith('.jpg') || 
-        attachment.url.toLowerCase().endsWith('.jpeg') || attachment.url.toLowerCase().endsWith('.png') ||
-        attachment.url.toLowerCase().endsWith('.gif') || attachment.url.toLowerCase().endsWith('.webp')) {
+    if (attachment.attachFormat == 'image' ||
+        attachment.url.toLowerCase().endsWith('.jpg') ||
+        attachment.url.toLowerCase().endsWith('.jpeg') ||
+        attachment.url.toLowerCase().endsWith('.png') ||
+        attachment.url.toLowerCase().endsWith('.gif') ||
+        attachment.url.toLowerCase().endsWith('.webp')) {
       return Image.network(
         attachment.url,
         fit: BoxFit.cover,
@@ -65,7 +68,8 @@ class AttachmentDisplayWidget extends StatelessWidget {
           return Center(
             child: CircularProgressIndicator(
               value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                  ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
                   : null,
             ),
           );
@@ -77,20 +81,13 @@ class AttachmentDisplayWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.insert_drive_file,
-              size: 32,
-              color: Colors.grey[600],
-            ),
+            Icon(Icons.insert_drive_file, size: 32, color: Colors.grey[600]),
             const SizedBox(height: 4),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
                 attachment.name ?? '附件',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 10, color: Colors.grey[600]),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
@@ -103,9 +100,13 @@ class AttachmentDisplayWidget extends StatelessWidget {
   }
 
   void _previewAttachment(BuildContext context, AttachmentVO attachment) {
-    if (attachment.attachFormat == 'image' || attachment.url.toLowerCase().endsWith('.jpg') || 
-        attachment.url.toLowerCase().endsWith('.jpeg') || attachment.url.toLowerCase().endsWith('.png') ||
-        attachment.url.toLowerCase().endsWith('.gif') || attachment.url.toLowerCase().endsWith('.webp')) {
+    if (attachment.attachFormat == 'image' ||
+        (attachment.attachFormat != null &&
+            (attachment.attachFormat!.toLowerCase().endsWith('.jpg') ||
+                attachment.attachFormat!.toLowerCase().endsWith('.jpeg') ||
+                attachment.attachFormat!.toLowerCase().endsWith('.png') ||
+                attachment.attachFormat!.toLowerCase().endsWith('.gif') ||
+                attachment.attachFormat!.toLowerCase().endsWith('.webp')))) {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => _ImagePreviewPage(attachment: attachment),
@@ -113,9 +114,7 @@ class AttachmentDisplayWidget extends StatelessWidget {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('暂不支持预览此类型文件: ${attachment.name}'),
-        ),
+        SnackBar(content: Text('暂不支持预览此类型文件: ${attachment.name}')),
       );
     }
   }
@@ -158,7 +157,8 @@ class _ImagePreviewPage extends StatelessWidget {
               return Center(
                 child: CircularProgressIndicator(
                   value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                      ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
                       : null,
                   color: Colors.white,
                 ),
