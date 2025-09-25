@@ -107,7 +107,7 @@ class RecoveryScanData extends Equatable {
   final String? deliveryCode;
 
   /// 其他材料（按发货单）
-  final String? otherMaterialByDelivery;
+  final List<String>? otherMaterialByDelivery;
 
   /// 发货信息
   final DeliveryInfo? delivery;

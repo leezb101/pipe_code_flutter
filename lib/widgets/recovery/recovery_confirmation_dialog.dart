@@ -35,6 +35,8 @@ class RecoveryConfirmationDialog extends StatelessWidget {
     final scanData = step3Result.scanData;
 
     return AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      contentPadding: const EdgeInsets.fromLTRB(12, 20, 12, 24),
       title: const Row(
         children: [
           Icon(Icons.info_outline, color: Colors.blue),
@@ -90,6 +92,9 @@ class RecoveryConfirmationDialog extends StatelessWidget {
           child: const Text('取消'),
         ),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          ),
           onPressed: () {
             Logger.info('用户确认材料信息', tag: 'RecoveryConfirmationDialog');
             Navigator.of(context).pop();
@@ -106,7 +111,7 @@ class RecoveryConfirmationDialog extends StatelessWidget {
     return Card(
       elevation: 1,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

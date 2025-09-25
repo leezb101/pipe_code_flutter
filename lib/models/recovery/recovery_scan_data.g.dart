@@ -28,7 +28,10 @@ RecoveryScanData _$RecoveryScanDataFromJson(Map<String, dynamic> json) =>
       pressLvl: json['pressLvl'] as String?,
       weight: json['weight'] as String?,
       deliveryCode: json['deliveryCode'] as String?,
-      otherMaterialByDelivery: json['otherMaterialByDelivery'] as String?,
+      otherMaterialByDelivery:
+          (json['otherMaterialByDelivery'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList(),
       delivery: json['delivery'] == null
           ? null
           : DeliveryInfo.fromJson(json['delivery'] as Map<String, dynamic>),

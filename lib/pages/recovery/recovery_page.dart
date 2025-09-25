@@ -188,15 +188,15 @@ class _RecoveryViewState extends State<RecoveryView> {
             if (state is RecoveryFormReady) ...[
               _buildDynamicFormCard(context, state),
               const SizedBox(height: 16),
-              _buildScanButton(context),
-              const SizedBox(height: 24),
+              // _buildScanButton(context),
+              // const SizedBox(height: 24),
               _buildActionButtons(context, state),
             ] else if (state is RecoveryValidationError) ...[
               // 验证失败时依然展示表单（使用内部的表单状态），避免看起来“被清空”
               _buildDynamicFormCard(context, state.formState),
               const SizedBox(height: 16),
-              _buildScanButton(context),
-              const SizedBox(height: 24),
+              // _buildScanButton(context),
+              // const SizedBox(height: 24),
               _buildActionButtons(context, state),
             ] else if (state is RecoverySubmitting ||
                 state is RecoveryStep3Success ||
