@@ -272,6 +272,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
       materialName: material.materialName,
       quantity: material.num,
       businessType: 'acceptance',
+      onTap: () => _showMaterialDetail(context, material),
       trailing: Icon(
         isScanned ? Icons.check_circle : Icons.radio_button_unchecked,
         color: isScanned
@@ -279,6 +280,29 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
             : Colors.grey,
         size: 32,
       ),
+    );
+  }
+
+  void _showMaterialDetail(BuildContext context, MaterialVO material) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          insetPadding: const EdgeInsets.all(16),
+          title: Text(material.materialName),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('关闭'),
+            ),
+          ],
+        );
+      },
     );
   }
 

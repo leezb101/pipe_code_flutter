@@ -30,6 +30,7 @@ import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dar
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
     show QrScanOperation;
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/widgets/material/material_detail_display.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
@@ -308,12 +309,71 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.spacingMedium),
       child: MaterialListItem(
+        onTap: () => _showMaterialDetail(context, material),
         materialName: material.baseInfo.prodNm ?? '无',
         materialId: material.baseInfo.materialCode ?? '无',
         quantity: 1,
         businessType: 'acceptance',
         icon: Icons.water_drop,
       ),
+    );
+  }
+
+  void _showMaterialDetail(BuildContext context, MaterialInfo material) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 标题栏
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          material.baseInfo.prodNm ?? '材料详情',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                // 内容区域
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: MaterialDetailDisplay(
+                      material: material,
+                      isCompact: true,
+                      showProjectInfo: false,
+                      showCopyAction: true,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
