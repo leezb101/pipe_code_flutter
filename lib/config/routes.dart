@@ -80,6 +80,7 @@ import '../bloc/storekeeper_non_project/storekeeper_non_project_bloc.dart';
 import '../repositories/interfaces/storekeeper_non_project_repository.dart';
 import '../services/qr_scan_flow/qr_scan_flow_service.dart';
 import '../pages/profile/change_password_page.dart';
+import '../pages/privacy/privacy_policy_page.dart';
 import 'service_locator.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -712,6 +713,11 @@ final GoRouter appRouter = GoRouter(
       path: '/change-password',
       name: 'change-password',
       builder: (context, state) => const ChangePasswordPage(),
+    ),
+    GoRoute(
+      path: '/privacy-policy',
+      name: 'privacy-policy',
+      builder: (context, state) => const PrivacyPolicyPage(),
     ),
   ],
 );

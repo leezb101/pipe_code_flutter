@@ -39,6 +39,7 @@ import 'package:pipe_code_flutter/services/base_voice_recording_service.dart';
 import 'package:pipe_code_flutter/services/speech_service_factory.dart';
 import 'package:pipe_code_flutter/services/voice_recording_service.dart';
 import 'package:pipe_code_flutter/services/storage_service.dart';
+import 'package:pipe_code_flutter/services/privacy_policy_service.dart';
 import 'package:pipe_code_flutter/services/notification/background_handler.dart';
 import 'package:pipe_code_flutter/services/notification/notification_manager.dart';
 import 'package:pipe_code_flutter/services/sse/sse_service.dart';
@@ -70,6 +71,12 @@ Future<void> setupServiceLocator({
   getIt.registerLazySingleton<StorageService>(
     () => StorageService(getIt<SharedPreferences>()),
   );
+
+  // Privacy Policy Service
+  getIt.registerLazySingleton<PrivacyPolicyService>(
+    () => PrivacyPolicyService(getIt<StorageService>()),
+  );
+
   // SSE Service
   getIt.registerLazySingleton<SseService>(
     () => SseService(),
