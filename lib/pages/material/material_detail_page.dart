@@ -108,9 +108,10 @@ class MaterialDetailView extends StatelessWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
+          if (data.info?.baseInfo.materialCode == null) return;
           context.read<MaterialDetailBloc>().add(
             RefreshMaterialDetail(
-              materialCode: data.info.baseInfo.materialCode!,
+              materialCode: data.info!.baseInfo.materialCode!,
             ),
           );
         },
@@ -153,7 +154,7 @@ class MaterialDetailView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        data.info.baseInfo.prodNm ?? '未知材料',
+                        data.info?.baseInfo.prodNm ?? '未知材料',
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
@@ -170,13 +171,14 @@ class MaterialDetailView extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            _buildInfoRow('材料编码', data.materialCode, context),
-            if (data.info.baseInfo.spec != null)
-              _buildInfoRow('规格', data.info.baseInfo.spec!, context),
+            if (data.materialCode != null)
+              _buildInfoRow('材料编码', data.materialCode!, context),
+            if (data.info?.baseInfo.spec != null)
+              _buildInfoRow('规格', data.info!.baseInfo.spec!, context),
             if (data.cut)
               Chip(
                 label: const Text('已切割'),
-                backgroundColor: Colors.orange.withOpacity(0.2),
+                backgroundColor: Colors.orange.withValues(alpha: .2),
                 labelStyle: const TextStyle(color: Colors.orange),
               ),
             if (data.cut) ...[
@@ -264,8 +266,8 @@ class MaterialDetailView extends StatelessWidget {
 
     // 基础信息和扩展信息合并处理
     final combinedFields = {
-      ...data.info.baseInfo.toJson(),
-      ...data.info.extendedFields,
+      ...data.info!.baseInfo.toJson(),
+      ...data.info!.extendedFields,
     };
 
     final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
@@ -496,7 +498,7 @@ class MaterialDetailView extends StatelessWidget {
     final materialTypeKey = data.materialType.en;
     final fieldMap = materialFieldMaps[materialTypeKey];
 
-    buffer.writeln('=== 材料详情: ${data.info.baseInfo.prodNm ?? '未知'} ===');
+    buffer.writeln('=== 材料详情: ${data.info!.baseInfo.prodNm ?? '未知'} ===');
     buffer.writeln('材料类型: ${data.materialType.name}');
     buffer.writeln('材料分组: ${data.materialGroup.name}');
     buffer.writeln('材料编码: ${data.materialCode}');
@@ -512,8 +514,8 @@ class MaterialDetailView extends StatelessWidget {
     if (fieldMap != null) {
       buffer.writeln('=== 详细信息 ===');
       final combinedFields = {
-        ...data.info.baseInfo.toJson(),
-        ...data.info.extendedFields,
+        ...data.info!.baseInfo.toJson(),
+        ...data.info!.extendedFields,
       };
 
       fieldMap.forEach((key, label) {
@@ -544,7 +546,9 @@ class MaterialDetailView extends StatelessWidget {
   void _viewCuttingRecord(ScanIdentificationData data, BuildContext context) {
     context.pushNamed(
       'pipe-cutting-record',
-      queryParameters: {'materialId': data.info.baseInfo.materialId.toString()},
+      queryParameters: {
+        'materialId': data.info!.baseInfo.materialId.toString(),
+      },
       extra: context.read<MaterialDetailBloc>(),
     );
   }
@@ -557,7 +561,7 @@ class MaterialDetailView extends StatelessWidget {
     context.pushNamed(
       'material-lifecycle',
       queryParameters: {
-        'materialId': data.info.baseInfo.materialId.toString(),
+        'materialId': data.info!.baseInfo.materialId.toString(),
         'materialCode': data.materialCode,
       },
       extra: context.read<MaterialDetailBloc>(),

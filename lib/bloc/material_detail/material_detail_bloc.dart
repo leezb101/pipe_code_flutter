@@ -57,7 +57,7 @@ class MaterialDetailBloc
       if (materialDetail.cut) {
         add(
           LoadCuttingRecord(
-            materialId: materialDetail.info.baseInfo.materialId.toString(),
+            materialId: materialDetail.info!.baseInfo.materialId.toString(),
           ),
         );
       }
@@ -92,7 +92,7 @@ class MaterialDetailBloc
       if (materialDetail.cut) {
         add(
           LoadCuttingRecord(
-            materialId: materialDetail.info.baseInfo.materialId.toString(),
+            materialId: materialDetail.info!.baseInfo.materialId.toString(),
           ),
         );
       }

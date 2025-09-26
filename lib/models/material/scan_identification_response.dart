@@ -17,15 +17,15 @@ part 'scan_identification_response.g.dart';
 @JsonSerializable()
 class ScanIdentificationData extends Equatable {
   const ScanIdentificationData({
-    required this.info,
+    this.info,
     this.factorySourceQr,
     this.projectName,
-    required this.projectId,
+    this.projectId,
     this.projectAddress,
-    required this.materialCode,
+    this.materialCode,
     required this.cut,
-    required this.type,
-    required this.group,
+    this.type,
+    this.group,
     this.lat,
     this.lng,
     this.img,
@@ -35,7 +35,7 @@ class ScanIdentificationData extends Equatable {
   });
 
   /// 材料详细信息
-  final MaterialInfo info;
+  final MaterialInfo? info;
 
   final String? factorySourceQr;
 
@@ -49,7 +49,7 @@ class ScanIdentificationData extends Equatable {
   final String? projectAddress;
 
   /// 材料编码
-  final String materialCode;
+  final String? materialCode;
 
   /// 是否切割
   @JsonKey(defaultValue: false)
@@ -57,11 +57,11 @@ class ScanIdentificationData extends Equatable {
 
   /// 材料类型（对应MaterialTypeEnum的值）
   @JsonKey(name: 'type')
-  final int type;
+  final int? type;
 
   /// 材料分组（对应MaterialGroupEnum的值）
   @JsonKey(name: 'group')
-  final int group;
+  final int? group;
 
   /// 纬度
   final String? lat;
@@ -84,7 +84,10 @@ class ScanIdentificationData extends Equatable {
   /// 获取材料类型枚举
   MaterialType get materialType {
     // 尝试从已加载的枚举列表中查找
-    var mt = MaterialType.fromInt(type);
+    if (type == null) {
+      return const MaterialType(-1, '未知类型');
+    }
+    var mt = MaterialType.fromInt(type!);
     if (mt != null && mt.en != null) {
       return mt;
     }
@@ -94,12 +97,16 @@ class ScanIdentificationData extends Equatable {
       return const MaterialType(0, '球墨铸铁管', en: 'qiuMoZhuTie');
     }
     // 对于其他未定义类型，返回一个通用未知类型
-    return MaterialType(type, '未知类型');
+    return MaterialType(type!, '未知类型');
   }
 
   /// 获取材料分组枚举
-  MaterialGroup get materialGroup =>
-      MaterialGroup.fromInt(group) ?? MaterialGroup(group, '未知类型');
+  MaterialGroup get materialGroup {
+    if (group == null) {
+      return const MaterialGroup(-1, '未知类型');
+    }
+    return MaterialGroup.fromInt(group!) ?? MaterialGroup(group!, '未知类型');
+  }
 
   factory ScanIdentificationData.fromJson(Map<String, dynamic> json) =>
       _$ScanIdentificationDataFromJson(json);

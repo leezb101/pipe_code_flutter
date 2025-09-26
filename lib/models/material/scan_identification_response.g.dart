@@ -9,15 +9,17 @@ part of 'scan_identification_response.dart';
 ScanIdentificationData _$ScanIdentificationDataFromJson(
   Map<String, dynamic> json,
 ) => ScanIdentificationData(
-  info: MaterialInfo.fromJson(json['info'] as Map<String, dynamic>),
+  info: json['info'] == null
+      ? null
+      : MaterialInfo.fromJson(json['info'] as Map<String, dynamic>),
   factorySourceQr: json['factorySourceQr'] as String?,
   projectName: json['projectName'] as String?,
   projectId: (json['projectId'] as num?)?.toInt(),
   projectAddress: json['projectAddress'] as String?,
-  materialCode: json['materialCode'] as String,
+  materialCode: json['materialCode'] as String?,
   cut: json['cut'] as bool? ?? false,
-  type: (json['type'] as num).toInt(),
-  group: (json['group'] as num).toInt(),
+  type: (json['type'] as num?)?.toInt(),
+  group: (json['group'] as num?)?.toInt(),
   lat: json['lat'] as String?,
   lng: json['lng'] as String?,
   img: json['img'] as String?,
