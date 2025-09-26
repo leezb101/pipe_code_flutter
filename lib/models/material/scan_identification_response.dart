@@ -52,6 +52,7 @@ class ScanIdentificationData extends Equatable {
   final String materialCode;
 
   /// 是否切割
+  @JsonKey(defaultValue: false)
   final bool cut;
 
   /// 材料类型（对应MaterialTypeEnum的值）

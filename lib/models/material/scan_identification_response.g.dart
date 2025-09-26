@@ -15,7 +15,7 @@ ScanIdentificationData _$ScanIdentificationDataFromJson(
   projectId: (json['projectId'] as num?)?.toInt(),
   projectAddress: json['projectAddress'] as String?,
   materialCode: json['materialCode'] as String,
-  cut: json['cut'] as bool,
+  cut: json['cut'] as bool? ?? false,
   type: (json['type'] as num).toInt(),
   group: (json['group'] as num).toInt(),
   lat: json['lat'] as String?,
