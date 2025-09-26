@@ -146,11 +146,15 @@ class AcceptanceEditingState extends AcceptanceState {
   final List<MaterialInfo> currentMaterials;
   final Set<int> materialIds; // for quick dedup
   final String? message; // feedback like appended/removed counts
+  final bool isLoadingInitialMaterials; // 首次加载材料状态
+  final bool isLoadingAppendMaterials; // 追加材料加载状态
 
   const AcceptanceEditingState({
     required this.currentMaterials,
     required this.materialIds,
     this.message,
+    this.isLoadingInitialMaterials = false,
+    this.isLoadingAppendMaterials = false,
   });
 
   AcceptanceEditingState copyWith({
@@ -158,14 +162,38 @@ class AcceptanceEditingState extends AcceptanceState {
     Set<int>? materialIds,
     String? message,
     bool clearMessage = false,
+    bool? isLoadingInitialMaterials,
+    bool? isLoadingAppendMaterials,
   }) {
     return AcceptanceEditingState(
       currentMaterials: currentMaterials ?? this.currentMaterials,
       materialIds: materialIds ?? this.materialIds,
       message: clearMessage ? null : (message ?? this.message),
+      isLoadingInitialMaterials:
+          isLoadingInitialMaterials ?? this.isLoadingInitialMaterials,
+      isLoadingAppendMaterials:
+          isLoadingAppendMaterials ?? this.isLoadingAppendMaterials,
     );
   }
 
   @override
-  List<Object?> get props => [currentMaterials, materialIds, message];
+  List<Object?> get props => [
+    currentMaterials,
+    materialIds,
+    message,
+    isLoadingInitialMaterials,
+    isLoadingAppendMaterials,
+  ];
+}
+
+// 材料初始化加载状态 - 用于首次从codes解析materials时的加载提示
+class AcceptanceMaterialsLoading extends AcceptanceState {
+  final String message;
+
+  const AcceptanceMaterialsLoading({
+    this.message = '首次扫码时，数据同步可能耗时略长，请耐心等待...',
+  });
+
+  @override
+  List<Object?> get props => [message];
 }

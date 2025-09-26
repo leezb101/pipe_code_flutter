@@ -181,6 +181,8 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
               _userPushStates['warehouse_${user.name}'] = user.messageTo;
             }
           });
+        } else if (state is AcceptanceMaterialsLoading) {
+          // 首次加载时不需要特殊处理，UI会自动显示加载状态
         } else if (state is AcceptanceMaterialsResolved) {
           // 将解析结果作为编辑态初始值注入（用于 initialCodes 路径）
           context.read<AcceptanceBloc>().add(
@@ -267,13 +269,25 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
       businessType: 'acceptance',
       child: BlocBuilder<AcceptanceBloc, AcceptanceState>(
         builder: (context, state) {
+          // 处理首次加载材料的情况
+          if (state is AcceptanceMaterialsLoading) {
+            return _buildInitialLoadingIndicator(state.message);
+          }
+
           final materials = state is AcceptanceEditingState
               ? state.currentMaterials
               : _currentMaterials;
+
+          // 检查是否正在追加材料
+          final isAppendLoading =
+              state is AcceptanceEditingState && state.isLoadingAppendMaterials;
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ...materials.map(_buildMaterialItem),
+              // 如果正在追加材料，在材料列表下方显示加载指示器
+              if (isAppendLoading) _buildAppendLoadingIndicator(),
               const SizedBox(height: AppTheme.spacingMedium),
               Row(
                 children: [
@@ -282,7 +296,9 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
                       text: '继续扫码',
                       type: UnifiedButtonType.outlined,
                       businessType: 'acceptance',
-                      onPressed: _scanAppendMaterials,
+                      onPressed: isAppendLoading
+                          ? null
+                          : _scanAppendMaterials, // 加载时禁用按钮
                     ),
                   ),
                   const SizedBox(width: AppTheme.spacingMedium),
@@ -293,7 +309,9 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
                       businessType: 'acceptance',
                       foregroundColor: Colors.red,
                       borderColor: Colors.red,
-                      onPressed: _scanRemoveMaterials,
+                      onPressed: isAppendLoading
+                          ? null
+                          : _scanRemoveMaterials, // 加载时禁用按钮
                     ),
                   ),
                 ],
@@ -315,6 +333,47 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
         quantity: 1,
         businessType: 'acceptance',
         icon: Icons.water_drop,
+      ),
+    );
+  }
+
+  // 首次加载材料时的全屏加载指示器
+  Widget _buildInitialLoadingIndicator(String message) {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(strokeWidth: 3.0),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: TextStyle(fontSize: 14, color: Colors.orange[600]),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 追加材料时在列表底部的加载指示器
+  Widget _buildAppendLoadingIndicator() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2.0),
+          ),
+          SizedBox(width: 12),
+          Text(
+            '正在获取物料信息...',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+        ],
       ),
     );
   }

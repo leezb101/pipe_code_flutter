@@ -516,6 +516,12 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     // Resolve codes and initialize current materials list for AcceptancePage
     try {
       if (event.codes.isEmpty) return;
+
+      // 发出加载状态
+      emit(const AcceptanceMaterialsLoading());
+
+      // 模拟网络延迟用于测试加载状态显示
+      await Future.delayed(const Duration(seconds: 20), () {});
       final rsp = event.isBatch
           ? await _materialHandleRepository.scanBatchToQueryAll(event.codes)
           : await _materialHandleRepository.scanSingleToQueryAll(
@@ -669,18 +675,30 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
   ) async {
     try {
       if (event.codes.isEmpty) return;
-      final rsp = await _materialHandleRepository.scanBatchToQueryAll(
-        event.codes,
-      );
-      if (!rsp.isSuccess || rsp.data == null) {
-        emit(const AcceptanceError(message: '新增码未查到物料信息'));
-        return;
-      }
+
       final currentState = state;
       // Ensure we have an editing state; if not, bootstrap empty
       final editing = currentState is AcceptanceEditingState
           ? currentState
-          : const AcceptanceEditingState(currentMaterials: [], materialIds: {});
+          : const AcceptanceEditingState(
+              currentMaterials: [],
+              materialIds: {},
+              isLoadingInitialMaterials: false,
+              isLoadingAppendMaterials: false,
+            );
+
+      // 设置追加材料加载状态
+      emit(editing.copyWith(isLoadingAppendMaterials: true));
+
+      final rsp = await _materialHandleRepository.scanBatchToQueryAll(
+        event.codes,
+      );
+      if (!rsp.isSuccess || rsp.data == null) {
+        emit(editing.copyWith(isLoadingAppendMaterials: false));
+        emit(const AcceptanceError(message: '新增码未查到物料信息'));
+        return;
+      }
+
       final list = List.of(editing.currentMaterials);
       final ids = Set<int>.from(editing.materialIds);
       int added = 0;
@@ -702,6 +720,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           message: added > 0
               ? '新增 $added 个${dup > 0 ? '，忽略重复 $dup 个' : ''}'
               : '暂无可新增物料',
+          isLoadingAppendMaterials: false, // 清除加载状态
         ),
       );
       Logger.debug(
@@ -713,6 +732,12 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         'Append editing materials failed: $e',
         tag: 'AcceptanceBloc',
       );
+
+      // 在错误情况下也要清除加载状态
+      final currentState = state;
+      if (currentState is AcceptanceEditingState) {
+        emit(currentState.copyWith(isLoadingAppendMaterials: false));
+      }
       emit(const AcceptanceError(message: '获取物料信息失败'));
     }
   }
@@ -733,7 +758,12 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       final currentState = state;
       final editing = currentState is AcceptanceEditingState
           ? currentState
-          : const AcceptanceEditingState(currentMaterials: [], materialIds: {});
+          : const AcceptanceEditingState(
+              currentMaterials: [],
+              materialIds: {},
+              isLoadingInitialMaterials: false,
+              isLoadingAppendMaterials: false,
+            );
       final idsToRemove = rsp.data!.normals
           .map((m) => m.baseInfo.materialId)
           .toSet();
