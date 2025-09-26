@@ -7,6 +7,7 @@
  */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../bloc/session/session_bloc.dart';
 import '../bloc/session/session_state.dart';
 import '../bloc/session/session_event.dart';
@@ -17,6 +18,8 @@ import '../bloc/user/user_bloc.dart';
 import '../bloc/user/user_event.dart';
 import 'package:get_it/get_it.dart';
 import '../repositories/interfaces/records_repository.dart';
+import '../services/qr_scan_flow/qr_scan_flow_service.dart';
+import '../models/qr_scan/qr_scan_config.dart';
 import 'identity_selector.dart';
 import 'project_selector.dart';
 
@@ -252,6 +255,33 @@ class _SessionGuardState extends State<SessionGuard> {
                     ),
                     const SizedBox(height: 40),
 
+                    // 扫码识别按钮
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.symmetric(horizontal: 40),
+                      child: ElevatedButton.icon(
+                        onPressed: () => _handleQrIdentify(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2ECC71),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.qr_code_scanner),
+                        label: const Text(
+                          '扫码识别',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
                     // 联系管理员按钮
                     Container(
                       width: double.infinity,
@@ -410,5 +440,49 @@ class _SessionGuardState extends State<SessionGuard> {
         ],
       ),
     );
+  }
+
+  /// 处理扫码识别
+  Future<void> _handleQrIdentify(BuildContext context) async {
+    try {
+      final flow = RepositoryProvider.of<QrScanFlowService>(context);
+      final request = QrScanFlowRequest(
+        operation: QrScanOperation.initial,
+        currentCodes: const [],
+        batch: false, // 单码识别
+        title: '扫码识别',
+        context: const {
+          'source': 'sessionGuard_noProjects',
+          'entry': 'standalone',
+          'operation': 'identify',
+        },
+      );
+
+      final config = flow.buildConfig(request);
+      final raw = await context.pushNamed<List<dynamic>>(
+        'qr-scan',
+        extra: config,
+      );
+
+      final result = flow.normalize(request, raw);
+      if (!context.mounted) return;
+
+      if (result.addedCodes.isNotEmpty) {
+        // 跳转到材料详情页
+        final materialCode = result.addedCodes.first;
+        await context.pushNamed(
+          'material-detail',
+          extra: {
+            'codes': [materialCode],
+          },
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('扫码识别失败: $e')));
+      }
+    }
   }
 }
