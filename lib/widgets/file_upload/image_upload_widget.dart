@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
+import 'package:pipe_code_flutter/pages/watermark_camera_page.dart';
 import 'image_preview_widget.dart';
 import 'fade_scale_route.dart';
 
@@ -26,6 +27,11 @@ class ImageUploadWidget extends StatefulWidget {
     this.maxImages = 9,
     this.requiredPhotoCount,
     this.label,
+    this.enableWatermark = true,
+    this.watermarkText,
+    this.includeTimeWatermark = true,
+    this.includeLocationWatermark = false,
+    this.locationText,
   });
 
   final String? title;
@@ -36,6 +42,12 @@ class ImageUploadWidget extends StatefulWidget {
   final int maxImages;
   final int? requiredPhotoCount;
   final String? label;
+  // 水印相关属性
+  final bool enableWatermark;
+  final String? watermarkText;
+  final bool includeTimeWatermark;
+  final bool includeLocationWatermark;
+  final String? locationText;
 
   @override
   State<ImageUploadWidget> createState() => _ImageUploadWidgetState();
@@ -80,14 +92,34 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
       ).showSnackBar(SnackBar(content: Text('最多只能上传 ${widget.maxImages} 张图片')));
       return;
     }
+
     try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 80,
-        maxWidth: 1920,
-      );
-      if (pickedFile != null) {
-        widget.onAdd([File(pickedFile.path)]);
+      if (widget.enableWatermark) {
+        // 使用带水印的相机页面
+        final String? imagePath = await Navigator.of(context).push<String>(
+          MaterialPageRoute(
+            builder: (context) => WatermarkCameraPage(
+              watermarkText: widget.watermarkText,
+              includeTimeWatermark: widget.includeTimeWatermark,
+              includeLocationWatermark: widget.includeLocationWatermark,
+              locationText: widget.locationText,
+            ),
+          ),
+        );
+
+        if (imagePath != null) {
+          widget.onAdd([File(imagePath)]);
+        }
+      } else {
+        // 使用原有的系统相机
+        final XFile? pickedFile = await _picker.pickImage(
+          source: ImageSource.camera,
+          imageQuality: 80,
+          maxWidth: 1920,
+        );
+        if (pickedFile != null) {
+          widget.onAdd([File(pickedFile.path)]);
+        }
       }
     } catch (e) {
       if (context.mounted) {

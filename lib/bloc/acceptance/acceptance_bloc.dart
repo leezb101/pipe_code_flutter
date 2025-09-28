@@ -520,8 +520,6 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       // 发出加载状态
       emit(const AcceptanceMaterialsLoading());
 
-      // 模拟网络延迟用于测试加载状态显示
-      await Future.delayed(const Duration(seconds: 20), () {});
       final rsp = event.isBatch
           ? await _materialHandleRepository.scanBatchToQueryAll(event.codes)
           : await _materialHandleRepository.scanSingleToQueryAll(

@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_state.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
+import 'package:pipe_code_flutter/services/location_service.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import '../../models/common/common_user_vo.dart';
 import '../../models/common/warehouse_vo.dart';
@@ -437,6 +438,12 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
   }
 
   Widget _buildAttachmentSection() {
+    String? locationText;
+    LocationService.getCurrentLocation().then((location) {
+      if (location != null) {
+        locationText = '${location.latitude}, ${location.longitude}';
+      }
+    });
     return UnifiedCard(
       title: '附件上传',
       icon: Icons.attach_file,
@@ -449,6 +456,10 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
             builder: (context, states) {
               return ImageUploadWidget(
                 title: '验收照片',
+                enableWatermark: true,
+                watermarkText: '验收',
+                includeTimeWatermark: true,
+                includeLocationWatermark: true,
                 states: states,
                 maxImages: 2,
                 onAdd: (files) => _acceptancePhotosCubit.addFiles(files),
