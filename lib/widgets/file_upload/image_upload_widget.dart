@@ -15,6 +15,7 @@ import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/pages/watermark_camera_page.dart';
 import 'image_preview_widget.dart';
 import 'fade_scale_route.dart';
+import 'photo_watermark_preview_page.dart';
 
 class ImageUploadWidget extends StatefulWidget {
   const ImageUploadWidget({
@@ -71,9 +72,34 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
         maxWidth: 1920,
         limit: widget.maxImages - widget.states.length,
       );
+
       if (pickedFiles.isNotEmpty) {
-        final newImages = pickedFiles.map((file) => File(file.path)).toList();
-        widget.onAdd(newImages);
+        final originalImages = pickedFiles
+            .map((file) => File(file.path))
+            .toList();
+
+        if (widget.enableWatermark) {
+          // 显示水印预览页面
+          final List<File>? watermarkedImages = await Navigator.of(context)
+              .push<List<File>>(
+                MaterialPageRoute(
+                  builder: (context) => PhotoWatermarkPreviewPage(
+                    selectedImages: originalImages,
+                    watermarkText: widget.watermarkText,
+                    includeTimeWatermark: widget.includeTimeWatermark,
+                    includeLocationWatermark: widget.includeLocationWatermark,
+                    locationText: widget.locationText,
+                  ),
+                ),
+              );
+
+          if (watermarkedImages != null && watermarkedImages.isNotEmpty) {
+            widget.onAdd(watermarkedImages);
+          }
+        } else {
+          // 直接使用原图
+          widget.onAdd(originalImages);
+        }
       }
     } catch (e) {
       if (context.mounted) {

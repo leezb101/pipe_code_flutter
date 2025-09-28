@@ -213,10 +213,17 @@ class ImageWatermarkUtils {
     final ui.Image originalImage = frameInfo.image;
 
     // 根据图片宽度动态计算字体大小
-    // 以1080p为基准（1920x1080），字体大小为48
-    // 这样在各种分辨率下都能保持合适的比例
-    final double baseFontSize = (originalImage.width / 1920.0) * 48.0;
-    final double fontSize = baseFontSize.clamp(32.0, 96.0); // 限制字体大小范围
+    // 修改算法：使用更激进的缩放比例，确保水印在不同分辨率下视觉大小一致
+    // 以720px宽度为基准，字体大小为32px（这是拍照时的参数）
+    // 使用线性缩放确保高分辨率图片有足够大的水印
+    final double baseFontSize = (originalImage.width / 720.0) * 32.0;
+    final double fontSize = baseFontSize.clamp(24.0, 120.0); // 扩大字体大小范围
+
+    // 调试信息：输出图片分辨率和计算的字体大小
+    print('水印处理 - 图片尺寸: ${originalImage.width}x${originalImage.height}');
+    print('水印处理 - 基础字体大小: $baseFontSize');
+    print('水印处理 - 最终字体大小: $fontSize');
+    print('水印处理 - 图片路径: $imagePath');
 
     // 释放临时资源
     originalImage.dispose();
