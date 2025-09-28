@@ -208,6 +208,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   void _previewImages(int initialIndex) {
     // When previewing, we only need the File objects, not the full state.
     final images = widget.states.map((s) => s.file).toList();
+
     Navigator.of(context).push(
       FadeScaleRoute(
         page: ImagePreviewWidget(
@@ -218,8 +219,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
             // from the original state list and call the onRemove callback.
             final uniqueId = widget.states[index].uniqueId;
             widget.onRemove(uniqueId);
-            // Also pop the preview screen as the item is gone.
-            Navigator.of(context).pop();
+            // 导航逻辑由 ImagePreviewWidget 的修复版本处理
           },
         ),
       ),
