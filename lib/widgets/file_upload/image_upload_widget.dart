@@ -67,14 +67,44 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
       return;
     }
     try {
-      final List<XFile> pickedFiles = await _picker.pickMultiImage(
-        imageQuality: 80,
-        maxWidth: 1920,
-        limit: widget.maxImages - widget.states.length,
-      );
+      final int remainingSlots = widget.maxImages - widget.states.length;
+      List<XFile> pickedFiles = [];
+
+      // 当只能添加1张图片时，使用单张选择；否则使用多选
+      if (remainingSlots == 1) {
+        final XFile? pickedFile = await _picker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 80,
+          maxWidth: 1920,
+        );
+        if (pickedFile != null) {
+          pickedFiles = [pickedFile];
+        }
+      } else {
+        pickedFiles = await _picker.pickMultiImage(
+          imageQuality: 80,
+          maxWidth: 1920,
+          limit: remainingSlots,
+        );
+      }
 
       if (pickedFiles.isNotEmpty) {
-        final originalImages = pickedFiles
+        // 重新计算剩余可用数量，防止在选择过程中状态发生变化
+        final currentRemainingSlots = widget.maxImages - widget.states.length;
+
+        // 截取不超过剩余数量的图片
+        final limitedFiles = pickedFiles.take(currentRemainingSlots).toList();
+
+        // 如果选择的图片数量超过了剩余限制，提示用户
+        if (pickedFiles.length > currentRemainingSlots) {
+          if (context.mounted) {
+            context.showWarningToast(
+              '最多还能添加 $currentRemainingSlots 张图片，已自动调整为 ${limitedFiles.length} 张',
+            );
+          }
+        }
+
+        final originalImages = limitedFiles
             .map((file) => File(file.path))
             .toList();
 
@@ -94,7 +124,18 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
               );
 
           if (watermarkedImages != null && watermarkedImages.isNotEmpty) {
-            widget.onAdd(watermarkedImages);
+            // 再次检查最终要添加的图片数量
+            final finalRemainingSlots = widget.maxImages - widget.states.length;
+            final finalImages = watermarkedImages
+                .take(finalRemainingSlots)
+                .toList();
+
+            if (watermarkedImages.length > finalRemainingSlots &&
+                context.mounted) {
+              context.showWarningToast('最多还能添加 $finalRemainingSlots 张图片');
+            }
+
+            widget.onAdd(finalImages);
           }
         } else {
           // 直接使用原图
@@ -113,9 +154,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   Future<void> _takePicture() async {
     final context = this.context;
     if (widget.states.length >= widget.maxImages) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('最多只能上传 ${widget.maxImages} 张图片')));
+      context.showErrorToast('最多只能上传 ${widget.maxImages} 张图片');
       return;
     }
 
@@ -134,7 +173,12 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
         );
 
         if (imagePath != null) {
-          widget.onAdd([File(imagePath)]);
+          // 再次检查是否还有剩余空间（防止在拍照过程中状态发生变化）
+          if (widget.states.length < widget.maxImages) {
+            widget.onAdd([File(imagePath)]);
+          } else if (context.mounted) {
+            context.showErrorToast('已达到最大上传数量，无法添加更多图片');
+          }
         }
       } else {
         // 使用原有的系统相机
@@ -144,7 +188,12 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
           maxWidth: 1920,
         );
         if (pickedFile != null) {
-          widget.onAdd([File(pickedFile.path)]);
+          // 再次检查是否还有剩余空间
+          if (widget.states.length < widget.maxImages) {
+            widget.onAdd([File(pickedFile.path)]);
+          } else if (context.mounted) {
+            context.showErrorToast('已达到最大上传数量，无法添加更多图片');
+          }
         }
       }
     } catch (e) {
