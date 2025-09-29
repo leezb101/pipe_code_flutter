@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_state.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
+import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
 import 'package:pipe_code_flutter/services/location_service.dart';
 import '../../models/common/warehouse_vo.dart';
 import '../../models/common/common_user_vo.dart';
@@ -130,12 +131,15 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     // 如从Standalone扫码跳转而来，带有codes，则先让cubit解析
     final codes = widget.initialCodes ?? const <String>[];
     if (codes.isNotEmpty) {
-      // 获取当前项目采购方名称
+      // 获取当前项目采购方名称和供材类型
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final sessionState = context.read<SessionBloc>().state;
         String? projectPurNm;
+        ProjectSupplyType? supplyType;
         if (sessionState is SessionProjectEstablished) {
           projectPurNm = sessionState.projectPurNm;
+          supplyType =
+              sessionState.currentUserRoleInfo.currentProjectSupplyType;
         }
 
         _controller.handleEvent(
@@ -144,6 +148,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
             isBatch: widget.initialIsBatch ?? true,
           ),
           projectPurNm: projectPurNm,
+          supplyType: supplyType,
         );
       });
     }
@@ -995,17 +1000,20 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     final res = flow.normalize(request, raw);
     if (res.addedCodes.isEmpty) return;
 
-    // 获取当前项目采购方名称
+    // 获取当前项目采购方名称和供材类型
     final sessionState = context.read<SessionBloc>().state;
     String? projectPurNm;
+    ProjectSupplyType? supplyType;
     if (sessionState is SessionProjectEstablished) {
       projectPurNm = sessionState.projectPurNm;
+      supplyType = sessionState.currentUserRoleInfo.currentProjectSupplyType;
     }
 
     // Delegate code resolution to controller
     _controller.handleEvent(
       AppendJsfMaterialsByCodes(codes: res.addedCodes),
       projectPurNm: projectPurNm,
+      supplyType: supplyType,
     );
   }
 

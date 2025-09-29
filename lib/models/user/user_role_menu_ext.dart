@@ -8,13 +8,18 @@
 import 'package:pipe_code_flutter/constants/menu_actions.dart';
 import '../menu/menu_config.dart';
 import 'user_role.dart';
+import 'current_user_on_project_role_info.dart';
 
 /// UserRole的菜单权限扩展
 /// 根据角色直接获取对应的完整菜单项，支持过期状态处理
 extension UserRoleMenuExtension on UserRole {
-  /// 获取角色对应的菜单项列表，支持过期状态
+  /// 获取角色对应的菜单项列表，支持过期状态和供材类型
   /// [isExpired] 如果为true，除了扫码识别外的菜单项都会被禁用
-  List<MenuItem> getMenuItemsWithExpireState(bool isExpired) {
+  /// [supplyType] 项目供材类型，用于控制验收菜单的启用状态
+  List<MenuItem> getMenuItemsWithExpireState(
+    bool isExpired, {
+    ProjectSupplyType? supplyType,
+  }) {
     switch (this) {
       case UserRole.construction:
         return [
@@ -34,7 +39,10 @@ extension UserRoleMenuExtension on UserRole {
             icon: 'check_circle',
             action: MenuActions.qrScanJsfAcceptance,
             order: 2,
-            isEnabled: !isExpired,
+            isEnabled:
+                !isExpired &&
+                (supplyType == null ||
+                    _isAcceptanceEnabledForSupplyType(supplyType)),
           ),
           // _createMenuItem(
           //   id: 'inventory',
@@ -156,7 +164,10 @@ extension UserRoleMenuExtension on UserRole {
             icon: 'check_circle',
             action: MenuActions.qrScanAcceptance,
             order: 2,
-            isEnabled: !isExpired,
+            isEnabled:
+                !isExpired &&
+                (supplyType == null ||
+                    _isAcceptanceEnabledForSupplyType(supplyType)),
           ),
           _createMenuItem(
             id: 'signout',
@@ -284,7 +295,10 @@ extension UserRoleMenuExtension on UserRole {
             icon: 'check_circle',
             action: MenuActions.qrScanAcceptance,
             order: 2,
-            isEnabled: !isExpired,
+            isEnabled:
+                !isExpired &&
+                (supplyType == null ||
+                    _isAcceptanceEnabledForSupplyType(supplyType)),
           ),
           _createMenuItem(
             id: 'signout',
@@ -409,7 +423,10 @@ extension UserRoleMenuExtension on UserRole {
             icon: 'check_circle',
             action: MenuActions.qrScanAcceptance,
             order: 2,
-            isEnabled: !isExpired,
+            isEnabled:
+                !isExpired &&
+                (supplyType == null ||
+                    _isAcceptanceEnabledForSupplyType(supplyType)),
           ),
           _createMenuItem(
             id: 'signout',
@@ -558,16 +575,54 @@ extension UserRoleMenuExtension on UserRole {
     );
   }
 
+  /// 根据项目供材类型和用户角色判断验收功能是否可用
+  /// Rules:
+  /// - 甲供材: 建设方验收可用，施工方验收不可用
+  /// - 乙供材: 施工方验收可用，建设方验收不可用
+  /// - 甲乙混供: 双方验收都可用
+  bool _isAcceptanceEnabledForSupplyType(ProjectSupplyType supplyType) {
+    switch (supplyType) {
+      case ProjectSupplyType.jiaGongCai: // 甲供材
+        return _isConstructionSide(); // 只有建设方可用
+      case ProjectSupplyType.yiGongCai: // 乙供材
+        return _isConstructionWorker(); // 只有施工方可用
+      case ProjectSupplyType.jiaYiHunGong: // 甲乙混供
+        return true; // 双方都可用
+    }
+  }
+
+  /// 判断是否为建设方角色
+  bool _isConstructionSide() {
+    return this == UserRole.construction;
+  }
+
+  /// 判断是否为施工方角色（包括所有施工相关角色）
+  bool _isConstructionWorker() {
+    switch (this) {
+      case UserRole.builder:
+      case UserRole.builderSub:
+      case UserRole.laborer:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   /// 检查是否有指定菜单项
   bool hasMenuItem(String menuId) {
     return getMenuItemsWithExpireState(false).any((item) => item.id == menuId);
   }
 
   /// 根据ID获取菜单项
-  MenuItem? getMenuItemById(String menuId, {bool isExpired = false}) {
+  MenuItem? getMenuItemById(
+    String menuId, {
+    bool isExpired = false,
+    ProjectSupplyType? supplyType,
+  }) {
     try {
       return getMenuItemsWithExpireState(
         isExpired,
+        supplyType: supplyType,
       ).firstWhere((item) => item.id == menuId);
     } catch (e) {
       return null;
@@ -575,24 +630,36 @@ extension UserRoleMenuExtension on UserRole {
   }
 
   /// 获取启用的菜单项
-  List<MenuItem> getEnabledMenuItems({bool isExpired = false}) {
+  List<MenuItem> getEnabledMenuItems({
+    bool isExpired = false,
+    ProjectSupplyType? supplyType,
+  }) {
     return getMenuItemsWithExpireState(
         isExpired,
+        supplyType: supplyType,
       ).where((item) => item.isEnabled).toList()
       ..sort((a, b) => a.order.compareTo(b.order));
   }
 
   /// 获取页面类型的菜单项
-  List<MenuItem> getPageMenuItems({bool isExpired = false}) {
+  List<MenuItem> getPageMenuItems({
+    bool isExpired = false,
+    ProjectSupplyType? supplyType,
+  }) {
     return getMenuItemsWithExpireState(
       isExpired,
+      supplyType: supplyType,
     ).where((item) => item.type == MenuItemType.page).toList();
   }
 
   /// 获取操作类型的菜单项
-  List<MenuItem> getActionMenuItems({bool isExpired = false}) {
+  List<MenuItem> getActionMenuItems({
+    bool isExpired = false,
+    ProjectSupplyType? supplyType,
+  }) {
     return getMenuItemsWithExpireState(
       isExpired,
+      supplyType: supplyType,
     ).where((item) => item.type == MenuItemType.action).toList();
   }
 

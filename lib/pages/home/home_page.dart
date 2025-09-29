@@ -10,11 +10,21 @@ import '../../bloc/session/session_event.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
 // QrScanType removed
 import '../../models/menu/menu_config.dart';
+import '../../models/user/user_role.dart';
+import '../../models/user/current_user_on_project_role_info.dart';
 import '../../utils/toast_utils.dart';
 import '../../constants/menu_actions.dart';
 import '../../bloc/records/records_bloc.dart';
 import '../../bloc/records/records_event.dart';
 import '../../models/records/record_type.dart';
+
+/// 菜单禁用原因数据类
+class MenuDisableReason {
+  const MenuDisableReason({required this.title, required this.message});
+
+  final String title;
+  final String message;
+}
 
 // 假设这是您在项目中定义的扩展
 extension ColorValues on Color {
@@ -887,7 +897,7 @@ class _HomePageState extends State<HomePage> {
         child: InkWell(
           onTap: menuItem.isEnabled
               ? () => _handleMenuTap(context, menuItem, state)
-              : () => _showDisabledMenuAlert(context),
+              : () => _showDisabledMenuAlert(context, menuItem, state),
           borderRadius: BorderRadius.circular(12),
           child: Container(
             height: 80, // 固定高度
@@ -1418,12 +1428,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 显示禁用菜单项的提示
-  void _showDisabledMenuAlert(BuildContext context) {
+  void _showDisabledMenuAlert(
+    BuildContext context,
+    MenuItem menuItem,
+    SessionProjectEstablished state,
+  ) {
+    // 判断禁用原因
+    final disableReason = _getMenuDisableReason(menuItem, state);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('授权已过期'),
-        content: const Text('您在该项目的授权已过期，如有疑问请联系项目管理员'),
+        title: Text(disableReason.title),
+        content: Text(disableReason.message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -1432,6 +1449,99 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  /// 获取菜单禁用原因
+  MenuDisableReason _getMenuDisableReason(
+    MenuItem menuItem,
+    SessionProjectEstablished state,
+  ) {
+    // 首先检查是否因为授权过期而禁用
+    if (state.isExpired) {
+      return const MenuDisableReason(
+        title: '授权已过期',
+        message: '您在该项目的授权已过期，如有疑问请联系项目管理员',
+      );
+    }
+
+    // 检查是否是验收菜单因供材类型限制而禁用
+    if (menuItem.id == 'acceptance') {
+      final supplyType = state.currentUserRoleInfo.currentProjectSupplyType;
+      final userRole = state.currentUserRoleInfo.projectRoleType;
+
+      return _getAcceptanceDisableReason(supplyType, userRole);
+    }
+
+    // 默认的禁用原因
+    return const MenuDisableReason(title: '功能不可用', message: '该功能当前不可用，请稍后再试');
+  }
+
+  /// 获取验收菜单禁用原因
+  MenuDisableReason _getAcceptanceDisableReason(
+    ProjectSupplyType supplyType,
+    UserRole userRole,
+  ) {
+    final supplyTypeName = _getSupplyTypeDisplayName(supplyType);
+    final roleName = userRole.displayName;
+
+    switch (supplyType) {
+      case ProjectSupplyType.jiaGongCai: // 甲供材
+        if (userRole == UserRole.construction) {
+          return const MenuDisableReason(
+            title: '验收功能异常',
+            message: '甲供材项目下建设方应该可以使用验收功能，请联系技术支持',
+          );
+        } else {
+          return MenuDisableReason(
+            title: '验收功能限制',
+            message: '当前项目为${supplyTypeName}，仅建设方可进行验收操作。\n您的角色：$roleName',
+          );
+        }
+
+      case ProjectSupplyType.yiGongCai: // 乙供材
+        if (_isConstructionWorkerRole(userRole)) {
+          return const MenuDisableReason(
+            title: '验收功能异常',
+            message: '乙供材项目下施工方应该可以使用验收功能，请联系技术支持',
+          );
+        } else {
+          return MenuDisableReason(
+            title: '验收功能限制',
+            message: '当前项目为${supplyTypeName}，仅施工方可进行验收操作。\n您的角色：$roleName',
+          );
+        }
+
+      case ProjectSupplyType.jiaYiHunGong: // 甲乙混供
+        return MenuDisableReason(
+          title: '验收功能异常',
+          message:
+              '当前项目为${supplyTypeName}，双方都应该可以使用验收功能，请联系技术支持。\n您的角色：$roleName',
+        );
+    }
+  }
+
+  /// 判断是否为施工方角色
+  bool _isConstructionWorkerRole(UserRole role) {
+    switch (role) {
+      case UserRole.builder:
+      case UserRole.builderSub:
+      case UserRole.laborer:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /// 获取供材类型显示名称
+  String _getSupplyTypeDisplayName(ProjectSupplyType supplyType) {
+    switch (supplyType) {
+      case ProjectSupplyType.jiaGongCai:
+        return '甲供材';
+      case ProjectSupplyType.yiGongCai:
+        return '乙供材';
+      case ProjectSupplyType.jiaYiHunGong:
+        return '甲乙混供';
+    }
   }
 
   /// 显示扫码模式选择对话框

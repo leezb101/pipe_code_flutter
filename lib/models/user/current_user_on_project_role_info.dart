@@ -12,9 +12,15 @@ import 'user_role.dart';
 part 'current_user_on_project_role_info.g.dart';
 
 /// 供材类型枚举 0-甲供材，1-乙供材，2-甲乙混供
+@JsonEnum(valueField: 'value')
 enum ProjectSupplyType {
+  @JsonValue(0)
   jiaGongCai(0),
+
+  @JsonValue(1)
   yiGongCai(1),
+
+  @JsonValue(2)
   jiaYiHunGong(2);
 
   final int value;

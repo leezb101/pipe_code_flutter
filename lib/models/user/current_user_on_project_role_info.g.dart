@@ -59,7 +59,7 @@ const _$UserRoleEnumMap = {
 };
 
 const _$ProjectSupplyTypeEnumMap = {
-  ProjectSupplyType.jiaGongCai: 'jiaGongCai',
-  ProjectSupplyType.yiGongCai: 'yiGongCai',
-  ProjectSupplyType.jiaYiHunGong: 'jiaYiHunGong',
+  ProjectSupplyType.jiaGongCai: 0,
+  ProjectSupplyType.yiGongCai: 1,
+  ProjectSupplyType.jiaYiHunGong: 2,
 };

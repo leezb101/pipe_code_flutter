@@ -199,6 +199,8 @@ class MockDataGenerator {
       currentProjectName: generateProjectName(),
       currentOrgCode: 'ORG${(id % 5 + 1).toString().padLeft(3, '0')}',
       currentOrgName: generateOrgName(),
+      currentProjectSupplyType: ProjectSupplyType
+          .values[_random.nextInt(ProjectSupplyType.values.length)], // 随机供材类型
       currentProjectSuperiorUserId:
           (role == UserRole.builder || role == UserRole.builderSub)
           ? 12345

@@ -10,6 +10,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
+import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import 'jsf_acceptance_event.dart';
 import 'jsf_acceptance_state.dart';
@@ -42,16 +43,32 @@ class JsfAcceptanceCubit {
   }
 
   /// 处理事件
-  void handleEvent(JsfAcceptanceEvent event, {String? projectPurNm}) {
+  void handleEvent(
+    JsfAcceptanceEvent event, {
+    String? projectPurNm,
+    ProjectSupplyType? supplyType,
+  }) {
     switch (event) {
       case InitializeJsfMaterials():
-        _onInitializeMaterials(event, projectPurNm: projectPurNm);
+        _onInitializeMaterials(
+          event,
+          projectPurNm: projectPurNm,
+          supplyType: supplyType,
+        );
         break;
       case InitializeJsfMaterialsFromCodes():
-        _onInitializeMaterialsFromCodes(event, projectPurNm: projectPurNm);
+        _onInitializeMaterialsFromCodes(
+          event,
+          projectPurNm: projectPurNm,
+          supplyType: supplyType,
+        );
         break;
       case AppendJsfMaterialsByCodes():
-        _onAppendMaterialsByCodes(event, projectPurNm: projectPurNm);
+        _onAppendMaterialsByCodes(
+          event,
+          projectPurNm: projectPurNm,
+          supplyType: supplyType,
+        );
         break;
       case RemoveJsfMaterialsByCodes():
         _onRemoveMaterialsByCodes(event);
@@ -77,6 +94,7 @@ class JsfAcceptanceCubit {
   void _onInitializeMaterials(
     InitializeJsfMaterials event, {
     String? projectPurNm,
+    ProjectSupplyType? supplyType,
   }) {
     final materialIds = event.materials
         .map((m) => m.baseInfo.materialId)
@@ -86,6 +104,7 @@ class JsfAcceptanceCubit {
     final mismatchMaterials = _checkPurchaserMismatch(
       event.materials,
       projectPurNm,
+      supplyType,
     );
 
     _updateState(
@@ -113,6 +132,7 @@ class JsfAcceptanceCubit {
   Future<void> _onInitializeMaterialsFromCodes(
     InitializeJsfMaterialsFromCodes event, {
     String? projectPurNm,
+    ProjectSupplyType? supplyType,
   }) async {
     try {
       if (event.codes.isEmpty) return;
@@ -131,6 +151,7 @@ class JsfAcceptanceCubit {
         final mismatchMaterials = _checkPurchaserMismatch(
           materials,
           projectPurNm,
+          supplyType,
         );
 
         _updateState(
@@ -176,6 +197,7 @@ class JsfAcceptanceCubit {
   Future<void> _onAppendMaterialsByCodes(
     AppendJsfMaterialsByCodes event, {
     String? projectPurNm,
+    ProjectSupplyType? supplyType,
   }) async {
     try {
       if (event.codes.isEmpty) return;
@@ -212,6 +234,7 @@ class JsfAcceptanceCubit {
         final mismatchMaterials = _checkPurchaserMismatch(
           updatedMaterials,
           projectPurNm,
+          supplyType,
         );
 
         String? message;
@@ -443,7 +466,28 @@ class JsfAcceptanceCubit {
   List<String> _checkPurchaserMismatch(
     List<MaterialInfo> materials,
     String? projectPurNm,
+    ProjectSupplyType? supplyType,
   ) {
+    // 前置判断：根据供材类型决定是否需要进行purNm检查
+    if (supplyType == null) {
+      return []; // 如果没有供材类型信息，跳过验证
+    }
+
+    // 如果是"甲供材"，则不需要进行purNm判断，直接返回空列表
+    if (supplyType == ProjectSupplyType.jiaGongCai) {
+      return [];
+    }
+
+    // 如果是"乙供材"，建设方验收也不需要进行purNm判断
+    if (supplyType == ProjectSupplyType.yiGongCai) {
+      return [];
+    }
+
+    // 只有"甲乙混供"时，才需要进行purNm判断
+    if (supplyType != ProjectSupplyType.jiaYiHunGong) {
+      return [];
+    }
+
     if (projectPurNm == null || projectPurNm.isEmpty) {
       return []; // 如果没有项目采购方信息，跳过验证
     }

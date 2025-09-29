@@ -176,6 +176,7 @@ class SessionProjectEstablished extends SessionState {
     return MenuService.getMenuItemsByRole(
       currentUserRoleInfo.projectRoleType,
       isExpired: currentUserRoleInfo.expire,
+      supplyType: currentUserRoleInfo.currentProjectSupplyType,
     );
   }
 
