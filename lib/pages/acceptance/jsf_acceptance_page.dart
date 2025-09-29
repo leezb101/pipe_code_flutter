@@ -11,11 +11,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_state.dart';
-import 'package:pipe_code_flutter/bloc/signout/signout_event.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/services/location_service.dart';
-import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import '../../models/common/warehouse_vo.dart';
+import '../../models/common/common_user_vo.dart';
 import '../../models/material/material_info_base.dart';
 import '../../widgets/file_upload/image_upload_widget.dart';
 import '../../widgets/file_upload/file_upload_widget.dart';
@@ -50,7 +49,7 @@ class JsfAcceptancePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
+    return RepositoryProvider<JsfAcceptanceCubit>(
       create: (context) => JsfAcceptanceCubit(
         acceptanceRepository: getIt<AcceptanceRepository>(),
         materialHandleRepository: getIt<MaterialHandleRepository>(),
@@ -85,11 +84,20 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
   late final FileUploadCubit _inspectionReportsCubit;
   late final FileUploadCubit _acceptanceReportsCubit;
 
+  // Cubit instance
+  late final JsfAcceptanceCubit _controller;
+
   // 仓库选择相关
   String _storageType = 'project'; // 'project' 或 'independent'
   int? _selectedWarehouseId;
 
   List<WarehouseVO> _warehouseList = [];
+
+  // 用户列表相关
+  List<CommonUserVO> _warehouseUsers = [];
+
+  // 推送选择状态
+  final Map<String, bool?> _userPushStates = {};
 
   // 标记是否已经加载了仓库列表，避免重复加载
   bool _hasLoadedWarehouses = false;
@@ -101,32 +109,30 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     _inspectionReportsCubit = FileUploadCubit();
     _acceptanceReportsCubit = FileUploadCubit();
 
-    // 用传入 materials 作为编辑态初始值
-    final initialMaterials = [
-      ...(widget.materials?.normals ?? const <MaterialInfo>[]),
-    ];
+    // Initialize controller
+    _controller = RepositoryProvider.of<JsfAcceptanceCubit>(context);
 
-    if (initialMaterials.isNotEmpty) {
-      context.read<JsfAcceptanceCubit>().handleEvent(
-        InitializeJsfMaterials(materials: initialMaterials),
-      );
-    }
+    // // 用传入 materials 作为编辑态初始值
+    // final initialMaterials = [
+    //   ...(widget.materials?.normals ?? const <MaterialInfo>[]),
+    // ];
+
+    // if (initialMaterials.isNotEmpty) {
+    //   _controller.handleEvent(
+    //     InitializeJsfMaterials(materials: initialMaterials),
+    //   );
+    // }
 
     // 如从Standalone扫码跳转而来，带有codes，则先让cubit解析
     final codes = widget.initialCodes ?? const <String>[];
     if (codes.isNotEmpty) {
-      context.read<JsfAcceptanceCubit>().handleEvent(
+      _controller.handleEvent(
         InitializeJsfMaterialsFromCodes(
           codes: codes,
           isBatch: widget.initialIsBatch ?? true,
         ),
       );
     }
-
-    // Load initial warehouse data
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // LoadWarehouseList 将在 materialList 状态稳定后通过 BlocListener 触发
-    });
   }
 
   @override
@@ -134,79 +140,125 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     _acceptancePhotosCubit.close();
     _inspectionReportsCubit.close();
     _acceptanceReportsCubit.close();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<JsfAcceptanceCubit, JsfAcceptanceState>(
-      listener: (context, state) {
-        if (state is JsfAcceptanceEditingState) {
-          // 当编辑状态稳定时，加载仓库列表
-          _loadWarehousesIfNeeded(context);
+    return StreamBuilder<JsfAcceptanceState>(
+      stream: _controller.state,
+      builder: (context, snapshot) {
+        final state = snapshot.data ?? const JsfAcceptanceState();
 
-          // 处理消息显示
-          if (state.message != null) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message!)));
-            // 清除消息
-            context.read<JsfAcceptanceCubit>().handleEvent(
-              const ClearJsfMessage(),
-            );
-          }
-        } else if (state is JsfAcceptanceSubmitted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('验收提交成功'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          context.pop();
-        } else if (state is JsfAcceptanceError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
-          );
-        } else if (state is JsfAcceptanceWarehouseLoaded) {
-          setState(() {
-            _warehouseList = state.warehouseList;
-          });
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('建设方验收'),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black87,
-          elevation: 0,
-          centerTitle: true,
-        ),
-        body: Container(
-          color: Colors.grey[50],
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppTheme.spacingMedium),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildMaterialsList(),
-                      const SizedBox(height: AppTheme.spacingMedium),
-                      _buildAttachmentSection(),
-                      const SizedBox(height: AppTheme.spacingMedium),
-                      _buildWarehouseSection(),
-                      const SizedBox(height: AppTheme.spacingMedium),
-                    ],
+        // 处理状态变化
+        _handleStateChange(context, state);
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('建设方验收'),
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black87,
+            elevation: 0,
+            centerTitle: true,
+          ),
+          body: Container(
+            color: Colors.grey[50],
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildMaterialsList(),
+                        const SizedBox(height: 16),
+                        _buildAttachmentSection(),
+                        const SizedBox(height: 16),
+                        _buildWarehouseSection(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              _buildActionButtons(),
-            ],
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  color: Colors.white,
+                  child: _buildActionButtons(),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
+  }
+
+  void _handleStateChange(BuildContext context, JsfAcceptanceState state) {
+    // 当编辑状态稳定时，加载仓库列表
+    if (state.materials.isNotEmpty) {
+      _loadWarehousesIfNeeded(context);
+
+      // 处理消息显示
+      if (state.message != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.blue,
+              content: Text(state.message!),
+            ),
+          );
+          _controller.handleEvent(const ClearJsfMessage());
+        });
+      }
+    }
+
+    if (state.isSubmitted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.green,
+            content: Text('验收提交成功'),
+          ),
+        );
+        context.pop();
+      });
+    }
+
+    if (state.errorMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.errorMessage!),
+            backgroundColor: Colors.red,
+          ),
+        );
+      });
+    }
+
+    // 更新仓库列表
+    if (state.warehouseList.isNotEmpty &&
+        state.warehouseList != _warehouseList) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _warehouseList = state.warehouseList;
+        });
+      });
+    }
+
+    // 更新仓库用户列表
+    if (state.warehouseUsers.isNotEmpty &&
+        state.warehouseUsers != _warehouseUsers) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _warehouseUsers = state.warehouseUsers;
+          // 初始化推送状态
+          for (var user in _warehouseUsers) {
+            _userPushStates['warehouse_${user.name}'] = user.messageTo;
+          }
+        });
+      });
+    }
   }
 
   Widget _buildMaterialsList() {
@@ -214,72 +266,66 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
       title: '材料清单',
       icon: Icons.inventory,
       businessType: 'jsf_acceptance',
-      child: BlocBuilder<JsfAcceptanceCubit, JsfAcceptanceState>(
-        builder: (context, state) {
-          if (state is JsfAcceptanceMaterialsLoading) {
-            return _buildInitialLoadingIndicator('正在加载材料信息...');
-          } else if (state is JsfAcceptanceEditingState) {
-            if (state.currentMaterials.isEmpty) {
-              return Container(
-                padding: const EdgeInsets.all(24),
-                child: const Center(
-                  child: Text(
-                    '暂无材料，请点击扫码添加',
-                    style: TextStyle(color: Colors.grey, fontSize: 16),
-                  ),
-                ),
-              );
-            }
+      child: StreamBuilder<JsfAcceptanceState>(
+        stream: _controller.state,
+        builder: (context, snapshot) {
+          final state = snapshot.data ?? const JsfAcceptanceState();
 
+          if (state.isLoadingMaterials) {
+            return _buildInitialLoadingIndicator('正在加载材料信息...');
+          } else if (state.materials.isNotEmpty) {
             return Column(
               children: [
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: state.currentMaterials.length,
-                  itemBuilder: (context, index) {
-                    return _buildMaterialItem(state.currentMaterials[index]);
-                  },
+                // 材料列表
+                ...state.materials.map(
+                  (material) => _buildMaterialItem(material),
                 ),
+
+                // 追加材料加载指示器
                 if (state.isLoadingAppendMaterials)
                   _buildAppendLoadingIndicator(),
-                const SizedBox(height: AppTheme.spacingMedium),
+
+                // 操作按钮
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
                       child: UnifiedButton(
                         text: '继续扫码',
+                        type: UnifiedButtonType.outlined,
+                        businessType: 'acceptance',
                         onPressed: _scanAppendMaterials,
-                        type: UnifiedButtonType.secondary,
                       ),
                     ),
-                    const SizedBox(width: AppTheme.spacingSmall),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: UnifiedButton(
                         text: '扫码剔除',
-                        onPressed: _scanRemoveMaterials,
                         type: UnifiedButtonType.outlined,
+                        businessType: 'acceptance',
+                        foregroundColor: Colors.red,
+                        borderColor: Colors.red,
+                        onPressed: _scanRemoveMaterials,
                       ),
                     ),
                   ],
                 ),
               ],
             );
-          } else if (state is JsfAcceptanceError) {
+          } else if (state.errorMessage != null) {
             return Container(
               padding: const EdgeInsets.all(24),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(Icons.error_outline, size: 48, color: Colors.red[400]),
-                    const SizedBox(height: 16),
-                    Text(
-                      state.message,
-                      style: TextStyle(color: Colors.red[600], fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    state.errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             );
           } else {
@@ -287,7 +333,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
               padding: const EdgeInsets.all(24),
               child: const Center(
                 child: Text(
-                  '请点击扫码开始',
+                  '请先扫码添加材料',
                   style: TextStyle(color: Colors.grey, fontSize: 16),
                 ),
               ),
@@ -300,7 +346,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
 
   Widget _buildMaterialItem(MaterialInfo material) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppTheme.spacingMedium),
+      padding: const EdgeInsets.only(bottom: 16),
       child: MaterialListItem(
         onTap: () => _showMaterialDetail(context, material),
         materialName: material.baseInfo.prodNm ?? '无',
@@ -338,13 +384,13 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-            width: 20,
-            height: 20,
+            width: 16,
+            height: 16,
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
           SizedBox(width: 12),
           Text(
-            '正在获取物料信息...',
+            '正在追加材料信息...',
             style: TextStyle(color: Colors.grey, fontSize: 14),
           ),
         ],
@@ -379,7 +425,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
                 includeTimeWatermark: true,
                 includeLocationWatermark: true,
                 states: states,
-                maxImages: 2,
+                maxImages: 10,
                 onAdd: (files) => _acceptancePhotosCubit.addFiles(files),
                 onRemove: (uniqueId) =>
                     _acceptancePhotosCubit.removeFile(uniqueId),
@@ -388,7 +434,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
               );
             },
           ),
-          const SizedBox(height: AppTheme.spacingXLarge),
+          const SizedBox(height: 24),
           BlocBuilder<FileUploadCubit, List<FileUploadState>>(
             bloc: _inspectionReportsCubit,
             builder: (context, states) {
@@ -396,7 +442,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
                 title: '报验单',
                 states: states,
                 allowedExtensions: const ['pdf', 'doc', 'docx'],
-                maxFiles: 2,
+                maxFiles: 1,
                 onAdd: (files) => _inspectionReportsCubit.addFiles(files),
                 onRemove: (uniqueId) =>
                     _inspectionReportsCubit.removeFile(uniqueId),
@@ -405,7 +451,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
               );
             },
           ),
-          const SizedBox(height: AppTheme.spacingXLarge),
+          const SizedBox(height: 24),
           BlocBuilder<FileUploadCubit, List<FileUploadState>>(
             bloc: _acceptanceReportsCubit,
             builder: (context, states) {
@@ -413,7 +459,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
                 title: '验收报告',
                 states: states,
                 allowedExtensions: const ['pdf', 'doc', 'docx'],
-                maxFiles: 2,
+                maxFiles: 1,
                 onAdd: (files) => _acceptanceReportsCubit.addFiles(files),
                 onRemove: (uniqueId) =>
                     _acceptanceReportsCubit.removeFile(uniqueId),
@@ -437,8 +483,12 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
         children: [
           _buildStorageTypeSelection(),
           if (_storageType == 'independent') ...[
-            const SizedBox(height: AppTheme.spacingMedium),
+            const SizedBox(height: 16),
             _buildWarehouseSelection(),
+          ],
+          if (_storageType == 'independent' && _warehouseUsers.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildUserSection('仓库负责人', _warehouseUsers, 'warehouse'),
           ],
         ],
       ),
@@ -454,14 +504,20 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
               setState(() {
                 _storageType = 'project';
                 _selectedWarehouseId = null;
+                // 切换回项目现场时清空仓库人员列表
+                _warehouseUsers.clear();
+                // 清除相关的推送状态
+                _userPushStates.removeWhere(
+                  (key, value) => key.startsWith('warehouse_'),
+                );
               });
             },
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               decoration: BoxDecoration(
                 color: _storageType == 'project'
                     ? Theme.of(context).primaryColor.withOpacity(0.1)
-                    : Colors.transparent,
+                    : Colors.grey[50],
                 border: Border.all(
                   color: _storageType == 'project'
                       ? Theme.of(context).primaryColor
@@ -472,10 +528,13 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
               child: Row(
                 children: [
                   Icon(
-                    Icons.location_on,
+                    _storageType == 'project'
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_unchecked,
                     color: _storageType == 'project'
                         ? Theme.of(context).primaryColor
                         : Colors.grey,
+                    size: 20,
                   ),
                   const SizedBox(width: 8),
                   const Text('项目现场'),
@@ -484,20 +543,21 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
             ),
           ),
         ),
-        const SizedBox(width: AppTheme.spacingMedium),
+        const SizedBox(width: 16),
         Expanded(
           child: InkWell(
             onTap: () {
               setState(() {
                 _storageType = 'independent';
               });
+              _controller.handleEvent(const LoadJsfWarehouseList());
             },
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               decoration: BoxDecoration(
                 color: _storageType == 'independent'
                     ? Theme.of(context).primaryColor.withOpacity(0.1)
-                    : Colors.transparent,
+                    : Colors.grey[50],
                 border: Border.all(
                   color: _storageType == 'independent'
                       ? Theme.of(context).primaryColor
@@ -508,10 +568,13 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
               child: Row(
                 children: [
                   Icon(
-                    Icons.warehouse,
+                    _storageType == 'independent'
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_unchecked,
                     color: _storageType == 'independent'
                         ? Theme.of(context).primaryColor
                         : Colors.grey,
+                    size: 20,
                   ),
                   const SizedBox(width: 8),
                   const Text('独立仓库'),
@@ -570,12 +633,17 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
               ),
               onChanged: (int? newValue) {
                 setState(() {
-                  _selectedWarehouseId = newValue!;
+                  _selectedWarehouseId = newValue;
+                  // 清空旧的仓库人员数据和推送状态
+                  _warehouseUsers.clear();
+                  _userPushStates.removeWhere(
+                    (key, value) => key.startsWith('warehouse_'),
+                  );
                 });
 
                 // 获取仓库用户
                 if (newValue != null) {
-                  context.read<JsfAcceptanceCubit>().handleEvent(
+                  _controller.handleEvent(
                     LoadJsfWarehouseUsers(warehouseId: newValue),
                   );
                 }
@@ -591,23 +659,40 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Padding(
+                        Container(
+                          width: double.infinity,
                           padding: const EdgeInsets.symmetric(
+                            vertical: 12,
                             horizontal: 12,
-                            vertical: 10,
                           ),
-                          child: Text(
-                            '${warehouse.name} - ${warehouse.address}',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            softWrap: true,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                warehouse.name,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              if (warehouse.address.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  warehouse.address,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                         if (!isLast)
                           Divider(
                             height: 1,
                             thickness: 1,
-                            color: Colors.grey[300],
+                            color: Colors.grey[200],
                           ),
                       ],
                     ),
@@ -637,11 +722,95 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     );
   }
 
+  Widget _buildUserSection(
+    String title,
+    List<CommonUserVO> users,
+    String type,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$title：',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (users.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: const Text('暂无用户数据', style: TextStyle(color: Colors.grey)),
+          )
+        else
+          ...users.map((user) => _buildUserItem(user, type)),
+      ],
+    );
+  }
+
+  Widget _buildUserItem(CommonUserVO user, String type) {
+    final key = '${type}_${user.name}';
+    final isSelected = _userPushStates[key] ?? false;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  user.phone,
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+          Row(
+            children: [
+              Checkbox(
+                value: isSelected,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _userPushStates[key] = value ?? false;
+                  });
+                },
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              const Text('推送', style: TextStyle(fontSize: 12)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   void _handleSubmitAcceptance() {
     // 优先从编辑态取材；否则无材料则提示
-    final currentState = context.read<JsfAcceptanceCubit>().state;
-    if (currentState is! JsfAcceptanceEditingState ||
-        currentState.currentMaterials.isEmpty) {
+    final currentState = _controller.currentState;
+    if (currentState.materials.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('请先扫码添加材料')));
@@ -662,7 +831,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
       return;
     }
 
-    final sourceMaterials = currentState.currentMaterials;
+    final sourceMaterials = currentState.materials;
     final materialVOList = sourceMaterials
         .map(
           (material) => JsfMaterialVO(
@@ -688,7 +857,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
           .where((item) => item.status == UploadStatus.success)
           .map(
             (item) => AttachmentVO(
-              type: 0, // 图片类型
+              type: 1, // 1 for image
               name: item.uploadResult?.fileName ?? '',
               url: item.uploadResult?.filePath ?? '',
               attachFormat: 'image',
@@ -700,7 +869,9 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
         ? null
         : _inspectionReportsCubit.state
               .firstWhere(
-                (item) => item.status == UploadStatus.success,
+                (item) =>
+                    item.status == UploadStatus.success &&
+                    item.uploadResult != null,
                 orElse: () => _inspectionReportsCubit.state.first,
               )
               .uploadResult
@@ -710,7 +881,9 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
         ? null
         : _acceptanceReportsCubit.state
               .firstWhere(
-                (item) => item.status == UploadStatus.success,
+                (item) =>
+                    item.status == UploadStatus.success &&
+                    item.uploadResult != null,
                 orElse: () => _acceptanceReportsCubit.state.first,
               )
               .uploadResult
@@ -725,6 +898,9 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
       }
     });
 
+    // 获取选中的用户ID列表
+    final selectedUserIds = _getSelectedUserIds();
+
     // 创建JsfAcceptVO对象
     final jsfAcceptVO = JsfAcceptVO(
       lng: lng,
@@ -735,14 +911,12 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
       acceptReportUrl: acceptReportUrl,
       realWarehouse: realWarehouse,
       warehouseId: warehouseId,
-      messageTo: const [], // 建设方验收不需要推送给其他人
+      messageTo: selectedUserIds,
       // returnData 暂时为空，根据业务需求后续可扩展
     );
 
-    // 通过Cubit提交验收数据
-    context.read<JsfAcceptanceCubit>().handleEvent(
-      SubmitJsfAcceptance(request: jsfAcceptVO),
-    );
+    // 通过Controller提交验收数据
+    _controller.handleEvent(SubmitJsfAcceptance(request: jsfAcceptVO));
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -756,10 +930,41 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     context.pop();
   }
 
-  // 批量继续扫码追加材料：
-  //  1. 通过扫码获取一组二维码（不做前端去重）
-  //  2. 调用 scanBatchToQueryAll 获取完整物料实体
-  //  3. 基于 materialId 去重追加
+  List<int> _getSelectedUserIds() {
+    final selectedUserIds = <int>[];
+
+    // 遍历推送状态，找到选中的用户
+    _userPushStates.forEach((key, isSelected) {
+      if (isSelected == true) {
+        // 从key中解析出用户类型和用户名
+        final parts = key.split('_');
+        if (parts.length >= 2) {
+          final userType = parts[0]; // 'warehouse'
+          final userName = parts.sublist(1).join('_'); // 支持用户名包含下划线的情况
+
+          // 根据用户类型在对应列表中查找用户ID
+          CommonUserVO? user;
+          switch (userType) {
+            case 'warehouse':
+              user = _warehouseUsers.firstWhere(
+                (u) => u.name == userName,
+                orElse: () =>
+                    const CommonUserVO(userId: -1, name: '', phone: ''),
+              );
+              break;
+          }
+
+          if (user != null && user.userId > 0) {
+            selectedUserIds.add(user.userId);
+          }
+        }
+      }
+    });
+
+    return selectedUserIds;
+  }
+
+  // 批量继续扫码追加材料
   Future<void> _scanAppendMaterials() async {
     final flow = RepositoryProvider.of<QrScanFlowService>(context);
     // 不再依赖 currentCodes 做前端排重，传空数组让 normalize 全部视为新增
@@ -783,16 +988,11 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.addedCodes.isEmpty) return;
-    // Delegate code resolution to cubit
-    context.read<JsfAcceptanceCubit>().handleEvent(
-      AppendJsfMaterialsByCodes(codes: res.addedCodes),
-    );
+    // Delegate code resolution to controller
+    _controller.handleEvent(AppendJsfMaterialsByCodes(codes: res.addedCodes));
   }
 
-  // 扫码剔除：
-  //  1. 扫到一组待移除二维码
-  //  2. 调用 scanBatchToQueryAll 获取对应 materialId 集合
-  //  3. 依据 materialId 从材料列表中剔除
+  // 扫码剔除
   Future<void> _scanRemoveMaterials() async {
     final flow = RepositoryProvider.of<QrScanFlowService>(context);
     final request = QrScanFlowRequest(
@@ -815,9 +1015,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.removedCodes.isEmpty) return;
-    context.read<JsfAcceptanceCubit>().handleEvent(
-      RemoveJsfMaterialsByCodes(codes: res.removedCodes),
-    );
+    _controller.handleEvent(RemoveJsfMaterialsByCodes(codes: res.removedCodes));
   }
 
   // 在 materialList 状态稳定后触发加载仓库列表，避免重复加载
@@ -825,8 +1023,6 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     if (_hasLoadedWarehouses) return;
 
     _hasLoadedWarehouses = true;
-    context.read<JsfAcceptanceCubit>().handleEvent(
-      const LoadJsfWarehouseList(),
-    );
+    _controller.handleEvent(const LoadJsfWarehouseList());
   }
 }

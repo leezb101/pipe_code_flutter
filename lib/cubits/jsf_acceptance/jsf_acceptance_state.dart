@@ -11,121 +11,69 @@ import 'package:pipe_code_flutter/models/common/warehouse_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 
 /// 建设方验收状态
-sealed class JsfAcceptanceState extends Equatable {
-  const JsfAcceptanceState();
-
-  @override
-  List<Object?> get props => [];
-}
-
-/// 初始状态
-final class JsfAcceptanceInitial extends JsfAcceptanceState {
-  const JsfAcceptanceInitial();
-}
-
-/// 材料加载中
-final class JsfAcceptanceMaterialsLoading extends JsfAcceptanceState {
-  const JsfAcceptanceMaterialsLoading();
-}
-
-/// 追加材料加载中
-final class JsfAcceptanceMaterialsAppending extends JsfAcceptanceState {
-  final List<MaterialInfo> currentMaterials;
+class JsfAcceptanceState extends Equatable {
+  final List<MaterialInfo> materials;
   final Set<int> materialIds;
-
-  const JsfAcceptanceMaterialsAppending({
-    required this.currentMaterials,
-    required this.materialIds,
-  });
-
-  @override
-  List<Object?> get props => [currentMaterials, materialIds];
-}
-
-/// 编辑状态 - 包含当前材料列表和其他状态
-final class JsfAcceptanceEditingState extends JsfAcceptanceState {
-  final List<MaterialInfo> currentMaterials;
-  final Set<int> materialIds;
+  final bool isLoadingMaterials;
   final bool isLoadingAppendMaterials;
+  final bool isSubmitting;
   final String? message;
+  final String? errorMessage;
   final List<WarehouseVO> warehouseList;
   final List<CommonUserVO> warehouseUsers;
+  final bool isSubmitted;
 
-  const JsfAcceptanceEditingState({
-    required this.currentMaterials,
-    required this.materialIds,
+  const JsfAcceptanceState({
+    this.materials = const [],
+    this.materialIds = const <int>{},
+    this.isLoadingMaterials = false,
     this.isLoadingAppendMaterials = false,
+    this.isSubmitting = false,
     this.message,
+    this.errorMessage,
     this.warehouseList = const [],
     this.warehouseUsers = const [],
+    this.isSubmitted = false,
   });
 
   @override
   List<Object?> get props => [
-    currentMaterials,
+    materials,
     materialIds,
+    isLoadingMaterials,
     isLoadingAppendMaterials,
+    isSubmitting,
     message,
+    errorMessage,
     warehouseList,
     warehouseUsers,
+    isSubmitted,
   ];
 
-  JsfAcceptanceEditingState copyWith({
-    List<MaterialInfo>? currentMaterials,
+  JsfAcceptanceState copyWith({
+    List<MaterialInfo>? materials,
     Set<int>? materialIds,
+    bool? isLoadingMaterials,
     bool? isLoadingAppendMaterials,
+    bool? isSubmitting,
     String? message,
+    String? errorMessage,
     List<WarehouseVO>? warehouseList,
     List<CommonUserVO>? warehouseUsers,
+    bool? isSubmitted,
   }) {
-    return JsfAcceptanceEditingState(
-      currentMaterials: currentMaterials ?? this.currentMaterials,
+    return JsfAcceptanceState(
+      materials: materials ?? this.materials,
       materialIds: materialIds ?? this.materialIds,
+      isLoadingMaterials: isLoadingMaterials ?? this.isLoadingMaterials,
       isLoadingAppendMaterials:
           isLoadingAppendMaterials ?? this.isLoadingAppendMaterials,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
       message: message,
+      errorMessage: errorMessage,
       warehouseList: warehouseList ?? this.warehouseList,
       warehouseUsers: warehouseUsers ?? this.warehouseUsers,
+      isSubmitted: isSubmitted ?? this.isSubmitted,
     );
   }
-}
-
-/// 提交中状态
-final class JsfAcceptanceSubmitting extends JsfAcceptanceState {
-  const JsfAcceptanceSubmitting();
-}
-
-/// 提交成功状态
-final class JsfAcceptanceSubmitted extends JsfAcceptanceState {
-  const JsfAcceptanceSubmitted();
-}
-
-/// 仓库列表加载成功
-final class JsfAcceptanceWarehouseLoaded extends JsfAcceptanceState {
-  final List<WarehouseVO> warehouseList;
-
-  const JsfAcceptanceWarehouseLoaded({required this.warehouseList});
-
-  @override
-  List<Object?> get props => [warehouseList];
-}
-
-/// 仓库用户加载成功
-final class JsfAcceptanceWarehouseUsersLoaded extends JsfAcceptanceState {
-  final List<CommonUserVO> warehouseUsers;
-
-  const JsfAcceptanceWarehouseUsersLoaded({required this.warehouseUsers});
-
-  @override
-  List<Object?> get props => [warehouseUsers];
-}
-
-/// 错误状态
-final class JsfAcceptanceError extends JsfAcceptanceState {
-  final String message;
-
-  const JsfAcceptanceError({required this.message});
-
-  @override
-  List<Object?> get props => [message];
 }

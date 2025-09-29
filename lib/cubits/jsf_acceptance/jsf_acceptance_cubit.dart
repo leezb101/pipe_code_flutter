@@ -5,26 +5,42 @@
  * @LastEditTime: 2025-09-29
  * @copyright: Copyright © 2025 高新供水.
  */
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:async';
+import 'package:rxdart/rxdart.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
+import 'package:pipe_code_flutter/models/acceptance/jsf_accept_vo.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import 'jsf_acceptance_event.dart';
 import 'jsf_acceptance_state.dart';
 
-/// 建设方验收Cubit
-/// 使用基于事件的模式管理状态
-class JsfAcceptanceCubit extends Cubit<JsfAcceptanceState> {
+/// 建设方验收Cubit（使用RxDart实现）
+/// 使用RxDart的BehaviorSubject管理状态
+class JsfAcceptanceCubit {
   final AcceptanceRepository _acceptanceRepository;
   final MaterialHandleRepository _materialHandleRepository;
+
+  // 使用 BehaviorSubject 管理状态
+  final BehaviorSubject<JsfAcceptanceState> _stateSubject =
+      BehaviorSubject<JsfAcceptanceState>.seeded(const JsfAcceptanceState());
+
+  // 公开状态流
+  Stream<JsfAcceptanceState> get state => _stateSubject.stream;
+
+  // 获取当前状态
+  JsfAcceptanceState get currentState => _stateSubject.value;
 
   JsfAcceptanceCubit({
     required AcceptanceRepository acceptanceRepository,
     required MaterialHandleRepository materialHandleRepository,
   }) : _acceptanceRepository = acceptanceRepository,
-       _materialHandleRepository = materialHandleRepository,
-       super(const JsfAcceptanceInitial());
+       _materialHandleRepository = materialHandleRepository;
+
+  /// 更新状态
+  void _updateState(JsfAcceptanceState newState) {
+    _stateSubject.add(newState);
+  }
 
   /// 处理事件
   void handleEvent(JsfAcceptanceEvent event) {
@@ -60,15 +76,17 @@ class JsfAcceptanceCubit extends Cubit<JsfAcceptanceState> {
     final materialIds = event.materials
         .map((m) => m.baseInfo.materialId)
         .toSet();
-    emit(
-      JsfAcceptanceEditingState(
-        currentMaterials: event.materials,
+
+    _updateState(
+      currentState.copyWith(
+        materials: event.materials,
         materialIds: materialIds,
       ),
     );
+
     Logger.debug(
       'Initialized JSF materials with ${event.materials.length} items',
-      tag: 'JsfAcceptanceCubit',
+      tag: 'JsfAcceptanceController',
     );
   }
 
@@ -78,7 +96,7 @@ class JsfAcceptanceCubit extends Cubit<JsfAcceptanceState> {
     try {
       if (event.codes.isEmpty) return;
 
-      emit(const JsfAcceptanceMaterialsLoading());
+      _updateState(currentState.copyWith(isLoadingMaterials: true));
 
       final result = await _materialHandleRepository.scanBatchToQueryAll(
         event.codes,
@@ -88,23 +106,34 @@ class JsfAcceptanceCubit extends Cubit<JsfAcceptanceState> {
         final materials = result.data!.normals;
         final materialIds = materials.map((m) => m.baseInfo.materialId).toSet();
 
-        emit(
-          JsfAcceptanceEditingState(
-            currentMaterials: materials,
+        _updateState(
+          currentState.copyWith(
+            materials: materials,
             materialIds: materialIds,
+            isLoadingMaterials: false,
           ),
         );
 
         Logger.debug(
           'JSF材料初始化完成，共 ${materials.length} 项',
-          tag: 'JsfAcceptanceCubit',
+          tag: 'JsfAcceptanceController',
         );
       } else {
-        emit(JsfAcceptanceError(message: result.msg));
+        _updateState(
+          currentState.copyWith(
+            isLoadingMaterials: false,
+            errorMessage: result.msg,
+          ),
+        );
       }
     } catch (e) {
-      Logger.error('JSF材料初始化失败: $e', tag: 'JsfAcceptanceCubit');
-      emit(const JsfAcceptanceError(message: '解析扫码列表失败'));
+      Logger.error('JSF材料初始化失败: $e', tag: 'JsfAcceptanceController');
+      _updateState(
+        currentState.copyWith(
+          isLoadingMaterials: false,
+          errorMessage: '解析扫码列表失败',
+        ),
+      );
     }
   }
 
@@ -114,16 +143,8 @@ class JsfAcceptanceCubit extends Cubit<JsfAcceptanceState> {
     try {
       if (event.codes.isEmpty) return;
 
-      final currentState = state;
-      final editing = currentState is JsfAcceptanceEditingState
-          ? currentState
-          : const JsfAcceptanceEditingState(
-              currentMaterials: [],
-              materialIds: <int>{},
-            );
-
       // 设置追加材料加载状态
-      emit(editing.copyWith(isLoadingAppendMaterials: true));
+      _updateState(currentState.copyWith(isLoadingAppendMaterials: true));
 
       final result = await _materialHandleRepository.scanBatchToQueryAll(
         event.codes,
@@ -132,9 +153,9 @@ class JsfAcceptanceCubit extends Cubit<JsfAcceptanceState> {
       if (result.isSuccess && result.data != null) {
         final newMaterials = result.data!.normals;
         final updatedMaterials = List<MaterialInfo>.from(
-          editing.currentMaterials,
+          currentState.materials,
         );
-        final updatedIds = Set<int>.from(editing.materialIds);
+        final updatedIds = Set<int>.from(currentState.materialIds);
         var addedCount = 0;
         var duplicateCount = 0;
 
@@ -159,39 +180,35 @@ class JsfAcceptanceCubit extends Cubit<JsfAcceptanceState> {
           message = '所有 $duplicateCount 项材料均已存在，未追加新材料';
         }
 
-        emit(
-          JsfAcceptanceEditingState(
-            currentMaterials: updatedMaterials,
+        _updateState(
+          currentState.copyWith(
+            materials: updatedMaterials,
             materialIds: updatedIds,
+            isLoadingAppendMaterials: false,
             message: message,
           ),
         );
 
         Logger.debug(
           'JSF材料追加完成，新增 $addedCount 项，重复 $duplicateCount 项',
-          tag: 'JsfAcceptanceCubit',
+          tag: 'JsfAcceptanceController',
         );
       } else {
-        emit(
-          editing.copyWith(
+        _updateState(
+          currentState.copyWith(
             isLoadingAppendMaterials: false,
             message: result.msg,
           ),
         );
       }
     } catch (e) {
-      Logger.error('JSF材料追加失败: $e', tag: 'JsfAcceptanceCubit');
-      final currentState = state;
-      if (currentState is JsfAcceptanceEditingState) {
-        emit(
-          currentState.copyWith(
-            isLoadingAppendMaterials: false,
-            message: '获取物料信息失败',
-          ),
-        );
-      } else {
-        emit(const JsfAcceptanceError(message: '获取物料信息失败'));
-      }
+      Logger.error('JSF材料追加失败: $e', tag: 'JsfAcceptanceController');
+      _updateState(
+        currentState.copyWith(
+          isLoadingAppendMaterials: false,
+          message: '获取物料信息失败',
+        ),
+      );
     }
   }
 
@@ -200,9 +217,6 @@ class JsfAcceptanceCubit extends Cubit<JsfAcceptanceState> {
   ) async {
     try {
       if (event.codes.isEmpty) return;
-
-      final currentState = state;
-      if (currentState is! JsfAcceptanceEditingState) return;
 
       final result = await _materialHandleRepository.scanBatchToQueryAll(
         event.codes,
@@ -214,7 +228,7 @@ class JsfAcceptanceCubit extends Cubit<JsfAcceptanceState> {
             .map((m) => m.baseInfo.materialId)
             .toSet();
 
-        final updatedMaterials = currentState.currentMaterials
+        final updatedMaterials = currentState.materials
             .where((m) => !idsToRemove.contains(m.baseInfo.materialId))
             .toList();
         final updatedIds = updatedMaterials
@@ -222,7 +236,7 @@ class JsfAcceptanceCubit extends Cubit<JsfAcceptanceState> {
             .toSet();
 
         final removedCount =
-            currentState.currentMaterials.length - updatedMaterials.length;
+            currentState.materials.length - updatedMaterials.length;
         final notFoundCount = materialsToRemove.length - removedCount;
 
         String? message;
@@ -234,71 +248,63 @@ class JsfAcceptanceCubit extends Cubit<JsfAcceptanceState> {
           message = '扫描的材料都不在当前列表中，未剔除任何材料';
         }
 
-        emit(
-          JsfAcceptanceEditingState(
-            currentMaterials: updatedMaterials,
+        _updateState(
+          currentState.copyWith(
+            materials: updatedMaterials,
             materialIds: updatedIds,
             message: message,
-            warehouseList: currentState.warehouseList,
-            warehouseUsers: currentState.warehouseUsers,
           ),
         );
 
-        Logger.debug('JSF材料剔除完成，移除 $removedCount 项', tag: 'JsfAcceptanceCubit');
+        Logger.debug(
+          'JSF材料剔除完成，移除 $removedCount 项',
+          tag: 'JsfAcceptanceController',
+        );
       } else {
-        emit(currentState.copyWith(message: result.msg));
+        _updateState(currentState.copyWith(message: result.msg));
       }
     } catch (e) {
-      Logger.error('JSF材料剔除失败: $e', tag: 'JsfAcceptanceCubit');
-      final currentState = state;
-      if (currentState is JsfAcceptanceEditingState) {
-        emit(currentState.copyWith(message: '剔除失败'));
-      } else {
-        emit(const JsfAcceptanceError(message: '剔除失败'));
-      }
+      Logger.error('JSF材料剔除失败: $e', tag: 'JsfAcceptanceController');
+      _updateState(currentState.copyWith(message: '剔除失败'));
     }
   }
 
   Future<void> _onLoadWarehouseList(LoadJsfWarehouseList event) async {
     try {
-      final currentState = state;
-
-      Logger.info('Loading warehouse list for JSF', tag: 'JsfAcceptanceCubit');
+      Logger.info(
+        'Loading warehouse list for JSF',
+        tag: 'JsfAcceptanceController',
+      );
 
       final result = await _acceptanceRepository.getWarehouseList();
 
       if (result.isSuccess && result.data != null) {
         final warehouseList = result.data!;
 
-        // 如果当前是编辑状态，保持编辑状态并更新仓库列表
-        if (currentState is JsfAcceptanceEditingState) {
-          emit(currentState.copyWith(warehouseList: warehouseList));
-        } else {
-          // 发出独立的仓库加载状态
-          emit(JsfAcceptanceWarehouseLoaded(warehouseList: warehouseList));
-        }
+        _updateState(currentState.copyWith(warehouseList: warehouseList));
 
         Logger.debug(
           'JSF仓库列表加载成功，共 ${warehouseList.length} 个仓库',
-          tag: 'JsfAcceptanceCubit',
+          tag: 'JsfAcceptanceController',
         );
       } else {
-        emit(JsfAcceptanceError(message: result.msg));
+        _updateState(currentState.copyWith(errorMessage: result.msg));
       }
     } catch (e) {
-      emit(const JsfAcceptanceError(message: '获取仓库列表失败，请重试'));
+      _updateState(currentState.copyWith(errorMessage: '获取仓库列表失败，请重试'));
       Logger.error(
         'Error loading JSF warehouse list: $e',
-        tag: 'JsfAcceptanceCubit',
+        tag: 'JsfAcceptanceController',
       );
     }
   }
 
   Future<void> _onLoadWarehouseUsers(LoadJsfWarehouseUsers event) async {
     try {
-      final currentState = state;
-
-      Logger.info('Loading warehouse users for JSF', tag: 'JsfAcceptanceCubit');
+      Logger.info(
+        'Loading warehouse users for JSF',
+        tag: 'JsfAcceptanceController',
+      );
 
       final result = await _acceptanceRepository.getWarehouseUsers(
         warehouseId: event.warehouseId,
@@ -307,67 +313,67 @@ class JsfAcceptanceCubit extends Cubit<JsfAcceptanceState> {
       if (result.isSuccess && result.data != null) {
         final warehouseUsers = result.data!.warehouseUsers;
 
-        // 如果当前是编辑状态，保持编辑状态并更新仓库用户列表
-        if (currentState is JsfAcceptanceEditingState) {
-          emit(currentState.copyWith(warehouseUsers: warehouseUsers));
-        } else {
-          // 发出独立的仓库用户加载状态
-          emit(
-            JsfAcceptanceWarehouseUsersLoaded(warehouseUsers: warehouseUsers),
-          );
-        }
+        _updateState(currentState.copyWith(warehouseUsers: warehouseUsers));
 
         Logger.debug(
           'JSF仓库用户加载成功，共 ${warehouseUsers.length} 个用户',
-          tag: 'JsfAcceptanceCubit',
+          tag: 'JsfAcceptanceController',
         );
       } else {
-        emit(JsfAcceptanceError(message: result.msg));
+        _updateState(currentState.copyWith(errorMessage: result.msg));
       }
     } catch (e) {
-      emit(const JsfAcceptanceError(message: '获取仓库用户失败，请重试'));
+      _updateState(currentState.copyWith(errorMessage: '获取仓库用户失败，请重试'));
       Logger.error(
         'Error loading JSF warehouse users: $e',
-        tag: 'JsfAcceptanceCubit',
+        tag: 'JsfAcceptanceController',
       );
     }
   }
 
   Future<void> _onSubmitAcceptance(SubmitJsfAcceptance event) async {
     try {
-      emit(const JsfAcceptanceSubmitting());
-      Logger.info('Submitting JSF acceptance', tag: 'JsfAcceptanceCubit');
+      _updateState(currentState.copyWith(isSubmitting: true));
+      Logger.info('Submitting JSF acceptance', tag: 'JsfAcceptanceController');
 
       final result = await _acceptanceRepository.submitJsfAcceptance(
         event.request,
       );
 
       if (result.isSuccess) {
-        emit(const JsfAcceptanceSubmitted());
+        _updateState(
+          currentState.copyWith(isSubmitting: false, isSubmitted: true),
+        );
         Logger.info(
           'JSF acceptance submitted successfully',
-          tag: 'JsfAcceptanceCubit',
+          tag: 'JsfAcceptanceController',
         );
       } else {
-        emit(JsfAcceptanceError(message: result.msg));
+        _updateState(
+          currentState.copyWith(isSubmitting: false, errorMessage: result.msg),
+        );
         Logger.error(
           'JSF acceptance submission failed: ${result.msg}',
-          tag: 'JsfAcceptanceCubit',
+          tag: 'JsfAcceptanceController',
         );
       }
     } catch (e) {
-      emit(const JsfAcceptanceError(message: '提交验收失败，请重试'));
+      _updateState(
+        currentState.copyWith(isSubmitting: false, errorMessage: '提交验收失败，请重试'),
+      );
       Logger.error(
         'Error submitting JSF acceptance: $e',
-        tag: 'JsfAcceptanceCubit',
+        tag: 'JsfAcceptanceController',
       );
     }
   }
 
   void _onClearMessage(ClearJsfMessage event) {
-    final currentState = state;
-    if (currentState is JsfAcceptanceEditingState) {
-      emit(currentState.copyWith(message: null));
-    }
+    _updateState(currentState.copyWith(message: null, errorMessage: null));
+  }
+
+  /// 释放资源
+  void dispose() {
+    _stateSubject.close();
   }
 }
