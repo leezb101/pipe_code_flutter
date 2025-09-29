@@ -438,12 +438,6 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
   }
 
   Widget _buildAttachmentSection() {
-    String? locationText;
-    LocationService.getCurrentLocation().then((location) {
-      if (location != null) {
-        locationText = '${location.latitude}, ${location.longitude}';
-      }
-    });
     return UnifiedCard(
       title: '附件上传',
       icon: Icons.attach_file,

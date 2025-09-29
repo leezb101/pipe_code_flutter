@@ -1366,6 +1366,8 @@ class _HomePageState extends State<HomePage> {
           ),
         );
         break;
+      case MenuActions.qrScanJsfAcceptance:
+        _showScanModeSelection(context, 'jsfAcceptance');
       default:
         context.showInfoToast('${MenuActions.getDisplayName(action)}: 功能开发中');
     }
@@ -1457,7 +1459,16 @@ class _HomePageState extends State<HomePage> {
                           'data': <String, dynamic>{},
                         },
                       )
-                    : QrScanConfig(scanMode: QrScanMode.single);
+                    : biz == 'jsfAcceptance'
+                        ? QrScanConfig(
+                            scanMode: QrScanMode.single,
+                            context: const {
+                              'entry': 'standalone',
+                              'route': 'jsf-acceptance',
+                              'data': <String, dynamic>{},
+                            },
+                          )
+                        : QrScanConfig(scanMode: QrScanMode.single);
                 _navigateToScan(context, cfg);
               },
             ),
@@ -1478,7 +1489,16 @@ class _HomePageState extends State<HomePage> {
                           'data': <String, dynamic>{},
                         },
                       )
-                    : QrScanConfig(scanMode: QrScanMode.batch);
+                    : biz == 'jsfAcceptance'
+                        ? QrScanConfig(
+                            scanMode: QrScanMode.batch,
+                            context: const {
+                              'entry': 'standalone',
+                              'route': 'jsf-acceptance',
+                              'data': <String, dynamic>{},
+                            },
+                          )
+                        : QrScanConfig(scanMode: QrScanMode.batch);
                 _navigateToScan(context, cfg);
               },
             ),
@@ -1512,6 +1532,9 @@ class _HomePageState extends State<HomePage> {
         break;
       case 'acceptance':
         title = scanMode == QrScanMode.single ? '一码整单' : '批量扫码';
+        break;
+      case 'jsfAcceptance':
+        title = scanMode == QrScanMode.single ? '建设方一码整单' : '建设方批量扫码';
         break;
       default:
         title = scanMode.toString();
@@ -1547,6 +1570,11 @@ class _HomePageState extends State<HomePage> {
         subtitle = scanMode == QrScanMode.single
             ? '单个物料按验收单整单验收'
             : '连续扫描全部物料码验收';
+        break;
+      case 'jsfAcceptance':
+        subtitle = scanMode == QrScanMode.single
+            ? '建设方按验收单整单验收'
+            : '建设方连续扫描物料码验收';
         break;
       default:
         subtitle = '选择扫码模式';

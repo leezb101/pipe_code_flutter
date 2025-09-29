@@ -27,6 +27,15 @@ extension UserRoleMenuExtension on UserRole {
             order: 1,
             isEnabled: !isExpired,
           ),
+          _createMenuItem(
+            id: 'acceptance',
+            title: '验收',
+            type: MenuItemType.action,
+            icon: 'check_circle',
+            action: MenuActions.qrScanJsfAcceptance,
+            order: 2,
+            isEnabled: !isExpired,
+          ),
           // _createMenuItem(
           //   id: 'inventory',
           //   title: '盘点',

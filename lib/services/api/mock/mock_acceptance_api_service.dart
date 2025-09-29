@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:pipe_code_flutter/models/acceptance/jsf_accept_vo.dart';
 import 'package:pipe_code_flutter/models/common/result.dart';
 import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/do_accept_vo.dart';
@@ -218,5 +219,11 @@ class MockAcceptanceApiService implements AcceptanceApiService {
     }
 
     return Result(code: 0, msg: 'success', data: null);
+  }
+
+  @override
+  Future<Result<void>> submitJsfAcceptance(JsfAcceptVO request) {
+    // TODO: implement submitJsfAcceptance
+    throw UnimplementedError();
   }
 }

@@ -9,6 +9,7 @@ import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/do_accept_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/do_accept_sign_in_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
+import 'package:pipe_code_flutter/models/acceptance/jsf_accept_vo.dart';
 import 'package:pipe_code_flutter/models/common/accept_user_info_vo.dart';
 import 'package:pipe_code_flutter/models/common/warehouse_user_info_vo.dart';
 import 'package:pipe_code_flutter/models/records/record_list_response.dart';
@@ -26,11 +27,10 @@ abstract class AcceptanceRepository {
     int pageSize = 10,
   });
   Future<Result<void>> doAcceptanceSignIn(DoAcceptSignInVO request);
-  Future<Result<AcceptUserInfoVO>> getAcceptanceUsers({
-    required int projectId,
-  });
+  Future<Result<AcceptUserInfoVO>> getAcceptanceUsers({required int projectId});
   Future<Result<WarehouseUserInfoVO>> getWarehouseUsers({
     required int warehouseId,
   });
   Future<Result<List<WarehouseVO>>> getWarehouseList();
+  Future<Result<void>> submitJsfAcceptance(JsfAcceptVO request);
 }
