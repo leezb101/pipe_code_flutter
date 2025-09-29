@@ -11,6 +11,25 @@ import 'user_role.dart';
 
 part 'current_user_on_project_role_info.g.dart';
 
+/// 供材类型枚举 0-甲供材，1-乙供材，2-甲乙混供
+enum ProjectSupplyType {
+  jiaGongCai(0),
+  yiGongCai(1),
+  jiaYiHunGong(2);
+
+  final int value;
+  const ProjectSupplyType(this.value);
+
+  static ProjectSupplyType fromJson(int value) {
+    return ProjectSupplyType.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => ProjectSupplyType.jiaGongCai,
+    );
+  }
+
+  int toJson() => value;
+}
+
 /// 当前用户在项目中的角色信息
 /// 完全匹配API文档中的CurrentUserOnProjectRoleInfo结构
 @JsonSerializable()
@@ -23,6 +42,8 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
     required this.currentProjectName,
     required this.currentOrgCode,
     required this.currentOrgName,
+    required this.currentProjectSupplyType,
+    this.currentPurNm,
     this.currentProjectSuperiorUserId,
     this.currentProjectAuthorUserId,
     required this.expire,
@@ -53,6 +74,14 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
   @JsonKey(defaultValue: '')
   final String currentOrgName;
 
+  /// 甲乙供材类型，0-甲供材，1-乙供材，2-甲乙混供
+  @JsonKey(disallowNullValue: true)
+  final ProjectSupplyType currentProjectSupplyType;
+
+  /// 当前项目采购单位名称
+  @JsonKey(defaultValue: '')
+  final String? currentPurNm;
+
   /// 当前选中项目上级授权用户userId，施工方角色存在此字段
   final int? currentProjectSuperiorUserId;
 
@@ -74,6 +103,8 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
     String? currentProjectName,
     String? currentOrgCode,
     String? currentOrgName,
+    String? currentPurNm,
+    ProjectSupplyType? currentProjectSupplyType,
     int? currentProjectSuperiorUserId,
     int? currentProjectAuthorUserId,
     bool? expire,
@@ -87,6 +118,9 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
       currentProjectName: currentProjectName ?? this.currentProjectName,
       currentOrgCode: currentOrgCode ?? this.currentOrgCode,
       currentOrgName: currentOrgName ?? this.currentOrgName,
+      currentProjectSupplyType:
+          currentProjectSupplyType ?? this.currentProjectSupplyType,
+      currentPurNm: currentPurNm ?? this.currentPurNm,
       currentProjectSuperiorUserId:
           currentProjectSuperiorUserId ?? this.currentProjectSuperiorUserId,
       currentProjectAuthorUserId:
@@ -104,6 +138,8 @@ class CurrentUserOnProjectRoleInfo extends Equatable {
     currentProjectName,
     currentOrgCode,
     currentOrgName,
+    currentProjectSupplyType,
+    currentPurNm,
     currentProjectSuperiorUserId,
     currentProjectAuthorUserId,
     expire,

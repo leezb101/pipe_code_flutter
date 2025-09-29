@@ -157,6 +157,9 @@ class SessionProjectEstablished extends SessionState {
     orgName: currentUserRoleInfo.currentOrgName,
   );
 
+  /// 获取当前项目采购单位名称
+  String get projectPurNm => currentUserRoleInfo.currentPurNm ?? '';
+
   /// 获取当前项目信息 (别名)
   ProjectInfo get currentProject => project;
 

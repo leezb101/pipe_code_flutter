@@ -10,7 +10,6 @@ import 'package:rxdart/rxdart.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
-import 'package:pipe_code_flutter/models/acceptance/jsf_accept_vo.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import 'jsf_acceptance_event.dart';
 import 'jsf_acceptance_state.dart';
@@ -43,16 +42,16 @@ class JsfAcceptanceCubit {
   }
 
   /// 处理事件
-  void handleEvent(JsfAcceptanceEvent event) {
+  void handleEvent(JsfAcceptanceEvent event, {String? projectPurNm}) {
     switch (event) {
       case InitializeJsfMaterials():
-        _onInitializeMaterials(event);
+        _onInitializeMaterials(event, projectPurNm: projectPurNm);
         break;
       case InitializeJsfMaterialsFromCodes():
-        _onInitializeMaterialsFromCodes(event);
+        _onInitializeMaterialsFromCodes(event, projectPurNm: projectPurNm);
         break;
       case AppendJsfMaterialsByCodes():
-        _onAppendMaterialsByCodes(event);
+        _onAppendMaterialsByCodes(event, projectPurNm: projectPurNm);
         break;
       case RemoveJsfMaterialsByCodes():
         _onRemoveMaterialsByCodes(event);
@@ -69,18 +68,32 @@ class JsfAcceptanceCubit {
       case ClearJsfMessage():
         _onClearMessage(event);
         break;
+      case ConfirmPurchaserValidationWarning():
+        _onConfirmPurchaserValidationWarning(event);
+        break;
     }
   }
 
-  void _onInitializeMaterials(InitializeJsfMaterials event) {
+  void _onInitializeMaterials(
+    InitializeJsfMaterials event, {
+    String? projectPurNm,
+  }) {
     final materialIds = event.materials
         .map((m) => m.baseInfo.materialId)
         .toSet();
+
+    // 检查采购方不匹配的材料
+    final mismatchMaterials = _checkPurchaserMismatch(
+      event.materials,
+      projectPurNm,
+    );
 
     _updateState(
       currentState.copyWith(
         materials: event.materials,
         materialIds: materialIds,
+        showPurchaserValidationWarning: mismatchMaterials.isNotEmpty,
+        purchaserMismatchMaterials: mismatchMaterials,
       ),
     );
 
@@ -88,11 +101,19 @@ class JsfAcceptanceCubit {
       'Initialized JSF materials with ${event.materials.length} items',
       tag: 'JsfAcceptanceController',
     );
+
+    if (mismatchMaterials.isNotEmpty) {
+      Logger.warning(
+        'Found ${mismatchMaterials.length} materials with purchaser mismatch',
+        tag: 'JsfAcceptanceController',
+      );
+    }
   }
 
   Future<void> _onInitializeMaterialsFromCodes(
-    InitializeJsfMaterialsFromCodes event,
-  ) async {
+    InitializeJsfMaterialsFromCodes event, {
+    String? projectPurNm,
+  }) async {
     try {
       if (event.codes.isEmpty) return;
 
@@ -106,11 +127,19 @@ class JsfAcceptanceCubit {
         final materials = result.data!.normals;
         final materialIds = materials.map((m) => m.baseInfo.materialId).toSet();
 
+        // 检查采购方不匹配的材料
+        final mismatchMaterials = _checkPurchaserMismatch(
+          materials,
+          projectPurNm,
+        );
+
         _updateState(
           currentState.copyWith(
             materials: materials,
             materialIds: materialIds,
             isLoadingMaterials: false,
+            showPurchaserValidationWarning: mismatchMaterials.isNotEmpty,
+            purchaserMismatchMaterials: mismatchMaterials,
           ),
         );
 
@@ -118,6 +147,13 @@ class JsfAcceptanceCubit {
           'JSF材料初始化完成，共 ${materials.length} 项',
           tag: 'JsfAcceptanceController',
         );
+
+        if (mismatchMaterials.isNotEmpty) {
+          Logger.warning(
+            'Found ${mismatchMaterials.length} materials with purchaser mismatch',
+            tag: 'JsfAcceptanceController',
+          );
+        }
       } else {
         _updateState(
           currentState.copyWith(
@@ -138,8 +174,9 @@ class JsfAcceptanceCubit {
   }
 
   Future<void> _onAppendMaterialsByCodes(
-    AppendJsfMaterialsByCodes event,
-  ) async {
+    AppendJsfMaterialsByCodes event, {
+    String? projectPurNm,
+  }) async {
     try {
       if (event.codes.isEmpty) return;
 
@@ -171,6 +208,12 @@ class JsfAcceptanceCubit {
           }
         }
 
+        // 检查新添加材料的采购方匹配情况
+        final mismatchMaterials = _checkPurchaserMismatch(
+          updatedMaterials,
+          projectPurNm,
+        );
+
         String? message;
         if (addedCount > 0 && duplicateCount > 0) {
           message = '成功追加 $addedCount 项材料，跳过 $duplicateCount 项重复材料';
@@ -186,6 +229,8 @@ class JsfAcceptanceCubit {
             materialIds: updatedIds,
             isLoadingAppendMaterials: false,
             message: message,
+            showPurchaserValidationWarning: mismatchMaterials.isNotEmpty,
+            purchaserMismatchMaterials: mismatchMaterials,
           ),
         );
 
@@ -193,6 +238,13 @@ class JsfAcceptanceCubit {
           'JSF材料追加完成，新增 $addedCount 项，重复 $duplicateCount 项',
           tag: 'JsfAcceptanceController',
         );
+
+        if (mismatchMaterials.isNotEmpty) {
+          Logger.warning(
+            'Found ${mismatchMaterials.length} materials with purchaser mismatch after append',
+            tag: 'JsfAcceptanceController',
+          );
+        }
       } else {
         _updateState(
           currentState.copyWith(
@@ -370,6 +422,44 @@ class JsfAcceptanceCubit {
 
   void _onClearMessage(ClearJsfMessage event) {
     _updateState(currentState.copyWith(message: null, errorMessage: null));
+  }
+
+  void _onConfirmPurchaserValidationWarning(
+    ConfirmPurchaserValidationWarning event,
+  ) {
+    _updateState(
+      currentState.copyWith(
+        showPurchaserValidationWarning: false,
+        purchaserMismatchMaterials: const [],
+      ),
+    );
+    Logger.info(
+      'User confirmed purchaser validation warning',
+      tag: 'JsfAcceptanceController',
+    );
+  }
+
+  /// 检查材料采购方与项目采购方是否匹配
+  List<String> _checkPurchaserMismatch(
+    List<MaterialInfo> materials,
+    String? projectPurNm,
+  ) {
+    if (projectPurNm == null || projectPurNm.isEmpty) {
+      return []; // 如果没有项目采购方信息，跳过验证
+    }
+
+    final mismatchMaterials = <String>[];
+    for (final material in materials) {
+      final materialPurNm = material.baseInfo.purNm;
+      if (materialPurNm != null &&
+          materialPurNm.isNotEmpty &&
+          materialPurNm != projectPurNm) {
+        final materialName = material.baseInfo.prodNm ?? '未知材料';
+        mismatchMaterials.add('$materialName (采购方: $materialPurNm)');
+      }
+    }
+
+    return mismatchMaterials;
   }
 
   /// 释放资源

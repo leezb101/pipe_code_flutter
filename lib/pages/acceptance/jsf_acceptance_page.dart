@@ -34,6 +34,7 @@ import 'package:pipe_code_flutter/widgets/material/material_detail_display.dart'
 import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
+import 'package:pipe_code_flutter/utils/toast_utils.dart';
 
 class JsfAcceptancePage extends StatelessWidget {
   const JsfAcceptancePage({
@@ -102,6 +103,9 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
   // 标记是否已经加载了仓库列表，避免重复加载
   bool _hasLoadedWarehouses = false;
 
+  // 标记是否已经显示了采购方验证警告对话框，避免重复显示
+  bool _hasShownPurchaserWarning = false;
+
   @override
   void initState() {
     super.initState();
@@ -126,12 +130,22 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     // 如从Standalone扫码跳转而来，带有codes，则先让cubit解析
     final codes = widget.initialCodes ?? const <String>[];
     if (codes.isNotEmpty) {
-      _controller.handleEvent(
-        InitializeJsfMaterialsFromCodes(
-          codes: codes,
-          isBatch: widget.initialIsBatch ?? true,
-        ),
-      );
+      // 获取当前项目采购方名称
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final sessionState = context.read<SessionBloc>().state;
+        String? projectPurNm;
+        if (sessionState is SessionProjectEstablished) {
+          projectPurNm = sessionState.projectPurNm;
+        }
+
+        _controller.handleEvent(
+          InitializeJsfMaterialsFromCodes(
+            codes: codes,
+            isBatch: widget.initialIsBatch ?? true,
+          ),
+          projectPurNm: projectPurNm,
+        );
+      });
     }
   }
 
@@ -202,37 +216,38 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
       // 处理消息显示
       if (state.message != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: Colors.blue,
-              content: Text(state.message!),
-            ),
-          );
+          context.showInfoToast(state.message!);
           _controller.handleEvent(const ClearJsfMessage());
         });
       }
     }
 
+    // 显示采购方验证警告对话框
+    if (state.showPurchaserValidationWarning && !_hasShownPurchaserWarning) {
+      _hasShownPurchaserWarning = true; // 标记已显示，防止重复弹窗
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showPurchaserValidationWarning(
+          context,
+          state.purchaserMismatchMaterials,
+        );
+      });
+    }
+
+    // 当警告状态重置时，也重置显示标志
+    if (!state.showPurchaserValidationWarning && _hasShownPurchaserWarning) {
+      _hasShownPurchaserWarning = false;
+    }
+
     if (state.isSubmitted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: Colors.green,
-            content: Text('验收提交成功'),
-          ),
-        );
+        context.showSuccessToast('验收提交成功');
         context.pop();
       });
     }
 
     if (state.errorMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.errorMessage!),
-            backgroundColor: Colors.red,
-          ),
-        );
+        context.showErrorToast(state.errorMessage!);
       });
     }
 
@@ -811,9 +826,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     // 优先从编辑态取材；否则无材料则提示
     final currentState = _controller.currentState;
     if (currentState.materials.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('请先扫码添加材料')));
+      context.showErrorToast('请先扫码添加材料');
       return;
     }
 
@@ -825,9 +838,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     }
 
     if (projectId == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('无法获取项目信息')));
+      context.showErrorToast('无法获取项目信息');
       return;
     }
 
@@ -918,12 +929,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     // 通过Controller提交验收数据
     _controller.handleEvent(SubmitJsfAcceptance(request: jsfAcceptVO));
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        backgroundColor: Colors.blue,
-        content: Text('正在提交验收数据...'),
-      ),
-    );
+    context.showInfoToast('正在提交验收数据...');
   }
 
   void _handleReturn() {
@@ -988,8 +994,19 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.addedCodes.isEmpty) return;
+
+    // 获取当前项目采购方名称
+    final sessionState = context.read<SessionBloc>().state;
+    String? projectPurNm;
+    if (sessionState is SessionProjectEstablished) {
+      projectPurNm = sessionState.projectPurNm;
+    }
+
     // Delegate code resolution to controller
-    _controller.handleEvent(AppendJsfMaterialsByCodes(codes: res.addedCodes));
+    _controller.handleEvent(
+      AppendJsfMaterialsByCodes(codes: res.addedCodes),
+      projectPurNm: projectPurNm,
+    );
   }
 
   // 扫码剔除
@@ -1024,5 +1041,99 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
 
     _hasLoadedWarehouses = true;
     _controller.handleEvent(const LoadJsfWarehouseList());
+  }
+
+  /// 显示采购方验证警告对话框
+  void _showPurchaserValidationWarning(
+    BuildContext context,
+    List<String> mismatchMaterials,
+  ) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // 不允许点击外部关闭
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning, color: Colors.orange, size: 28),
+              const SizedBox(width: 12),
+              const Text('采购方验证警告'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '检测到以下材料不属于当前建设方采购的材料，继续验收操作可能出错：',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 200),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: mismatchMaterials
+                        .map(
+                          (material) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '• ',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    material,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                '请确认是否继续验收操作？',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // 关闭对话框
+                context.pop(); // 退出当前页面
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
+              child: const Text('取消操作'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // 关闭对话框
+                _controller.handleEvent(
+                  const ConfirmPurchaserValidationWarning(),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('仍然继续'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

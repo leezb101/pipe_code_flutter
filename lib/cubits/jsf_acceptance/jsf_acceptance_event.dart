@@ -90,3 +90,8 @@ final class SubmitJsfAcceptance extends JsfAcceptanceEvent {
 final class ClearJsfMessage extends JsfAcceptanceEvent {
   const ClearJsfMessage();
 }
+
+/// 确认采购方验证警告，继续操作
+final class ConfirmPurchaserValidationWarning extends JsfAcceptanceEvent {
+  const ConfirmPurchaserValidationWarning();
+}

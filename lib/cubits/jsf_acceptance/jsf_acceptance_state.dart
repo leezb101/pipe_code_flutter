@@ -22,6 +22,8 @@ class JsfAcceptanceState extends Equatable {
   final List<WarehouseVO> warehouseList;
   final List<CommonUserVO> warehouseUsers;
   final bool isSubmitted;
+  final bool showPurchaserValidationWarning;
+  final List<String> purchaserMismatchMaterials;
 
   const JsfAcceptanceState({
     this.materials = const [],
@@ -34,6 +36,8 @@ class JsfAcceptanceState extends Equatable {
     this.warehouseList = const [],
     this.warehouseUsers = const [],
     this.isSubmitted = false,
+    this.showPurchaserValidationWarning = false,
+    this.purchaserMismatchMaterials = const [],
   });
 
   @override
@@ -48,6 +52,8 @@ class JsfAcceptanceState extends Equatable {
     warehouseList,
     warehouseUsers,
     isSubmitted,
+    showPurchaserValidationWarning,
+    purchaserMismatchMaterials,
   ];
 
   JsfAcceptanceState copyWith({
@@ -61,6 +67,8 @@ class JsfAcceptanceState extends Equatable {
     List<WarehouseVO>? warehouseList,
     List<CommonUserVO>? warehouseUsers,
     bool? isSubmitted,
+    bool? showPurchaserValidationWarning,
+    List<String>? purchaserMismatchMaterials,
   }) {
     return JsfAcceptanceState(
       materials: materials ?? this.materials,
@@ -74,6 +82,10 @@ class JsfAcceptanceState extends Equatable {
       warehouseList: warehouseList ?? this.warehouseList,
       warehouseUsers: warehouseUsers ?? this.warehouseUsers,
       isSubmitted: isSubmitted ?? this.isSubmitted,
+      showPurchaserValidationWarning:
+          showPurchaserValidationWarning ?? this.showPurchaserValidationWarning,
+      purchaserMismatchMaterials:
+          purchaserMismatchMaterials ?? this.purchaserMismatchMaterials,
     );
   }
 }

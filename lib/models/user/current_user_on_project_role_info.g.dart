@@ -8,19 +8,27 @@ part of 'current_user_on_project_role_info.dart';
 
 CurrentUserOnProjectRoleInfo _$CurrentUserOnProjectRoleInfoFromJson(
   Map<String, dynamic> json,
-) => CurrentUserOnProjectRoleInfo(
-  projectRoleType: $enumDecode(_$UserRoleEnumMap, json['projectRoleType']),
-  currentProjectId: (json['currentProjectId'] as num).toInt(),
-  currentProjectCode: json['currentProjectCode'] as String,
-  currentProjectName: json['currentProjectName'] as String,
-  currentOrgCode: json['currentOrgCode'] as String? ?? '',
-  currentOrgName: json['currentOrgName'] as String? ?? '',
-  currentProjectSuperiorUserId: (json['currentProjectSuperiorUserId'] as num?)
-      ?.toInt(),
-  currentProjectAuthorUserId: (json['currentProjectAuthorUserId'] as num?)
-      ?.toInt(),
-  expire: json['expire'] as bool,
-);
+) {
+  $checkKeys(json, disallowNullValues: const ['currentProjectSupplyType']);
+  return CurrentUserOnProjectRoleInfo(
+    projectRoleType: $enumDecode(_$UserRoleEnumMap, json['projectRoleType']),
+    currentProjectId: (json['currentProjectId'] as num).toInt(),
+    currentProjectCode: json['currentProjectCode'] as String,
+    currentProjectName: json['currentProjectName'] as String,
+    currentOrgCode: json['currentOrgCode'] as String? ?? '',
+    currentOrgName: json['currentOrgName'] as String? ?? '',
+    currentProjectSupplyType: $enumDecode(
+      _$ProjectSupplyTypeEnumMap,
+      json['currentProjectSupplyType'],
+    ),
+    currentPurNm: json['currentPurNm'] as String? ?? '',
+    currentProjectSuperiorUserId: (json['currentProjectSuperiorUserId'] as num?)
+        ?.toInt(),
+    currentProjectAuthorUserId: (json['currentProjectAuthorUserId'] as num?)
+        ?.toInt(),
+    expire: json['expire'] as bool,
+  );
+}
 
 Map<String, dynamic> _$CurrentUserOnProjectRoleInfoToJson(
   CurrentUserOnProjectRoleInfo instance,
@@ -31,6 +39,8 @@ Map<String, dynamic> _$CurrentUserOnProjectRoleInfoToJson(
   'currentProjectName': instance.currentProjectName,
   'currentOrgCode': instance.currentOrgCode,
   'currentOrgName': instance.currentOrgName,
+  'currentProjectSupplyType': instance.currentProjectSupplyType,
+  'currentPurNm': instance.currentPurNm,
   'currentProjectSuperiorUserId': instance.currentProjectSuperiorUserId,
   'currentProjectAuthorUserId': instance.currentProjectAuthorUserId,
   'expire': instance.expire,
@@ -46,4 +56,10 @@ const _$UserRoleEnumMap = {
   UserRole.laborer: 6,
   UserRole.playgoer: 7,
   UserRole.storekeeper: 8,
+};
+
+const _$ProjectSupplyTypeEnumMap = {
+  ProjectSupplyType.jiaGongCai: 'jiaGongCai',
+  ProjectSupplyType.yiGongCai: 'yiGongCai',
+  ProjectSupplyType.jiaYiHunGong: 'jiaYiHunGong',
 };
