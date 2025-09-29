@@ -86,6 +86,17 @@ class LocationService {
     }
   }
 
+  static Future<String> _getCurrentAddress() async {
+    // 这里需要先调用 getCurrentLocation 方法，确保已经获取了经纬度
+    final location = await getCurrentLocation();
+    if (location == null) {
+      return '暂无有效位置';
+    }
+    //TODO: 这里可以调用其他服务来根据经纬度获取地址信息
+
+    return '未知地址';
+  }
+
   /// Checks and requests location permissions.
   ///
   /// Returns `true` if permission is granted, `false` otherwise.
