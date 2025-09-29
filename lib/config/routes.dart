@@ -49,6 +49,7 @@ import '../pages/acceptance/acceptance_page.dart';
 import '../pages/acceptance/acceptance_detail_page.dart';
 import '../pages/acceptance/acceptance_confirmation_page.dart';
 import '../pages/acceptance/acceptance_after_signin_page.dart';
+import '../pages/acceptance/jsf_acceptance_page.dart';
 import '../pages/dispatch/dispatch_confirmation_page.dart';
 import '../pages/dispatch/dispatch_detail_page.dart';
 import '../bloc/acceptance/acceptance_bloc.dart';
@@ -223,6 +224,21 @@ final GoRouter appRouter = GoRouter(
                 ),
               ],
               child: AcceptanceAfterSigninPage(acceptanceId: acceptanceId),
+            );
+          },
+        ),
+        GoRoute(
+          path: 'jsf-acceptance',
+          name: 'jsf-acceptance',
+          builder: (context, state) {
+            final data = state.extra as Map<String, dynamic>?;
+            final materials = data?['materialInfo'] as MaterialInfoForBusiness?;
+            final codes = data?['codes'] as List<String>?;
+            final isBatch = (data?['isBatch'] as bool?) ?? false;
+            return JsfAcceptancePage(
+              materials: materials,
+              initialCodes: codes,
+              initialIsBatch: isBatch,
             );
           },
         ),

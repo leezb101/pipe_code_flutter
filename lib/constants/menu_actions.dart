@@ -21,6 +21,7 @@ class MenuActions {
   static const String qrScanInventory = 'qr_scan_inventory';
   static const String qrScanPipeCopy = 'qr_scan_pipe_copy';
   static const String qrScanAcceptance = 'qr_scan_acceptance';
+  static const String qrScanJsfAcceptance = 'qr_scan_jsf_acceptance';
   static const String qrIdentify = 'qr_identify';
   static const String qrScanScrap = 'qr_scan_scrap';
 
@@ -39,6 +40,7 @@ class MenuActions {
     qrScanPipeCopy,
     qrScanScrap,
     qrScanAcceptance,
+    qrScanJsfAcceptance,
     qrIdentify,
     setDelegate,
   ];
@@ -65,6 +67,8 @@ class MenuActions {
         return '截管复制扫码';
       case qrScanAcceptance:
         return '验收扫码';
+      case qrScanJsfAcceptance:
+        return '建设方验收扫码';
       case qrScanScrap:
         return '报废扫码';
       case qrIdentify:

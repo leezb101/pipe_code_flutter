@@ -149,12 +149,18 @@ class AcceptanceEditingState extends AcceptanceState {
   final bool isLoadingInitialMaterials; // 首次加载材料状态
   final bool isLoadingAppendMaterials; // 追加材料加载状态
 
+  // Purchaser validation warning
+  final bool showPurchaserValidationWarning;
+  final List<String> purchaserMismatchMaterials;
+
   const AcceptanceEditingState({
     required this.currentMaterials,
     required this.materialIds,
     this.message,
     this.isLoadingInitialMaterials = false,
     this.isLoadingAppendMaterials = false,
+    this.showPurchaserValidationWarning = false,
+    this.purchaserMismatchMaterials = const [],
   });
 
   AcceptanceEditingState copyWith({
@@ -164,6 +170,8 @@ class AcceptanceEditingState extends AcceptanceState {
     bool clearMessage = false,
     bool? isLoadingInitialMaterials,
     bool? isLoadingAppendMaterials,
+    bool? showPurchaserValidationWarning,
+    List<String>? purchaserMismatchMaterials,
   }) {
     return AcceptanceEditingState(
       currentMaterials: currentMaterials ?? this.currentMaterials,
@@ -173,6 +181,10 @@ class AcceptanceEditingState extends AcceptanceState {
           isLoadingInitialMaterials ?? this.isLoadingInitialMaterials,
       isLoadingAppendMaterials:
           isLoadingAppendMaterials ?? this.isLoadingAppendMaterials,
+      showPurchaserValidationWarning:
+          showPurchaserValidationWarning ?? this.showPurchaserValidationWarning,
+      purchaserMismatchMaterials:
+          purchaserMismatchMaterials ?? this.purchaserMismatchMaterials,
     );
   }
 
@@ -183,6 +195,8 @@ class AcceptanceEditingState extends AcceptanceState {
     message,
     isLoadingInitialMaterials,
     isLoadingAppendMaterials,
+    showPurchaserValidationWarning,
+    purchaserMismatchMaterials,
   ];
 }
 

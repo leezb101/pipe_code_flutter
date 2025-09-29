@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
+import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
 import '../../models/acceptance/do_accept_vo.dart';
 import '../../models/acceptance/do_accept_sign_in_vo.dart';
 
@@ -123,13 +124,22 @@ class InitializeMaterialsFromCodes extends AcceptanceEvent {
 
   /// True if codes came from a batch scan session (even if length == 1)
   final bool isBatch;
+
+  /// Project purchase name for purchaser validation
+  final String? projectPurNm;
+
+  /// Project supply type for validation control
+  final ProjectSupplyType? supplyType;
+
   const InitializeMaterialsFromCodes({
     required this.codes,
     required this.isBatch,
+    this.projectPurNm,
+    this.supplyType,
   });
 
   @override
-  List<Object?> get props => [codes, isBatch];
+  List<Object?> get props => [codes, isBatch, projectPurNm, supplyType];
 }
 
 // Embedded append: scan more codes and resolve to materials
@@ -153,18 +163,40 @@ class RemoveMaterialsByCodes extends AcceptanceEvent {
 // ========== AcceptancePage editing flow (centralize list ops in bloc) ==========
 class InitializeEditingMaterials extends AcceptanceEvent {
   final List<MaterialInfo> initial;
-  const InitializeEditingMaterials({required this.initial});
+
+  /// Project purchase name for purchaser validation
+  final String? projectPurNm;
+
+  /// Project supply type for validation control
+  final ProjectSupplyType? supplyType;
+
+  const InitializeEditingMaterials({
+    required this.initial,
+    this.projectPurNm,
+    this.supplyType,
+  });
 
   @override
-  List<Object?> get props => [initial];
+  List<Object?> get props => [initial, projectPurNm, supplyType];
 }
 
 class AppendEditingMaterialsByCodes extends AcceptanceEvent {
   final List<String> codes;
-  const AppendEditingMaterialsByCodes({required this.codes});
+
+  /// Project purchase name for purchaser validation
+  final String? projectPurNm;
+
+  /// Project supply type for validation control
+  final ProjectSupplyType? supplyType;
+
+  const AppendEditingMaterialsByCodes({
+    required this.codes,
+    this.projectPurNm,
+    this.supplyType,
+  });
 
   @override
-  List<Object?> get props => [codes];
+  List<Object?> get props => [codes, projectPurNm, supplyType];
 }
 
 class RemoveEditingMaterialsByCodes extends AcceptanceEvent {
@@ -178,6 +210,14 @@ class RemoveEditingMaterialsByCodes extends AcceptanceEvent {
 // Clear transient feedback message from AcceptanceEditingState
 class ClearEditingMessage extends AcceptanceEvent {
   const ClearEditingMessage();
+
+  @override
+  List<Object?> get props => [];
+}
+
+// Confirm purchaser validation warning and continue with acceptance
+class ConfirmPurchaserValidationWarning extends AcceptanceEvent {
+  const ConfirmPurchaserValidationWarning();
 
   @override
   List<Object?> get props => [];

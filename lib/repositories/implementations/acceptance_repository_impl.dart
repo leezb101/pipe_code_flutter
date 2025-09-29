@@ -9,6 +9,7 @@ import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/do_accept_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/do_accept_sign_in_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
+import 'package:pipe_code_flutter/models/acceptance/jsf_accept_vo.dart';
 import 'package:pipe_code_flutter/models/common/accept_user_info_vo.dart';
 import 'package:pipe_code_flutter/models/common/warehouse_user_info_vo.dart';
 import 'package:pipe_code_flutter/models/records/record_list_response.dart';
@@ -282,6 +283,38 @@ class AcceptanceRepositoryImpl implements AcceptanceRepository {
         tag: 'AcceptanceRepository',
       );
       return Result(code: -1, msg: '获取仓库列表失败，请重试', data: null);
+    }
+  }
+
+  @override
+  Future<Result<void>> submitJsfAcceptance(JsfAcceptVO request) async {
+    try {
+      Logger.info(
+        'Submitting JSF acceptance request',
+        tag: 'AcceptanceRepository',
+      );
+      final result = await _apiService.submitJsfAcceptance(request);
+
+      if (result.isSuccess) {
+        Logger.info(
+          'JSF acceptance submitted successfully',
+          tag: 'AcceptanceRepository',
+        );
+        // Clear cache after successful submission if needed
+      } else {
+        Logger.error(
+          'Failed to submit JSF acceptance: ${result.msg}',
+          tag: 'AcceptanceRepository',
+        );
+      }
+
+      return result;
+    } catch (e) {
+      Logger.error(
+        'Error submitting JSF acceptance: $e',
+        tag: 'AcceptanceRepository',
+      );
+      return Result(code: -1, msg: '提交建设方验收失败，请重试', data: null);
     }
   }
 }

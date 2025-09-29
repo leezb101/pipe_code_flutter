@@ -77,12 +77,15 @@ class ProjectRoleInfoLoaded extends ProjectState {
   UserRole get currentUserRole => currentUserRoleInfo.projectRoleType;
 
   /// 获取当前角色的菜单项
-  List<MenuItem> get menuItems =>
-      currentUserRole.getMenuItemsWithExpireState(currentUserRoleInfo.expire);
+  List<MenuItem> get menuItems => currentUserRole.getMenuItemsWithExpireState(
+    currentUserRoleInfo.expire,
+    supplyType: currentUserRoleInfo.currentProjectSupplyType,
+  );
 
   /// 获取启用的菜单项
   List<MenuItem> get enabledMenuItems => currentUserRole.getEnabledMenuItems(
     isExpired: currentUserRoleInfo.expire,
+    supplyType: currentUserRoleInfo.currentProjectSupplyType,
   );
 
   /// 检查是否有指定菜单项
