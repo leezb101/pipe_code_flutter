@@ -8,6 +8,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
+import 'package:pipe_code_flutter/models/material/material_info_base.dart';
+import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
 import '../../repositories/interfaces/acceptance_repository.dart';
 import '../../repositories/interfaces/material_handle_repository.dart';
 import '../../utils/logger.dart';
@@ -41,6 +43,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     on<AppendEditingMaterialsByCodes>(_onAppendEditingMaterialsByCodes);
     on<RemoveEditingMaterialsByCodes>(_onRemoveEditingMaterialsByCodes);
     on<ClearEditingMessage>(_onClearEditingMessage);
+    on<ConfirmPurchaserValidationWarning>(_onConfirmPurchaserValidationWarning);
   }
 
   Future<void> _onLoadAcceptanceDetail(
@@ -527,6 +530,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
             );
       if (rsp.isSuccess && rsp.data != null) {
         final MaterialInfoForBusiness bundle = rsp.data!;
+
+        // 检查采购方不匹配的材料
+        final mismatchMaterials = _checkPurchaserMismatch(
+          bundle.normals,
+          event.projectPurNm,
+          event.supplyType,
+        );
+
         Logger.debug('扫码进入并完成获取信息，即将发出结果', tag: 'AcceptanceBloc');
         emit(
           AcceptanceMaterialsResolved(
@@ -536,6 +547,16 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           ),
         );
         Logger.debug('扫码进入并完成获取信息，【完成】发出结果', tag: 'AcceptanceBloc');
+
+        // 如果有采购方不匹配的材料，需要在材料初始化后触发警告状态
+        if (mismatchMaterials.isNotEmpty) {
+          Logger.warning(
+            'Found ${mismatchMaterials.length} materials with purchaser mismatch in acceptance',
+            tag: 'AcceptanceBloc',
+          );
+
+          // 注意：这里需要在后续的 InitializeEditingMaterials 处理中设置警告状态
+        }
       } else {
         emit(AcceptanceError(message: rsp.msg));
       }
@@ -654,17 +675,35 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     Emitter<AcceptanceState> emit,
   ) {
     final ids = event.initial.map((m) => m.baseInfo.materialId).toSet();
+
+    // 检查采购方不匹配的材料
+    final mismatchMaterials = _checkPurchaserMismatch(
+      event.initial,
+      event.projectPurNm,
+      event.supplyType,
+    );
+
     emit(
       AcceptanceEditingState(
         currentMaterials: List.of(event.initial),
         materialIds: ids,
         message: null,
+        showPurchaserValidationWarning: mismatchMaterials.isNotEmpty,
+        purchaserMismatchMaterials: mismatchMaterials,
       ),
     );
+
     Logger.debug(
       'Initialized editing materials with ${event.initial.length} items',
       tag: 'AcceptanceBloc',
     );
+
+    if (mismatchMaterials.isNotEmpty) {
+      Logger.warning(
+        'Found ${mismatchMaterials.length} materials with purchaser mismatch in acceptance editing',
+        tag: 'AcceptanceBloc',
+      );
+    }
   }
 
   Future<void> _onAppendEditingMaterialsByCodes(
@@ -711,6 +750,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         list.add(m);
         added++;
       }
+
+      // 检查新添加材料的采购方匹配情况
+      final mismatchMaterials = _checkPurchaserMismatch(
+        list,
+        event.projectPurNm,
+        event.supplyType,
+      );
+
       emit(
         editing.copyWith(
           currentMaterials: list,
@@ -719,12 +766,22 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
               ? '新增 $added 个${dup > 0 ? '，忽略重复 $dup 个' : ''}'
               : '暂无可新增物料',
           isLoadingAppendMaterials: false, // 清除加载状态
+          showPurchaserValidationWarning: mismatchMaterials.isNotEmpty,
+          purchaserMismatchMaterials: mismatchMaterials,
         ),
       );
+
       Logger.debug(
         'AppendEditingMaterialsByCodes - added $added new materials, ignored $dup duplicates',
         tag: 'AcceptanceBloc',
       );
+
+      if (mismatchMaterials.isNotEmpty) {
+        Logger.warning(
+          'Found ${mismatchMaterials.length} materials with purchaser mismatch after append in acceptance',
+          tag: 'AcceptanceBloc',
+        );
+      }
     } catch (e) {
       Logger.error(
         'Append editing materials failed: $e',
@@ -806,5 +863,68 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     if (currentState is AcceptanceEditingState) {
       emit(currentState.copyWith(clearMessage: true));
     }
+  }
+
+  void _onConfirmPurchaserValidationWarning(
+    ConfirmPurchaserValidationWarning event,
+    Emitter<AcceptanceState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is AcceptanceEditingState) {
+      emit(
+        currentState.copyWith(
+          showPurchaserValidationWarning: false,
+          purchaserMismatchMaterials: const [],
+        ),
+      );
+      Logger.info(
+        'User confirmed purchaser validation warning for acceptance',
+        tag: 'AcceptanceBloc',
+      );
+    }
+  }
+
+  /// 检查材料采购方与项目采购方是否匹配（施工方验收逻辑）
+  List<String> _checkPurchaserMismatch(
+    List<MaterialInfo> materials,
+    String? projectPurNm,
+    ProjectSupplyType? supplyType,
+  ) {
+    // 前置判断：根据供材类型决定是否需要进行purNm检查
+    if (supplyType == null) {
+      return []; // 如果没有供材类型信息，跳过验证
+    }
+
+    // 如果是"乙供材"，则不需要进行purNm判断，直接返回空列表
+    if (supplyType == ProjectSupplyType.yiGongCai) {
+      return [];
+    }
+
+    // 如果是"甲供材"，菜单阶段应该已经拦截，但为安全起见也跳过purNm判断
+    if (supplyType == ProjectSupplyType.jiaGongCai) {
+      return [];
+    }
+
+    // 只有"甲乙混供"时，才需要进行purNm判断
+    if (supplyType != ProjectSupplyType.jiaYiHunGong) {
+      return [];
+    }
+
+    if (projectPurNm == null || projectPurNm.isEmpty) {
+      return []; // 如果没有项目采购方信息，跳过验证
+    }
+
+    final mismatchMaterials = <String>[];
+    for (final material in materials) {
+      final materialPurNm = material.baseInfo.purNm;
+      if (materialPurNm != null &&
+          materialPurNm.isNotEmpty &&
+          materialPurNm != projectPurNm) {
+        final materialName = material.baseInfo.prodNm ?? '未知材料';
+        mismatchMaterials.add('$materialName (采购方: $materialPurNm)');
+      }
+    }
+
+    return mismatchMaterials;
   }
 }

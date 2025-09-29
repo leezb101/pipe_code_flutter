@@ -322,6 +322,8 @@ class MockAuthApiService implements AuthApiService {
       currentProjectName: '智慧水务项目_$projectId',
       currentOrgCode: 'ORG${(projectId % 3 + 1).toString().padLeft(3, '0')}',
       currentOrgName: '组织机构_${projectId % 3 + 1}',
+      currentProjectSupplyType: ProjectSupplyType
+          .values[projectId % ProjectSupplyType.values.length], // 根据项目ID选择供材类型
       currentProjectSuperiorUserId: 12345,
       currentProjectAuthorUserId: 67890,
       expire: isExpired,

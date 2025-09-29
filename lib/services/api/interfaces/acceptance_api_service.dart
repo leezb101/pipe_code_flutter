@@ -10,6 +10,7 @@ import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/do_accept_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/do_accept_sign_in_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
+import 'package:pipe_code_flutter/models/acceptance/jsf_accept_vo.dart';
 import 'package:pipe_code_flutter/models/records/record_list_response.dart';
 
 abstract class AcceptanceApiService {
@@ -32,4 +33,7 @@ abstract class AcceptanceApiService {
 
   /// 验收后入库
   Future<Result<void>> doAcceptanceSignIn(DoAcceptSignInVO request);
+
+  /// 建设方验收确认
+  Future<Result<void>> submitJsfAcceptance(JsfAcceptVO request);
 }

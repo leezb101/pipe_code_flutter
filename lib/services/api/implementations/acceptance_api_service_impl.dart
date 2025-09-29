@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:pipe_code_flutter/models/acceptance/jsf_accept_vo.dart';
 import 'package:pipe_code_flutter/models/common/result.dart';
 import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/do_accept_vo.dart';
@@ -188,6 +189,36 @@ class AcceptanceApiServiceImpl extends BaseApiService
       );
     } catch (e) {
       return Result(code: -1, msg: '入库失败，请检查网络连接', data: null);
+    }
+  }
+
+  @override
+  Future<Result<void>> submitJsfAcceptance(JsfAcceptVO request) async {
+    try {
+      final response = await dio.post('/accept/jsf/do', data: request.toJson());
+
+      if (response.statusCode == 200) {
+        final result = Result.safeFromJson(
+          response.data,
+          (json) => json,
+          'JsfAcceptanceResponse',
+        );
+        if (result.success == true) {
+          return Result(code: 0, msg: 'success', data: null);
+        } else {
+          return Result(code: -1, msg: result.msg, data: null);
+        }
+      } else {
+        return Result(code: -1, msg: '建设方验收提交失败，请重试', data: null);
+      }
+    } on DioException catch (e) {
+      return Result(
+        code: -1,
+        msg: handleErrorForEndpoint(e, '/accept/jsf/do'),
+        data: null,
+      );
+    } catch (e) {
+      return Result(code: -1, msg: '建设方验收提交失败，请检查网络连接', data: null);
     }
   }
 }

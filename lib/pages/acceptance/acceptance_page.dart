@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_state.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
+import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
 import 'package:pipe_code_flutter/services/location_service.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import '../../models/common/common_user_vo.dart';
@@ -106,6 +107,8 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
   bool _hasLoadedUsers = false;
   // 标记是否已经加载了仓库列表，避免重复加载
   bool _hasLoadedWarehouses = false;
+  // 标记是否已经显示了采购方验证警告对话框，避免重复显示
+  bool _hasShownPurchaserWarning = false;
 
   @override
   void initState() {
@@ -127,12 +130,26 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
     // 如从Standalone扫码跳转而来，带有codes，则先让bloc解析，再用编辑态初始化
     final codes = widget.initialCodes ?? const <String>[];
     if (codes.isNotEmpty) {
-      context.read<AcceptanceBloc>().add(
-        InitializeMaterialsFromCodes(
-          codes: codes,
-          isBatch: widget.initialIsBatch ?? (codes.length > 1),
-        ),
-      );
+      // 获取当前项目采购方名称和供材类型
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final sessionState = context.read<SessionBloc>().state;
+        String? projectPurNm;
+        ProjectSupplyType? supplyType;
+        if (sessionState is SessionProjectEstablished) {
+          projectPurNm = sessionState.projectPurNm;
+          supplyType =
+              sessionState.currentUserRoleInfo.currentProjectSupplyType;
+        }
+
+        context.read<AcceptanceBloc>().add(
+          InitializeMaterialsFromCodes(
+            codes: codes,
+            isBatch: widget.initialIsBatch ?? (codes.length > 1),
+            projectPurNm: projectPurNm,
+            supplyType: supplyType,
+          ),
+        );
+      });
     }
 
     // 用传入 materials 作为编辑态初始值
@@ -186,8 +203,22 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
           // 首次加载时不需要特殊处理，UI会自动显示加载状态
         } else if (state is AcceptanceMaterialsResolved) {
           // 将解析结果作为编辑态初始值注入（用于 initialCodes 路径）
+          // 获取当前项目采购方名称和供材类型
+          final sessionState = context.read<SessionBloc>().state;
+          String? projectPurNm;
+          ProjectSupplyType? supplyType;
+          if (sessionState is SessionProjectEstablished) {
+            projectPurNm = sessionState.projectPurNm;
+            supplyType =
+                sessionState.currentUserRoleInfo.currentProjectSupplyType;
+          }
+
           context.read<AcceptanceBloc>().add(
-            InitializeEditingMaterials(initial: state.materials),
+            InitializeEditingMaterials(
+              initial: state.materials,
+              projectPurNm: projectPurNm,
+              supplyType: supplyType,
+            ),
           );
 
           // 在 materialList 初始化完成后，触发加载用户数据和仓库列表
@@ -197,6 +228,24 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
           // 只提示错误，不清空或变更当前编辑中的待提交信息
           context.showErrorToast('验收失败: ${state.message}');
         } else if (state is AcceptanceEditingState) {
+          // 显示采购方验证警告对话框
+          if (state.showPurchaserValidationWarning &&
+              !_hasShownPurchaserWarning) {
+            _hasShownPurchaserWarning = true; // 标记已显示，防止重复弹窗
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _showPurchaserValidationWarning(
+                context,
+                state.purchaserMismatchMaterials,
+              );
+            });
+          }
+
+          // 当警告状态重置时，也重置显示标志
+          if (!state.showPurchaserValidationWarning &&
+              _hasShownPurchaserWarning) {
+            _hasShownPurchaserWarning = false;
+          }
+
           // 编辑态下的反馈消息
           if (state.message != null && state.message!.isNotEmpty) {
             // 简单判断文案分别提示
@@ -438,12 +487,6 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
   }
 
   Widget _buildAttachmentSection() {
-    String? locationText;
-    LocationService.getCurrentLocation().then((location) {
-      if (location != null) {
-        locationText = '${location.latitude}, ${location.longitude}';
-      }
-    });
     return UnifiedCard(
       title: '附件上传',
       icon: Icons.attach_file,
@@ -955,9 +998,23 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.addedCodes.isEmpty) return;
+
+    // 获取当前项目采购方名称和供材类型
+    final sessionState = context.read<SessionBloc>().state;
+    String? projectPurNm;
+    ProjectSupplyType? supplyType;
+    if (sessionState is SessionProjectEstablished) {
+      projectPurNm = sessionState.projectPurNm;
+      supplyType = sessionState.currentUserRoleInfo.currentProjectSupplyType;
+    }
+
     // Delegate code resolution to bloc
     context.read<AcceptanceBloc>().add(
-      AppendEditingMaterialsByCodes(codes: res.addedCodes),
+      AppendEditingMaterialsByCodes(
+        codes: res.addedCodes,
+        projectPurNm: projectPurNm,
+        supplyType: supplyType,
+      ),
     );
   }
 
@@ -1020,4 +1077,82 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
   }
 
   // 已移除高亮及匹配辅助逻辑，直接基于 _currentMaterials 操作。
+
+  /// 显示采购方验证警告对话框
+  void _showPurchaserValidationWarning(
+    BuildContext context,
+    List<String> mismatchMaterials,
+  ) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // 不允许点击外部关闭
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning, color: Colors.orange[600], size: 24),
+              const SizedBox(width: 8),
+              const Text('采购方验证警告', style: TextStyle(fontSize: 18)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '检测到以下材料的采购方与当前项目采购方不匹配：',
+                style: TextStyle(fontSize: 14, color: Colors.black87),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 200),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: mismatchMaterials.map((material) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Text(
+                          '• $material',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.red,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                '请确认是否继续进行验收操作。',
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // 取消操作，退出当前验收页面
+                context.pop();
+              },
+              child: const Text('取消操作', style: TextStyle(color: Colors.red)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // 确认继续，清除警告状态
+                context.read<AcceptanceBloc>().add(
+                  const ConfirmPurchaserValidationWarning(),
+                );
+              },
+              child: const Text('仍然继续'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
