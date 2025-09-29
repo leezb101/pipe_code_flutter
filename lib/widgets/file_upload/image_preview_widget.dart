@@ -111,6 +111,10 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
   void _performDelete() {
     if (_length == 0) return;
 
+    // 记录删除前的状态
+    final wasLastImage = _length == 1;
+    final deletedIndex = _currentIndex;
+
     setState(() {
       if (_useUrls) {
         _imageUrls.removeAt(_currentIndex);
@@ -119,15 +123,22 @@ class _ImagePreviewWidgetState extends State<ImagePreviewWidget> {
       }
     });
 
-    widget.onDelete?.call(_currentIndex);
+    // 调用外部删除回调
+    widget.onDelete?.call(deletedIndex);
     if (_useUrls) {
       widget.onUrlsChanged?.call(_imageUrls);
     } else {
       widget.onImagesChanged?.call(_images);
     }
 
-    if (_length == 0) {
-      Navigator.pop(context);
+    // 如果是最后一张图片，延迟执行 pop 以避免与外部逻辑冲突
+    if (wasLastImage) {
+      // 使用 schedulerBinding 确保在下一帧执行，避免导航栈冲突
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && Navigator.canPop(context)) {
+          Navigator.of(context, rootNavigator: false).pop();
+        }
+      });
       return;
     }
 

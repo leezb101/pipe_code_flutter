@@ -12,8 +12,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
+import 'package:pipe_code_flutter/pages/watermark_camera_page.dart';
 import 'image_preview_widget.dart';
 import 'fade_scale_route.dart';
+import 'photo_watermark_preview_page.dart';
 
 class ImageUploadWidget extends StatefulWidget {
   const ImageUploadWidget({
@@ -26,6 +28,11 @@ class ImageUploadWidget extends StatefulWidget {
     this.maxImages = 9,
     this.requiredPhotoCount,
     this.label,
+    this.enableWatermark = true,
+    this.watermarkText,
+    this.includeTimeWatermark = true,
+    this.includeLocationWatermark = false,
+    this.locationText,
   });
 
   final String? title;
@@ -36,6 +43,12 @@ class ImageUploadWidget extends StatefulWidget {
   final int maxImages;
   final int? requiredPhotoCount;
   final String? label;
+  // 水印相关属性
+  final bool enableWatermark;
+  final String? watermarkText;
+  final bool includeTimeWatermark;
+  final bool includeLocationWatermark;
+  final String? locationText;
 
   @override
   State<ImageUploadWidget> createState() => _ImageUploadWidgetState();
@@ -54,14 +67,80 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
       return;
     }
     try {
-      final List<XFile> pickedFiles = await _picker.pickMultiImage(
-        imageQuality: 80,
-        maxWidth: 1920,
-        limit: widget.maxImages - widget.states.length,
-      );
+      final int remainingSlots = widget.maxImages - widget.states.length;
+      List<XFile> pickedFiles = [];
+
+      // 当只能添加1张图片时，使用单张选择；否则使用多选
+      if (remainingSlots == 1) {
+        final XFile? pickedFile = await _picker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 80,
+          maxWidth: 1920,
+        );
+        if (pickedFile != null) {
+          pickedFiles = [pickedFile];
+        }
+      } else {
+        pickedFiles = await _picker.pickMultiImage(
+          imageQuality: 80,
+          maxWidth: 1920,
+          limit: remainingSlots,
+        );
+      }
+
       if (pickedFiles.isNotEmpty) {
-        final newImages = pickedFiles.map((file) => File(file.path)).toList();
-        widget.onAdd(newImages);
+        // 重新计算剩余可用数量，防止在选择过程中状态发生变化
+        final currentRemainingSlots = widget.maxImages - widget.states.length;
+
+        // 截取不超过剩余数量的图片
+        final limitedFiles = pickedFiles.take(currentRemainingSlots).toList();
+
+        // 如果选择的图片数量超过了剩余限制，提示用户
+        if (pickedFiles.length > currentRemainingSlots) {
+          if (context.mounted) {
+            context.showWarningToast(
+              '最多还能添加 $currentRemainingSlots 张图片，已自动调整为 ${limitedFiles.length} 张',
+            );
+          }
+        }
+
+        final originalImages = limitedFiles
+            .map((file) => File(file.path))
+            .toList();
+
+        if (widget.enableWatermark) {
+          // 显示水印预览页面
+          final List<File>? watermarkedImages = await Navigator.of(context)
+              .push<List<File>>(
+                MaterialPageRoute(
+                  builder: (context) => PhotoWatermarkPreviewPage(
+                    selectedImages: originalImages,
+                    watermarkText: widget.watermarkText,
+                    includeTimeWatermark: widget.includeTimeWatermark,
+                    includeLocationWatermark: widget.includeLocationWatermark,
+                    locationText: widget.locationText,
+                  ),
+                ),
+              );
+
+          if (watermarkedImages != null && watermarkedImages.isNotEmpty) {
+            // 再次检查最终要添加的图片数量
+            final finalRemainingSlots = widget.maxImages - widget.states.length;
+            final finalImages = watermarkedImages
+                .take(finalRemainingSlots)
+                .toList();
+
+            if (watermarkedImages.length > finalRemainingSlots &&
+                context.mounted) {
+              context.showWarningToast('最多还能添加 $finalRemainingSlots 张图片');
+            }
+
+            widget.onAdd(finalImages);
+          }
+        } else {
+          // 直接使用原图
+          widget.onAdd(originalImages);
+        }
       }
     } catch (e) {
       if (context.mounted) {
@@ -75,19 +154,47 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   Future<void> _takePicture() async {
     final context = this.context;
     if (widget.states.length >= widget.maxImages) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('最多只能上传 ${widget.maxImages} 张图片')));
+      context.showErrorToast('最多只能上传 ${widget.maxImages} 张图片');
       return;
     }
+
     try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 80,
-        maxWidth: 1920,
-      );
-      if (pickedFile != null) {
-        widget.onAdd([File(pickedFile.path)]);
+      if (widget.enableWatermark) {
+        // 使用带水印的相机页面
+        final String? imagePath = await Navigator.of(context).push<String>(
+          MaterialPageRoute(
+            builder: (context) => WatermarkCameraPage(
+              watermarkText: widget.watermarkText,
+              includeTimeWatermark: widget.includeTimeWatermark,
+              includeLocationWatermark: widget.includeLocationWatermark,
+              locationText: widget.locationText,
+            ),
+          ),
+        );
+
+        if (imagePath != null) {
+          // 再次检查是否还有剩余空间（防止在拍照过程中状态发生变化）
+          if (widget.states.length < widget.maxImages) {
+            widget.onAdd([File(imagePath)]);
+          } else if (context.mounted) {
+            context.showErrorToast('已达到最大上传数量，无法添加更多图片');
+          }
+        }
+      } else {
+        // 使用原有的系统相机
+        final XFile? pickedFile = await _picker.pickImage(
+          source: ImageSource.camera,
+          imageQuality: 80,
+          maxWidth: 1920,
+        );
+        if (pickedFile != null) {
+          // 再次检查是否还有剩余空间
+          if (widget.states.length < widget.maxImages) {
+            widget.onAdd([File(pickedFile.path)]);
+          } else if (context.mounted) {
+            context.showErrorToast('已达到最大上传数量，无法添加更多图片');
+          }
+        }
       }
     } catch (e) {
       if (context.mounted) {
@@ -101,6 +208,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   void _previewImages(int initialIndex) {
     // When previewing, we only need the File objects, not the full state.
     final images = widget.states.map((s) => s.file).toList();
+
     Navigator.of(context).push(
       FadeScaleRoute(
         page: ImagePreviewWidget(
@@ -111,8 +219,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
             // from the original state list and call the onRemove callback.
             final uniqueId = widget.states[index].uniqueId;
             widget.onRemove(uniqueId);
-            // Also pop the preview screen as the item is gone.
-            Navigator.of(context).pop();
+            // 导航逻辑由 ImagePreviewWidget 的修复版本处理
           },
         ),
       ),
