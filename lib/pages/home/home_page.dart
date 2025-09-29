@@ -1460,15 +1460,15 @@ class _HomePageState extends State<HomePage> {
                         },
                       )
                     : biz == 'jsfAcceptance'
-                        ? QrScanConfig(
-                            scanMode: QrScanMode.single,
-                            context: const {
-                              'entry': 'standalone',
-                              'route': 'jsf-acceptance',
-                              'data': <String, dynamic>{},
-                            },
-                          )
-                        : QrScanConfig(scanMode: QrScanMode.single);
+                    ? QrScanConfig(
+                        scanMode: QrScanMode.single,
+                        context: const {
+                          'entry': 'standalone',
+                          'route': 'jsf-acceptance',
+                          'data': <String, dynamic>{},
+                        },
+                      )
+                    : QrScanConfig(scanMode: QrScanMode.single);
                 _navigateToScan(context, cfg);
               },
             ),
@@ -1490,15 +1490,15 @@ class _HomePageState extends State<HomePage> {
                         },
                       )
                     : biz == 'jsfAcceptance'
-                        ? QrScanConfig(
-                            scanMode: QrScanMode.batch,
-                            context: const {
-                              'entry': 'standalone',
-                              'route': 'jsf-acceptance',
-                              'data': <String, dynamic>{},
-                            },
-                          )
-                        : QrScanConfig(scanMode: QrScanMode.batch);
+                    ? QrScanConfig(
+                        scanMode: QrScanMode.batch,
+                        context: const {
+                          'entry': 'standalone',
+                          'route': 'jsf-acceptance',
+                          'data': <String, dynamic>{},
+                        },
+                      )
+                    : QrScanConfig(scanMode: QrScanMode.batch);
                 _navigateToScan(context, cfg);
               },
             ),
