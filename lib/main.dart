@@ -59,8 +59,8 @@ void main() async {
 
   // First setup service locator with default configuration
   // await setupMockEnvironment();
-  // await setupDevelopmentEnvironment();
-  await setupProductionEnvironment();
+  await setupDevelopmentEnvironment();
+  // await setupProductionEnvironment();
 
   // Then initialize AppConfig which will load saved settings
   await AppConfig.initialize();
