@@ -379,6 +379,8 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
       child: MaterialListItem(
         onTap: () => _showMaterialDetail(context, material),
         materialName: material.baseInfo.prodNm ?? '无',
+        primaryText: material.baseInfo.materialCode ?? '无',
+        batchCode: material.baseInfo.batchCode ?? '无',
         materialId: material.baseInfo.materialCode ?? '无',
         quantity: 1,
         businessType: 'acceptance',

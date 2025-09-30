@@ -151,6 +151,8 @@ class _ReturnDetailPageState extends State<ReturnDetailPage> {
   Widget _buildMaterialItem(dynamic material) {
     return MaterialListItem(
       materialName: material.materialName ?? '无',
+      primaryText: material.materialCode ?? '无',
+      batchCode: material.batchCode ?? '无',
       materialId: (material.materialId ?? '无').toString(),
       quantity: material.num ?? 1,
       businessType: 'return',

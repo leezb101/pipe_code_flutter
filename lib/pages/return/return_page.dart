@@ -178,6 +178,8 @@ class _ReturnPageState extends State<ReturnPage> {
   Widget _buildMaterialItemFromVO(MaterialVO vo) {
     return MaterialListItem(
       materialName: vo.materialName,
+      primaryText: vo.materialCode ?? '无',
+      batchCode: vo.batchCode ?? '无',
       materialId: vo.materialId.toString(),
       quantity: vo.num,
       businessType: 'return',

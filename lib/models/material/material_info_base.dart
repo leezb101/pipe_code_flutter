@@ -27,6 +27,8 @@ class MaterialInfoBase extends Equatable {
     this.spec,
     this.pressLvl,
     this.weight,
+    this.status,
+    this.statusName,
   });
 
   /// 产品Id
@@ -62,6 +64,12 @@ class MaterialInfoBase extends Equatable {
   /// 重量
   final String? weight;
 
+  /// 状态
+  final int? status;
+
+  /// 状态名称
+  final String? statusName;
+
   factory MaterialInfoBase.fromJson(Map<String, dynamic> json) =>
       _$MaterialInfoBaseFromJson(json);
 
@@ -80,6 +88,8 @@ class MaterialInfoBase extends Equatable {
     spec,
     pressLvl,
     weight,
+    status,
+    statusName,
   ];
 }
 
@@ -113,6 +123,8 @@ class MaterialInfo extends Equatable {
         'spec',
         'pressLvl',
         'weight',
+        'status',
+        'statusName',
       ].contains(key),
     );
 

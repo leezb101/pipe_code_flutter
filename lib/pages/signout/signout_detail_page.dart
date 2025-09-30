@@ -248,6 +248,8 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
       padding: EdgeInsets.only(bottom: AppTheme.spacingMedium),
       child: MaterialListItem(
         materialName: material.materialName,
+        primaryText: material.materialCode ?? '无',
+        batchCode: material.batchCode ?? '无',
         materialId: material.materialId.toString(),
         quantity: material.num,
         businessType: 'signout',

@@ -223,6 +223,8 @@ class MaterialListItem extends StatelessWidget {
     required this.materialName,
     this.materialCode,
     this.materialId,
+    this.batchCode,
+    this.primaryText,
     this.spec,
     this.weight,
     this.quantity,
@@ -245,6 +247,12 @@ class MaterialListItem extends StatelessWidget {
 
   /// 材料ID
   final String? materialId;
+
+  /// 批次码
+  final String? batchCode;
+
+  /// 主要显示文本（如果为null，则使用materialName）
+  final String? primaryText;
 
   /// 规格
   final String? spec;
@@ -335,7 +343,7 @@ class MaterialListItem extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        materialName,
+                        primaryText ?? materialName,
                         style: AppTheme.bodyLarge.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -344,6 +352,15 @@ class MaterialListItem extends StatelessWidget {
                         const SizedBox(height: AppTheme.spacingXSmall),
                         Text(
                           materialCode!,
+                          style: AppTheme.bodySmall.copyWith(
+                            color: AppTheme.grey600,
+                          ),
+                        ),
+                      ],
+                      if (batchCode != null) ...[
+                        const SizedBox(height: AppTheme.spacingXSmall),
+                        Text(
+                          '批次: $batchCode',
                           style: AppTheme.bodySmall.copyWith(
                             color: AppTheme.grey600,
                           ),

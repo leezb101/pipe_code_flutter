@@ -184,6 +184,8 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
                       ),
                       child: MaterialListItem(
                         materialName: entry.value.materialName,
+                        primaryText: entry.value.materialCode,
+                        batchCode: entry.value.batchCode,
                         quantity: entry.value.num,
                         businessType: 'dispatch',
                       ),

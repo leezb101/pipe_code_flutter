@@ -273,6 +273,8 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
 
     return MaterialListItem(
       materialName: material.materialName,
+      primaryText: material.materialCode,
+      batchCode: material.batchCode,
       quantity: material.num,
       businessType: 'acceptance',
       onTap: () => _showMaterialDetail(context, material),

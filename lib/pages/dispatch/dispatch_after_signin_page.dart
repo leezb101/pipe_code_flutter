@@ -280,6 +280,8 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
 
     return MaterialListItem(
       materialName: material.materialName,
+      primaryText: material.materialCode,
+      batchCode: material.batchCode,
       quantity: material.num,
       businessType: 'dispatch',
       trailing: Icon(

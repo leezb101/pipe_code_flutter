@@ -19,6 +19,8 @@ MaterialInfoBase _$MaterialInfoBaseFromJson(Map<String, dynamic> json) =>
       spec: json['spec'] as String?,
       pressLvl: json['pressLvl'] as String?,
       weight: json['weight'] as String?,
+      status: (json['status'] as num?)?.toInt(),
+      statusName: json['statusName'] as String?,
     );
 
 Map<String, dynamic> _$MaterialInfoBaseToJson(MaterialInfoBase instance) =>
@@ -34,4 +36,6 @@ Map<String, dynamic> _$MaterialInfoBaseToJson(MaterialInfoBase instance) =>
       'spec': instance.spec,
       'pressLvl': instance.pressLvl,
       'weight': instance.weight,
+      'status': instance.status,
+      'statusName': instance.statusName,
     };

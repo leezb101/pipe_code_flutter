@@ -173,6 +173,8 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
             .map(
               (material) => MaterialListItem(
                 materialName: material.materialName,
+                primaryText: material.materialCode,
+                batchCode: material.batchCode,
                 materialId: material.materialId.toString(),
                 quantity: material.num,
                 showQuantityBadge: true,

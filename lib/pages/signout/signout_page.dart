@@ -290,6 +290,8 @@ class _SignoutPageState extends State<SignoutPage> {
   Widget _buildMaterialItem(MaterialInfo material) {
     return MaterialListItem(
       materialName: material.baseInfo.prodNm ?? '',
+      primaryText: material.baseInfo.materialCode ?? '无',
+      batchCode: material.baseInfo.batchCode ?? '无',
       materialId: material.baseInfo.materialId.toString(),
       quantity: 1,
       businessType: 'signout',

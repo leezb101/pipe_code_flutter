@@ -248,6 +248,8 @@ class _AcceptanceConfirmationPageState
   Widget _buildMaterialItem(MaterialVO material) {
     return MaterialListItem(
       materialName: material.materialName,
+      primaryText: material.materialCode,
+      batchCode: material.batchCode,
       materialId: material.materialId.toString(),
       quantity: material.num,
       businessType: 'acceptance',

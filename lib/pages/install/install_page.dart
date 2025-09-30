@@ -263,6 +263,8 @@ class _InstallViewState extends State<InstallView> {
           // 材料信息
           MaterialListItem(
             materialName: material.materialName,
+            primaryText: material.materialCode ?? '无',
+            batchCode: material.batchCode ?? '无',
             quantity: material.num,
             businessType: 'install',
             icon: Icons.build,
