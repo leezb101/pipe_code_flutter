@@ -6,6 +6,7 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:pipe_code_flutter/services/api/interfaces/project_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/qq_lbs_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/recovery_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 
@@ -50,4 +51,5 @@ abstract class ApiServiceInterface {
   TemporaryAuthApiService get temporaryAuth;
   MapApiService get mapApi;
   ChangePasswordApiService get changePassword;
+  QQLbsApiService get qqLbs;
 }

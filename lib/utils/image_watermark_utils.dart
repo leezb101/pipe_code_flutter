@@ -283,12 +283,9 @@ class ImageWatermarkUtils {
       } else {
         // 自动获取位置信息
         try {
-          final location = await LocationService.getCurrentLocation();
-          if (location != null) {
-            // 格式化位置信息，保留4位小数
-            locationInfo =
-                '${location.latitude.toStringAsFixed(4)}, ${location.longitude.toStringAsFixed(4)}';
-          }
+          // final location = await LocationService.getCurrentLocation();
+          final locationAddress = await LocationService.getCurrentAddress();
+          locationInfo = locationAddress;
         } catch (e) {
           print('获取位置信息失败: $e');
           // 如果获取失败，使用默认文本

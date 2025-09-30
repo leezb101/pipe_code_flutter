@@ -5,18 +5,20 @@
  * @LastEditTime: 2025-07-12 15:52:36
  * @copyright: Copyright © 2025 高新供水.
  */
+import 'dart:convert';
+
 import 'package:encrypt/encrypt.dart';
+import 'package:flutter/services.dart';
 import 'package:pointycastle/asymmetric/api.dart';
+import 'package:pointycastle/export.dart';
 import 'logger.dart';
 
 /// RSA加密工具类
 /// 提供基于固定公钥的RSA加密功能，支持密码和通用数据加密
 class RSAEncryptionUtil {
   /// 固定的RSA公钥 (Base64格式)
-  static const String _publicKeyString = '''
------BEGIN PUBLIC KEY-----
+  static const String _keyStringContent = '''
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCdLGep37lcc/CL1+NuapkFKT4MWFn0FC2BvA2ZSwVVOzM0hvgRJdVcF7xxbgeV0qXFm6MzS/suPeyT41xhXmFN+xKsg6/qd2Kt3aM9GcEXrMc3bwiOctm0q6BYu3WuavlzoGxYuwYs3ncysz8ZKsJMO2hSNkWOPr7j1HYALYjBLQIDAQAB
------END PUBLIC KEY-----
 ''';
 
   /// 缓存的RSA公钥实例
@@ -94,7 +96,7 @@ MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCdLGep37lcc/CL1+NuapkFKT4MWFn0FC2BvA2ZSwVV
       // 使用encrypt包解析DER格式公钥
       final parser = RSAKeyParser();
       _cachedPublicKey =
-          parser.parse(_formatPublicKeyPEM(_publicKeyString)) as RSAPublicKey;
+          parser.parse(_formatPublicKeyPEM(_keyStringContent)) as RSAPublicKey;
 
       Logger.info('RSA公钥解析成功', tag: 'RSA_ENCRYPT');
       Logger.info(
@@ -107,6 +109,15 @@ MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCdLGep37lcc/CL1+NuapkFKT4MWFn0FC2BvA2ZSwVV
       Logger.error('RSA公钥解析失败: $e', tag: 'RSA_ENCRYPT', error: e);
       rethrow;
     }
+  }
+
+  static String decryptRSA(String data) {
+    final encryptedBytes = Uint8List.fromList(base64Decode(data));
+    final publicKey = _getPublicKey();
+    final cipher = RSAEngine()
+      ..init(false, PublicKeyParameter<RSAPublicKey>(publicKey));
+    final decrypted = cipher.process(encryptedBytes);
+    return utf8.decode(decrypted);
   }
 
   /// 将Base64公钥格式化为PEM格式

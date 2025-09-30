@@ -75,6 +75,9 @@ import 'api/interfaces/storekeeper_action_api_service.dart';
 import 'api/implementations/storekeeper_action_api_service_impl.dart';
 import 'api/interfaces/signin_api_service.dart';
 import 'api/implementations/signin_api_service_impl.dart';
+import 'api/interfaces/qq_lbs_api_service.dart';
+import 'api/implementations/qq_lbs_api_service_impl.dart';
+import 'api/mock/mock_qq_lbs_api_service.dart';
 
 /// Whitelist of endpoint patterns (as regular expressions) that require
 /// location data to be injected.
@@ -286,6 +289,15 @@ class ApiServiceFactory {
   static ChangePasswordApiService createChangePasswordService() {
     final dio = _createDio();
     return ChangePasswordApiServiceImpl(dio);
+  }
+
+  static QQLbsApiService createQQLbsService() {
+    if (AppConfig.isMockEnabled) {
+      return MockQQLbsApiService();
+    } else {
+      final dio = _createDio();
+      return QQLbsApiServiceImpl(dio);
+    }
   }
 
   static Dio _createDio() {
