@@ -432,6 +432,9 @@ class _StorekeeperNonProjectPageState extends State<StorekeeperNonProjectPage> {
                   title: '照片',
                   maxImages: 6,
                   states: states,
+                  watermarkText: '非项目入库',
+                  includeTimeWatermark: true,
+                  includeLocationWatermark: true,
                   onAdd: (files) {
                     _imageUploadCubit.addFiles(files);
                   },

@@ -306,6 +306,9 @@ class _SignoutPageState extends State<SignoutPage> {
         builder: (context, states) {
           return ImageUploadWidget(
             states: states,
+            watermarkText: '出库',
+            includeTimeWatermark: true,
+            includeLocationWatermark: true,
             onAdd: (files) => _imageUploadCubit.addFiles(files),
             onRemove: (uniqueId) => _imageUploadCubit.removeFile(uniqueId),
             onRetry: (uniqueId) => _imageUploadCubit.retryUpload(uniqueId),

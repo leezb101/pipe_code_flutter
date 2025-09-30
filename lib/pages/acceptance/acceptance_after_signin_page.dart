@@ -192,6 +192,9 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
               return ImageUploadWidget(
                 title: '入库照片',
                 requiredPhotoCount: 2,
+                watermarkText: '验收后入库',
+                includeTimeWatermark: true,
+                includeLocationWatermark: true,
                 states: states,
                 onAdd: (files) {
                   _fileUploadCubit.addFiles(files);

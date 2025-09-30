@@ -357,6 +357,9 @@ class _ReturnPageState extends State<ReturnPage> {
           return ImageUploadWidget(
             title: '退库图片',
             states: states,
+            watermarkText: '退库',
+            includeTimeWatermark: true,
+            includeLocationWatermark: true,
             onAdd: (files) {
               _imageUploadCubit.addFiles(files);
             },

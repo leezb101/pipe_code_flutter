@@ -219,6 +219,9 @@ class _CutViewState extends State<CutView> {
                   builder: (context, states) {
                     return ImageUploadWidget(
                       title: '原耗材照片',
+                      watermarkText: '截管前原材',
+                      includeTimeWatermark: true,
+                      includeLocationWatermark: true,
                       maxImages: 1,
                       states: states,
                       onAdd: (files) =>
@@ -358,6 +361,9 @@ class _CutViewState extends State<CutView> {
               return ImageUploadWidget(
                 title: '截管后照片',
                 maxImages: 1,
+                watermarkText: '截管后新材',
+                includeTimeWatermark: true,
+                includeLocationWatermark: true,
                 states: states,
                 onAdd: (files) => cubit.addFiles(files),
                 onRemove: (uniqueId) => cubit.removeFile(uniqueId),

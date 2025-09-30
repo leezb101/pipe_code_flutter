@@ -278,6 +278,9 @@ class _InstallViewState extends State<InstallView> {
                 return ImageUploadWidget(
                   title: '安装照片',
                   maxImages: 2,
+                  watermarkText: '安装',
+                  includeTimeWatermark: true,
+                  includeLocationWatermark: true,
                   requiredPhotoCount: 2,
                   states: states,
                   onAdd: (files) => photoCubit.addFiles(files),

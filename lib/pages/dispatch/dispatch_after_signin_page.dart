@@ -208,6 +208,9 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
               return ImageUploadWidget(
                 title: '入库照片',
                 requiredPhotoCount: 2,
+                watermarkText: '调拨后入库',
+                includeTimeWatermark: true,
+                includeLocationWatermark: true,
                 states: states,
                 onAdd: (files) {
                   _fileUploadCubit.addFiles(files);

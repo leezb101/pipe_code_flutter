@@ -230,6 +230,9 @@ class _ScrapPageState extends State<ScrapPage> {
                     return ImageUploadWidget(
                       title: '照片',
                       maxImages: 6,
+                      watermarkText: '报废',
+                      includeTimeWatermark: true,
+                      includeLocationWatermark: true,
                       states: states,
                       onAdd: (files) {
                         _imageUploadCubit.addFiles(files);

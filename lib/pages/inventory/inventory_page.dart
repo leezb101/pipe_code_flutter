@@ -215,6 +215,9 @@ class _InventoryPageState extends State<InventoryPage> {
                 return ImageUploadWidget(
                   title: '盘点照片',
                   maxImages: 2,
+                  watermarkText: '盘点',
+                  includeTimeWatermark: true,
+                  includeLocationWatermark: true,
                   requiredPhotoCount: 2,
                   states: states,
                   onAdd: (files) {
