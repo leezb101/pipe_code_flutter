@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
+import 'package:pipe_code_flutter/models/material/sync_vendor_data_error.dart';
 import 'package:pipe_code_flutter/models/scrap/scrap_models.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/scrap_repository.dart';
@@ -87,7 +88,15 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
           .map((materialInfo) => _convertMaterialInfoToMaterialVO(materialInfo))
           .toList();
 
-      emit(ScrapSubmissionReady(materialList: materialList));
+      // 提取错误材料
+      final errorMaterials = event.materialInfoForBusiness.errors;
+
+      emit(
+        ScrapSubmissionReady(
+          materialList: materialList,
+          errorMaterials: errorMaterials,
+        ),
+      );
       Logger.info(
         'Scrap submission initialized with ${materialList.length} materials',
         tag: 'ScrapBloc',
@@ -126,9 +135,17 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
             )
             .toList();
 
-        emit(ScrapSubmissionReady(materialList: materialList));
+        // 提取错误材料
+        final errorMaterials = result.data!.errors;
+
+        emit(
+          ScrapSubmissionReady(
+            materialList: materialList,
+            errorMaterials: errorMaterials,
+          ),
+        );
         Logger.info(
-          'Scrap submission initialized from codes with ${materialList.length} materials',
+          'Scrap submission initialized from codes with ${materialList.length} materials and ${errorMaterials.length} errors',
           tag: 'ScrapBloc',
         );
       } else {
@@ -196,12 +213,45 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
           }
         }
 
+        // 处理错误材料
+        final currentErrors = List<SyncVendorDataError>.from(
+          currentState.errorMaterials,
+        );
+        int newErrorCount = 0;
+
+        for (final error in result.data!.errors) {
+          // 简单的重复检查，基于qrCode
+          final qrCode = error.qrCode ?? '';
+          final isDuplicate = currentErrors.any(
+            (existingError) =>
+                (existingError.qrCode ?? '') == qrCode && qrCode.isNotEmpty,
+          );
+
+          if (!isDuplicate) {
+            currentErrors.add(error);
+            newErrorCount++;
+          }
+        }
+
+        // 构建消息
+        final messages = <String>[];
+        if (allMaterials.length > currentState.materialList.length) {
+          final addedCount =
+              allMaterials.length - currentState.materialList.length;
+          messages.add('新增${addedCount}个正常材料');
+        }
+        if (newErrorCount > 0) {
+          messages.add('新增${newErrorCount}个异常材料');
+        }
+        if (existedMaterials.isNotEmpty) {
+          messages.add('存在重复材料${existedMaterials.length}个,已忽略');
+        }
+
         emit(
           currentState.copyWith(
             materialList: allMaterials,
-            errorMessage: existedMaterials.isNotEmpty
-                ? '存在重复材料${existedMaterials.length}个,已忽略'
-                : null,
+            errorMaterials: currentErrors,
+            errorMessage: messages.isNotEmpty ? messages.join('，') : null,
           ),
         );
       } else {
@@ -267,12 +317,38 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
             )
             .toList();
 
+        // 处理错误材料的移除
+        final errorCodesToRemove = result.data!.errors
+            .map((error) => error.qrCode ?? '')
+            .where((code) => code.isNotEmpty)
+            .toSet();
+
+        final updatedErrors = currentState.errorMaterials
+            .where((error) => !errorCodesToRemove.contains(error.qrCode ?? ''))
+            .toList();
+
+        // 构建消息
+        final removedNormalCount =
+            currentState.materialList.length - updatedMaterials.length;
+        final removedErrorCount =
+            currentState.errorMaterials.length - updatedErrors.length;
+
+        final messages = <String>[];
+        if (removedNormalCount > 0) {
+          messages.add('移除${removedNormalCount}个正常材料');
+        }
+        if (removedErrorCount > 0) {
+          messages.add('移除${removedErrorCount}个异常材料');
+        }
+        if (notExistedMaterials.isNotEmpty) {
+          messages.add('存在多扫材料${notExistedMaterials.length}个,已忽略');
+        }
+
         emit(
           currentState.copyWith(
             materialList: updatedMaterials,
-            errorMessage: notExistedMaterials.isNotEmpty
-                ? '存在多扫材料${notExistedMaterials.length}个,已忽略'
-                : null,
+            errorMaterials: updatedErrors,
+            errorMessage: messages.isNotEmpty ? messages.join('，') : null,
           ),
         );
         Logger.info(

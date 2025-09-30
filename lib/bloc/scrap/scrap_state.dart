@@ -8,6 +8,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/scrap/scrap_models.dart';
+import 'package:pipe_code_flutter/models/material/sync_vendor_data_error.dart';
 
 abstract class ScrapState extends Equatable {
   const ScrapState();
@@ -39,12 +40,14 @@ class ScrapDetailLoaded extends ScrapState {
 /// 报废申请准备状态（提交申请页面使用）
 class ScrapSubmissionReady extends ScrapState {
   final List<MaterialVO> materialList;
+  final List<SyncVendorDataError> errorMaterials;
   final List<String> photoUrls;
   final bool isSubmitting;
   final String? errorMessage; // 一次性错误信息
 
   const ScrapSubmissionReady({
     this.materialList = const [],
+    this.errorMaterials = const [],
     this.photoUrls = const [],
     this.isSubmitting = false,
     this.errorMessage,
@@ -53,6 +56,7 @@ class ScrapSubmissionReady extends ScrapState {
   @override
   List<Object?> get props => [
     materialList,
+    errorMaterials,
     photoUrls,
     isSubmitting,
     errorMessage,
@@ -60,6 +64,7 @@ class ScrapSubmissionReady extends ScrapState {
 
   ScrapSubmissionReady copyWith({
     List<MaterialVO>? materialList,
+    List<SyncVendorDataError>? errorMaterials,
     List<String>? photoUrls,
     bool? isSubmitting,
     String? errorMessage,
@@ -67,6 +72,7 @@ class ScrapSubmissionReady extends ScrapState {
   }) {
     return ScrapSubmissionReady(
       materialList: materialList ?? this.materialList,
+      errorMaterials: errorMaterials ?? this.errorMaterials,
       photoUrls: photoUrls ?? this.photoUrls,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       errorMessage: clearErrorMessage

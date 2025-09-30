@@ -21,6 +21,7 @@ import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dar
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/file_upload/image_upload_widget.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 
 class ScrapPage extends StatefulWidget {
   final MaterialInfoForBusiness? materials;
@@ -63,6 +64,41 @@ class _ScrapPageState extends State<ScrapPage> {
   }
 
   void _submitScrap() {
+    // 检查是否有错误材料
+    final state = context.read<ScrapBloc>().state;
+    if (state is ScrapSubmissionReady && state.errorMaterials.isNotEmpty) {
+      // 显示确认对话框
+      _showSubmitConfirmation(
+        state.materialList.length,
+        state.errorMaterials.length,
+      ).then((confirmed) {
+        if (confirmed) {
+          _performSubmit();
+        }
+      });
+      return;
+    }
+
+    // 没有错误材料，直接提交
+    _performSubmit();
+  }
+
+  Future<bool> _showSubmitConfirmation(int normalCount, int errorCount) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => SubmitConfirmationDialog(
+            normalCount: normalCount,
+            errorCount: errorCount,
+            title: '报废提交确认',
+            businessType: 'scrap',
+            onConfirm: () {}, // 对话框内部会处理
+            onCancel: () {}, // 对话框内部会处理
+          ),
+        ) ??
+        false;
+  }
+
+  void _performSubmit() {
     final uploadStates = _imageUploadCubit.state;
     final isUploading = uploadStates.any(
       (s) => s.status == UploadStatus.uploading,
@@ -219,10 +255,6 @@ class _ScrapPageState extends State<ScrapPage> {
                 _buildMaterialList(state.materialList),
                 const SizedBox(height: 24),
 
-                // 扫码按钮区域
-                _buildScanButtons(),
-                const SizedBox(height: 24),
-
                 // 照片部分
                 BlocBuilder<FileUploadCubit, List<FileUploadState>>(
                   bloc: _imageUploadCubit,
@@ -259,192 +291,203 @@ class _ScrapPageState extends State<ScrapPage> {
   }
 
   Widget _buildMaterialList(List<MaterialVO> materialList) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.inventory, size: 24, color: Colors.blue[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  '材料清单',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+    return UnifiedCard(
+      title: '材料清单',
+      icon: Icons.inventory,
+      businessType: 'scrap',
+      child: BlocBuilder<ScrapBloc, ScrapState>(
+        builder: (context, state) {
+          final materials = state is ScrapSubmissionReady
+              ? state.materialList
+              : materialList;
+
+          final errorMaterials = state is ScrapSubmissionReady
+              ? state.errorMaterials
+              : <dynamic>[];
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 正常材料列表
+              if (materials.isNotEmpty)
+                ...materials.map(_buildMaterialItem)
+              else
+                Padding(
+                  padding: const EdgeInsets.all(AppTheme.spacingLarge),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: 48,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: AppTheme.spacingSmall),
+                        Text(
+                          '暂无正常材料',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: AppTheme.spacingSmall),
+                        Text(
+                          '请通过扫码添加材料',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                ),
+
+              // 错误材料展示区域
+              if (errorMaterials.isNotEmpty) ...[
+                const SizedBox(height: AppTheme.spacingLarge),
+                ErrorMaterialSection(
+                  errors: errorMaterials,
+                  title: '报废异常材料',
+                  onErrorItemTap: _handleErrorMaterialTap,
+                  collapsible: true,
+                  initialExpanded: true,
                 ),
               ],
-            ),
-            const SizedBox(height: 16),
-            ...materialList.map((material) => _buildMaterialItem(material)),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildScanButtons() {
-    return Row(
-      children: [
-        // 扫码添加按钮（左半圆）
-        Expanded(
-          child: Container(
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.blue[600],
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(25),
-                bottomLeft: Radius.circular(25),
-              ),
-            ),
-            child: ElevatedButton(
-              onPressed: _scanToAddMaterials,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(25),
-                    bottomLeft: Radius.circular(25),
-                  ),
-                ),
-                padding: EdgeInsets.zero,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              const SizedBox(height: AppTheme.spacingMedium),
+              Row(
                 children: [
-                  const Icon(
-                    Icons.qr_code_scanner,
-                    color: Colors.white,
-                    size: 20,
+                  Expanded(
+                    child: UnifiedButton(
+                      text: '扫码报废',
+                      type: UnifiedButtonType.outlined,
+                      businessType: 'scrap',
+                      onPressed: _scanToAddMaterials,
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    '扫码报废',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  const SizedBox(width: AppTheme.spacingMedium),
+                  Expanded(
+                    child: UnifiedButton(
+                      text: '扫码删除',
+                      type: UnifiedButtonType.outlined,
+                      businessType: 'scrap',
+                      foregroundColor: Colors.red,
+                      borderColor: Colors.red,
+                      onPressed: _scanToRemoveMaterials,
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
-        ),
-        // 扫码删除按钮（右半圆）
-        Expanded(
-          child: Container(
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.red[600],
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(25),
-                bottomRight: Radius.circular(25),
-              ),
-            ),
-            child: ElevatedButton(
-              onPressed: _scanToRemoveMaterials,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(25),
-                    bottomRight: Radius.circular(25),
-                  ),
-                ),
-                padding: EdgeInsets.zero,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.remove_circle_outline,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    '扫码删除',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
+            ],
+          );
+        },
+      ),
     );
   }
 
   Widget _buildMaterialItem(MaterialVO material) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.blue[200]!),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTheme.spacingMedium),
+      child: MaterialListItem(
+        onTap: () => _showMaterialDetail(context, material),
+        materialName: material.materialName,
+        primaryText: material.materialCode ?? '无',
+        batchCode: material.batchCode ?? '无',
+        materialId: material.materialCode ?? '无',
+        quantity: material.num,
+        businessType: 'scrap',
+        icon: Icons.water_drop,
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.blue[100],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.water_drop, size: 20, color: Colors.blue[700]),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
+    );
+  }
+
+  void _showMaterialDetail(BuildContext context, MaterialVO material) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  material.materialName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                // 标题栏
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          material.materialName,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '数量: ${material.num}个',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                const Divider(height: 1),
+                // 内容区域
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        InfoRow(
+                          label: '材料名称',
+                          value: material.materialName,
+                          icon: Icons.label,
+                        ),
+                        const SizedBox(height: AppTheme.spacingSmall),
+                        InfoRow(
+                          label: '材料编码',
+                          value: material.materialCode ?? '无',
+                          icon: Icons.qr_code,
+                        ),
+                        const SizedBox(height: AppTheme.spacingSmall),
+                        InfoRow(
+                          label: '批次编号',
+                          value: material.batchCode ?? '无',
+                          icon: Icons.batch_prediction,
+                        ),
+                        const SizedBox(height: AppTheme.spacingSmall),
+                        InfoRow(
+                          label: '数量',
+                          value: '${material.num}个',
+                          icon: Icons.numbers,
+                        ),
+                        if (material.installPileNo != null) ...[
+                          const SizedBox(height: AppTheme.spacingSmall),
+                          InfoRow(
+                            label: '安装桩号',
+                            value: material.installPileNo!,
+                            icon: Icons.location_on,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.orange[600],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              '${material.num}个',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -511,5 +554,92 @@ class _ScrapPageState extends State<ScrapPage> {
         ],
       ),
     );
+  }
+
+  void _handleErrorMaterialTap(dynamic error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.error_outline, color: AppTheme.errorColor),
+            const SizedBox(width: AppTheme.spacingSmall),
+            const Text('异常材料详情'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InfoRow(
+              label: '二维码',
+              value: _getErrorField(error, 'qrCode') ?? '无',
+              icon: Icons.qr_code,
+            ),
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(
+              label: '厂家编码',
+              value: _getErrorField(error, 'code') ?? '无',
+              icon: Icons.business,
+            ),
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(
+              label: '厂家名称',
+              value: _getErrorField(error, 'name') ?? '无',
+              icon: Icons.factory,
+            ),
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(
+              label: '错误信息',
+              value: _getErrorField(error, 'msg') ?? '无',
+              icon: Icons.error_outline,
+              valueStyle: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.errorColor,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('关闭'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _handleReportError(error);
+            },
+            child: const Text('报告问题'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String? _getErrorField(dynamic error, String field) {
+    if (error is Map<String, dynamic>) {
+      return error[field]?.toString();
+    }
+    try {
+      switch (field) {
+        case 'qrCode':
+          return (error as dynamic).qrCode?.toString();
+        case 'code':
+          return (error as dynamic).code?.toString();
+        case 'name':
+          return (error as dynamic).name?.toString();
+        case 'msg':
+          return (error as dynamic).msg?.toString();
+        default:
+          return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void _handleReportError(dynamic error) {
+    // TODO: 实现错误报告功能
+    context.showInfoToast('错误报告功能待实现');
   }
 }
