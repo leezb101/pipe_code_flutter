@@ -503,9 +503,10 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     String errorInfo = '';
     try {
       if (errorMaterial is Map<String, dynamic>) {
-        errorInfo = errorMaterial['errorMessage']?.toString() ?? 
-                   errorMaterial['error_message']?.toString() ?? 
-                   '异常材料信息';
+        errorInfo =
+            errorMaterial['errorMessage']?.toString() ??
+            errorMaterial['error_message']?.toString() ??
+            '异常材料信息';
       } else {
         errorInfo = '异常材料信息';
       }

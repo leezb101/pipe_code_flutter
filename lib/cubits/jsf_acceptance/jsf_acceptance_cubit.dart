@@ -218,8 +218,10 @@ class JsfAcceptanceCubit {
           currentState.materials,
         );
         final updatedIds = Set<int>.from(currentState.materialIds);
-        final updatedErrorMaterials = List<dynamic>.from(currentState.errorMaterials);
-        
+        final updatedErrorMaterials = List<dynamic>.from(
+          currentState.errorMaterials,
+        );
+
         var addedCount = 0;
         var duplicateCount = 0;
         var errorAddedCount = 0;
@@ -240,9 +242,10 @@ class JsfAcceptanceCubit {
         for (final error in newErrorMaterials) {
           // 简单的重复检查，基于qrCode
           final qrCode = _getErrorQrCode(error);
-          final isDuplicate = updatedErrorMaterials.any((existingError) => 
-            _getErrorQrCode(existingError) == qrCode);
-          
+          final isDuplicate = updatedErrorMaterials.any(
+            (existingError) => _getErrorQrCode(existingError) == qrCode,
+          );
+
           if (!isDuplicate) {
             updatedErrorMaterials.add(error);
             errorAddedCount++;
@@ -267,8 +270,8 @@ class JsfAcceptanceCubit {
         if (duplicateCount > 0) {
           messages.add('跳过 $duplicateCount 项重复材料');
         }
-        
-        final message = messages.isNotEmpty 
+
+        final message = messages.isNotEmpty
             ? messages.join('，')
             : '所有材料均已存在，未追加新材料';
 
@@ -341,17 +344,20 @@ class JsfAcceptanceCubit {
 
         final removedNormalCount =
             currentState.materials.length - updatedMaterials.length;
-        final notFoundNormalCount = materialsToRemove.length - removedNormalCount;
+        final notFoundNormalCount =
+            materialsToRemove.length - removedNormalCount;
 
         // 处理错误材料剔除
-        final updatedErrorMaterials = List<dynamic>.from(currentState.errorMaterials);
+        final updatedErrorMaterials = List<dynamic>.from(
+          currentState.errorMaterials,
+        );
         int removedErrorCount = 0;
         int notFoundErrorCount = 0;
 
         for (final errorToRemove in errorsToRemove) {
           final qrCodeToRemove = _getErrorQrCode(errorToRemove);
           bool found = false;
-          
+
           for (int i = updatedErrorMaterials.length - 1; i >= 0; i--) {
             final existingQrCode = _getErrorQrCode(updatedErrorMaterials[i]);
             if (existingQrCode == qrCodeToRemove && qrCodeToRemove.isNotEmpty) {
@@ -361,7 +367,7 @@ class JsfAcceptanceCubit {
               break;
             }
           }
-          
+
           if (!found) {
             notFoundErrorCount++;
           }
@@ -379,8 +385,8 @@ class JsfAcceptanceCubit {
           final total = notFoundNormalCount + notFoundErrorCount;
           messages.add('$total 项材料不在当前列表中');
         }
-        
-        final message = messages.isNotEmpty 
+
+        final message = messages.isNotEmpty
             ? messages.join('，')
             : '扫描的材料都不在当前列表中，未剔除任何材料';
 

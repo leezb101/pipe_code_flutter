@@ -173,13 +173,13 @@ Future<bool> _showErrorMaterialSubmitConfirmation(int errorCount) async {
 
 ## 与Acceptance页面的一致性
 
-| 功能 | Acceptance页面 | JSF Acceptance页面 | 一致性 |
-|------|---------------|-------------------|--------|
-| 错误材料显示 | ✅ ErrorMaterialSection | ✅ ErrorMaterialSection | ✅ |
-| 错误材料剔除 | ✅ 支持 | ✅ 支持 | ✅ |
-| 提交确认机制 | ✅ SubmitConfirmationDialog | ✅ SubmitConfirmationDialog | ✅ |
-| 操作反馈信息 | ✅ 详细分类统计 | ✅ 详细分类统计 | ✅ |
-| 视觉设计 | ✅ 红色主题 | ✅ 红色主题 | ✅ |
+| 功能         | Acceptance页面             | JSF Acceptance页面         | 一致性 |
+|--------------|----------------------------|----------------------------|--------|
+| 错误材料显示 | ✅ ErrorMaterialSection     | ✅ ErrorMaterialSection     | ✅      |
+| 错误材料剔除 | ✅ 支持                     | ✅ 支持                     | ✅      |
+| 提交确认机制 | ✅ SubmitConfirmationDialog | ✅ SubmitConfirmationDialog | ✅      |
+| 操作反馈信息 | ✅ 详细分类统计             | ✅ 详细分类统计             | ✅      |
+| 视觉设计     | ✅ 红色主题                 | ✅ 红色主题                 | ✅      |
 
 ## 编译验证
 - ✅ `JsfAcceptanceState` 编译正常
