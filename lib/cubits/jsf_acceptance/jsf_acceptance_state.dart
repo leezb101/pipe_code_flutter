@@ -14,6 +14,7 @@ import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 class JsfAcceptanceState extends Equatable {
   final List<MaterialInfo> materials;
   final Set<int> materialIds;
+  final List<dynamic> errorMaterials; // 错误材料列表
   final bool isLoadingMaterials;
   final bool isLoadingAppendMaterials;
   final bool isSubmitting;
@@ -28,6 +29,7 @@ class JsfAcceptanceState extends Equatable {
   const JsfAcceptanceState({
     this.materials = const [],
     this.materialIds = const <int>{},
+    this.errorMaterials = const [],
     this.isLoadingMaterials = false,
     this.isLoadingAppendMaterials = false,
     this.isSubmitting = false,
@@ -44,6 +46,7 @@ class JsfAcceptanceState extends Equatable {
   List<Object?> get props => [
     materials,
     materialIds,
+    errorMaterials,
     isLoadingMaterials,
     isLoadingAppendMaterials,
     isSubmitting,
@@ -59,6 +62,7 @@ class JsfAcceptanceState extends Equatable {
   JsfAcceptanceState copyWith({
     List<MaterialInfo>? materials,
     Set<int>? materialIds,
+    List<dynamic>? errorMaterials,
     bool? isLoadingMaterials,
     bool? isLoadingAppendMaterials,
     bool? isSubmitting,
@@ -73,6 +77,7 @@ class JsfAcceptanceState extends Equatable {
     return JsfAcceptanceState(
       materials: materials ?? this.materials,
       materialIds: materialIds ?? this.materialIds,
+      errorMaterials: errorMaterials ?? this.errorMaterials,
       isLoadingMaterials: isLoadingMaterials ?? this.isLoadingMaterials,
       isLoadingAppendMaterials:
           isLoadingAppendMaterials ?? this.isLoadingAppendMaterials,

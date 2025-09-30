@@ -145,6 +145,7 @@ class JsfAcceptanceCubit {
 
       if (result.isSuccess && result.data != null) {
         final materials = result.data!.normals;
+        final errorMaterials = result.data!.errors; // 获取错误材料
         final materialIds = materials.map((m) => m.baseInfo.materialId).toSet();
 
         // 检查采购方不匹配的材料
@@ -158,6 +159,7 @@ class JsfAcceptanceCubit {
           currentState.copyWith(
             materials: materials,
             materialIds: materialIds,
+            errorMaterials: errorMaterials, // 设置错误材料
             isLoadingMaterials: false,
             showPurchaserValidationWarning: mismatchMaterials.isNotEmpty,
             purchaserMismatchMaterials: mismatchMaterials,
@@ -165,7 +167,7 @@ class JsfAcceptanceCubit {
         );
 
         Logger.debug(
-          'JSF材料初始化完成，共 ${materials.length} 项',
+          'JSF材料初始化完成，共 ${materials.length} 项正常材料，${errorMaterials.length} 项异常材料',
           tag: 'JsfAcceptanceController',
         );
 
@@ -211,12 +213,16 @@ class JsfAcceptanceCubit {
 
       if (result.isSuccess && result.data != null) {
         final newMaterials = result.data!.normals;
+        final newErrorMaterials = result.data!.errors; // 获取错误材料
         final updatedMaterials = List<MaterialInfo>.from(
           currentState.materials,
         );
         final updatedIds = Set<int>.from(currentState.materialIds);
+        final updatedErrorMaterials = List<dynamic>.from(currentState.errorMaterials);
+        
         var addedCount = 0;
         var duplicateCount = 0;
+        var errorAddedCount = 0;
 
         // 筛选新材料，基于materialId去重
         for (final material in newMaterials) {
@@ -230,6 +236,19 @@ class JsfAcceptanceCubit {
           }
         }
 
+        // 追加错误材料，避免重复
+        for (final error in newErrorMaterials) {
+          // 简单的重复检查，基于qrCode
+          final qrCode = _getErrorQrCode(error);
+          final isDuplicate = updatedErrorMaterials.any((existingError) => 
+            _getErrorQrCode(existingError) == qrCode);
+          
+          if (!isDuplicate) {
+            updatedErrorMaterials.add(error);
+            errorAddedCount++;
+          }
+        }
+
         // 检查新添加材料的采购方匹配情况
         final mismatchMaterials = _checkPurchaserMismatch(
           updatedMaterials,
@@ -237,19 +256,27 @@ class JsfAcceptanceCubit {
           supplyType,
         );
 
-        String? message;
-        if (addedCount > 0 && duplicateCount > 0) {
-          message = '成功追加 $addedCount 项材料，跳过 $duplicateCount 项重复材料';
-        } else if (addedCount > 0) {
-          message = '成功追加 $addedCount 项材料';
-        } else if (duplicateCount > 0) {
-          message = '所有 $duplicateCount 项材料均已存在，未追加新材料';
+        // 构建消息
+        final messages = <String>[];
+        if (addedCount > 0) {
+          messages.add('追加 $addedCount 项正常材料');
         }
+        if (errorAddedCount > 0) {
+          messages.add('追加 $errorAddedCount 项异常材料');
+        }
+        if (duplicateCount > 0) {
+          messages.add('跳过 $duplicateCount 项重复材料');
+        }
+        
+        final message = messages.isNotEmpty 
+            ? messages.join('，')
+            : '所有材料均已存在，未追加新材料';
 
         _updateState(
           currentState.copyWith(
             materials: updatedMaterials,
             materialIds: updatedIds,
+            errorMaterials: updatedErrorMaterials,
             isLoadingAppendMaterials: false,
             message: message,
             showPurchaserValidationWarning: mismatchMaterials.isNotEmpty,
@@ -258,7 +285,7 @@ class JsfAcceptanceCubit {
         );
 
         Logger.debug(
-          'JSF材料追加完成，新增 $addedCount 项，重复 $duplicateCount 项',
+          'JSF材料追加完成，新增 $addedCount 项正常材料，$errorAddedCount 项异常材料，重复 $duplicateCount 项',
           tag: 'JsfAcceptanceController',
         );
 
@@ -299,10 +326,12 @@ class JsfAcceptanceCubit {
 
       if (result.isSuccess && result.data != null) {
         final materialsToRemove = result.data!.normals;
+        final errorsToRemove = result.data!.errors; // 获取要剔除的错误材料
         final idsToRemove = materialsToRemove
             .map((m) => m.baseInfo.materialId)
             .toSet();
 
+        // 处理正常材料剔除
         final updatedMaterials = currentState.materials
             .where((m) => !idsToRemove.contains(m.baseInfo.materialId))
             .toList();
@@ -310,29 +339,62 @@ class JsfAcceptanceCubit {
             .map((m) => m.baseInfo.materialId)
             .toSet();
 
-        final removedCount =
+        final removedNormalCount =
             currentState.materials.length - updatedMaterials.length;
-        final notFoundCount = materialsToRemove.length - removedCount;
+        final notFoundNormalCount = materialsToRemove.length - removedNormalCount;
 
-        String? message;
-        if (removedCount > 0 && notFoundCount > 0) {
-          message = '成功剔除 $removedCount 项材料，$notFoundCount 项材料不在当前列表中';
-        } else if (removedCount > 0) {
-          message = '成功剔除 $removedCount 项材料';
-        } else {
-          message = '扫描的材料都不在当前列表中，未剔除任何材料';
+        // 处理错误材料剔除
+        final updatedErrorMaterials = List<dynamic>.from(currentState.errorMaterials);
+        int removedErrorCount = 0;
+        int notFoundErrorCount = 0;
+
+        for (final errorToRemove in errorsToRemove) {
+          final qrCodeToRemove = _getErrorQrCode(errorToRemove);
+          bool found = false;
+          
+          for (int i = updatedErrorMaterials.length - 1; i >= 0; i--) {
+            final existingQrCode = _getErrorQrCode(updatedErrorMaterials[i]);
+            if (existingQrCode == qrCodeToRemove && qrCodeToRemove.isNotEmpty) {
+              updatedErrorMaterials.removeAt(i);
+              removedErrorCount++;
+              found = true;
+              break;
+            }
+          }
+          
+          if (!found) {
+            notFoundErrorCount++;
+          }
         }
+
+        // 构建消息
+        final messages = <String>[];
+        if (removedNormalCount > 0) {
+          messages.add('剔除 $removedNormalCount 项正常材料');
+        }
+        if (removedErrorCount > 0) {
+          messages.add('剔除 $removedErrorCount 项异常材料');
+        }
+        if (notFoundNormalCount > 0 || notFoundErrorCount > 0) {
+          final total = notFoundNormalCount + notFoundErrorCount;
+          messages.add('$total 项材料不在当前列表中');
+        }
+        
+        final message = messages.isNotEmpty 
+            ? messages.join('，')
+            : '扫描的材料都不在当前列表中，未剔除任何材料';
 
         _updateState(
           currentState.copyWith(
             materials: updatedMaterials,
             materialIds: updatedIds,
+            errorMaterials: updatedErrorMaterials,
             message: message,
           ),
         );
 
         Logger.debug(
-          'JSF材料剔除完成，移除 $removedCount 项',
+          'JSF材料剔除完成，移除 $removedNormalCount 项正常材料，$removedErrorCount 项异常材料',
           tag: 'JsfAcceptanceController',
         );
       } else {
@@ -504,6 +566,18 @@ class JsfAcceptanceCubit {
     }
 
     return mismatchMaterials;
+  }
+
+  /// 从错误材料对象中提取qrCode
+  String _getErrorQrCode(dynamic error) {
+    if (error is Map<String, dynamic>) {
+      return error['qrCode']?.toString() ?? error['qr_code']?.toString() ?? '';
+    }
+    try {
+      return (error as dynamic).qrCode?.toString() ?? '';
+    } catch (e) {
+      return '';
+    }
   }
 
   /// 释放资源

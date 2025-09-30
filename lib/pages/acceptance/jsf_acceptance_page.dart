@@ -32,6 +32,7 @@ import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dar
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
     show QrScanOperation;
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_components.dart';
 import 'package:pipe_code_flutter/widgets/material/material_detail_display.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
@@ -297,10 +298,19 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
           } else if (state.materials.isNotEmpty) {
             return Column(
               children: [
-                // 材料列表
+                // 正常材料列表
                 ...state.materials.map(
                   (material) => _buildMaterialItem(material),
                 ),
+
+                // 错误材料区域
+                if (state.errorMaterials.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  ErrorMaterialSection(
+                    errors: state.errorMaterials,
+                    onErrorItemTap: _handleErrorMaterialTap,
+                  ),
+                ],
 
                 // 追加材料加载指示器
                 if (state.isLoadingAppendMaterials)
@@ -484,6 +494,37 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
           ),
         );
       },
+    );
+  }
+
+  /// 处理错误材料点击事件
+  void _handleErrorMaterialTap(dynamic errorMaterial) {
+    // 简单显示错误材料信息
+    String errorInfo = '';
+    try {
+      if (errorMaterial is Map<String, dynamic>) {
+        errorInfo = errorMaterial['errorMessage']?.toString() ?? 
+                   errorMaterial['error_message']?.toString() ?? 
+                   '异常材料信息';
+      } else {
+        errorInfo = '异常材料信息';
+      }
+    } catch (e) {
+      errorInfo = '异常材料信息';
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('异常材料详情'),
+        content: Text(errorInfo),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -887,12 +928,22 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     );
   }
 
-  void _handleSubmitAcceptance() {
+  void _handleSubmitAcceptance() async {
     // 优先从编辑态取材；否则无材料则提示
     final currentState = _controller.currentState;
     if (currentState.materials.isEmpty) {
       context.showErrorToast('请先扫码添加材料');
       return;
+    }
+
+    // 检查是否有错误材料，如有则显示确认对话框
+    if (currentState.errorMaterials.isNotEmpty) {
+      final shouldContinue = await _showErrorMaterialSubmitConfirmation(
+        currentState.errorMaterials.length,
+      );
+      if (!shouldContinue) {
+        return; // 用户取消提交
+      }
     }
 
     // 获取当前项目ID
@@ -1203,5 +1254,25 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
         );
       },
     );
+  }
+
+  /// 显示错误材料提交确认对话框
+  Future<bool> _showErrorMaterialSubmitConfirmation(int errorCount) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => SubmitConfirmationDialog(
+        normalCount: _controller.currentState.materials.length,
+        errorCount: errorCount,
+        title: '建设方验收提交确认',
+        businessType: 'jsf_acceptance',
+        onConfirm: () {
+          Navigator.of(context).pop(true);
+        },
+        onCancel: () {
+          Navigator.of(context).pop(false);
+        },
+      ),
+    );
+    return result == true;
   }
 }
