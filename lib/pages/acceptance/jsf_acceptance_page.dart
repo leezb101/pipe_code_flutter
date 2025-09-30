@@ -14,6 +14,7 @@ import 'package:pipe_code_flutter/bloc/session/session_state.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
 import 'package:pipe_code_flutter/services/location_service.dart';
+import 'package:pipe_code_flutter/constants/app_theme.dart';
 import '../../models/common/warehouse_vo.dart';
 import '../../models/common/common_user_vo.dart';
 import '../../models/material/material_info_base.dart';
@@ -424,7 +425,64 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
     showDialog(
       context: context,
       builder: (context) {
-        return MaterialDetailDisplay(material: material);
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 标题栏
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.getBusinessColor(
+                      'acceptance',
+                    ).withValues(alpha: 0.1),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: AppTheme.getBusinessColor('acceptance'),
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          '材料详情',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close),
+                        splashRadius: 20,
+                      ),
+                    ],
+                  ),
+                ),
+                // 内容区域
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    child: MaterialDetailDisplay(material: material),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       },
     );
   }

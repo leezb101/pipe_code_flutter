@@ -435,6 +435,7 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
       context: context,
       builder: (context) {
         return Dialog(
+          insetPadding: const EdgeInsets.all(16),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
             child: Column(
