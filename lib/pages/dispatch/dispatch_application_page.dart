@@ -27,6 +27,7 @@ import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
 import '../../bloc/user/user_state.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_components.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
 
 class DispatchApplicationPage extends StatelessWidget {
@@ -155,8 +156,10 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
       title: '一管一码',
       icon: Icons.inventory,
       businessType: 'dispatch',
-      child: materials.isEmpty
-          ? Column(
+      child: BlocBuilder<DispatchBloc, DispatchState>(
+        builder: (context, state) {
+          if (materials.isEmpty && state.errorMaterials.isEmpty) {
+            return Column(
               children: [
                 Icon(
                   Icons.inventory_2_outlined,
@@ -169,30 +172,49 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
                   style: TextStyle(color: Colors.grey[600], fontSize: 16),
                 ),
               ],
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: materials
-                  .asMap()
-                  .entries
-                  .map(
-                    (entry) => Padding(
-                      padding: EdgeInsets.only(
-                        bottom: entry.key < materials.length - 1
-                            ? AppTheme.spacingMedium
-                            : 0,
+            );
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 正常材料列表
+              if (materials.isNotEmpty) ...[
+                ...materials
+                    .asMap()
+                    .entries
+                    .map(
+                      (entry) => Padding(
+                        padding: EdgeInsets.only(
+                          bottom: entry.key < materials.length - 1
+                              ? AppTheme.spacingMedium
+                              : 0,
+                        ),
+                        child: MaterialListItem(
+                          materialName: entry.value.materialName,
+                          primaryText: entry.value.materialCode,
+                          batchCode: entry.value.batchCode,
+                          quantity: entry.value.num,
+                          businessType: 'dispatch',
+                        ),
                       ),
-                      child: MaterialListItem(
-                        materialName: entry.value.materialName,
-                        primaryText: entry.value.materialCode,
-                        batchCode: entry.value.batchCode,
-                        quantity: entry.value.num,
-                        businessType: 'dispatch',
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
+                    )
+                    .toList(),
+              ],
+
+              // 错误材料区域
+              if (state.errorMaterials.isNotEmpty) ...[
+                if (materials.isNotEmpty)
+                  const SizedBox(height: AppTheme.spacingMedium),
+                ErrorMaterialSection(
+                  errors: state.errorMaterials,
+                  onErrorItemTap: _handleErrorMaterialTap,
+                ),
+              ],
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -486,12 +508,55 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
     );
   }
 
-  void _submit() {
+  /// 处理错误材料点击事件
+  void _handleErrorMaterialTap(dynamic errorMaterial) {
+    // 简单显示错误材料信息
+    String errorInfo = '';
+    try {
+      if (errorMaterial is Map<String, dynamic>) {
+        errorInfo =
+            errorMaterial['errorMessage']?.toString() ??
+            errorMaterial['error_message']?.toString() ??
+            '异常材料信息';
+      } else {
+        errorInfo = '异常材料信息';
+      }
+    } catch (e) {
+      errorInfo = '异常材料信息';
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('异常材料详情'),
+        content: Text(errorInfo),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _submit() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     final state = context.read<DispatchBloc>().state;
+
+    // 检查是否有错误材料，如有则显示确认对话框
+    if (state.errorMaterials.isNotEmpty) {
+      final shouldContinue = await _showErrorMaterialSubmitConfirmation(
+        state.errorMaterials.length,
+      );
+      if (!shouldContinue) {
+        return; // 用户取消提交
+      }
+    }
+
     if (state.sourceProject?.id == null ||
         _selectedTargetProject?.id == null ||
         state.sourceWarehouse?.id == null ||
@@ -564,5 +629,26 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
     context.read<DispatchBloc>().add(
       UpdateApplicationMaterialWithRemoveCodes(res.removedCodes),
     );
+  }
+
+  /// 显示错误材料提交确认对话框
+  Future<bool> _showErrorMaterialSubmitConfirmation(int errorCount) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => SubmitConfirmationDialog(
+        normalCount:
+            context.read<DispatchBloc>().state.materialList?.length ?? 0,
+        errorCount: errorCount,
+        title: '调拨申请提交确认',
+        businessType: 'dispatch',
+        onConfirm: () {
+          Navigator.of(context).pop(true);
+        },
+        onCancel: () {
+          Navigator.of(context).pop(false);
+        },
+      ),
+    );
+    return result == true;
   }
 }

@@ -236,7 +236,8 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
             )
             .toList();
         final ids = appendingMaterials.map((m) => m.materialId).toSet();
-        // 先与state中的materials或者materialIds进行比对，如果发现新的物料与原state中的物料materialId一致，则不添加并toast提示有重复xx个，并从新物料中剔除，再把去重后的_materialVos添加到state
+
+        // 处理正常材料重复检查
         final existingIds = state.materialIds ?? <int>{};
         final duplicateIds = ids.intersection(existingIds);
         if (duplicateIds.isNotEmpty) {
@@ -244,16 +245,51 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
             (m) => duplicateIds.contains(m.materialId),
           );
         }
-        emit(
-          state.copyWith(
-            status: DispatchStatus.failure,
-            errorMessage: duplicateIds.isNotEmpty
-                ? '已存在重复物料ID: ${duplicateIds.join(", ")}'
-                : null,
-          ),
-        );
+
+        // 处理错误材料追加
+        final currentErrorMaterials = List<dynamic>.from(state.errorMaterials);
+        int errorAddedCount = 0;
+        for (final error in bundle.errors) {
+          // 简单的重复检查，基于qrCode
+          final qrCode = _getErrorQrCode(error);
+          final isDuplicate = currentErrorMaterials.any(
+            (existingError) => _getErrorQrCode(existingError) == qrCode,
+          );
+
+          if (!isDuplicate) {
+            currentErrorMaterials.add(error);
+            errorAddedCount++;
+          }
+        }
+
+        if (duplicateIds.isNotEmpty) {
+          emit(
+            state.copyWith(
+              status: DispatchStatus.failure,
+              errorMessage: duplicateIds.isNotEmpty
+                  ? '已存在重复物料ID: ${duplicateIds.join(", ")}'
+                  : null,
+            ),
+          );
+        }
+
         final materialVos = [...?state.materialList, ...appendingMaterials];
         final totalIds = materialVos.map((m) => m.materialId).toSet();
+
+        // 构建消息
+        final messages = <String>[];
+        if (appendingMaterials.isNotEmpty) {
+          messages.add('已添加 ${appendingMaterials.length} 个正常材料');
+        }
+        if (errorAddedCount > 0) {
+          messages.add('已添加 $errorAddedCount 个异常材料');
+        }
+
+        final message = messages.isNotEmpty
+            ? messages.join('，')
+            : totalIds.isNotEmpty
+            ? '已添加材料'
+            : null;
 
         // 延迟2s后发送
         await Future.delayed(const Duration(seconds: 2));
@@ -262,9 +298,8 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
             status: DispatchStatus.success,
             materialIds: totalIds,
             materialList: materialVos,
-            matchMessage: totalIds.isNotEmpty
-                ? '已添加 ${appendingMaterials.length} 个物料'
-                : null,
+            errorMaterials: currentErrorMaterials,
+            matchMessage: message,
           ),
         );
       } else {
@@ -302,7 +337,8 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
             )
             .toList();
         final ids = removingMaterials.map((m) => m.materialId).toSet();
-        // 先与state中的materialIds或物料列表进行比对，如果发现新扫码的物料中存在原state中没有的id，则认为是错误扫码，不作处理，并弹出toast提示，然后将其他新扫码并匹配到原state中的物料从原state中进行移除，并弹出移除了xx个物料的toast
+
+        // 检查正常材料是否在当前列表中
         final existingIds = state.materialIds ?? <int>{};
         final invalidIds = ids.difference(existingIds);
         if (invalidIds.isNotEmpty) {
@@ -314,14 +350,47 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
           );
           return;
         }
+
+        // 处理正常材料剔除
         final materialVos = [...?state.materialList];
         materialVos.removeWhere((m) => ids.contains(m.materialId));
+        final removedNormalCount = ids.length;
+
+        // 处理错误材料剔除
+        final currentErrorMaterials = List<dynamic>.from(state.errorMaterials);
+        int removedErrorCount = 0;
+
+        for (final errorToRemove in bundle.errors) {
+          final qrCodeToRemove = _getErrorQrCode(errorToRemove);
+
+          for (int i = currentErrorMaterials.length - 1; i >= 0; i--) {
+            final existingQrCode = _getErrorQrCode(currentErrorMaterials[i]);
+            if (existingQrCode == qrCodeToRemove && qrCodeToRemove.isNotEmpty) {
+              currentErrorMaterials.removeAt(i);
+              removedErrorCount++;
+              break;
+            }
+          }
+        }
+
+        // 构建消息
+        final messages = <String>[];
+        if (removedNormalCount > 0) {
+          messages.add('已移除 $removedNormalCount 个正常材料');
+        }
+        if (removedErrorCount > 0) {
+          messages.add('已移除 $removedErrorCount 个异常材料');
+        }
+
+        final message = messages.isNotEmpty ? messages.join('，') : '已移除材料';
+
         emit(
           state.copyWith(
             status: DispatchStatus.success,
             materialIds: materialVos.map((m) => m.materialId).toSet(),
             materialList: materialVos,
-            matchMessage: '已移除 ${ids.length} 个物料',
+            errorMaterials: currentErrorMaterials,
+            matchMessage: message,
           ),
         );
       } else {
@@ -366,6 +435,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
             status: DispatchStatus.success,
             materialIds: ids,
             materialList: materialVos,
+            errorMaterials: bundle.errors, // 设置错误材料
           ),
         );
         add(LoadApplicationData(materialVos));
@@ -655,6 +725,18 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
               '未找到匹配的物料，扫码的物料ID为: ${scannedBaseInfo.baseInfo.materialId}',
         ),
       );
+    }
+  }
+
+  /// 从错误材料对象中提取qrCode
+  String _getErrorQrCode(dynamic error) {
+    if (error is Map<String, dynamic>) {
+      return error['qrCode']?.toString() ?? error['qr_code']?.toString() ?? '';
+    }
+    try {
+      return (error as dynamic).qrCode?.toString() ?? '';
+    } catch (e) {
+      return '';
     }
   }
 }

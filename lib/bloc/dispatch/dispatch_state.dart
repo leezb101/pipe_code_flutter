@@ -16,6 +16,7 @@ class DispatchState extends Equatable {
     this.dispatchDetail,
     this.materialList,
     this.materialIds,
+    this.errorMaterials = const [], // 错误材料列表
     this.sourceProject,
     this.sourceWarehouse,
     this.availableProjects = const [],
@@ -40,6 +41,8 @@ class DispatchState extends Equatable {
   // 发出方项目信息 (申请页)
   final ProjectSimpleVo? sourceProject;
   final Set<int>? materialIds;
+  // 错误材料列表 (申请页)
+  final List<dynamic> errorMaterials;
   // 发出方仓库信息 (申请页)
   final WarehouseVO? sourceWarehouse;
   // 可选的目标项目列表 (申请页)
@@ -67,6 +70,7 @@ class DispatchState extends Equatable {
     DispatchDetailVo? dispatchDetail,
     List<MaterialVO>? materialList,
     Set<int>? materialIds,
+    List<dynamic>? errorMaterials,
     ProjectSimpleVo? sourceProject,
     WarehouseVO? sourceWarehouse,
     List<ProjectSimpleVo>? availableProjects,
@@ -86,6 +90,7 @@ class DispatchState extends Equatable {
       dispatchDetail: dispatchDetail ?? this.dispatchDetail,
       materialList: materialList ?? this.materialList,
       materialIds: materialIds ?? this.materialIds,
+      errorMaterials: errorMaterials ?? this.errorMaterials,
       sourceProject: sourceProject ?? this.sourceProject,
       sourceWarehouse: sourceWarehouse ?? this.sourceWarehouse,
       availableProjects: availableProjects ?? this.availableProjects,
@@ -111,6 +116,7 @@ class DispatchState extends Equatable {
     dispatchDetail,
     materialList,
     materialIds,
+    errorMaterials,
     sourceProject,
     sourceWarehouse,
     availableProjects,
