@@ -8,6 +8,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
+import 'package:pipe_code_flutter/models/qmap/map_project_user.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 import 'package:pipe_code_flutter/bloc/project_detail/project_detail_bloc.dart';
 import 'package:pipe_code_flutter/bloc/project_detail/project_detail_event.dart';
@@ -447,6 +449,10 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
         child: InkWell(
           onTap: isSupplier
               ? null
+              : org.users == null
+              ? null
+              : org.users!.isEmpty
+              ? null
               : () {
                   Navigator.push(
                     context,
@@ -455,6 +461,11 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                         projectId: projectId,
                         code: org.code,
                         orgName: org.name,
+                        users: org.users!
+                            .map((e) => e.toJson())
+                            .toList()
+                            .map((e) => MapProjectUser.fromJson(e))
+                            .toList(),
                       ),
                     ),
                   );

@@ -5,6 +5,8 @@
  * @LastEditTime: 2025-07-22 16:51:51
  * @copyright: Copyright © 2025 高新供水.
  */
+import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
+
 import 'common_enum_vo.dart';
 
 /// 公司类型枚举（与 /enum/org/type 接口适配）
@@ -48,12 +50,14 @@ class SimpleOrg {
   final String name;
   final OrgType type;
   final String typeName;
+  final List<CommonUserVO>? users; // 可选：组织下的用户列表
 
   const SimpleOrg({
     required this.code,
     required this.name,
     required this.type,
     required this.typeName,
+    this.users,
   });
 
   /// 工厂构造（适配接口协议）
@@ -62,6 +66,9 @@ class SimpleOrg {
     name: json['name'] as String,
     type: OrgType.fromJson(json['type']),
     typeName: json['typeName'] as String,
+    users: (json['users'] as List<dynamic>?)
+        ?.map((e) => CommonUserVO.fromJson(e))
+        .toList(),
   );
 
   /// 转为 Map 便于 toJson
@@ -70,9 +77,10 @@ class SimpleOrg {
     'name': name,
     'type': type.toJson(), // int 类型适配后端协议
     'typeName': typeName,
+    'users': users?.map((e) => e.toJson()).toList(),
   };
 
   @override
   String toString() =>
-      'SimpleOrg(code: \$code, name: \$name, type: \$type, typeName: \$typeName)';
+      'SimpleOrg(code: \$code, name: \$name, type: \$type, typeName: \$typeName, users: \$users)';
 }
