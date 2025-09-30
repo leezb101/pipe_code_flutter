@@ -18,6 +18,7 @@ import '../../widgets/file_upload/image_upload_widget.dart';
 import '../../bloc/return/return_bloc.dart';
 import '../../utils/go_router_popuntil.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
+import 'package:pipe_code_flutter/models/material/sync_vendor_data_error.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
     show QrScanOperation; // enum only
@@ -141,23 +142,28 @@ class _ReturnPageState extends State<ReturnPage> {
       businessType: 'return',
       child: BlocBuilder<ReturnBloc, ReturnState>(
         builder: (context, state) {
-          final materials = state.returnDetail?.materialList;
+          final materials = state.returnDetail?.materialList ?? [];
+          final errorMaterials = state.errorMaterials;
+
+          print(
+            'ReturnPage: _buildMaterialsList - materials count: ${materials.length}, errorMaterials count: ${errorMaterials.length}',
+          );
+          if (errorMaterials.isNotEmpty) {
+            print(
+              'ReturnPage: First error material: ${errorMaterials.first.qrCode}',
+            );
+          }
+
           if (state.status == ReturnStatus.loading) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (materials == null || materials.isEmpty) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: AppTheme.spacingLarge),
-                child: Text('暂无退库物料信息'),
-              ),
-            );
-          }
+
           return Column(
-            children: materials
-                .asMap()
-                .entries
-                .map(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 正常材料列表
+              if (materials.isNotEmpty)
+                ...materials.asMap().entries.map(
                   (entry) => Padding(
                     padding: EdgeInsets.only(
                       bottom: entry.key < materials.length - 1
@@ -167,7 +173,50 @@ class _ReturnPageState extends State<ReturnPage> {
                     child: _buildMaterialItemFromVO(entry.value),
                   ),
                 )
-                .toList(),
+              else
+                Padding(
+                  padding: const EdgeInsets.all(AppTheme.spacingLarge),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: 48,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: AppTheme.spacingSmall),
+                        Text(
+                          '暂无退库物料',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: AppTheme.spacingSmall),
+                        Text(
+                          '请通过扫码添加物料',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // 错误材料展示区域
+              if (errorMaterials.isNotEmpty) ...[
+                const SizedBox(height: AppTheme.spacingLarge),
+                ErrorMaterialSection(
+                  errors: errorMaterials,
+                  title: '退库异常材料',
+                  onErrorItemTap: _handleErrorMaterialTap,
+                  collapsible: true,
+                  initialExpanded: true,
+                ),
+              ],
+            ],
           );
         },
       ),
@@ -462,6 +511,41 @@ class _ReturnPageState extends State<ReturnPage> {
       return;
     }
 
+    // 检查是否有错误材料
+    final state = context.read<ReturnBloc>().state;
+    if (state.errorMaterials.isNotEmpty) {
+      // 显示确认对话框
+      final materialCount = state.returnDetail?.materialList?.length ?? 0;
+      _showSubmitConfirmation(materialCount, state.errorMaterials.length).then((
+        confirmed,
+      ) {
+        if (confirmed) {
+          _performSubmit();
+        }
+      });
+      return;
+    }
+
+    // 没有错误材料，直接提交
+    _performSubmit();
+  }
+
+  Future<bool> _showSubmitConfirmation(int normalCount, int errorCount) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => SubmitConfirmationDialog(
+            normalCount: normalCount,
+            errorCount: errorCount,
+            title: '退库提交确认',
+            businessType: 'return',
+            onConfirm: () {}, // 对话框内部会处理
+            onCancel: () {}, // 对话框内部会处理
+          ),
+        ) ??
+        false;
+  }
+
+  void _performSubmit() {
     final uploadStates = _imageUploadCubit.state;
     final isUploading = uploadStates.any(
       (s) => s.status == UploadStatus.uploading,
@@ -538,7 +622,7 @@ class _ReturnPageState extends State<ReturnPage> {
       final rsp = await repo.scanBatchToQueryAll(res.addedCodes);
       if (rsp.isSuccess && rsp.data != null) {
         // 将获取到的真实物料追加（基于 materialId 去重）
-        // 记录重复的id，进行toas提示
+        // 记录重复的id，进行toast提示
         final existingIds = currentList.map((m) => m.materialId).toSet();
         final fetched = rsp.data!.normals;
         final appended = <MaterialVO>[];
@@ -556,11 +640,55 @@ class _ReturnPageState extends State<ReturnPage> {
             ),
           );
         }
+
+        // 处理错误材料
+        final currentErrorMaterials = context
+            .read<ReturnBloc>()
+            .state
+            .errorMaterials;
+        final newErrorMaterials = List<SyncVendorDataError>.from(
+          currentErrorMaterials,
+        );
+        int newErrorCount = 0;
+
+        for (final error in rsp.data!.errors) {
+          // 简单的重复检查，基于qrCode
+          final qrCode = error.qrCode ?? '';
+          final isDuplicate = newErrorMaterials.any(
+            (existingError) =>
+                (existingError.qrCode ?? '') == qrCode && qrCode.isNotEmpty,
+          );
+
+          if (!isDuplicate) {
+            newErrorMaterials.add(error);
+            newErrorCount++;
+          }
+        }
+
         if (mounted) {
           context.read<ReturnBloc>().add(
             UpdateReturnMaterials(materials: [...currentList, ...appended]),
           );
-          context.showSuccessToast('已追加 ${appended.length} 个');
+
+          if (newErrorCount > 0) {
+            context.read<ReturnBloc>().add(
+              UpdateReturnErrorMaterials(errorMaterials: newErrorMaterials),
+            );
+          }
+
+          final messages = <String>[];
+          if (appended.isNotEmpty) {
+            messages.add('已追加 ${appended.length} 个正常物料');
+          }
+          if (newErrorCount > 0) {
+            messages.add('发现 ${newErrorCount} 个异常物料');
+          }
+
+          if (messages.isNotEmpty) {
+            context.showSuccessToast(messages.join('，'));
+          } else {
+            context.showInfoToast('未发现新的物料');
+          }
         }
       } else {
         if (mounted) context.showInfoToast('未查到新增物料');
@@ -605,20 +733,58 @@ class _ReturnPageState extends State<ReturnPage> {
         final idsToRemove = rsp.data!.normals
             .map((m) => m.baseInfo.materialId)
             .toSet();
-        if (idsToRemove.isEmpty) {
+
+        // 处理错误材料的移除
+        final currentErrorMaterials = context
+            .read<ReturnBloc>()
+            .state
+            .errorMaterials;
+        final errorCodesToRemove = rsp.data!.errors
+            .map((error) => error.qrCode ?? '')
+            .where((code) => code.isNotEmpty)
+            .toSet();
+
+        final updatedErrors = currentErrorMaterials
+            .where((error) => !errorCodesToRemove.contains(error.qrCode ?? ''))
+            .toList();
+
+        if (idsToRemove.isEmpty && errorCodesToRemove.isEmpty) {
           if (mounted) context.showInfoToast('未匹配到可移除的物料');
           return;
         }
+
         final remaining = currentList
             .where((m) => !idsToRemove.contains(m.materialId))
             .toList();
+
         if (mounted) {
           context.read<ReturnBloc>().add(
             UpdateReturnMaterials(materials: remaining),
           );
-          context.showSuccessToast(
-            '已移除 ${currentList.length - remaining.length} 个',
-          );
+
+          if (updatedErrors.length < currentErrorMaterials.length) {
+            context.read<ReturnBloc>().add(
+              UpdateReturnErrorMaterials(errorMaterials: updatedErrors),
+            );
+          }
+
+          final removedNormalCount = currentList.length - remaining.length;
+          final removedErrorCount =
+              currentErrorMaterials.length - updatedErrors.length;
+
+          final messages = <String>[];
+          if (removedNormalCount > 0) {
+            messages.add('移除${removedNormalCount}个正常物料');
+          }
+          if (removedErrorCount > 0) {
+            messages.add('移除${removedErrorCount}个异常物料');
+          }
+
+          if (messages.isNotEmpty) {
+            context.showSuccessToast(messages.join('，'));
+          } else {
+            context.showInfoToast('未移除任何物料');
+          }
         }
       } else {
         if (mounted) context.showInfoToast('未匹配到可移除的码');
@@ -626,5 +792,92 @@ class _ReturnPageState extends State<ReturnPage> {
     } catch (e) {
       if (mounted) context.showErrorToast('移除失败');
     }
+  }
+
+  void _handleErrorMaterialTap(dynamic error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.error_outline, color: AppTheme.errorColor),
+            const SizedBox(width: AppTheme.spacingSmall),
+            const Text('异常材料详情'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InfoRow(
+              label: '二维码',
+              value: _getErrorField(error, 'qrCode') ?? '无',
+              icon: Icons.qr_code,
+            ),
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(
+              label: '厂家编码',
+              value: _getErrorField(error, 'code') ?? '无',
+              icon: Icons.business,
+            ),
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(
+              label: '厂家名称',
+              value: _getErrorField(error, 'name') ?? '无',
+              icon: Icons.factory,
+            ),
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(
+              label: '错误信息',
+              value: _getErrorField(error, 'msg') ?? '无',
+              icon: Icons.error_outline,
+              valueStyle: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.errorColor,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('关闭'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _handleReportError(error);
+            },
+            child: const Text('报告问题'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String? _getErrorField(dynamic error, String field) {
+    if (error is Map<String, dynamic>) {
+      return error[field]?.toString();
+    }
+    try {
+      switch (field) {
+        case 'qrCode':
+          return (error as dynamic).qrCode?.toString();
+        case 'code':
+          return (error as dynamic).code?.toString();
+        case 'name':
+          return (error as dynamic).name?.toString();
+        case 'msg':
+          return (error as dynamic).msg?.toString();
+        default:
+          return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void _handleReportError(dynamic error) {
+    // TODO: 实现错误报告功能
+    context.showInfoToast('错误报告功能待实现');
   }
 }

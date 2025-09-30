@@ -12,6 +12,7 @@ import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
+import 'package:pipe_code_flutter/models/material/sync_vendor_data_error.dart';
 import 'package:pipe_code_flutter/models/return/do_return_req_vo.dart';
 import 'package:pipe_code_flutter/models/return/return_detail_vo.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
@@ -40,6 +41,7 @@ class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
     on<ResetState>(_onResetState);
     on<LoadReturnDetail>(_onLoadReturnDetail);
     on<UpdateReturnMaterials>(_onUpdateReturnMaterials);
+    on<UpdateReturnErrorMaterials>(_onUpdateReturnErrorMaterials);
   }
 
   // 处理加载扫码二维码事件
@@ -70,16 +72,28 @@ class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
           );
         }
 
-        // 如果没有有效物料，抛出异常
-        if (validMaterials.isEmpty) {
-          // throw Exception('未找到有效的退库物料');
+        // 提取错误材料
+        final errorMaterials = rsp.data!.errors;
+
+        print(
+          'ReturnBloc: LoadReturnMaterialCodes - errorMaterials count: ${errorMaterials.length}',
+        );
+        if (errorMaterials.isNotEmpty) {
+          print(
+            'ReturnBloc: First error material: ${errorMaterials.first.qrCode}',
+          );
+        }
+
+        // 如果没有有效物料，且没有错误材料，抛出异常
+        if (validMaterials.isEmpty && errorMaterials.isEmpty) {
           emit(
             state.copyWith(
               status: ReturnStatus.failure,
               codes: const [],
-              errorMessage: '未找到有效的退库物料',
+              errorMessage: '未找到任何物料信息',
             ),
           );
+          return;
         }
 
         // 创建退库详情对象
@@ -95,6 +109,7 @@ class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
             status: ReturnStatus.success,
             codes: const <String>[],
             returnDetail: returnDetail,
+            errorMaterials: errorMaterials,
           ),
         );
       }
@@ -230,5 +245,13 @@ class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
         returnDetail: currentDetail.copyWith(materialList: event.materials),
       ),
     );
+  }
+
+  // 处理更新错误材料
+  Future<void> _onUpdateReturnErrorMaterials(
+    UpdateReturnErrorMaterials event,
+    Emitter<ReturnState> emit,
+  ) async {
+    emit(state.copyWith(errorMaterials: event.errorMaterials));
   }
 }

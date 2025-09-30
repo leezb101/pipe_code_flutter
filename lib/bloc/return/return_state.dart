@@ -26,6 +26,7 @@ class ReturnState extends Equatable {
     this.returnRemark = '',
     this.returnRemarkVoice = const [],
     this.imageList = const [],
+    this.errorMaterials = const [],
     this.errorMessage,
   });
 
@@ -45,6 +46,8 @@ class ReturnState extends Equatable {
   final List<String>? returnRemarkVoice;
   // 图片附件列表
   final List<AttachmentVO> imageList;
+  // 错误材料列表
+  final List<SyncVendorDataError> errorMaterials;
   // 错误信息
   final String? errorMessage;
 
@@ -57,6 +60,7 @@ class ReturnState extends Equatable {
     String? returnRemark,
     List<String>? returnRemarkVoice,
     List<AttachmentVO>? imageList,
+    List<SyncVendorDataError>? errorMaterials,
     String? errorMessage,
   }) {
     return ReturnState(
@@ -68,6 +72,7 @@ class ReturnState extends Equatable {
       returnRemark: returnRemark ?? this.returnRemark,
       returnRemarkVoice: returnRemarkVoice ?? this.returnRemarkVoice,
       imageList: imageList ?? this.imageList,
+      errorMaterials: errorMaterials ?? this.errorMaterials,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -82,6 +87,7 @@ class ReturnState extends Equatable {
     returnRemark,
     returnRemarkVoice,
     imageList,
+    errorMaterials,
     errorMessage,
   ];
 }

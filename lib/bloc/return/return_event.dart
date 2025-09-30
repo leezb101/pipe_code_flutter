@@ -91,3 +91,11 @@ class UpdateReturnMaterials extends ReturnEvent {
   @override
   List<Object?> get props => [materials];
 }
+
+// 更新错误材料列表
+class UpdateReturnErrorMaterials extends ReturnEvent {
+  const UpdateReturnErrorMaterials({required this.errorMaterials});
+  final List<SyncVendorDataError> errorMaterials;
+  @override
+  List<Object?> get props => [errorMaterials];
+}
