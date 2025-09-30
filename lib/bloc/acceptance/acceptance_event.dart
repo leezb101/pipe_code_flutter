@@ -163,6 +163,7 @@ class RemoveMaterialsByCodes extends AcceptanceEvent {
 // ========== AcceptancePage editing flow (centralize list ops in bloc) ==========
 class InitializeEditingMaterials extends AcceptanceEvent {
   final List<MaterialInfo> initial;
+  final List<dynamic> initialErrors;
 
   /// Project purchase name for purchaser validation
   final String? projectPurNm;
@@ -172,12 +173,13 @@ class InitializeEditingMaterials extends AcceptanceEvent {
 
   const InitializeEditingMaterials({
     required this.initial,
+    this.initialErrors = const [],
     this.projectPurNm,
     this.supplyType,
   });
 
   @override
-  List<Object?> get props => [initial, projectPurNm, supplyType];
+  List<Object?> get props => [initial, initialErrors, projectPurNm, supplyType];
 }
 
 class AppendEditingMaterialsByCodes extends AcceptanceEvent {

@@ -13,7 +13,6 @@ import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_state.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
-import 'package:pipe_code_flutter/services/location_service.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import '../../models/common/common_user_vo.dart';
 import '../../models/common/warehouse_vo.dart';
@@ -224,6 +223,29 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
           // 在 materialList 初始化完成后，触发加载用户数据和仓库列表
           _loadUsersIfNeeded(context);
           _loadWarehousesIfNeeded(context);
+        } else if (state is AcceptanceMaterialInfoResolved) {
+          // 处理完整的材料信息（包括errors）
+          final sessionState = context.read<SessionBloc>().state;
+          String? projectPurNm;
+          ProjectSupplyType? supplyType;
+          if (sessionState is SessionProjectEstablished) {
+            projectPurNm = sessionState.projectPurNm;
+            supplyType =
+                sessionState.currentUserRoleInfo.currentProjectSupplyType;
+          }
+
+          context.read<AcceptanceBloc>().add(
+            InitializeEditingMaterials(
+              initial: state.materials,
+              initialErrors: state.errors, // 传递错误材料数据
+              projectPurNm: projectPurNm,
+              supplyType: supplyType,
+            ),
+          );
+
+          // 在 materialList 初始化完成后，触发加载用户数据和仓库列表
+          _loadUsersIfNeeded(context);
+          _loadWarehousesIfNeeded(context);
         } else if (state is AcceptanceError) {
           // 只提示错误，不清空或变更当前编辑中的待提交信息
           context.showErrorToast('验收失败: ${state.message}');
@@ -328,6 +350,10 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
               ? state.currentMaterials
               : _currentMaterials;
 
+          final errorMaterials = state is AcceptanceEditingState
+              ? state.errorMaterials
+              : <dynamic>[];
+
           // 检查是否正在追加材料
           final isAppendLoading =
               state is AcceptanceEditingState && state.isLoadingAppendMaterials;
@@ -335,9 +361,24 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 正常材料列表
               ...materials.map(_buildMaterialItem),
+
               // 如果正在追加材料，在材料列表下方显示加载指示器
               if (isAppendLoading) _buildAppendLoadingIndicator(),
+
+              // 错误材料展示区域
+              if (errorMaterials.isNotEmpty) ...[
+                const SizedBox(height: AppTheme.spacingLarge),
+                ErrorMaterialSection(
+                  errors: errorMaterials,
+                  title: '验收异常材料',
+                  onErrorItemTap: _handleErrorMaterialTap,
+                  collapsible: true,
+                  initialExpanded: true,
+                ),
+              ],
+
               const SizedBox(height: AppTheme.spacingMedium),
               Row(
                 children: [
@@ -836,12 +877,133 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
     );
   }
 
-  void _handleScanAcceptance() {
+  void _handleErrorMaterialTap(dynamic error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.error_outline, color: AppTheme.errorColor),
+            const SizedBox(width: AppTheme.spacingSmall),
+            const Text('异常材料详情'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InfoRow(
+              label: '二维码',
+              value: _getErrorField(error, 'qrCode') ?? '无',
+              icon: Icons.qr_code,
+            ),
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(
+              label: '厂家编码',
+              value: _getErrorField(error, 'code') ?? '无',
+              icon: Icons.business,
+            ),
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(
+              label: '厂家名称',
+              value: _getErrorField(error, 'name') ?? '无',
+              icon: Icons.factory,
+            ),
+            const SizedBox(height: AppTheme.spacingSmall),
+            InfoRow(
+              label: '错误信息',
+              value: _getErrorField(error, 'msg') ?? '无',
+              icon: Icons.error_outline,
+              valueStyle: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.errorColor,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('关闭'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _handleReportError(error);
+            },
+            child: const Text('报告问题'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String? _getErrorField(dynamic error, String field) {
+    if (error is Map<String, dynamic>) {
+      return error[field]?.toString();
+    }
+    try {
+      switch (field) {
+        case 'qrCode':
+          return (error as dynamic).qrCode?.toString();
+        case 'code':
+          return (error as dynamic).code?.toString();
+        case 'name':
+          return (error as dynamic).name?.toString();
+        case 'msg':
+          return (error as dynamic).msg?.toString();
+        default:
+          return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<bool> _showSubmitConfirmation(int normalCount, int errorCount) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => SubmitConfirmationDialog(
+            normalCount: normalCount,
+            errorCount: errorCount,
+            title: '验收提交确认',
+            businessType: 'acceptance',
+            onConfirm: () {}, // 对话框内部会处理
+            onCancel: () {}, // 对话框内部会处理
+          ),
+        ) ??
+        false;
+  }
+
+  void _handleReportError(dynamic error) {
+    // 报告错误材料问题的逻辑
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('问题报告已提交'),
+        backgroundColor: AppTheme.infoColor,
+      ),
+    );
+  }
+
+  void _handleScanAcceptance() async {
     // 优先从编辑态取材；否则退回到本地集合
     final currentState = context.read<AcceptanceBloc>().state;
     final sourceMaterials = currentState is AcceptanceEditingState
         ? currentState.currentMaterials
         : _currentMaterials;
+
+    final errorMaterials = currentState is AcceptanceEditingState
+        ? currentState.errorMaterials
+        : <dynamic>[];
+
+    // 检查是否有错误材料，如果有则显示确认对话框
+    if (errorMaterials.isNotEmpty) {
+      final shouldProceed = await _showSubmitConfirmation(
+        sourceMaterials.length,
+        errorMaterials.length,
+      );
+      if (!shouldProceed) return;
+    }
+
     final materialVOList = sourceMaterials
         .map(
           (e) => MaterialVO(

@@ -141,6 +141,22 @@ class AcceptanceMaterialsResolved extends AcceptanceState {
   List<Object?> get props => [materials, message];
 }
 
+// Complete MaterialInfoForBusiness resolved from QR codes (including errors)
+class AcceptanceMaterialInfoResolved extends AcceptanceState {
+  final List<MaterialInfo> materials;
+  final List<dynamic> errors;
+  final String? message;
+
+  const AcceptanceMaterialInfoResolved({
+    required this.materials,
+    required this.errors,
+    this.message,
+  });
+
+  @override
+  List<Object?> get props => [materials, errors, message];
+}
+
 // Editing flow state for AcceptancePage: keeps current list and dedup set
 class AcceptanceEditingState extends AcceptanceState {
   final List<MaterialInfo> currentMaterials;
@@ -148,6 +164,9 @@ class AcceptanceEditingState extends AcceptanceState {
   final String? message; // feedback like appended/removed counts
   final bool isLoadingInitialMaterials; // 首次加载材料状态
   final bool isLoadingAppendMaterials; // 追加材料加载状态
+
+  // Error materials data
+  final List<dynamic> errorMaterials; // 错误材料列表 (SyncVendorDataError objects)
 
   // Purchaser validation warning
   final bool showPurchaserValidationWarning;
@@ -159,6 +178,7 @@ class AcceptanceEditingState extends AcceptanceState {
     this.message,
     this.isLoadingInitialMaterials = false,
     this.isLoadingAppendMaterials = false,
+    this.errorMaterials = const [],
     this.showPurchaserValidationWarning = false,
     this.purchaserMismatchMaterials = const [],
   });
@@ -170,6 +190,7 @@ class AcceptanceEditingState extends AcceptanceState {
     bool clearMessage = false,
     bool? isLoadingInitialMaterials,
     bool? isLoadingAppendMaterials,
+    List<dynamic>? errorMaterials,
     bool? showPurchaserValidationWarning,
     List<String>? purchaserMismatchMaterials,
   }) {
@@ -181,6 +202,7 @@ class AcceptanceEditingState extends AcceptanceState {
           isLoadingInitialMaterials ?? this.isLoadingInitialMaterials,
       isLoadingAppendMaterials:
           isLoadingAppendMaterials ?? this.isLoadingAppendMaterials,
+      errorMaterials: errorMaterials ?? this.errorMaterials,
       showPurchaserValidationWarning:
           showPurchaserValidationWarning ?? this.showPurchaserValidationWarning,
       purchaserMismatchMaterials:
@@ -195,6 +217,7 @@ class AcceptanceEditingState extends AcceptanceState {
     message,
     isLoadingInitialMaterials,
     isLoadingAppendMaterials,
+    errorMaterials,
     showPurchaserValidationWarning,
     purchaserMismatchMaterials,
   ];

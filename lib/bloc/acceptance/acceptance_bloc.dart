@@ -539,9 +539,12 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         );
 
         Logger.debug('扫码进入并完成获取信息，即将发出结果', tag: 'AcceptanceBloc');
+
+        // 使用新的state来传递完整的材料信息，包括errors
         emit(
-          AcceptanceMaterialsResolved(
+          AcceptanceMaterialInfoResolved(
             materials: bundle.normals,
+            errors: bundle.errors,
             // unique token to ensure state changes are observed even with same materials
             message: 'init@${DateTime.now().microsecondsSinceEpoch}',
           ),
@@ -688,13 +691,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         currentMaterials: List.of(event.initial),
         materialIds: ids,
         message: null,
+        errorMaterials: List.of(event.initialErrors), // 初始化错误材料列表
         showPurchaserValidationWarning: mismatchMaterials.isNotEmpty,
         purchaserMismatchMaterials: mismatchMaterials,
       ),
     );
 
     Logger.debug(
-      'Initialized editing materials with ${event.initial.length} items',
+      'Initialized editing materials with ${event.initial.length} items and ${event.initialErrors.length} errors',
       tag: 'AcceptanceBloc',
     );
 
@@ -720,6 +724,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           : const AcceptanceEditingState(
               currentMaterials: [],
               materialIds: {},
+              errorMaterials: [],
               isLoadingInitialMaterials: false,
               isLoadingAppendMaterials: false,
             );
@@ -738,8 +743,12 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
 
       final list = List.of(editing.currentMaterials);
       final ids = Set<int>.from(editing.materialIds);
+      final currentErrors = List<dynamic>.from(editing.errorMaterials);
+
       int added = 0;
       int dup = 0;
+
+      // 处理正常材料
       for (final m in rsp.data!.normals) {
         final id = m.baseInfo.materialId;
         if (ids.contains(id)) {
@@ -751,6 +760,22 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         added++;
       }
 
+      // 追加错误材料，避免重复
+      final newErrors = List<dynamic>.from(currentErrors);
+      int errorAdded = 0;
+      for (final error in rsp.data!.errors) {
+        // 简单的重复检查，基于qrCode
+        final qrCode = _getErrorQrCode(error);
+        final isDuplicate = newErrors.any(
+          (existingError) => _getErrorQrCode(existingError) == qrCode,
+        );
+
+        if (!isDuplicate) {
+          newErrors.add(error);
+          errorAdded++;
+        }
+      }
+
       // 检查新添加材料的采购方匹配情况
       final mismatchMaterials = _checkPurchaserMismatch(
         list,
@@ -758,13 +783,25 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         event.supplyType,
       );
 
+      // 构建消息
+      final messages = <String>[];
+      if (added > 0) {
+        messages.add('新增 $added 个正常材料');
+      }
+      if (errorAdded > 0) {
+        messages.add('新增 $errorAdded 个异常材料');
+      }
+      if (dup > 0) {
+        messages.add('忽略重复 $dup 个');
+      }
+      final message = messages.isNotEmpty ? messages.join('，') : '暂无可新增物料';
+
       emit(
         editing.copyWith(
           currentMaterials: list,
           materialIds: ids,
-          message: added > 0
-              ? '新增 $added 个${dup > 0 ? '，忽略重复 $dup 个' : ''}'
-              : '暂无可新增物料',
+          errorMaterials: newErrors,
+          message: message,
           isLoadingAppendMaterials: false, // 清除加载状态
           showPurchaserValidationWarning: mismatchMaterials.isNotEmpty,
           purchaserMismatchMaterials: mismatchMaterials,
@@ -772,7 +809,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       );
 
       Logger.debug(
-        'AppendEditingMaterialsByCodes - added $added new materials, ignored $dup duplicates',
+        'AppendEditingMaterialsByCodes - added $added normal materials, $errorAdded error materials, ignored $dup duplicates',
         tag: 'AcceptanceBloc',
       );
 
@@ -816,34 +853,77 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           : const AcceptanceEditingState(
               currentMaterials: [],
               materialIds: {},
+              errorMaterials: [],
               isLoadingInitialMaterials: false,
               isLoadingAppendMaterials: false,
             );
+
+      // 处理正常材料的剔除
       final idsToRemove = rsp.data!.normals
           .map((m) => m.baseInfo.materialId)
           .toSet();
-      final before = editing.currentMaterials.length;
+      final beforeNormal = editing.currentMaterials.length;
       final newList = editing.currentMaterials
           .where((m) => !idsToRemove.contains(m.baseInfo.materialId))
           .toList();
-      final removed = before - newList.length;
+      final removedNormal = beforeNormal - newList.length;
       final existingIds = editing.currentMaterials
           .map((m) => m.baseInfo.materialId)
           .toSet();
-      final unmatched = idsToRemove.difference(existingIds).length;
+      final unmatchedNormal = idsToRemove.difference(existingIds).length;
       final newIds = Set<int>.from(editing.materialIds)..removeAll(idsToRemove);
-      final msg = removed > 0
-          ? '已剔除 $removed 个${unmatched > 0 ? '，忽略未在页面 $unmatched 个' : ''}'
-          : '未找到可剔除的物料';
+
+      // 处理错误材料的剔除
+      final currentErrors = List<dynamic>.from(editing.errorMaterials);
+      int removedError = 0;
+      int unmatchedError = 0;
+
+      // 从扫码的错误材料中剔除匹配的错误材料
+      for (final scannedError in rsp.data!.errors) {
+        final scannedQrCode = _getErrorQrCode(scannedError);
+        bool found = false;
+
+        for (int i = currentErrors.length - 1; i >= 0; i--) {
+          final existingQrCode = _getErrorQrCode(currentErrors[i]);
+          if (existingQrCode == scannedQrCode && scannedQrCode.isNotEmpty) {
+            currentErrors.removeAt(i);
+            removedError++;
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          unmatchedError++;
+        }
+      }
+
+      // 构建消息
+      final messages = <String>[];
+      if (removedNormal > 0) {
+        messages.add('已剔除 $removedNormal 个正常材料');
+      }
+      if (removedError > 0) {
+        messages.add('已剔除 $removedError 个异常材料');
+      }
+      if (unmatchedNormal > 0 || unmatchedError > 0) {
+        final total = unmatchedNormal + unmatchedError;
+        messages.add('忽略未在页面 $total 个');
+      }
+
+      final msg = messages.isNotEmpty ? messages.join('，') : '未找到可剔除的物料';
+
       emit(
         editing.copyWith(
           currentMaterials: newList,
           materialIds: newIds,
+          errorMaterials: currentErrors,
           message: msg,
         ),
       );
+
       Logger.debug(
-        'RemoveEditingMaterialsByCodes - removed $removed materials, ignored $unmatched unmatched',
+        'RemoveEditingMaterialsByCodes - removed $removedNormal normal materials, $removedError error materials, ignored ${unmatchedNormal + unmatchedError} unmatched',
         tag: 'AcceptanceBloc',
       );
     } catch (e) {
@@ -926,5 +1006,17 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     }
 
     return mismatchMaterials;
+  }
+
+  /// 从错误材料对象中提取qrCode
+  String _getErrorQrCode(dynamic error) {
+    if (error is Map<String, dynamic>) {
+      return error['qrCode']?.toString() ?? error['qr_code']?.toString() ?? '';
+    }
+    try {
+      return (error as dynamic).qrCode?.toString() ?? '';
+    } catch (e) {
+      return '';
+    }
   }
 }
