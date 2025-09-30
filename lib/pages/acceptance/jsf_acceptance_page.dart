@@ -315,7 +315,36 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
                 // 追加材料加载指示器
                 if (state.isLoadingAppendMaterials)
                   _buildAppendLoadingIndicator(),
-
+              ],
+            );
+          } else if (state.errorMessage != null) {
+            return Container(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    state.errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          } else {
+            return Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  child: const Center(
+                    child: Text(
+                      '请先扫码添加材料',
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                  ),
+                ),
                 // 操作按钮
                 const SizedBox(height: 16),
                 Row(
@@ -342,32 +371,6 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
                   ],
                 ),
               ],
-            );
-          } else if (state.errorMessage != null) {
-            return Container(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    state.errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          } else {
-            return Container(
-              padding: const EdgeInsets.all(24),
-              child: const Center(
-                child: Text(
-                  '请先扫码添加材料',
-                  style: TextStyle(color: Colors.grey, fontSize: 16),
-                ),
-              ),
             );
           }
         },
