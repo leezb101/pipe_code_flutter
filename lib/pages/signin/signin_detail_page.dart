@@ -202,107 +202,159 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
   }
 
   Widget _buildMaterialItem(MaterialVO material, int index) {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spacingMedium),
-      decoration: BoxDecoration(
-        color: AppTheme.getBusinessColor('signin').withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(
-          color: AppTheme.getBusinessColor('signin').withValues(alpha: 0.2),
+    return MaterialListItem(
+      materialName: material.materialName,
+      primaryText: material.materialCode ?? '无',
+      batchCode: material.batchCode ?? '无',
+      materialId: material.materialId.toString(),
+      quantity: material.num,
+      businessType: 'signin',
+      icon: Icons.inventory_2,
+      trailing: _buildMaterialTrailing(material, index),
+    );
+  }
+
+  /// 构建材料项的尾部内容（序号 + 安装图片）
+  Widget _buildMaterialTrailing(MaterialVO material, int index) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // 序号徽章
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: AppTheme.getBusinessColor('signin'),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+          ),
+          child: Center(
+            child: Text(
+              index.toString(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        // 安装桩号（如果有）
+        if (material.installPileNo != null) ...[
+          const SizedBox(height: AppTheme.spacingSmall),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: AppTheme.getBusinessColor('signin'),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-                ),
-                child: Center(
-                  child: Text(
-                    index.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: AppTheme.spacingMedium),
-              Expanded(
-                child: Text(
-                  material.materialName,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingSmall,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade100,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-                ),
-                child: Text(
-                  '${material.num}个',
-                  style: const TextStyle(color: Colors.green, fontSize: 12),
+              Icon(Icons.location_on, size: 12, color: Colors.green.shade600),
+              const SizedBox(width: 2),
+              Text(
+                material.installPileNo!,
+                style: TextStyle(
+                  color: Colors.green.shade600,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
-          if (material.installPileNo != null) ...[
-            SizedBox(height: AppTheme.spacingSmall),
-            Row(
-              children: [
-                Icon(Icons.location_on, size: 16, color: Colors.grey.shade600),
-                SizedBox(width: AppTheme.spacingSmall),
-                Text(
-                  '安装桩号: ${material.installPileNo}',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                ),
-              ],
-            ),
-          ],
-          // 物料相关的图片预览（如果有的话）
-          if (material.installImageUrl1 != null ||
-              material.installImageUrl2 != null) ...[
-            SizedBox(height: AppTheme.spacingSmall),
-            const Text(
-              '安装图片:',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-            ),
-            SizedBox(height: AppTheme.spacingSmall),
-            Row(
-              children: [
-                if (material.installImageUrl1 != null)
-                  _buildImagePreview(material.installImageUrl1!, 0, [
-                    material.installImageUrl1!,
-                    if (material.installImageUrl2 != null)
-                      material.installImageUrl2!,
-                  ]),
-                if (material.installImageUrl2 != null) ...[
-                  SizedBox(width: AppTheme.spacingSmall),
-                  _buildImagePreview(
-                    material.installImageUrl2!,
-                    material.installImageUrl1 != null ? 1 : 0,
-                    [
-                      if (material.installImageUrl1 != null)
-                        material.installImageUrl1!,
-                      material.installImageUrl2!,
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ],
         ],
+        // 安装图片（如果有）
+        if (material.installImageUrl1 != null ||
+            material.installImageUrl2 != null) ...[
+          const SizedBox(height: AppTheme.spacingSmall),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (material.installImageUrl1 != null)
+                _buildSmallImagePreview(material.installImageUrl1!, 0, [
+                  material.installImageUrl1!,
+                  if (material.installImageUrl2 != null)
+                    material.installImageUrl2!,
+                ]),
+              if (material.installImageUrl1 != null &&
+                  material.installImageUrl2 != null)
+                const SizedBox(width: 4),
+              if (material.installImageUrl2 != null)
+                _buildSmallImagePreview(
+                  material.installImageUrl2!,
+                  material.installImageUrl1 != null ? 1 : 0,
+                  [
+                    if (material.installImageUrl1 != null)
+                      material.installImageUrl1!,
+                    material.installImageUrl2!,
+                  ],
+                ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// 构建小尺寸的图片预览
+  Widget _buildSmallImagePreview(
+    String imageUrl,
+    int index,
+    List<String> allImageUrls,
+  ) {
+    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
+    final token = authState.wxLoginVO.tk;
+    final urlWithTk = imageUrl.contains('?')
+        ? '$imageUrl&auth_toke=$token'
+        : '$imageUrl?auth_toke=$token';
+
+    final processedUrls = allImageUrls.map((url) {
+      return url.contains('?')
+          ? '$url&auth_toke=$token'
+          : '$url?auth_toke=$token';
+    }).toList();
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ImagePreviewWidget(
+              imageUrls: processedUrls,
+              initialIndex: index,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+          child: Image.network(
+            urlWithTk,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+              color: Colors.grey.shade100,
+              child: const Icon(
+                Icons.image_not_supported,
+                color: Colors.grey,
+                size: 16,
+              ),
+            ),
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                color: Colors.grey.shade100,
+                child: const Center(
+                  child: SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(strokeWidth: 1),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
