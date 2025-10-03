@@ -1,11 +1,3 @@
-/*
- * @Author: LeeZB
- * @Date: 2025-07-17 15:00:00
- * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-01 16:46:37
- * @copyright: Copyright © 2025 高新供水.
- */
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +6,7 @@ import 'package:pipe_code_flutter/bloc/session/session_state.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
+import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
 import '../../models/common/common_user_vo.dart';
 import '../../models/common/warehouse_vo.dart';
 import '../../models/material/material_info_base.dart';
@@ -143,9 +136,10 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
         context.read<AcceptanceBloc>().add(
           InitializeMaterialsFromCodes(
             codes: codes,
-            isBatch: widget.initialIsBatch ?? (codes.length > 1),
+            isBatch: widget.initialIsBatch ?? true,
             projectPurNm: projectPurNm,
             supplyType: supplyType,
+            tracingContext: context.createActionContext('初始化验收材料'),
           ),
         );
       });
@@ -665,7 +659,10 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
                 // 如果已有选中的仓库，自动获取仓库人员
                 if (_selectedWarehouseId != null) {
                   context.read<AcceptanceBloc>().add(
-                    LoadWarehouseUsers(warehouseId: _selectedWarehouseId!),
+                    LoadWarehouseUsers(
+                      warehouseId: _selectedWarehouseId!,
+                      tracingContext: context.createActionContext('加载仓库用户'),
+                    ),
                   );
                 }
               },
@@ -729,7 +726,10 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
                 // 获取仓库用户
                 if (newValue != null) {
                   context.read<AcceptanceBloc>().add(
-                    LoadWarehouseUsers(warehouseId: newValue),
+                    LoadWarehouseUsers(
+                      warehouseId: newValue,
+                      tracingContext: context.createActionContext('切换仓库并加载用户'),
+                    ),
                   );
                 }
               },
@@ -1072,7 +1072,12 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
     );
 
     // 通过BLoC提交验收数据
-    context.read<AcceptanceBloc>().add(SubmitAcceptance(request: doAcceptVO));
+    context.read<AcceptanceBloc>().add(
+      SubmitAcceptance(
+        request: doAcceptVO,
+        tracingContext: context.createActionContext('提交验收申请'),
+      ),
+    );
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -1179,6 +1184,7 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
         codes: res.addedCodes,
         projectPurNm: projectPurNm,
         supplyType: supplyType,
+        tracingContext: context.createActionContext('追加验收材料'),
       ),
     );
   }
@@ -1210,7 +1216,10 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
     final res = flow.normalize(request, raw);
     if (res.removedCodes.isEmpty) return;
     context.read<AcceptanceBloc>().add(
-      RemoveEditingMaterialsByCodes(codes: res.removedCodes),
+      RemoveEditingMaterialsByCodes(
+        codes: res.removedCodes,
+        tracingContext: context.createActionContext('剔除验收材料'),
+      ),
     );
   }
 
@@ -1228,6 +1237,7 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
         LoadAcceptanceUsers(
           projectId: projectId,
           roleType: 1, // Example role type
+          tracingContext: context.createActionContext('加载验收用户'),
         ),
       );
     }
@@ -1238,7 +1248,9 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
     if (_hasLoadedWarehouses) return;
 
     _hasLoadedWarehouses = true;
-    context.read<AcceptanceBloc>().add(const LoadWarehouseList());
+    context.read<AcceptanceBloc>().add(
+      LoadWarehouseList(tracingContext: context.createActionContext('加载仓库列表')),
+    );
   }
 
   // 已移除高亮及匹配辅助逻辑，直接基于 _currentMaterials 操作。

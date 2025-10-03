@@ -1,14 +1,6 @@
-/*
- * @Author: LeeZB
- * @Date: 2025-06-21 21:18:36
- * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-08-03 16:38:18
- * @copyright: Copyright © 2025 高新供水.
- */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/material_handle/material_handle_cubit.dart';
 import 'package:pipe_code_flutter/bloc/scrap/scrap_bloc.dart';
@@ -215,9 +207,7 @@ final GoRouter appRouter = GoRouter(
             return MultiBlocProvider(
               providers: [
                 BlocProvider<AcceptanceBloc>(
-                  create: (context) =>
-                      getIt<AcceptanceBloc>()
-                        ..add(LoadAcceptanceDetail(acceptanceId: acceptanceId)),
+                  create: (context) => getIt<AcceptanceBloc>(),
                 ),
                 BlocProvider<MaterialHandleCubit>(
                   create: (context) => MaterialHandleCubit(),

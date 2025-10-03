@@ -15,6 +15,7 @@ import 'package:pipe_code_flutter/widgets/file_upload/image_preview_widget.dart'
 import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
+import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
 
 class AcceptanceDetailPage extends StatelessWidget {
   final int acceptanceId;
@@ -51,8 +52,12 @@ class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView> {
   }
 
   void _loadAcceptanceDetail() {
+    final tracingContext = context.createActionContext('获取详情');
     context.read<AcceptanceBloc>().add(
-      LoadAcceptanceDetail(acceptanceId: widget.acceptanceId),
+      LoadAcceptanceDetail(
+        acceptanceId: widget.acceptanceId,
+        tracingContext: tracingContext,
+      ),
     );
   }
 

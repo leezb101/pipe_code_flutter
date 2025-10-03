@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
 import '../../models/acceptance/do_accept_vo.dart';
 import '../../models/acceptance/do_accept_sign_in_vo.dart';
 
@@ -12,34 +13,52 @@ abstract class AcceptanceEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadAcceptanceDetail extends AcceptanceEvent {
+abstract class TracableAcceptanceEvent extends AcceptanceEvent {
+  const TracableAcceptanceEvent({required this.tracingContext});
+
+  final TracingContext tracingContext;
+
+  @override
+  List<Object?> get props => [tracingContext, ...super.props];
+}
+
+class LoadAcceptanceDetail extends TracableAcceptanceEvent {
   final int acceptanceId;
 
-  const LoadAcceptanceDetail({required this.acceptanceId});
+  const LoadAcceptanceDetail({
+    required this.acceptanceId,
+    required super.tracingContext,
+  });
 
   @override
-  List<Object?> get props => [acceptanceId];
+  List<Object?> get props => [acceptanceId, ...super.props];
 }
 
-class SubmitAcceptance extends AcceptanceEvent {
+class SubmitAcceptance extends TracableAcceptanceEvent {
   final DoAcceptVO request;
 
-  const SubmitAcceptance({required this.request});
+  const SubmitAcceptance({
+    required this.request,
+    required super.tracingContext,
+  });
 
   @override
-  List<Object?> get props => [request];
+  List<Object?> get props => [request, ...super.props];
 }
 
-class DoAcceptanceSignIn extends AcceptanceEvent {
+class DoAcceptanceSignIn extends TracableAcceptanceEvent {
   final DoAcceptSignInVO request;
 
-  const DoAcceptanceSignIn({required this.request});
+  const DoAcceptanceSignIn({
+    required this.request,
+    required super.tracingContext,
+  });
 
   @override
-  List<Object?> get props => [request];
+  List<Object?> get props => [request, ...super.props];
 }
 
-class LoadAcceptanceList extends AcceptanceEvent {
+class LoadAcceptanceList extends TracableAcceptanceEvent {
   final int? projectId;
   final int? userId;
   final int pageNum;
@@ -50,10 +69,17 @@ class LoadAcceptanceList extends AcceptanceEvent {
     this.userId,
     this.pageNum = 1,
     this.pageSize = 10,
+    required super.tracingContext,
   });
 
   @override
-  List<Object?> get props => [projectId, userId, pageNum, pageSize];
+  List<Object?> get props => [
+    projectId,
+    userId,
+    pageNum,
+    pageSize,
+    ...super.props,
+  ];
 }
 
 class RefreshAcceptanceDetail extends AcceptanceEvent {
@@ -69,27 +95,34 @@ class ClearAcceptanceCache extends AcceptanceEvent {
   const ClearAcceptanceCache();
 }
 
-class LoadAcceptanceUsers extends AcceptanceEvent {
+class LoadAcceptanceUsers extends TracableAcceptanceEvent {
   final int projectId;
   final int roleType;
 
-  const LoadAcceptanceUsers({required this.projectId, required this.roleType});
+  const LoadAcceptanceUsers({
+    required this.projectId,
+    required this.roleType,
+    required super.tracingContext,
+  });
 
   @override
-  List<Object?> get props => [projectId, roleType];
+  List<Object?> get props => [projectId, roleType, ...super.props];
 }
 
-class LoadWarehouseUsers extends AcceptanceEvent {
+class LoadWarehouseUsers extends TracableAcceptanceEvent {
   final int warehouseId;
 
-  const LoadWarehouseUsers({required this.warehouseId});
+  const LoadWarehouseUsers({
+    required this.warehouseId,
+    required super.tracingContext,
+  });
 
   @override
-  List<Object?> get props => [warehouseId];
+  List<Object?> get props => [warehouseId, ...super.props];
 }
 
-class LoadWarehouseList extends AcceptanceEvent {
-  const LoadWarehouseList();
+class LoadWarehouseList extends TracableAcceptanceEvent {
+  const LoadWarehouseList({required super.tracingContext});
 }
 
 class MatchScannedMaterial extends AcceptanceEvent {
@@ -119,7 +152,7 @@ class BulkUnmatchMaterials extends AcceptanceEvent {
 
 // ========== QR Scan → Material resolution (AcceptancePage) ==========
 // Standalone scan finished → navigate to AcceptancePage with codes; bloc resolves materials
-class InitializeMaterialsFromCodes extends AcceptanceEvent {
+class InitializeMaterialsFromCodes extends TracableAcceptanceEvent {
   final List<String> codes;
 
   /// True if codes came from a batch scan session (even if length == 1)
@@ -136,28 +169,43 @@ class InitializeMaterialsFromCodes extends AcceptanceEvent {
     required this.isBatch,
     this.projectPurNm,
     this.supplyType,
+    required super.tracingContext,
   });
 
   @override
-  List<Object?> get props => [codes, isBatch, projectPurNm, supplyType];
+  List<Object?> get props => [
+    codes,
+    isBatch,
+    projectPurNm,
+    supplyType,
+    ...super.props,
+  ];
 }
 
 // Embedded append: scan more codes and resolve to materials
-class AppendMaterialsByCodes extends AcceptanceEvent {
+class AppendMaterialsByCodes extends TracableAcceptanceEvent {
   final List<String> codes;
-  const AppendMaterialsByCodes({required this.codes});
+
+  const AppendMaterialsByCodes({
+    required this.codes,
+    required super.tracingContext,
+  });
 
   @override
-  List<Object?> get props => [codes];
+  List<Object?> get props => [codes, ...super.props];
 }
 
 // Embedded remove: scan codes to identify materials to remove
-class RemoveMaterialsByCodes extends AcceptanceEvent {
+class RemoveMaterialsByCodes extends TracableAcceptanceEvent {
   final List<String> codes;
-  const RemoveMaterialsByCodes({required this.codes});
+
+  const RemoveMaterialsByCodes({
+    required this.codes,
+    required super.tracingContext,
+  });
 
   @override
-  List<Object?> get props => [codes];
+  List<Object?> get props => [codes, ...super.props];
 }
 
 // ========== AcceptancePage editing flow (centralize list ops in bloc) ==========
@@ -182,7 +230,7 @@ class InitializeEditingMaterials extends AcceptanceEvent {
   List<Object?> get props => [initial, initialErrors, projectPurNm, supplyType];
 }
 
-class AppendEditingMaterialsByCodes extends AcceptanceEvent {
+class AppendEditingMaterialsByCodes extends TracableAcceptanceEvent {
   final List<String> codes;
 
   /// Project purchase name for purchaser validation
@@ -195,18 +243,23 @@ class AppendEditingMaterialsByCodes extends AcceptanceEvent {
     required this.codes,
     this.projectPurNm,
     this.supplyType,
+    required super.tracingContext,
   });
 
   @override
-  List<Object?> get props => [codes, projectPurNm, supplyType];
+  List<Object?> get props => [codes, projectPurNm, supplyType, ...super.props];
 }
 
-class RemoveEditingMaterialsByCodes extends AcceptanceEvent {
+class RemoveEditingMaterialsByCodes extends TracableAcceptanceEvent {
   final List<String> codes;
-  const RemoveEditingMaterialsByCodes({required this.codes});
+
+  const RemoveEditingMaterialsByCodes({
+    required this.codes,
+    required super.tracingContext,
+  });
 
   @override
-  List<Object?> get props => [codes];
+  List<Object?> get props => [codes, ...super.props];
 }
 
 // Clear transient feedback message from AcceptanceEditingState

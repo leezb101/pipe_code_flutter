@@ -1,15 +1,10 @@
-/*
- * @Author: LeeZB
- * @Date: 2025-07-23 17:28:27
- * @LastEditors: Leezb101 leezb101@126.com
- * @LastEditTime: 2025-07-31 17:19:40
- * @copyright: Copyright © 2025 高新供水.
- */
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
-import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
 import '../../repositories/interfaces/acceptance_repository.dart';
 import '../../repositories/interfaces/material_handle_repository.dart';
 import '../../utils/logger.dart';
@@ -19,6 +14,7 @@ import 'acceptance_state.dart';
 class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
   final AcceptanceRepository _repository;
   final MaterialHandleRepository _materialHandleRepository;
+  final TracingManager _tracingManager = getIt<TracingManager>();
 
   AcceptanceBloc(this._repository, this._materialHandleRepository)
     : super(const AcceptanceInitial()) {
@@ -50,35 +46,39 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     LoadAcceptanceDetail event,
     Emitter<AcceptanceState> emit,
   ) async {
-    try {
-      emit(const AcceptanceLoading());
-      Logger.info(
-        'Loading acceptance detail for id: ${event.acceptanceId}',
-        tag: 'AcceptanceBloc',
-      );
-
-      final result = await _repository.getAcceptanceDetail(event.acceptanceId);
-
-      if (result.isSuccess && result.data != null) {
-        emit(AcceptanceDetailLoaded(acceptanceInfo: result.data!));
+    await _tracingManager.scopeAction(event.tracingContext, () async {
+      try {
+        emit(const AcceptanceLoading());
         Logger.info(
-          'Acceptance detail loaded successfully',
+          'Loading acceptance detail for id: ${event.acceptanceId}',
           tag: 'AcceptanceBloc',
         );
-      } else {
-        emit(AcceptanceError(message: result.msg));
+
+        final result = await _repository.getAcceptanceDetail(
+          event.acceptanceId,
+        );
+
+        if (result.isSuccess && result.data != null) {
+          emit(AcceptanceDetailLoaded(acceptanceInfo: result.data!));
+          Logger.info(
+            'Acceptance detail loaded successfully',
+            tag: 'AcceptanceBloc',
+          );
+        } else {
+          emit(AcceptanceError(message: result.msg));
+          Logger.error(
+            'Failed to load acceptance detail: ${result.msg}',
+            tag: 'AcceptanceBloc',
+          );
+        }
+      } catch (e) {
+        emit(AcceptanceError(message: '获取验收详情失败，请重试'));
         Logger.error(
-          'Failed to load acceptance detail: ${result.msg}',
+          'Error loading acceptance detail: $e',
           tag: 'AcceptanceBloc',
         );
       }
-    } catch (e) {
-      emit(AcceptanceError(message: '获取验收详情失败，请重试'));
-      Logger.error(
-        'Error loading acceptance detail: $e',
-        tag: 'AcceptanceBloc',
-      );
-    }
+    });
   }
 
   Future<void> _onSubmitAcceptance(
@@ -86,21 +86,35 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     Emitter<AcceptanceState> emit,
   ) async {
     final currentState = state;
-    try {
-      emit(const AcceptanceSubmitting());
-      Logger.info('Submitting acceptance', tag: 'AcceptanceBloc');
+    await _tracingManager.scopeAction(event.tracingContext, () async {
+      try {
+        emit(const AcceptanceSubmitting());
+        Logger.info('Submitting acceptance', tag: 'AcceptanceBloc');
 
-      final result = await _repository.submitAcceptance(event.request);
+        final result = await _repository.submitAcceptance(event.request);
 
-      if (result.isSuccess) {
-        emit(const AcceptanceSubmitted());
-        Logger.info('Acceptance submitted successfully', tag: 'AcceptanceBloc');
-      } else {
-        emit(AcceptanceError(message: result.msg));
-        Logger.error(
-          'Failed to submit acceptance: ${result.msg}',
-          tag: 'AcceptanceBloc',
-        );
+        if (result.isSuccess) {
+          emit(const AcceptanceSubmitted());
+          Logger.info(
+            'Acceptance submitted successfully',
+            tag: 'AcceptanceBloc',
+          );
+        } else {
+          emit(AcceptanceError(message: result.msg));
+          Logger.error(
+            'Failed to submit acceptance: ${result.msg}',
+            tag: 'AcceptanceBloc',
+          );
+          // 恢复提交前的状态，保留materialList等信息
+          if (currentState is AcceptanceDetailLoaded) {
+            emit(currentState);
+          } else if (currentState is AcceptanceEditingState) {
+            emit(currentState);
+          }
+        }
+      } catch (e) {
+        emit(AcceptanceError(message: '提交验收失败，请重试'));
+        Logger.error('Error submitting acceptance: $e', tag: 'AcceptanceBloc');
         // 恢复提交前的状态，保留materialList等信息
         if (currentState is AcceptanceDetailLoaded) {
           emit(currentState);
@@ -108,16 +122,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
           emit(currentState);
         }
       }
-    } catch (e) {
-      emit(AcceptanceError(message: '提交验收失败，请重试'));
-      Logger.error('Error submitting acceptance: $e', tag: 'AcceptanceBloc');
-      // 恢复提交前的状态，保留materialList等信息
-      if (currentState is AcceptanceDetailLoaded) {
-        emit(currentState);
-      } else if (currentState is AcceptanceEditingState) {
-        emit(currentState);
-      }
-    }
+    });
   }
 
   Future<void> _onDoAcceptanceSignIn(
@@ -125,66 +130,91 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     Emitter<AcceptanceState> emit,
   ) async {
     final currentState = state;
-    // 开始提交之前，发出一个加载状态，同时保留当前数据
-    if (currentState is AcceptanceDetailLoaded) {
-      // UI层通过判断state is acceptanceLoading && state is! AcceptanceDetailLoaded 来判断是否显示加载中
-      emit(AcceptanceLoading());
-    }
-
-    final result = await _repository.doAcceptanceSignIn(event.request);
-
-    if (result.isSuccess) {
-      emit(AcceptanceSignedIn());
-    } else {
+    await _tracingManager.scopeAction(event.tracingContext, () async {
+      // 开始提交之前，发出一个加载状态，同时保留当前数据
       if (currentState is AcceptanceDetailLoaded) {
-        emit(currentState);
+        // UI层通过判断state is acceptanceLoading && state is! AcceptanceDetailLoaded 来判断是否显示加载中
+        emit(AcceptanceLoading());
       }
-      emit(AcceptanceError(message: result.msg));
-    }
+
+      final result = await _repository.doAcceptanceSignIn(event.request);
+
+      if (result.isSuccess) {
+        emit(AcceptanceSignedIn());
+      } else {
+        if (currentState is AcceptanceDetailLoaded) {
+          emit(currentState);
+        }
+        emit(AcceptanceError(message: result.msg));
+      }
+    });
   }
 
   Future<void> _onLoadAcceptanceList(
     LoadAcceptanceList event,
     Emitter<AcceptanceState> emit,
   ) async {
-    try {
-      emit(const AcceptanceLoading());
-      Logger.info(
-        'Loading acceptance list - page: ${event.pageNum}',
-        tag: 'AcceptanceBloc',
-      );
-
-      final result = await _repository.getAcceptanceList(
-        projectId: event.projectId,
-        userId: event.userId,
-        pageNum: event.pageNum,
-        pageSize: event.pageSize,
-      );
-
-      if (result.isSuccess && result.data != null) {
-        emit(AcceptanceListLoaded(recordList: result.data!));
+    await _tracingManager.scopeAction(event.tracingContext, () async {
+      try {
+        emit(const AcceptanceLoading());
         Logger.info(
-          'Acceptance list loaded successfully',
+          'Loading acceptance list - page: ${event.pageNum}',
           tag: 'AcceptanceBloc',
         );
-      } else {
-        emit(AcceptanceError(message: result.msg));
+
+        final result = await _repository.getAcceptanceList(
+          projectId: event.projectId,
+          userId: event.userId,
+          pageNum: event.pageNum,
+          pageSize: event.pageSize,
+        );
+
+        if (result.isSuccess && result.data != null) {
+          emit(AcceptanceListLoaded(recordList: result.data!));
+          Logger.info(
+            'Acceptance list loaded successfully',
+            tag: 'AcceptanceBloc',
+          );
+        } else {
+          emit(AcceptanceError(message: result.msg));
+          Logger.error(
+            'Failed to load acceptance list: ${result.msg}',
+            tag: 'AcceptanceBloc',
+          );
+        }
+      } catch (e) {
+        emit(AcceptanceError(message: '获取验收列表失败，请重试'));
         Logger.error(
-          'Failed to load acceptance list: ${result.msg}',
+          'Error loading acceptance list: $e',
           tag: 'AcceptanceBloc',
         );
       }
-    } catch (e) {
-      emit(AcceptanceError(message: '获取验收列表失败，请重试'));
-      Logger.error('Error loading acceptance list: $e', tag: 'AcceptanceBloc');
-    }
+    });
   }
 
   Future<void> _onRefreshAcceptanceDetail(
     RefreshAcceptanceDetail event,
     Emitter<AcceptanceState> emit,
   ) async {
-    add(LoadAcceptanceDetail(acceptanceId: event.acceptanceId));
+    // 创建刷新操作的 tracing context
+    final refreshContext =
+        _tracingManager.currentContext?.copyWith(
+          action: 'refresh-acceptance-detail',
+          description:
+              '${_tracingManager.currentContext?.description ?? '验收详情'} - 刷新验收详情',
+        ) ??
+        TracingContext(
+          source: 'acceptance-detail-page',
+          action: 'refresh-acceptance-detail',
+          description: '验收详情 - 刷新验收详情',
+        );
+
+    add(
+      LoadAcceptanceDetail(
+        acceptanceId: event.acceptanceId,
+        tracingContext: refreshContext,
+      ),
+    );
   }
 
   Future<void> _onClearAcceptanceCache(
@@ -204,63 +234,58 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         : state is AcceptanceMaterialsResolved
         ? state as AcceptanceMaterialsResolved
         : null;
-    try {
-      if (resumePrimary == null) {
-        emit(const AcceptanceUsersLoading());
-      }
-      Logger.info(
-        'Loading acceptance users for project: ${event.projectId}, role: ${event.roleType}',
-        tag: 'AcceptanceBloc',
-      );
 
-      final result = await _repository.getAcceptanceUsers(
-        projectId: event.projectId,
-      );
-
-      if (result.isSuccess && result.data != null) {
-        emit(AcceptanceUsersLoaded(acceptUserInfo: result.data!));
+    await _tracingManager.scopeAction(event.tracingContext, () async {
+      try {
+        if (resumePrimary == null) {
+          emit(const AcceptanceUsersLoading());
+        }
         Logger.info(
-          'Acceptance users loaded successfully',
+          'Loading acceptance users for project: ${event.projectId}, role: ${event.roleType}',
           tag: 'AcceptanceBloc',
         );
-      } else {
-        emit(AcceptanceError(message: result.msg));
+
+        final result = await _repository.getAcceptanceUsers(
+          projectId: event.projectId,
+        );
+
+        if (result.isSuccess && result.data != null) {
+          emit(AcceptanceUsersLoaded(acceptUserInfo: result.data!));
+          Logger.info(
+            'Acceptance users loaded successfully',
+            tag: 'AcceptanceBloc',
+          );
+        } else {
+          emit(AcceptanceError(message: result.msg));
+          Logger.error(
+            'Failed to load acceptance users: ${result.msg}',
+            tag: 'AcceptanceBloc',
+          );
+        }
+        // After delivering side-effect state to listeners, restore primary view state if needed
+        if (resumePrimary != null) {
+          if (resumePrimary is AcceptanceEditingState) {
+            emit(resumePrimary.copyWith());
+          } else if (resumePrimary is AcceptanceMaterialsResolved) {
+            emit(resumePrimary);
+          }
+        }
+      } catch (e) {
+        emit(AcceptanceError(message: '获取验收用户失败，请重试'));
         Logger.error(
-          'Failed to load acceptance users: ${result.msg}',
+          'Error loading acceptance users: $e',
           tag: 'AcceptanceBloc',
         );
-      }
-      // After delivering side-effect state to listeners, restore primary view state if needed
-      if (resumePrimary != null) {
-        if (resumePrimary is AcceptanceEditingState) {
-          emit(resumePrimary.copyWith());
-        } else if (resumePrimary is AcceptanceMaterialsResolved) {
-          // Re-emit to restore initialized materials on AcceptancePage
-          emit(
-            AcceptanceMaterialsResolved(
-              materials: resumePrimary.materials,
-              message: resumePrimary.message,
-            ),
-          );
+        // Restore primary view state even on error
+        if (resumePrimary != null) {
+          if (resumePrimary is AcceptanceEditingState) {
+            emit(resumePrimary.copyWith());
+          } else if (resumePrimary is AcceptanceMaterialsResolved) {
+            emit(resumePrimary);
+          }
         }
       }
-    } catch (e) {
-      emit(AcceptanceError(message: '获取验收用户失败，请重试'));
-      Logger.error('Error loading acceptance users: $e', tag: 'AcceptanceBloc');
-      // Restore primary view state even on error
-      if (resumePrimary != null) {
-        if (resumePrimary is AcceptanceEditingState) {
-          emit(resumePrimary.copyWith());
-        } else if (resumePrimary is AcceptanceMaterialsResolved) {
-          emit(
-            AcceptanceMaterialsResolved(
-              materials: resumePrimary.materials,
-              message: resumePrimary.message,
-            ),
-          );
-        }
-      }
-    }
+    });
   }
 
   Future<void> _onLoadWarehouseUsers(
@@ -511,65 +536,40 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     }
   }
 
-  // ========== QR Scan integration ==========
   Future<void> _onInitializeMaterialsFromCodes(
     InitializeMaterialsFromCodes event,
     Emitter<AcceptanceState> emit,
   ) async {
     // Resolve codes and initialize current materials list for AcceptancePage
-    try {
-      if (event.codes.isEmpty) return;
+    await _tracingManager.scopeAction(event.tracingContext, () async {
+      try {
+        if (event.codes.isEmpty) return;
 
-      // 发出加载状态
-      emit(const AcceptanceMaterialsLoading());
+        // 发出加载状态
+        emit(const AcceptanceMaterialsLoading());
 
-      final rsp = event.isBatch
-          ? await _materialHandleRepository.scanBatchToQueryAll(event.codes)
-          : await _materialHandleRepository.scanSingleToQueryAll(
-              event.codes.first,
-            );
-      if (rsp.isSuccess && rsp.data != null) {
-        final MaterialInfoForBusiness bundle = rsp.data!;
-
-        // 检查采购方不匹配的材料
-        final mismatchMaterials = _checkPurchaserMismatch(
-          bundle.normals,
-          event.projectPurNm,
-          event.supplyType,
+        final rsp = await _materialHandleRepository.scanBatchToQueryAll(
+          event.codes,
         );
 
-        Logger.debug('扫码进入并完成获取信息，即将发出结果', tag: 'AcceptanceBloc');
-
-        // 使用新的state来传递完整的材料信息，包括errors
-        emit(
-          AcceptanceMaterialInfoResolved(
-            materials: bundle.normals,
-            errors: bundle.errors,
-            // unique token to ensure state changes are observed even with same materials
-            message: 'init@${DateTime.now().microsecondsSinceEpoch}',
-          ),
-        );
-        Logger.debug('扫码进入并完成获取信息，【完成】发出结果', tag: 'AcceptanceBloc');
-
-        // 如果有采购方不匹配的材料，需要在材料初始化后触发警告状态
-        if (mismatchMaterials.isNotEmpty) {
-          Logger.warning(
-            'Found ${mismatchMaterials.length} materials with purchaser mismatch in acceptance',
-            tag: 'AcceptanceBloc',
+        if (rsp.isSuccess && rsp.data != null) {
+          emit(
+            AcceptanceMaterialInfoResolved(
+              materials: rsp.data!.normals,
+              errors: rsp.data!.errors,
+            ),
           );
-
-          // 注意：这里需要在后续的 InitializeEditingMaterials 处理中设置警告状态
+        } else {
+          emit(AcceptanceError(message: rsp.msg));
         }
-      } else {
-        emit(AcceptanceError(message: rsp.msg));
+      } catch (e) {
+        Logger.error(
+          'Initialize materials from codes failed: $e',
+          tag: 'AcceptanceBloc',
+        );
+        emit(const AcceptanceError(message: '解析扫码列表失败'));
       }
-    } catch (e) {
-      Logger.error(
-        'Initialize materials from codes failed: $e',
-        tag: 'AcceptanceBloc',
-      );
-      emit(const AcceptanceError(message: '解析扫码列表失败'));
-    }
+    });
   }
 
   Future<void> _onAppendMaterialsByCodes(
@@ -714,124 +714,126 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     AppendEditingMaterialsByCodes event,
     Emitter<AcceptanceState> emit,
   ) async {
-    try {
-      if (event.codes.isEmpty) return;
+    await _tracingManager.scopeAction(event.tracingContext, () async {
+      try {
+        if (event.codes.isEmpty) return;
 
-      final currentState = state;
-      // Ensure we have an editing state; if not, bootstrap empty
-      final editing = currentState is AcceptanceEditingState
-          ? currentState
-          : const AcceptanceEditingState(
-              currentMaterials: [],
-              materialIds: {},
-              errorMaterials: [],
-              isLoadingInitialMaterials: false,
-              isLoadingAppendMaterials: false,
-            );
+        final currentState = state;
+        // Ensure we have an editing state; if not, bootstrap empty
+        final editing = currentState is AcceptanceEditingState
+            ? currentState
+            : const AcceptanceEditingState(
+                currentMaterials: [],
+                materialIds: {},
+                errorMaterials: [],
+                isLoadingInitialMaterials: false,
+                isLoadingAppendMaterials: false,
+              );
 
-      // 设置追加材料加载状态
-      emit(editing.copyWith(isLoadingAppendMaterials: true));
+        // 设置追加材料加载状态
+        emit(editing.copyWith(isLoadingAppendMaterials: true));
 
-      final rsp = await _materialHandleRepository.scanBatchToQueryAll(
-        event.codes,
-      );
-      if (!rsp.isSuccess || rsp.data == null) {
-        emit(editing.copyWith(isLoadingAppendMaterials: false));
-        emit(const AcceptanceError(message: '新增码未查到物料信息'));
-        return;
-      }
-
-      final list = List.of(editing.currentMaterials);
-      final ids = Set<int>.from(editing.materialIds);
-      final currentErrors = List<dynamic>.from(editing.errorMaterials);
-
-      int added = 0;
-      int dup = 0;
-
-      // 处理正常材料
-      for (final m in rsp.data!.normals) {
-        final id = m.baseInfo.materialId;
-        if (ids.contains(id)) {
-          dup++;
-          continue;
+        final rsp = await _materialHandleRepository.scanBatchToQueryAll(
+          event.codes,
+        );
+        if (!rsp.isSuccess || rsp.data == null) {
+          emit(editing.copyWith(isLoadingAppendMaterials: false));
+          emit(const AcceptanceError(message: '新增码未查到物料信息'));
+          return;
         }
-        ids.add(id);
-        list.add(m);
-        added++;
-      }
 
-      // 追加错误材料，避免重复
-      final newErrors = List<dynamic>.from(currentErrors);
-      int errorAdded = 0;
-      for (final error in rsp.data!.errors) {
-        // 简单的重复检查，基于qrCode
-        final qrCode = _getErrorQrCode(error);
-        final isDuplicate = newErrors.any(
-          (existingError) => _getErrorQrCode(existingError) == qrCode,
+        final list = List.of(editing.currentMaterials);
+        final ids = Set<int>.from(editing.materialIds);
+        final currentErrors = List<dynamic>.from(editing.errorMaterials);
+
+        int added = 0;
+        int dup = 0;
+
+        // 处理正常材料
+        for (final m in rsp.data!.normals) {
+          final id = m.baseInfo.materialId;
+          if (ids.contains(id)) {
+            dup++;
+            continue;
+          }
+          ids.add(id);
+          list.add(m);
+          added++;
+        }
+
+        // 追加错误材料，避免重复
+        final newErrors = List<dynamic>.from(currentErrors);
+        int errorAdded = 0;
+        for (final error in rsp.data!.errors) {
+          // 简单的重复检查，基于qrCode
+          final qrCode = _getErrorQrCode(error);
+          final isDuplicate = newErrors.any(
+            (existingError) => _getErrorQrCode(existingError) == qrCode,
+          );
+
+          if (!isDuplicate) {
+            newErrors.add(error);
+            errorAdded++;
+          }
+        }
+
+        // 检查新添加材料的采购方匹配情况
+        final mismatchMaterials = _checkPurchaserMismatch(
+          list,
+          event.projectPurNm,
+          event.supplyType,
         );
 
-        if (!isDuplicate) {
-          newErrors.add(error);
-          errorAdded++;
+        // 构建消息
+        final messages = <String>[];
+        if (added > 0) {
+          messages.add('新增 $added 个正常材料');
         }
-      }
+        if (errorAdded > 0) {
+          messages.add('新增 $errorAdded 个异常材料');
+        }
+        if (dup > 0) {
+          messages.add('忽略重复 $dup 个');
+        }
+        final message = messages.isNotEmpty ? messages.join('，') : '暂无可新增物料';
 
-      // 检查新添加材料的采购方匹配情况
-      final mismatchMaterials = _checkPurchaserMismatch(
-        list,
-        event.projectPurNm,
-        event.supplyType,
-      );
+        emit(
+          editing.copyWith(
+            currentMaterials: list,
+            materialIds: ids,
+            errorMaterials: newErrors,
+            message: message,
+            isLoadingAppendMaterials: false, // 清除加载状态
+            showPurchaserValidationWarning: mismatchMaterials.isNotEmpty,
+            purchaserMismatchMaterials: mismatchMaterials,
+          ),
+        );
 
-      // 构建消息
-      final messages = <String>[];
-      if (added > 0) {
-        messages.add('新增 $added 个正常材料');
-      }
-      if (errorAdded > 0) {
-        messages.add('新增 $errorAdded 个异常材料');
-      }
-      if (dup > 0) {
-        messages.add('忽略重复 $dup 个');
-      }
-      final message = messages.isNotEmpty ? messages.join('，') : '暂无可新增物料';
-
-      emit(
-        editing.copyWith(
-          currentMaterials: list,
-          materialIds: ids,
-          errorMaterials: newErrors,
-          message: message,
-          isLoadingAppendMaterials: false, // 清除加载状态
-          showPurchaserValidationWarning: mismatchMaterials.isNotEmpty,
-          purchaserMismatchMaterials: mismatchMaterials,
-        ),
-      );
-
-      Logger.debug(
-        'AppendEditingMaterialsByCodes - added $added normal materials, $errorAdded error materials, ignored $dup duplicates',
-        tag: 'AcceptanceBloc',
-      );
-
-      if (mismatchMaterials.isNotEmpty) {
-        Logger.warning(
-          'Found ${mismatchMaterials.length} materials with purchaser mismatch after append in acceptance',
+        Logger.debug(
+          'AppendEditingMaterialsByCodes - added $added normal materials, $errorAdded error materials, ignored $dup duplicates',
           tag: 'AcceptanceBloc',
         );
-      }
-    } catch (e) {
-      Logger.error(
-        'Append editing materials failed: $e',
-        tag: 'AcceptanceBloc',
-      );
 
-      // 在错误情况下也要清除加载状态
-      final currentState = state;
-      if (currentState is AcceptanceEditingState) {
-        emit(currentState.copyWith(isLoadingAppendMaterials: false));
+        if (mismatchMaterials.isNotEmpty) {
+          Logger.warning(
+            'Found ${mismatchMaterials.length} materials with purchaser mismatch after append in acceptance',
+            tag: 'AcceptanceBloc',
+          );
+        }
+      } catch (e) {
+        Logger.error(
+          'Append editing materials failed: $e',
+          tag: 'AcceptanceBloc',
+        );
+
+        // 在错误情况下也要清除加载状态
+        final currentState = state;
+        if (currentState is AcceptanceEditingState) {
+          emit(currentState.copyWith(isLoadingAppendMaterials: false));
+        }
+        emit(const AcceptanceError(message: '获取物料信息失败'));
       }
-      emit(const AcceptanceError(message: '获取物料信息失败'));
-    }
+    });
   }
 
   Future<void> _onRemoveEditingMaterialsByCodes(

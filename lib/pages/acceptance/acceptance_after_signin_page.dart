@@ -27,20 +27,49 @@ import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
+import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
 
-class AcceptanceAfterSigninPage extends StatelessWidget {
+class AcceptanceAfterSigninPage extends StatefulWidget {
   final int acceptanceId;
 
   const AcceptanceAfterSigninPage({super.key, required this.acceptanceId});
 
   @override
+  State<AcceptanceAfterSigninPage> createState() =>
+      _AcceptanceAfterSigninPageState();
+}
+
+class _AcceptanceAfterSigninPageState extends State<AcceptanceAfterSigninPage> {
+  late AcceptanceBloc _acceptanceBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _acceptanceBloc = AcceptanceBloc(
+      getIt<AcceptanceRepository>(),
+      getIt<MaterialHandleRepository>(),
+    );
+    // Create tracing context for LoadAcceptanceDetail
+    final tracingContext = context.createActionContext('查看详情');
+    _acceptanceBloc.add(
+      LoadAcceptanceDetail(
+        acceptanceId: widget.acceptanceId,
+        tracingContext: tracingContext,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _acceptanceBloc.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => AcceptanceBloc(
-        getIt<AcceptanceRepository>(),
-        getIt<MaterialHandleRepository>(),
-      )..add(LoadAcceptanceDetail(acceptanceId: acceptanceId)),
-      child: AcceptanceAfterSigninView(acceptanceId: acceptanceId),
+    return BlocProvider.value(
+      value: _acceptanceBloc,
+      child: AcceptanceAfterSigninView(acceptanceId: widget.acceptanceId),
     );
   }
 }
@@ -138,8 +167,12 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
             return common.ErrorWidget(
               message: state.message,
               onRetry: () {
+                final tracingContext = context.createActionContext('刷新详情');
                 context.read<AcceptanceBloc>().add(
-                  LoadAcceptanceDetail(acceptanceId: widget.acceptanceId),
+                  LoadAcceptanceDetail(
+                    acceptanceId: widget.acceptanceId,
+                    tracingContext: tracingContext,
+                  ),
                 );
               },
             );
@@ -492,12 +525,18 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     );
     final config = flow.buildConfig(request);
     context.pushNamed<List<dynamic>>('qr-scan', extra: config).then((raw) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       final res = flow.normalize(request, raw);
       if (res.addedCodes.isEmpty) return;
       // 交给业务bloc批量解析并匹配
+      final tracingContext = context.createActionContext(
+        'append_materials_by_codes',
+      );
       context.read<AcceptanceBloc>().add(
-        AppendMaterialsByCodes(codes: res.addedCodes),
+        AppendMaterialsByCodes(
+          codes: res.addedCodes,
+          tracingContext: tracingContext,
+        ),
       );
     });
   }
@@ -513,12 +552,18 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     );
     final config = flow.buildConfig(request);
     context.pushNamed<List<dynamic>>('qr-scan', extra: config).then((raw) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       final res = flow.normalize(request, raw);
       if (res.removedCodes.isEmpty) return;
       // 交给业务bloc批量解析并剔除
+      final tracingContext = context.createActionContext(
+        'remove_materials_by_codes',
+      );
       context.read<AcceptanceBloc>().add(
-        RemoveMaterialsByCodes(codes: res.removedCodes),
+        RemoveMaterialsByCodes(
+          codes: res.removedCodes,
+          tracingContext: tracingContext,
+        ),
       );
     });
   }
@@ -584,6 +629,9 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
       imageList: photoAttachments,
     );
 
-    context.read<AcceptanceBloc>().add(DoAcceptanceSignIn(request: request));
+    final tracingContext = context.createActionContext('do_acceptance_signin');
+    context.read<AcceptanceBloc>().add(
+      DoAcceptanceSignIn(request: request, tracingContext: tracingContext),
+    );
   }
 }
