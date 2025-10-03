@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
 import '../../models/records/record_type.dart';
 
 abstract class RecordsEvent extends Equatable {
@@ -8,7 +9,16 @@ abstract class RecordsEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadRecords extends RecordsEvent {
+abstract class TracableRecordsEvent extends RecordsEvent {
+  const TracableRecordsEvent({required this.tracingContext});
+
+  final TracingContext tracingContext;
+
+  @override
+  List<Object?> get props => [tracingContext, ...super.props];
+}
+
+class LoadRecords extends TracableRecordsEvent {
   final RecordType recordType;
   final int? projectId;
   final int? userId;
@@ -18,6 +28,7 @@ class LoadRecords extends RecordsEvent {
 
   const LoadRecords({
     required this.recordType,
+    required super.tracingContext,
     this.projectId,
     this.userId,
     this.pageNum = 1,
@@ -33,18 +44,24 @@ class LoadRecords extends RecordsEvent {
     pageNum,
     pageSize,
     forceRefresh,
+    ...super.props,
   ];
 }
 
-class SwitchTab extends RecordsEvent {
+class SwitchTab extends TracableRecordsEvent {
   final RecordType recordType;
   final int? projectId;
   final int? userId;
 
-  const SwitchTab(this.recordType, {this.projectId, this.userId});
+  const SwitchTab(
+    this.recordType, {
+    required super.tracingContext,
+    this.projectId,
+    this.userId,
+  });
 
   @override
-  List<Object?> get props => [recordType, projectId, userId];
+  List<Object?> get props => [recordType, projectId, userId, ...super.props];
 }
 
 class RefreshRecords extends RecordsEvent {

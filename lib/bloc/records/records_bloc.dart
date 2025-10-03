@@ -1,4 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
 import 'dart:async';
 import '../../models/records/record_type.dart';
 import '../../repositories/interfaces/records_repository.dart';
@@ -21,6 +24,7 @@ class _PendingRefreshParams {
 
 class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
   final RecordsRepository _repository;
+  final TracingManager _tracingManager = getIt<TracingManager>();
   // 为每个recordType维护独立的防抖timer和参数
   final Map<RecordType, Timer> _refreshDebounceTimers = {};
   final Map<RecordType, _PendingRefreshParams> _pendingRefreshParams = {};
@@ -38,120 +42,131 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     LoadRecords event,
     Emitter<RecordsState> emit,
   ) async {
-    try {
-      final cachedRecords = _repository.getCachedRecords(
-        event.recordType,
-        userId: event.userId,
-        projectId: event.projectId,
-      );
-
-      if (event.pageNum == 1) {
-        emit(
-          RecordsLoading(
-            currentTab: event.recordType,
-            cachedRecords: cachedRecords,
-          ),
+    await _tracingManager.scopeAction(event.tracingContext, () async {
+      try {
+        final cachedRecords = _repository.getCachedRecords(
+          event.recordType,
+          userId: event.userId,
+          projectId: event.projectId,
         );
-      } else if (state is RecordsLoaded) {
-        final currentState = state as RecordsLoaded;
-        emit(currentState.copyWith(isLoadingMore: true));
-      }
 
-      final paged = await _repository.getRecordsWithMeta(
-        recordType: event.recordType,
-        projectId: event.projectId,
-        userId: event.userId,
-        pageNum: event.pageNum,
-        pageSize: event.pageSize,
-        forceRefresh: event.forceRefresh,
-      );
-      final records = paged.records;
+        if (event.pageNum == 1) {
+          emit(
+            RecordsLoading(
+              currentTab: event.recordType,
+              cachedRecords: cachedRecords,
+            ),
+          );
+        } else if (state is RecordsLoaded) {
+          final currentState = state as RecordsLoaded;
+          emit(currentState.copyWith(isLoadingMore: true));
+        }
 
-      if (records.isEmpty && event.pageNum == 1) {
-        emit(RecordsEmpty(event.recordType));
-        return;
-      }
-
-      final hasMoreData = paged.meta.hasMore;
-
-      if (event.pageNum == 1) {
-        emit(
-          RecordsLoaded(
-            currentTab: event.recordType,
-            records: records,
-            hasMoreData: hasMoreData,
-            currentPage: event.pageNum,
-          ),
+        final paged = await _repository.getRecordsWithMeta(
+          recordType: event.recordType,
+          projectId: event.projectId,
+          userId: event.userId,
+          pageNum: event.pageNum,
+          pageSize: event.pageSize,
+          forceRefresh: event.forceRefresh,
         );
-      } else if (state is RecordsLoaded) {
-        final currentState = state as RecordsLoaded;
-        final allRecords = [...currentState.records, ...records];
+        final records = paged.records;
 
-        emit(
-          RecordsLoaded(
-            currentTab: event.recordType,
-            records: allRecords,
-            hasMoreData: hasMoreData,
-            currentPage: event.pageNum,
-            isLoadingMore: false,
-          ),
+        if (records.isEmpty && event.pageNum == 1) {
+          emit(RecordsEmpty(event.recordType));
+          return;
+        }
+
+        final hasMoreData = paged.meta.hasMore;
+
+        if (event.pageNum == 1) {
+          emit(
+            RecordsLoaded(
+              currentTab: event.recordType,
+              records: records,
+              hasMoreData: hasMoreData,
+              currentPage: event.pageNum,
+            ),
+          );
+        } else if (state is RecordsLoaded) {
+          final currentState = state as RecordsLoaded;
+          final allRecords = [...currentState.records, ...records];
+
+          emit(
+            RecordsLoaded(
+              currentTab: event.recordType,
+              records: allRecords,
+              hasMoreData: hasMoreData,
+              currentPage: event.pageNum,
+              isLoadingMore: false,
+            ),
+          );
+        }
+
+        Logger.info(
+          'Loaded ${records.length} records for ${event.recordType}',
+          tag: 'RecordsBloc',
         );
-      }
+      } catch (e) {
+        Logger.error('Failed to load records: $e', tag: 'RecordsBloc');
 
-      Logger.info(
-        'Loaded ${records.length} records for ${event.recordType}',
-        tag: 'RecordsBloc',
-      );
-    } catch (e) {
-      Logger.error('Failed to load records: $e', tag: 'RecordsBloc');
-
-      final cachedRecords = _repository.getCachedRecords(
-        event.recordType,
-        userId: event.userId,
-        projectId: event.projectId,
-      );
-
-      if (event.pageNum == 1) {
-        emit(
-          RecordsError(
-            currentTab: event.recordType,
-            message: _getErrorMessage(e),
-            cachedRecords: cachedRecords,
-          ),
+        final cachedRecords = _repository.getCachedRecords(
+          event.recordType,
+          userId: event.userId,
+          projectId: event.projectId,
         );
-      } else if (state is RecordsLoaded) {
-        final currentState = state as RecordsLoaded;
-        emit(currentState.copyWith(isLoadingMore: false));
+
+        if (event.pageNum == 1) {
+          emit(
+            RecordsError(
+              currentTab: event.recordType,
+              message: _getErrorMessage(e),
+              cachedRecords: cachedRecords,
+            ),
+          );
+        } else if (state is RecordsLoaded) {
+          final currentState = state as RecordsLoaded;
+          emit(currentState.copyWith(isLoadingMore: false));
+        }
       }
-    }
+    });
   }
 
   Future<void> _onSwitchTab(SwitchTab event, Emitter<RecordsState> emit) async {
     Logger.info('Switching to tab: ${event.recordType}', tag: 'RecordsBloc');
-    final cachedRecords = _repository.getCachedRecords(
-      event.recordType,
-      userId: event.userId,
-      projectId: event.projectId,
-    );
-    final pageSize = 10; // 与LoadRecords默认pageSize保持一致
-    if (cachedRecords != null && cachedRecords.isNotEmpty) {
-      emit(
-        RecordsLoaded(
-          currentTab: event.recordType,
-          records: cachedRecords,
-          hasMoreData: cachedRecords.length >= pageSize,
-          currentPage: 1,
-        ),
+    await _tracingManager.scopeAction(event.tracingContext, () async {
+      final cachedRecords = _repository.getCachedRecords(
+        event.recordType,
+        userId: event.userId,
+        projectId: event.projectId,
       );
-    } else {
-      add(
-        LoadRecords(
-          recordType: event.recordType,
-          userId: event.userId,
-          projectId: event.projectId,
-        ),
-      );
-    }
+      final pageSize = 10; // 与LoadRecords默认pageSize保持一致
+      if (cachedRecords != null && cachedRecords.isNotEmpty) {
+        emit(
+          RecordsLoaded(
+            currentTab: event.recordType,
+            records: cachedRecords,
+            hasMoreData: cachedRecords.length >= pageSize,
+            currentPage: 1,
+          ),
+        );
+      } else {
+        // 创建一个更具体的加载上下文
+        final loadContext = event.tracingContext.copyWith(
+          action: 'load-records',
+          description: '${event.tracingContext.description}',
+        );
+
+        add(
+          LoadRecords(
+            recordType: event.recordType,
+            userId: event.userId,
+            projectId: event.projectId,
+            tracingContext: loadContext,
+          ),
+        );
+      }
+    });
   }
 
   /// 去抖入口：1秒内多次RefreshRecords只触发一次，但不同recordType可以并发执行
@@ -200,12 +215,26 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
 
     _repository.clearCache(event.recordType);
 
+    // 创建刷新操作的 tracing context
+    final refreshContext =
+        _tracingManager.currentContext?.copyWith(
+          action: 'refresh-records',
+          description:
+              '${_tracingManager.currentContext?.description ?? '业务记录'} - 刷新${event.recordType.displayName}',
+        ) ??
+        TracingContext(
+          source: 'records-page',
+          action: 'refresh-records',
+          description: '业务记录 - 刷新${event.recordType.displayName}',
+        );
+
     add(
       LoadRecords(
         recordType: event.recordType,
         projectId: event.projectId,
         userId: event.userId,
         forceRefresh: true,
+        tracingContext: refreshContext,
       ),
     );
   }
@@ -221,6 +250,19 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
         return;
       }
 
+      // 创建加载更多操作的 tracing context
+      final loadMoreContext =
+          _tracingManager.currentContext?.copyWith(
+            action: 'load-more-records',
+            description:
+                '${_tracingManager.currentContext?.description ?? '业务记录'} - 加载更多${event.recordType.displayName}',
+          ) ??
+          TracingContext(
+            source: 'records-page',
+            action: 'load-more-records',
+            description: '业务记录 - 加载更多${event.recordType.displayName}',
+          );
+
       add(
         LoadRecords(
           recordType: event.recordType,
@@ -228,6 +270,7 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
           userId: event.userId,
           pageNum: currentState.currentPage + 1,
           pageSize: event.pageSize,
+          tracingContext: loadMoreContext,
         ),
       );
     }

@@ -269,7 +269,13 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       if (tracingInfo != null) {
         final context = TracingContext(
           source: tracingInfo.source,
-          action: isInitial ? 'enter_main_subpage' : 'switch_tab',
+          action: isInitial
+              ? '进入${tracingInfo.description}'
+              : index == 0
+              ? '首页'
+              : index == 1
+              ? '记录'
+              : '我的',
           description: tracingInfo.description,
         );
         _tracingManager.pushContext(context);

@@ -12,13 +12,20 @@ class TracingInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final tracingContext = TracingManager().currentContext;
 
+    Logger.debug(
+      'TracingInterceptor - Current context: ${tracingContext?.description}',
+      tag: 'TracingInterceptor',
+    );
+
     if (tracingContext != null) {
       final contextJson = jsonEncode(tracingContext.toJson());
+      final description = tracingContext.description ?? '未知操作';
       final contextUriEncode = Uri.encodeComponent(contextJson);
-      options.headers[headerKey] = contextUriEncode;
+      options.headers[headerKey] = Uri.encodeComponent(description);
+      options.headers['trace-from'] = 'App';
 
       Logger.debug(
-        'TracingInterceptor: Added tracing header: $headerKey: $contextUriEncode',
+        'TracingInterceptor - Added tracing header: $headerKey: $contextUriEncode',
         tag: 'TracingInterceptor',
       );
     }

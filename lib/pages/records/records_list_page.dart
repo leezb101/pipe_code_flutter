@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/constants/app_theme.dart';
 import 'package:pipe_code_flutter/models/records/record_item.dart';
 import 'package:pipe_code_flutter/models/user/wx_login_vo.dart';
+import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
+import 'package:pipe_code_flutter/utils/logger.dart';
 import '../../bloc/session/session_bloc.dart';
 import '../../bloc/session/session_state.dart';
 import '../../bloc/session/session_event.dart';
@@ -70,11 +72,15 @@ class _RecordsListPageState extends State<RecordsListPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final ids = _resolveIds(context.read<SessionBloc>().state);
+        final initialContext = context.createActionContext(
+          '初始加载${_initialTab.displayName}',
+        );
         context.read<RecordsBloc>().add(
           LoadRecords(
             recordType: _initialTab,
             userId: ids.$1,
             projectId: ids.$2,
+            tracingContext: initialContext,
           ),
         );
       }
@@ -155,8 +161,20 @@ class _RecordsListPageState extends State<RecordsListPage>
 
   void _onTabSelected(RecordType recordType) {
     final ids = _resolveIds(context.read<SessionBloc>().state);
+    final tracingContext = context.createActionContext(recordType.displayName);
+
+    Logger.debug(
+      'Tab selected: ${recordType.displayName}, TracingContext: ${tracingContext.description}',
+      tag: 'RecordsListPage',
+    );
+
     context.read<RecordsBloc>().add(
-      SwitchTab(recordType, userId: ids.$1, projectId: ids.$2),
+      SwitchTab(
+        recordType,
+        userId: ids.$1,
+        projectId: ids.$2,
+        tracingContext: tracingContext,
+      ),
     );
   }
 
