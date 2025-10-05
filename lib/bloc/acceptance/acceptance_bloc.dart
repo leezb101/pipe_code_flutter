@@ -47,7 +47,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     LoadAcceptanceDetail event,
     Emitter<AcceptanceState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       try {
         emit(const AcceptanceLoading());
         Logger.info(
@@ -87,7 +94,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     Emitter<AcceptanceState> emit,
   ) async {
     final currentState = state;
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       try {
         emit(const AcceptanceSubmitting());
         Logger.info('Submitting acceptance', tag: 'AcceptanceBloc');
@@ -131,7 +145,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     Emitter<AcceptanceState> emit,
   ) async {
     final currentState = state;
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       // 开始提交之前，发出一个加载状态，同时保留当前数据
       if (currentState is AcceptanceDetailLoaded) {
         // UI层通过判断state is acceptanceLoading && state is! AcceptanceDetailLoaded 来判断是否显示加载中
@@ -155,7 +176,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     LoadAcceptanceList event,
     Emitter<AcceptanceState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       try {
         emit(const AcceptanceLoading());
         Logger.info(
@@ -236,7 +264,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         ? state as AcceptanceMaterialsResolved
         : null;
 
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       try {
         if (resumePrimary == null) {
           emit(const AcceptanceUsersLoading());
@@ -368,7 +403,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         ? state as AcceptanceMaterialsResolved
         : null;
 
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       try {
         if (resumePrimary == null) {
           emit(const WarehouseListLoading());
@@ -545,7 +587,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     Emitter<AcceptanceState> emit,
   ) async {
     // Resolve codes and initialize current materials list for AcceptancePage
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       try {
         if (event.codes.isEmpty) return;
 
@@ -718,7 +767,14 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     AppendEditingMaterialsByCodes event,
     Emitter<AcceptanceState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       try {
         if (event.codes.isEmpty) return;
 

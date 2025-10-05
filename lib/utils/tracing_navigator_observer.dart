@@ -56,7 +56,7 @@ class TracingNavigatorObserver extends NavigatorObserver {
         final context = TracingContext(
           source: tracingInfo.source,
           action: 'enter_page',
-          description: '${tracingInfo.description} (via $navigationAction)',
+          description: tracingInfo.description,
         );
 
         // 使用改进的追踪管理器压入页面上下文
