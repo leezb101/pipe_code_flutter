@@ -162,7 +162,7 @@ class _RecordsListPageState extends State<RecordsListPage>
 
   void _onTabSelected(RecordType recordType) {
     final ids = _resolveIds(context.read<SessionBloc>().state);
-    
+
     // 直接使用简化的追踪上下文，避免嵌套的追踪操作
     context.read<RecordsBloc>().add(
       SwitchTab(
@@ -176,12 +176,14 @@ class _RecordsListPageState extends State<RecordsListPage>
         ),
       ),
     );
-    
+
     Logger.debug(
       'Tab selected: ${recordType.displayName}',
       tag: 'RecordsListPage',
     );
-  }  void _onRefresh() {
+  }
+
+  void _onRefresh() {
     final bloc = context.read<RecordsBloc>();
     final ids = _resolveIds(context.read<SessionBloc>().state);
     bloc.add(

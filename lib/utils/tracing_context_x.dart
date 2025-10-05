@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import '../config/service_locator.dart';
-import '../services/tracing/tracing_manager.dart';
+import '../services/tracing/improved_tracing_manager.dart';
 import '../services/tracing/tracing_context.dart';
 
 extension TracingContextX on BuildContext {
@@ -12,20 +12,23 @@ extension TracingContextX on BuildContext {
   /// actionTitle: '账号密码登录'
   /// 返回上下文：{descrpition: '登录页 - 账号密码登录'}
   TracingContext createActionContext(String actionTitle) {
-    final manager = getIt<TracingManager>();
-    final pageContext =
-        manager.currentContext ??
-        const TracingContext(
-          source: 'unknown',
-          action: 'unknown',
-          description: '未知页面',
-        );
+    final manager = getIt<ImprovedTracingManager>();
+    final pageContext = manager.currentPageContext;
+    
+    // 如果没有页面上下文，创建默认的
+    final sourceContext = pageContext ?? const TracingContext(
+      source: 'unknown',
+      action: 'unknown', 
+      description: '未知页面',
+    );
 
-    return pageContext.copyWith(
+    return TracingContext(
+      source: sourceContext.source,
       action: 'user-action',
-      description: pageContext.description != null
-          ? '${pageContext.description} - $actionTitle'
+      description: sourceContext.description != null
+          ? '${sourceContext.description} - $actionTitle'
           : actionTitle,
+      entityId: sourceContext.entityId,
     );
   }
 }

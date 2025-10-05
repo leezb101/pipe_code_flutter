@@ -43,7 +43,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         description: event.tracingContext.description,
         entityId: event.tracingContext.entityId,
       );
-      
+
       final result = await _tracingManager.scopeOperation(
         operationContext,
         () => _authRepository.loginWithPassword(
@@ -77,7 +77,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         description: event.tracingContext.description,
         entityId: event.tracingContext.entityId,
       );
-      
+
       final result = await _tracingManager.scopeOperation(
         operationContext,
         () => _authRepository.loginWithSms(

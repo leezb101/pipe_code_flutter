@@ -24,7 +24,8 @@ class _PendingRefreshParams {
 
 class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
   final RecordsRepository _repository;
-  final ImprovedTracingManager _tracingManager = getIt<ImprovedTracingManager>();
+  final ImprovedTracingManager _tracingManager =
+      getIt<ImprovedTracingManager>();
   // 为每个recordType维护独立的防抖timer和参数
   final Map<RecordType, Timer> _refreshDebounceTimers = {};
   final Map<RecordType, _PendingRefreshParams> _pendingRefreshParams = {};
@@ -141,7 +142,7 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
 
   Future<void> _onSwitchTab(SwitchTab event, Emitter<RecordsState> emit) async {
     Logger.info('Switching to tab: ${event.recordType}', tag: 'RecordsBloc');
-    
+
     final operationContext = _tracingManager.createOperationContext(
       source: event.tracingContext.source,
       action: event.tracingContext.action,

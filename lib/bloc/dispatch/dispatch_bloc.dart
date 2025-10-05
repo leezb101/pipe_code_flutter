@@ -73,7 +73,14 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     LoadDispatchDetail event,
     Emitter<DispatchState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       emit(state.copyWith(status: DispatchStatus.loading));
       final result = await _dispatchRepository.getDispatchDetail(
         event.dispatchId,
@@ -120,7 +127,14 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     AppendSigninMatchedByCodes event,
     Emitter<DispatchState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       if (event.codes.isEmpty) return;
       if (state.dispatchDetail == null) {
         emit(
@@ -182,7 +196,14 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     RemoveSigninMatchedByCodes event,
     Emitter<DispatchState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       if (event.codes.isEmpty) return;
       if (state.dispatchDetail == null) {
         emit(
@@ -236,7 +257,14 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     UpdateApplicationMaterialWithAppendCodes event,
     Emitter<DispatchState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       final codes = event.appendingCodes;
       if (codes.isEmpty) return;
       try {
@@ -344,7 +372,14 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     UpdateApplicationMaterialWithRemoveCodes event,
     Emitter<DispatchState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       final codes = event.removingCodes;
       if (codes.isEmpty) return;
       try {
@@ -444,7 +479,14 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     InitializeMaterialsFromCodes event,
     Emitter<DispatchState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       try {
         if (event.codes.isEmpty) return;
         final rsp = await _materialHandleRepository.scanBatchToQueryAll(
@@ -490,7 +532,14 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     LoadApplicationData event,
     Emitter<DispatchState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       // 立即更新物料列表，让UI先行渲染
       emit(
         state.copyWith(
@@ -623,7 +672,14 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     UpdateWarehouseUsersList event,
     Emitter<DispatchState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       emit(state.copyWith(status: DispatchStatus.loading));
       final result = await _commonQueryApiService.getWarehouseUsers(
         event.warehouseId,
@@ -651,7 +707,14 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     SubmitDispatchApplication event,
     Emitter<DispatchState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       emit(state.copyWith(status: DispatchStatus.loading));
       final result = await _dispatchRepository.doDispatch(event.request);
       if (result.isSuccess) {
@@ -672,7 +735,14 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
     SubmitDispatchSignIn event,
     Emitter<DispatchState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+    
+    await _tracingManager.scopeOperation(operationContext, () async {
       emit(state.copyWith(status: DispatchStatus.loading));
       final result = await _dispatchRepository.doDispatchSignin(event.request);
       if (result.isSuccess) {

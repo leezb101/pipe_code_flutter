@@ -39,7 +39,8 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   static const platform = MethodChannel('com.zzwater.pipe_code_trace');
 
   int _currentIndex = 0;
-  final ImprovedTracingManager _tracingManager = getIt<ImprovedTracingManager>();
+  final ImprovedTracingManager _tracingManager =
+      getIt<ImprovedTracingManager>();
   List<String> _routeNames = [];
   bool _isUiInitialized = false;
   late AnimationController _animationController;
