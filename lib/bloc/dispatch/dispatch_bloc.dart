@@ -79,7 +79,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       emit(state.copyWith(status: DispatchStatus.loading));
       final result = await _dispatchRepository.getDispatchDetail(
@@ -133,7 +133,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       if (event.codes.isEmpty) return;
       if (state.dispatchDetail == null) {
@@ -202,7 +202,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       if (event.codes.isEmpty) return;
       if (state.dispatchDetail == null) {
@@ -263,7 +263,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       final codes = event.appendingCodes;
       if (codes.isEmpty) return;
@@ -378,7 +378,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       final codes = event.removingCodes;
       if (codes.isEmpty) return;
@@ -485,7 +485,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       try {
         if (event.codes.isEmpty) return;
@@ -538,7 +538,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       // 立即更新物料列表，让UI先行渲染
       emit(
@@ -678,7 +678,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       emit(state.copyWith(status: DispatchStatus.loading));
       final result = await _commonQueryApiService.getWarehouseUsers(
@@ -713,7 +713,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       emit(state.copyWith(status: DispatchStatus.loading));
       final result = await _dispatchRepository.doDispatch(event.request);
@@ -741,7 +741,7 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       emit(state.copyWith(status: DispatchStatus.loading));
       final result = await _dispatchRepository.doDispatchSignin(event.request);

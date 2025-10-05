@@ -14,13 +14,15 @@ extension TracingContextX on BuildContext {
   TracingContext createActionContext(String actionTitle) {
     final manager = getIt<ImprovedTracingManager>();
     final pageContext = manager.currentPageContext;
-    
+
     // 如果没有页面上下文，创建默认的
-    final sourceContext = pageContext ?? const TracingContext(
-      source: 'unknown',
-      action: 'unknown', 
-      description: '未知页面',
-    );
+    final sourceContext =
+        pageContext ??
+        const TracingContext(
+          source: 'unknown',
+          action: 'unknown',
+          description: '未知页面',
+        );
 
     return TracingContext(
       source: sourceContext.source,
