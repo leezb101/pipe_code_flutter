@@ -180,6 +180,9 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
               _userPushStates['construction_${user.name}'] = user.messageTo;
             }
           });
+
+          // 用户数据加载完成后，串行加载仓库列表
+          _loadWarehousesIfNeeded(context);
         } else if (state is WarehouseListLoaded) {
           setState(() {
             _warehouseList = state.warehouseList;
@@ -214,9 +217,9 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
             ),
           );
 
-          // 在 materialList 初始化完成后，触发加载用户数据和仓库列表
+          // 在 materialList 初始化完成后，只触发加载用户数据
+          // 仓库列表将在用户数据加载完成后串行加载
           _loadUsersIfNeeded(context);
-          _loadWarehousesIfNeeded(context);
         } else if (state is AcceptanceMaterialInfoResolved) {
           // 处理完整的材料信息（包括errors）
           final sessionState = context.read<SessionBloc>().state;
@@ -237,9 +240,9 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
             ),
           );
 
-          // 在 materialList 初始化完成后，触发加载用户数据和仓库列表
+          // 在 materialList 初始化完成后，只触发加载用户数据
+          // 仓库列表将在用户数据加载完成后串行加载
           _loadUsersIfNeeded(context);
-          _loadWarehousesIfNeeded(context);
         } else if (state is AcceptanceError) {
           // 只提示错误，不清空或变更当前编辑中的待提交信息
           context.showErrorToast('验收失败: ${state.message}');
@@ -276,9 +279,9 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
             // 清理一次消息，避免后续无关状态变更时重复弹出
             context.read<AcceptanceBloc>().add(const ClearEditingMessage());
           } else {
-            // 如果没有消息，说明是初始化状态，触发加载用户数据和仓库列表
+            // 如果没有消息，说明是初始化状态，只触发加载用户数据
+            // 仓库列表将在用户数据加载完成后串行加载
             _loadUsersIfNeeded(context);
-            _loadWarehousesIfNeeded(context);
           }
         } else if (state is AcceptanceSubmitted) {
           // Toast弹窗提示并pop出去

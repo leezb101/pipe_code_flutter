@@ -366,57 +366,60 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         : state is AcceptanceMaterialsResolved
         ? state as AcceptanceMaterialsResolved
         : null;
-    try {
-      if (resumePrimary == null) {
-        emit(const WarehouseListLoading());
-      }
-      Logger.info('Loading warehouse list', tag: 'AcceptanceBloc');
 
-      final result = await _repository.getWarehouseList();
+    await _tracingManager.scopeAction(event.tracingContext, () async {
+      try {
+        if (resumePrimary == null) {
+          emit(const WarehouseListLoading());
+        }
+        Logger.info('Loading warehouse list', tag: 'AcceptanceBloc');
 
-      if (result.isSuccess && result.data != null) {
-        emit(WarehouseListLoaded(warehouseList: result.data!));
-        Logger.info(
-          'Warehouse list loaded successfully',
-          tag: 'AcceptanceBloc',
-        );
-      } else {
-        emit(AcceptanceError(message: result.msg));
-        Logger.error(
-          'Failed to load warehouse list: ${result.msg}',
-          tag: 'AcceptanceBloc',
-        );
-      }
-      // After delivering side-effect state to listeners, restore primary view state if needed
-      if (resumePrimary != null) {
-        if (resumePrimary is AcceptanceEditingState) {
-          emit(resumePrimary.copyWith());
-        } else if (resumePrimary is AcceptanceMaterialsResolved) {
-          emit(
-            AcceptanceMaterialsResolved(
-              materials: resumePrimary.materials,
-              message: resumePrimary.message,
-            ),
+        final result = await _repository.getWarehouseList();
+
+        if (result.isSuccess && result.data != null) {
+          emit(WarehouseListLoaded(warehouseList: result.data!));
+          Logger.info(
+            'Warehouse list loaded successfully',
+            tag: 'AcceptanceBloc',
+          );
+        } else {
+          emit(AcceptanceError(message: result.msg));
+          Logger.error(
+            'Failed to load warehouse list: ${result.msg}',
+            tag: 'AcceptanceBloc',
           );
         }
-      }
-    } catch (e) {
-      emit(AcceptanceError(message: '获取仓库列表失败，请重试'));
-      Logger.error('Error loading warehouse list: $e', tag: 'AcceptanceBloc');
-      // Restore primary view state even on error
-      if (resumePrimary != null) {
-        if (resumePrimary is AcceptanceEditingState) {
-          emit(resumePrimary.copyWith());
-        } else if (resumePrimary is AcceptanceMaterialsResolved) {
-          emit(
-            AcceptanceMaterialsResolved(
-              materials: resumePrimary.materials,
-              message: resumePrimary.message,
-            ),
-          );
+        // After delivering side-effect state to listeners, restore primary view state if needed
+        if (resumePrimary != null) {
+          if (resumePrimary is AcceptanceEditingState) {
+            emit(resumePrimary.copyWith());
+          } else if (resumePrimary is AcceptanceMaterialsResolved) {
+            emit(
+              AcceptanceMaterialsResolved(
+                materials: resumePrimary.materials,
+                message: resumePrimary.message,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        emit(AcceptanceError(message: '获取仓库列表失败，请重试'));
+        Logger.error('Error loading warehouse list: $e', tag: 'AcceptanceBloc');
+        // Restore primary view state even on error
+        if (resumePrimary != null) {
+          if (resumePrimary is AcceptanceEditingState) {
+            emit(resumePrimary.copyWith());
+          } else if (resumePrimary is AcceptanceMaterialsResolved) {
+            emit(
+              AcceptanceMaterialsResolved(
+                materials: resumePrimary.materials,
+                message: resumePrimary.message,
+              ),
+            );
+          }
         }
       }
-    }
+    });
   }
 
   void _onMatchScannedMaterial(
