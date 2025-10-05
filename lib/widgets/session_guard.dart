@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:get_it/get_it.dart';
 import '../bloc/session/session_bloc.dart';
 import '../bloc/session/session_state.dart';
 import '../bloc/session/session_event.dart';
@@ -16,10 +17,10 @@ import '../bloc/auth/auth_state.dart';
 import '../bloc/auth/auth_event.dart';
 import '../bloc/user/user_bloc.dart';
 import '../bloc/user/user_event.dart';
-import 'package:get_it/get_it.dart';
 import '../repositories/interfaces/records_repository.dart';
 import '../services/qr_scan_flow/qr_scan_flow_service.dart';
 import '../models/qr_scan/qr_scan_config.dart';
+import '../services/tracing/improved_tracing_manager.dart';
 import 'identity_selector.dart';
 import 'project_selector.dart';
 
@@ -46,11 +47,18 @@ class _SessionGuardState extends State<SessionGuard> {
     // 监听认证状态，当登录成功时初始化会话
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthLoginSuccess) {
-      context.read<SessionBloc>().add(
-        SessionInitializeRequested(wxLoginVO: authState.wxLoginVO),
+      GetIt.instance<ImprovedTracingManager>().scopeActionWithTitle(
+        '初始化会话',
+        () async {
+          context.read<SessionBloc>().add(
+            SessionInitializeRequested(wxLoginVO: authState.wxLoginVO),
+          );
+          // 同时设置用户数据
+          context.read<UserBloc>().add(
+            UserSetData(wxLoginVO: authState.wxLoginVO),
+          );
+        },
       );
-      // 同时设置用户数据
-      context.read<UserBloc>().add(UserSetData(wxLoginVO: authState.wxLoginVO));
     }
   }
 
@@ -63,23 +71,35 @@ class _SessionGuardState extends State<SessionGuard> {
           listener: (context, authState) {
             if (authState is AuthLoginSuccess) {
               // 登录成功，初始化会话
-              context.read<SessionBloc>().add(
-                SessionInitializeRequested(wxLoginVO: authState.wxLoginVO),
+              GetIt.instance<ImprovedTracingManager>().scopeActionWithTitle(
+                '登录成功处理',
+                () async {
+                  context.read<SessionBloc>().add(
+                    SessionInitializeRequested(wxLoginVO: authState.wxLoginVO),
+                  );
+                  context.read<UserBloc>().add(
+                    UserSetData(wxLoginVO: authState.wxLoginVO),
+                  );
+                  // 登录成功后清理所有记录缓存（确保账户隔离）
+                  try {
+                    GetIt.instance<RecordsRepository>().clearCache();
+                  } catch (_) {}
+                },
               );
-              context.read<UserBloc>().add(
-                UserSetData(wxLoginVO: authState.wxLoginVO),
-              );
-              // 登录成功后清理所有记录缓存（确保账户隔离）
-              try {
-                GetIt.instance<RecordsRepository>().clearCache();
-              } catch (_) {}
             } else if (authState is AuthUnauthenticated) {
               // 未认证，清除会话
-              context.read<SessionBloc>().add(const SessionClearRequested());
-              // 退出登录时清理所有记录缓存
-              try {
-                GetIt.instance<RecordsRepository>().clearCache();
-              } catch (_) {}
+              GetIt.instance<ImprovedTracingManager>().scopeActionWithTitle(
+                '退出登录处理',
+                () async {
+                  context.read<SessionBloc>().add(
+                    const SessionClearRequested(),
+                  );
+                  // 退出登录时清理所有记录缓存
+                  try {
+                    GetIt.instance<RecordsRepository>().clearCache();
+                  } catch (_) {}
+                },
+              );
             }
           },
         ),
@@ -133,12 +153,24 @@ class _SessionGuardState extends State<SessionGuard> {
         return IdentitySelector(
           wxLoginVO: state.wxLoginVO,
           onProjectParticipantSelected: () {
-            context.read<SessionBloc>().add(
-              const SessionSelectProjectParticipant(),
+            GetIt.instance<ImprovedTracingManager>().scopeActionWithTitle(
+              '选择项目参与者身份',
+              () async {
+                context.read<SessionBloc>().add(
+                  const SessionSelectProjectParticipant(),
+                );
+              },
             );
           },
           onStorekeeperSelected: () {
-            context.read<SessionBloc>().add(const SessionSelectStorekeeper());
+            GetIt.instance<ImprovedTracingManager>().scopeActionWithTitle(
+              '选择仓管员身份',
+              () async {
+                context.read<SessionBloc>().add(
+                  const SessionSelectStorekeeper(),
+                );
+              },
+            );
           },
         );
 
@@ -148,12 +180,22 @@ class _SessionGuardState extends State<SessionGuard> {
           wxLoginVO: state.wxLoginVO,
           availableProjects: state.availableProjects,
           onProjectSelected: (projectId) {
-            context.read<SessionBloc>().add(
-              SessionProjectSelected(projectId: projectId),
+            GetIt.instance<ImprovedTracingManager>().scopeActionWithTitle(
+              '选择项目',
+              () async {
+                context.read<SessionBloc>().add(
+                  SessionProjectSelected(projectId: projectId),
+                );
+              },
             );
           },
           onLogout: () {
-            context.read<AuthBloc>().add(AuthLogoutRequested());
+            GetIt.instance<ImprovedTracingManager>().scopeActionWithTitle(
+              '退出登录',
+              () async {
+                context.read<AuthBloc>().add(AuthLogoutRequested());
+              },
+            );
           },
         );
 
@@ -315,7 +357,12 @@ class _SessionGuardState extends State<SessionGuard> {
                       margin: const EdgeInsets.symmetric(horizontal: 40),
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          context.read<AuthBloc>().add(AuthLogoutRequested());
+                          GetIt.instance<ImprovedTracingManager>()
+                              .scopeActionWithTitle('退出登录', () async {
+                                context.read<AuthBloc>().add(
+                                  AuthLogoutRequested(),
+                                );
+                              });
                         },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF7F8C8D),
@@ -444,45 +491,50 @@ class _SessionGuardState extends State<SessionGuard> {
 
   /// 处理扫码识别
   Future<void> _handleQrIdentify(BuildContext context) async {
-    try {
-      final flow = RepositoryProvider.of<QrScanFlowService>(context);
-      final request = QrScanFlowRequest(
-        operation: QrScanOperation.initial,
-        currentCodes: const [],
-        batch: false, // 单码识别
-        title: '扫码识别',
-        context: const {
-          'source': 'sessionGuard_noProjects',
-          'entry': 'standalone',
-          'operation': 'identify',
-        },
-      );
+    await GetIt.instance<ImprovedTracingManager>().scopeActionWithTitle(
+      '扫码识别',
+      () async {
+        try {
+          final flow = RepositoryProvider.of<QrScanFlowService>(context);
+          final request = QrScanFlowRequest(
+            operation: QrScanOperation.initial,
+            currentCodes: const [],
+            batch: false, // 单码识别
+            title: '扫码识别',
+            context: const {
+              'source': 'sessionGuard_noProjects',
+              'entry': 'standalone',
+              'operation': 'identify',
+            },
+          );
 
-      final config = flow.buildConfig(request);
-      final raw = await context.pushNamed<List<dynamic>>(
-        'qr-scan',
-        extra: config,
-      );
+          final config = flow.buildConfig(request);
+          final raw = await context.pushNamed<List<dynamic>>(
+            'qr-scan',
+            extra: config,
+          );
 
-      final result = flow.normalize(request, raw);
-      if (!context.mounted) return;
+          final result = flow.normalize(request, raw);
+          if (!context.mounted) return;
 
-      if (result.addedCodes.isNotEmpty) {
-        // 跳转到材料详情页
-        final materialCode = result.addedCodes.first;
-        await context.pushNamed(
-          'material-detail',
-          extra: {
-            'codes': [materialCode],
-          },
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('扫码识别失败: $e')));
-      }
-    }
+          if (result.addedCodes.isNotEmpty) {
+            // 跳转到材料详情页
+            final materialCode = result.addedCodes.first;
+            await context.pushNamed(
+              'material-detail',
+              extra: {
+                'codes': [materialCode],
+              },
+            );
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('扫码识别失败: $e')));
+          }
+        }
+      },
+    );
   }
 }

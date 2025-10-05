@@ -5,6 +5,8 @@ import 'package:pipe_code_flutter/services/api/interfaces/todo_api_service.dart'
 import 'package:pipe_code_flutter/utils/logger.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/records_repository.dart';
 import 'package:pipe_code_flutter/models/records/paged_records.dart';
+import 'package:get_it/get_it.dart';
+import '../../services/tracing/improved_tracing_manager.dart';
 
 class RecordsRepositoryImpl implements RecordsRepository {
   final RecordsApiService _apiService;
@@ -161,10 +163,13 @@ class RecordsRepositoryImpl implements RecordsRepository {
     int pageNum = 1,
     int pageSize = 10,
   }) async {
-    final response = await _todoApiService.getTodoList(
-      pageNum: pageNum,
-      pageSize: pageSize,
-    );
+    final response = await GetIt.instance<ImprovedTracingManager>()
+        .scopeActionWithTitle('加载待办列表', () async {
+          return await _todoApiService.getTodoList(
+            pageNum: pageNum,
+            pageSize: pageSize,
+          );
+        });
 
     if (!response.isSuccess) {
       throw Exception(response.msg.isNotEmpty ? response.msg : '获取待办任务失败');

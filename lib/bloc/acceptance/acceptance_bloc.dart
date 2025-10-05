@@ -3,7 +3,7 @@ import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/material/material_info_base.dart';
 import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
-import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
+import 'package:pipe_code_flutter/services/tracing/improved_tracing_manager.dart';
 import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
 import '../../repositories/interfaces/acceptance_repository.dart';
 import '../../repositories/interfaces/material_handle_repository.dart';
@@ -14,7 +14,8 @@ import 'acceptance_state.dart';
 class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
   final AcceptanceRepository _repository;
   final MaterialHandleRepository _materialHandleRepository;
-  final TracingManager _tracingManager = getIt<TracingManager>();
+  final ImprovedTracingManager _tracingManager =
+      getIt<ImprovedTracingManager>();
 
   AcceptanceBloc(this._repository, this._materialHandleRepository)
     : super(const AcceptanceInitial()) {

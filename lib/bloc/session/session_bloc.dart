@@ -6,11 +6,13 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import '../../models/records/record_item.dart';
 import '../../repositories/interfaces/auth_repository.dart';
 import '../../repositories/interfaces/project_repository.dart';
 import '../../models/user/wx_login_vo.dart';
 import '../../services/notification/notification_manager.dart';
+import '../../services/tracing/improved_tracing_manager.dart';
 import '../../utils/logger.dart';
 import 'session_event.dart';
 import 'session_state.dart';
@@ -226,7 +228,10 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
   ) async {
     emit(const SessionLoading());
     try {
-      final result = await _authRepository.selectProject(event.projectId);
+      final result = await GetIt.instance<ImprovedTracingManager>()
+          .scopeActionWithTitle('自动选择项目', () async {
+            return await _authRepository.selectProject(event.projectId);
+          });
 
       if (result.isSuccess) {
         final wxLoginVO = _cachedWxLoginVO;
@@ -390,7 +395,10 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     final currentState = state;
     if (currentState is SessionProjectEstablished) {
       try {
-        final result = await _projectRepository.getProjectDisplayInfosForHome();
+        final result = await GetIt.instance<ImprovedTracingManager>()
+            .scopeActionWithTitle('加载项目统计信息', () async {
+              return await _projectRepository.getProjectDisplayInfosForHome();
+            });
         if (result.isSuccess && result.data != null) {
           emit(currentState.copyWith(projectDisplayInfo: result.data));
         }

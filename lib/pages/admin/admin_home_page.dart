@@ -8,10 +8,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:get_it/get_it.dart';
 import '../../bloc/session/session_bloc.dart';
 import '../../bloc/session/session_state.dart';
 import '../../utils/toast_utils.dart';
 import '../../models/qr_scan/qr_scan_config.dart';
+import '../../services/tracing/improved_tracing_manager.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -48,7 +50,13 @@ class _AdminHomePageState extends State<AdminHomePage> {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        await Future.delayed(const Duration(milliseconds: 500));
+        await GetIt.instance<ImprovedTracingManager>().scopeActionWithTitle(
+          '下拉刷新管理中心',
+          () async {
+            // 管理员页面暂时没有实际的数据加载逻辑
+            await Future.delayed(const Duration(milliseconds: 500));
+          },
+        );
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),

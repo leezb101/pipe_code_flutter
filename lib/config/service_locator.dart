@@ -44,6 +44,7 @@ import 'package:pipe_code_flutter/services/notification/background_handler.dart'
 import 'package:pipe_code_flutter/services/notification/notification_manager.dart';
 import 'package:pipe_code_flutter/services/sse/sse_service.dart';
 import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
+import 'package:pipe_code_flutter/services/tracing/improved_tracing_manager.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -117,8 +118,14 @@ Future<void> setupServiceLocator({
     () => const QrScanFlowService(),
   );
 
-  // Notification Services
+  // Tracing Services - using improved tracing system
+  getIt.registerLazySingleton<ImprovedTracingManager>(
+    () => ImprovedTracingManager(),
+  );
+
+  // Legacy tracing support for backward compatibility
   getIt.registerLazySingleton<TracingManager>(() => TracingManager());
+
   getIt.registerSingleton<NotificationManager>(NotificationManager.instance);
   getIt.registerSingleton<BackgroundNotificationHandler>(
     BackgroundNotificationHandler.instance,
@@ -237,13 +244,17 @@ Future<void> setupServiceLocator({
 /// Execute network-dependent initializations after connectivity is granted.
 Future<void> initializeAppData() async {
   Logger.debug('=========Initializing network-dependent app data');
-  try {
-    await getIt<EnumRepository>().initializeEnums();
-    Logger.debug('=========Enum initialization done');
-  } catch (e, s) {
-    Logger.error('Enum initialization failed: $e\n$s');
-    rethrow;
-  }
+
+  final tracingManager = getIt<ImprovedTracingManager>();
+  await tracingManager.scopeActionWithTitle('初始化应用数据', () async {
+    try {
+      await getIt<EnumRepository>().initializeEnums();
+      Logger.debug('=========Enum initialization done');
+    } catch (e, s) {
+      Logger.error('Enum initialization failed: $e\n$s');
+      rethrow;
+    }
+  });
 }
 
 // Convenience methods for quick setup

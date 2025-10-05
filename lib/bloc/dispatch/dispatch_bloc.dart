@@ -26,7 +26,7 @@ import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.da
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
-import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
+import 'package:pipe_code_flutter/services/tracing/improved_tracing_manager.dart';
 
 import '../../models/material/material_info_for_business.dart';
 
@@ -37,7 +37,8 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
   final DispatchRepository _dispatchRepository;
   final CommonQueryApiService _commonQueryApiService;
   final MaterialHandleRepository _materialHandleRepository;
-  final TracingManager _tracingManager = TracingManager();
+  final ImprovedTracingManager _tracingManager =
+      getIt<ImprovedTracingManager>();
 
   DispatchBloc({
     DispatchRepository? dispatchRepository,

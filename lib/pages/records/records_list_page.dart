@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:pipe_code_flutter/constants/app_theme.dart';
 import 'package:pipe_code_flutter/models/records/record_item.dart';
 import 'package:pipe_code_flutter/models/user/wx_login_vo.dart';
-import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import '../../bloc/session/session_bloc.dart';
 import '../../bloc/session/session_state.dart';
@@ -17,6 +17,8 @@ import '../../models/records/record_type.dart';
 import '../../widgets/scrollable_tab_bar.dart';
 import '../../widgets/record_list_item.dart';
 import '../../widgets/common_state_widgets.dart' as common;
+import '../../services/tracing/improved_tracing_manager.dart';
+import '../../services/tracing/tracing_context.dart';
 import 'package:pipe_code_flutter/services/notification/notification_center.dart';
 import 'package:pipe_code_flutter/models/notification/notification_message_vo.dart';
 
@@ -72,16 +74,22 @@ class _RecordsListPageState extends State<RecordsListPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final ids = _resolveIds(context.read<SessionBloc>().state);
-        final initialContext = context.createActionContext(
+        GetIt.instance<ImprovedTracingManager>().scopeActionWithTitle(
           '初始加载${_initialTab.displayName}',
-        );
-        context.read<RecordsBloc>().add(
-          LoadRecords(
-            recordType: _initialTab,
-            userId: ids.$1,
-            projectId: ids.$2,
-            tracingContext: initialContext,
-          ),
+          () async {
+            context.read<RecordsBloc>().add(
+              LoadRecords(
+                recordType: _initialTab,
+                userId: ids.$1,
+                projectId: ids.$2,
+                tracingContext: TracingContext(
+                  source: 'records_list_page',
+                  action: 'initial_load',
+                  description: '初始加载${_initialTab.displayName}',
+                ),
+              ),
+            );
+          },
         );
       }
     });
@@ -161,20 +169,28 @@ class _RecordsListPageState extends State<RecordsListPage>
 
   void _onTabSelected(RecordType recordType) {
     final ids = _resolveIds(context.read<SessionBloc>().state);
-    final tracingContext = context.createActionContext(recordType.displayName);
 
-    Logger.debug(
-      'Tab selected: ${recordType.displayName}, TracingContext: ${tracingContext.description}',
-      tag: 'RecordsListPage',
-    );
+    GetIt.instance<ImprovedTracingManager>().scopeActionWithTitle(
+      '切换到${recordType.displayName}',
+      () async {
+        Logger.debug(
+          'Tab selected: ${recordType.displayName}',
+          tag: 'RecordsListPage',
+        );
 
-    context.read<RecordsBloc>().add(
-      SwitchTab(
-        recordType,
-        userId: ids.$1,
-        projectId: ids.$2,
-        tracingContext: tracingContext,
-      ),
+        context.read<RecordsBloc>().add(
+          SwitchTab(
+            recordType,
+            userId: ids.$1,
+            projectId: ids.$2,
+            tracingContext: TracingContext(
+              source: 'records_list_page',
+              action: 'switch_tab',
+              description: '切换到${recordType.displayName}',
+            ),
+          ),
+        );
+      },
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_event.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_state.dart';
+import 'package:get_it/get_it.dart';
 import '../../bloc/session/session_bloc.dart';
 import '../../bloc/session/session_state.dart';
 import '../../bloc/session/session_event.dart';
@@ -17,6 +18,7 @@ import '../../constants/menu_actions.dart';
 import '../../bloc/records/records_bloc.dart';
 import '../../bloc/records/records_event.dart';
 import '../../models/records/record_type.dart';
+import '../../services/tracing/improved_tracing_manager.dart';
 
 /// 菜单禁用原因数据类
 class MenuDisableReason {
@@ -217,9 +219,16 @@ class _HomePageState extends State<HomePage> {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<SessionBloc>().add(const SessionLoadProjectDisplayInfo());
-        // 等待一小段时间让用户看到刷新动画
-        await Future.delayed(const Duration(milliseconds: 500));
+        await GetIt.instance<ImprovedTracingManager>().scopeActionWithTitle(
+          '下拉刷新项目信息',
+          () async {
+            context.read<SessionBloc>().add(
+              const SessionLoadProjectDisplayInfo(),
+            );
+            // 等待一小段时间让用户看到刷新动画
+            await Future.delayed(const Duration(milliseconds: 500));
+          },
+        );
       },
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
