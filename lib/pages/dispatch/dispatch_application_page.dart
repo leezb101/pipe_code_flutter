@@ -29,6 +29,7 @@ import 'package:pipe_code_flutter/utils/toast_utils.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_components.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
 
 class DispatchApplicationPage extends StatelessWidget {
   // final MaterialInfoForBusiness materials;
@@ -77,11 +78,15 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
 
   @override
   void initState() {
-    final codes = widget.initialCodes;
-    context.read<DispatchBloc>().add(
-      InitializeMaterialsFromCodes(codes: codes),
-    );
     super.initState();
+    final codes = widget.initialCodes;
+    final tracingContext = context.createActionContext('初始化物料信息');
+    context.read<DispatchBloc>().add(
+      InitializeMaterialsFromCodes(
+        codes: codes,
+        tracingContext: tracingContext,
+      ),
+    );
   }
 
   @override
@@ -116,6 +121,21 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
             ToastUtils.showSuccess(context, '调拨申请提交成功！');
             // Pop twice to go back to the page before qr_scan_page
             Navigator.of(context).pop();
+          }
+
+          // 当材料初始化成功后，自动加载申请数据
+          if (state.status == DispatchStatus.success &&
+              state.materialList != null &&
+              state.materialList!.isNotEmpty &&
+              state.sourceProject == null && // 确保还没有加载过申请数据
+              state.availableProjects.isEmpty) {
+            final tracingContext = context.createActionContext('获取项目和仓库信息');
+            context.read<DispatchBloc>().add(
+              LoadApplicationData(
+                materials: state.materialList!,
+                tracingContext: tracingContext,
+              ),
+            );
           }
         },
         builder: (context, state) {
@@ -303,8 +323,12 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
             items: state.availableWarehouses,
             onChanged: (value) {
               if (value != null) {
+                final tracingContext = context.createActionContext('获取仓库用户');
                 context.read<DispatchBloc>().add(
-                  UpdateWarehouseUsersList(value.id),
+                  UpdateWarehouseUsersList(
+                    warehouseId: value.id,
+                    tracingContext: tracingContext,
+                  ),
                 );
               }
               setState(() {
@@ -576,7 +600,13 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
       imageList: [], // Assuming no images are attached for now
     );
 
-    context.read<DispatchBloc>().add(SubmitDispatchApplication(request));
+    final tracingContext = context.createActionContext('提交申请');
+    context.read<DispatchBloc>().add(
+      SubmitDispatchApplication(
+        request: request,
+        tracingContext: tracingContext,
+      ),
+    );
   }
 
   Future<void> _scanAppendMaterials(BuildContext context) async {
@@ -600,8 +630,13 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.addedCodes.isEmpty || !context.mounted) return;
+
+    final tracingContext = context.createActionContext('追加材料');
     context.read<DispatchBloc>().add(
-      UpdateApplicationMaterialWithAppendCodes(res.addedCodes),
+      UpdateApplicationMaterialWithAppendCodes(
+        appendingCodes: res.addedCodes,
+        tracingContext: tracingContext,
+      ),
     );
   }
 
@@ -626,8 +661,13 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.removedCodes.isEmpty || !context.mounted) return;
+
+    final tracingContext = context.createActionContext('移除材料');
     context.read<DispatchBloc>().add(
-      UpdateApplicationMaterialWithRemoveCodes(res.removedCodes),
+      UpdateApplicationMaterialWithRemoveCodes(
+        removingCodes: res.removedCodes,
+        tracingContext: tracingContext,
+      ),
     );
   }
 

@@ -7,6 +7,7 @@ import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
+import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
@@ -46,7 +47,12 @@ class _DispatchDetailPageViewState extends State<_DispatchDetailPageView> {
   }
 
   void _loadDispatchDetail() {
-    context.read<DispatchBloc>().add(LoadDispatchDetail(widget.dispatchId));
+    context.read<DispatchBloc>().add(
+      LoadDispatchDetail(
+        widget.dispatchId,
+        context.createActionContext('获取详情'),
+      ),
+    );
   }
 
   @override

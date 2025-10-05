@@ -97,8 +97,8 @@ class AppConfig {
         // return 'http://10.2.220.12:8775/m';
         // return 'http://10.3.3.213:9000/m'; // 孙煊
         // return 'http://10.3.2.223:9000/m'; // 和宇翔
-        // return 'http://10.3.6.235/m';
-        return 'https://swtech.zzgxwater.cn/m/';
+        return 'http://10.3.6.235/m';
+      // return 'https://swtech.zzgxwater.cn/m';
       case Environment.staging:
         return 'https://staging-api.example.com';
       case Environment.production:

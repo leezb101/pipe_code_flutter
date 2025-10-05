@@ -22,6 +22,7 @@ import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
 
 class DispatchAfterSigninPage extends StatelessWidget {
   final int dispatchId;
@@ -67,7 +68,10 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
   void initState() {
     super.initState();
     _fileUploadCubit = FileUploadCubit();
-    context.read<DispatchBloc>().add(LoadDispatchDetail(widget.dispatchId));
+    final tracingContext = context.createActionContext('获取详情');
+    context.read<DispatchBloc>().add(
+      LoadDispatchDetail(widget.dispatchId, tracingContext),
+    );
   }
 
   @override
@@ -150,8 +154,11 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
               return common.ErrorWidget(
                 message: state.errorMessage ?? '加载失败',
                 onRetry: () {
+                  final tracingContext = context.createActionContext(
+                    '加载调拨申请详情',
+                  );
                   context.read<DispatchBloc>().add(
-                    LoadDispatchDetail(widget.dispatchId),
+                    LoadDispatchDetail(widget.dispatchId, tracingContext),
                   );
                 },
               );
@@ -483,7 +490,10 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
     final res = flow.normalize(request, raw);
     if (res.addedCodes.isEmpty || !context.mounted) return;
     context.read<DispatchBloc>().add(
-      AppendSigninMatchedByCodes(res.addedCodes),
+      AppendSigninMatchedByCodes(
+        res.addedCodes,
+        context.createActionContext('追加物料'),
+      ),
     );
   }
 
@@ -508,8 +518,12 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
     if (!mounted) return;
     final res = flow.normalize(request, raw);
     if (res.removedCodes.isEmpty || !context.mounted) return;
+
     context.read<DispatchBloc>().add(
-      RemoveSigninMatchedByCodes(res.removedCodes),
+      RemoveSigninMatchedByCodes(
+        res.removedCodes,
+        context.createActionContext('移除物料'),
+      ),
     );
   }
 
@@ -575,6 +589,9 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
       imageList: photoAttachments,
     );
 
-    context.read<DispatchBloc>().add(SubmitDispatchSignIn(request));
+    final tracingContext = context.createActionContext('提交调拨入库');
+    context.read<DispatchBloc>().add(
+      SubmitDispatchSignIn(request: request, tracingContext: tracingContext),
+    );
   }
 }
