@@ -120,6 +120,9 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
                 RefreshRecords(recordType: RecordType.todo),
               );
               context.read<RecordsBloc>().add(
+                RefreshRecords(recordType: RecordType.warehouseTodo),
+              );
+              context.read<RecordsBloc>().add(
                 RefreshRecords(recordType: RecordType.dispatch),
               );
             }
