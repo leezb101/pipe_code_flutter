@@ -4,7 +4,7 @@
  */
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
+import 'package:pipe_code_flutter/services/tracing/improved_tracing_manager.dart';
 import 'lib/config/service_locator.dart';
 import 'lib/config/app_config.dart';
 import 'lib/bloc/auth/auth_bloc.dart';
@@ -35,7 +35,7 @@ class NetworkLogTestApp extends StatelessWidget {
       home: BlocProvider(
         create: (context) => AuthBloc(
           authRepository: getIt<AuthRepository>(),
-          tracingManager: getIt<TracingManager>(),
+          tracingManager: getIt<ImprovedTracingManager>(),
         ),
         child: const TestPage(),
       ),

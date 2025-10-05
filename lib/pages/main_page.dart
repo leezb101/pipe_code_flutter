@@ -13,7 +13,7 @@ import 'package:pipe_code_flutter/config/tracing_route_mappings.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
-import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
+import 'package:pipe_code_flutter/services/tracing/improved_tracing_manager.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
@@ -39,7 +39,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   static const platform = MethodChannel('com.zzwater.pipe_code_trace');
 
   int _currentIndex = 0;
-  final TracingManager _tracingManager = getIt<TracingManager>();
+  final ImprovedTracingManager _tracingManager = getIt<ImprovedTracingManager>();
   List<String> _routeNames = [];
   bool _isUiInitialized = false;
   late AnimationController _animationController;
@@ -113,7 +113,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   @override
   void dispose() {
     _animationController.dispose();
-    _tracingManager.popContext();
+    _tracingManager.popPageContext();
     super.dispose();
   }
 
@@ -258,7 +258,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   void _updateTabContext(int index, {bool isInitial = false}) {
     // 对于非首次加载（即用户手动切换 Tab），先弹出上一个 Tab 的上下文。
     if (!isInitial) {
-      _tracingManager.popContext();
+      _tracingManager.popPageContext();
     }
 
     // 确保索引在安全范围内
@@ -278,7 +278,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
               : '我的',
           description: tracingInfo.description,
         );
-        _tracingManager.pushContext(context);
+        _tracingManager.pushPageContext(context);
       }
     }
   }

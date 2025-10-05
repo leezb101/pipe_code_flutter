@@ -6,7 +6,7 @@
  * @copyright: Copyright © 2025 高新供水.
  */
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
+import 'package:pipe_code_flutter/services/tracing/improved_tracing_manager.dart';
 import '../../repositories/interfaces/auth_repository.dart';
 import '../../models/auth/rf.dart';
 import 'auth_event.dart';
@@ -14,11 +14,11 @@ import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
-  final TracingManager _tracingManager;
+  final ImprovedTracingManager _tracingManager;
 
   AuthBloc({
     required AuthRepository authRepository,
-    required TracingManager tracingManager,
+    required ImprovedTracingManager tracingManager,
   }) : _tracingManager = tracingManager,
        _authRepository = authRepository,
        super(AuthInitial()) {
@@ -37,8 +37,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      final result = await _tracingManager.scopeAction(
-        event.tracingContext,
+      final operationContext = _tracingManager.createOperationContext(
+        source: event.tracingContext.source,
+        action: event.tracingContext.action,
+        description: event.tracingContext.description,
+        entityId: event.tracingContext.entityId,
+      );
+      
+      final result = await _tracingManager.scopeOperation(
+        operationContext,
         () => _authRepository.loginWithPassword(
           event.loginRequest,
           imgCode: event.imgCode,
@@ -64,8 +71,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      final result = await _tracingManager.scopeAction(
-        event.tracingContext,
+      final operationContext = _tracingManager.createOperationContext(
+        source: event.tracingContext.source,
+        action: event.tracingContext.action,
+        description: event.tracingContext.description,
+        entityId: event.tracingContext.entityId,
+      );
+      
+      final result = await _tracingManager.scopeOperation(
+        operationContext,
         () => _authRepository.loginWithSms(
           event.phone,
           event.code,

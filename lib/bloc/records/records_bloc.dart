@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
-import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
+import 'package:pipe_code_flutter/services/tracing/improved_tracing_manager.dart';
 import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
 import 'dart:async';
 import '../../models/records/record_type.dart';
@@ -24,7 +24,7 @@ class _PendingRefreshParams {
 
 class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
   final RecordsRepository _repository;
-  final TracingManager _tracingManager = getIt<TracingManager>();
+  final ImprovedTracingManager _tracingManager = getIt<ImprovedTracingManager>();
   // 为每个recordType维护独立的防抖timer和参数
   final Map<RecordType, Timer> _refreshDebounceTimers = {};
   final Map<RecordType, _PendingRefreshParams> _pendingRefreshParams = {};
@@ -42,7 +42,14 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     LoadRecords event,
     Emitter<RecordsState> emit,
   ) async {
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+
+    await _tracingManager.scopeOperation(operationContext, () async {
       try {
         final cachedRecords = _repository.getCachedRecords(
           event.recordType,
@@ -134,7 +141,15 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
 
   Future<void> _onSwitchTab(SwitchTab event, Emitter<RecordsState> emit) async {
     Logger.info('Switching to tab: ${event.recordType}', tag: 'RecordsBloc');
-    await _tracingManager.scopeAction(event.tracingContext, () async {
+    
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+
+    await _tracingManager.scopeOperation(operationContext, () async {
       final cachedRecords = _repository.getCachedRecords(
         event.recordType,
         userId: event.userId,
@@ -152,9 +167,11 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
         );
       } else {
         // 创建一个更具体的加载上下文
-        final loadContext = event.tracingContext.copyWith(
+        final loadContext = TracingContext(
+          source: event.tracingContext.source,
           action: 'load-records',
-          description: '${event.tracingContext.description}',
+          description: event.tracingContext.description,
+          entityId: event.tracingContext.entityId,
         );
 
         add(

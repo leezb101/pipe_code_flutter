@@ -15,7 +15,7 @@ import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_event.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/enum_repository.dart';
-import 'package:pipe_code_flutter/services/tracing/tracing_manager.dart';
+import 'package:pipe_code_flutter/services/tracing/improved_tracing_manager.dart';
 import 'config/routes.dart';
 import 'services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'config/service_locator.dart';
@@ -91,7 +91,7 @@ class MyApp extends StatelessWidget {
         BlocProvider<AuthBloc>(
           create: (context) => AuthBloc(
             authRepository: getIt<AuthRepository>(),
-            tracingManager: getIt<TracingManager>(),
+            tracingManager: getIt<ImprovedTracingManager>(),
           )..add(AuthCheckRequested()),
         ),
         BlocProvider<SessionBloc>(create: (context) => getIt<SessionBloc>()),
