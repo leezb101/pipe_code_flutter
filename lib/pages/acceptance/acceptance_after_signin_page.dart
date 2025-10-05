@@ -128,6 +128,9 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
           if (state is AcceptanceSignedIn) {
             // 触发记录列表刷新
             context.read<RecordsBloc>().add(
+              RefreshRecords(recordType: RecordType.warehouseTodo),
+            );
+            context.read<RecordsBloc>().add(
               RefreshRecords(recordType: RecordType.todo),
             );
             context.read<RecordsBloc>().add(
