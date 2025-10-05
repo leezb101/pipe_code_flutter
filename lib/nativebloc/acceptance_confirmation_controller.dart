@@ -61,7 +61,8 @@ class AcceptanceConfirmationState extends Equatable {
 
 class AcceptanceConfirmationController {
   final AcceptanceRepository _repository;
-  final ImprovedTracingManager _tracingManager = getIt<ImprovedTracingManager>();
+  final ImprovedTracingManager _tracingManager =
+      getIt<ImprovedTracingManager>();
   final _stateController =
       StreamController<AcceptanceConfirmationState>.broadcast();
 
@@ -86,7 +87,10 @@ class AcceptanceConfirmationController {
   }
 
   // 加载验收详情
-  Future<void> loadAcceptanceDetail(int acceptanceId, {TracingContext? tracingContext}) async {
+  Future<void> loadAcceptanceDetail(
+    int acceptanceId, {
+    TracingContext? tracingContext,
+  }) async {
     final operationContext = _tracingManager.createOperationContext(
       source: tracingContext?.source ?? 'AcceptanceConfirmationController',
       action: tracingContext?.action ?? 'loadAcceptanceDetail',
@@ -107,7 +111,10 @@ class AcceptanceConfirmationController {
         final result = await _repository.getAcceptanceDetail(acceptanceId);
         if (result.isSuccess && result.data != null) {
           _updateState(
-            _currentState.copyWith(isLoading: false, acceptanceInfo: result.data),
+            _currentState.copyWith(
+              isLoading: false,
+              acceptanceInfo: result.data,
+            ),
           );
         } else {
           _updateState(
@@ -129,7 +136,10 @@ class AcceptanceConfirmationController {
   }
 
   // 确认验收
-  Future<void> confirmAcceptance(int acceptanceId, {TracingContext? tracingContext}) async {
+  Future<void> confirmAcceptance(
+    int acceptanceId, {
+    TracingContext? tracingContext,
+  }) async {
     if (_currentState.isSubmitting) return; // 防止重复提交
 
     final operationContext = _tracingManager.createOperationContext(

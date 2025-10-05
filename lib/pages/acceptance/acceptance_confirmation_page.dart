@@ -54,12 +54,18 @@ class _AcceptanceConfirmationPageState
 
   void _loadAcceptanceDetail() {
     final tracingContext = context.createActionContext('加载验收详情');
-    _controller.loadAcceptanceDetail(widget.acceptanceId, tracingContext: tracingContext);
+    _controller.loadAcceptanceDetail(
+      widget.acceptanceId,
+      tracingContext: tracingContext,
+    );
   }
 
   void _confirmAcceptance() {
     final tracingContext = context.createActionContext('验收确认');
-    _controller.confirmAcceptance(widget.acceptanceId, tracingContext: tracingContext);
+    _controller.confirmAcceptance(
+      widget.acceptanceId,
+      tracingContext: tracingContext,
+    );
   }
 
   void _rejectAcceptance() {
