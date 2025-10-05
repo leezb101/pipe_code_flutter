@@ -3,6 +3,9 @@ import 'package:equatable/equatable.dart';
 import 'package:pipe_code_flutter/models/acceptance/acceptance_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/common_do_business_audit_vo.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/services/tracing/improved_tracing_manager.dart';
+import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
 
 class AcceptanceConfirmationState extends Equatable {
   final bool isLoading;
@@ -58,6 +61,7 @@ class AcceptanceConfirmationState extends Equatable {
 
 class AcceptanceConfirmationController {
   final AcceptanceRepository _repository;
+  final ImprovedTracingManager _tracingManager = getIt<ImprovedTracingManager>();
   final _stateController =
       StreamController<AcceptanceConfirmationState>.broadcast();
 
@@ -82,75 +86,93 @@ class AcceptanceConfirmationController {
   }
 
   // 加载验收详情
-  Future<void> loadAcceptanceDetail(int acceptanceId) async {
-    _updateState(
-      _currentState.copyWith(
-        isLoading: true,
-        errorMessage: null,
-        isSuccess: false,
-      ),
+  Future<void> loadAcceptanceDetail(int acceptanceId, {TracingContext? tracingContext}) async {
+    final operationContext = _tracingManager.createOperationContext(
+      source: tracingContext?.source ?? 'AcceptanceConfirmationController',
+      action: tracingContext?.action ?? 'loadAcceptanceDetail',
+      description: tracingContext?.description ?? '加载验收详情',
+      entityId: tracingContext?.entityId ?? acceptanceId.toString(),
     );
 
-    try {
-      final result = await _repository.getAcceptanceDetail(acceptanceId);
-      if (result.isSuccess && result.data != null) {
-        _updateState(
-          _currentState.copyWith(isLoading: false, acceptanceInfo: result.data),
-        );
-      } else {
+    await _tracingManager.scopeOperation(operationContext, () async {
+      _updateState(
+        _currentState.copyWith(
+          isLoading: true,
+          errorMessage: null,
+          isSuccess: false,
+        ),
+      );
+
+      try {
+        final result = await _repository.getAcceptanceDetail(acceptanceId);
+        if (result.isSuccess && result.data != null) {
+          _updateState(
+            _currentState.copyWith(isLoading: false, acceptanceInfo: result.data),
+          );
+        } else {
+          _updateState(
+            _currentState.copyWith(
+              isLoading: false,
+              errorMessage: result.msg.isNotEmpty ? result.msg : '获取验收详情失败',
+            ),
+          );
+        }
+      } catch (e) {
         _updateState(
           _currentState.copyWith(
             isLoading: false,
-            errorMessage: result.msg.isNotEmpty ? result.msg : '获取验收详情失败',
+            errorMessage: '网络错误：${e.toString()}',
           ),
         );
       }
-    } catch (e) {
-      _updateState(
-        _currentState.copyWith(
-          isLoading: false,
-          errorMessage: '网络错误：${e.toString()}',
-        ),
-      );
-    }
+    });
   }
 
   // 确认验收
-  Future<void> confirmAcceptance(int acceptanceId) async {
+  Future<void> confirmAcceptance(int acceptanceId, {TracingContext? tracingContext}) async {
     if (_currentState.isSubmitting) return; // 防止重复提交
 
-    _updateState(
-      _currentState.copyWith(
-        isSubmitting: true,
-        errorMessage: null,
-        isSuccess: false,
-      ),
+    final operationContext = _tracingManager.createOperationContext(
+      source: tracingContext?.source ?? 'AcceptanceConfirmationController',
+      action: tracingContext?.action ?? 'confirmAcceptance',
+      description: tracingContext?.description ?? '确认验收',
+      entityId: tracingContext?.entityId ?? acceptanceId.toString(),
     );
 
-    try {
-      final request = CommonDoBusinessAuditVO(id: acceptanceId, pass: true);
-      final result = await _repository.auditAcceptance(request);
+    await _tracingManager.scopeOperation(operationContext, () async {
+      _updateState(
+        _currentState.copyWith(
+          isSubmitting: true,
+          errorMessage: null,
+          isSuccess: false,
+        ),
+      );
 
-      if (result.isSuccess) {
-        _updateState(
-          _currentState.copyWith(isSubmitting: false, isSuccess: true),
-        );
-      } else {
+      try {
+        final request = CommonDoBusinessAuditVO(id: acceptanceId, pass: true);
+        final result = await _repository.auditAcceptance(request);
+
+        if (result.isSuccess) {
+          _updateState(
+            _currentState.copyWith(isSubmitting: false, isSuccess: true),
+          );
+        } else {
+          _updateState(
+            _currentState.copyWith(
+              isSubmitting: false,
+              errorMessage: result.msg.isNotEmpty ? result.msg : '确认失败',
+            ),
+          );
+        }
+      } catch (e) {
         _updateState(
           _currentState.copyWith(
             isSubmitting: false,
-            errorMessage: result.msg.isNotEmpty ? result.msg : '确认失败',
+            errorMessage: '网络错误：${e.toString()}',
           ),
         );
       }
-    } catch (e) {
-      _updateState(
-        _currentState.copyWith(
-          isSubmitting: false,
-          errorMessage: '网络错误：${e.toString()}',
-        ),
-      );
-    }
+    });
   }
 
   // 拒绝验收
@@ -158,46 +180,56 @@ class AcceptanceConfirmationController {
     required int acceptanceId,
     required String reason,
     List<String>? reasonVoice,
+    TracingContext? tracingContext,
   }) async {
     if (_currentState.isSubmitting) return; // 防止重复提交
 
-    _updateState(
-      _currentState.copyWith(
-        isSubmitting: true,
-        errorMessage: null,
-        isSuccess: false,
-      ),
+    final operationContext = _tracingManager.createOperationContext(
+      source: tracingContext?.source ?? 'AcceptanceConfirmationController',
+      action: tracingContext?.action ?? 'rejectAcceptance',
+      description: tracingContext?.description ?? '拒绝验收',
+      entityId: tracingContext?.entityId ?? acceptanceId.toString(),
     );
 
-    try {
-      final request = CommonDoBusinessAuditVO(
-        id: acceptanceId,
-        pass: false,
-        reason: reason,
-        reasonVoice: reasonVoice ?? [],
+    await _tracingManager.scopeOperation(operationContext, () async {
+      _updateState(
+        _currentState.copyWith(
+          isSubmitting: true,
+          errorMessage: null,
+          isSuccess: false,
+        ),
       );
-      final result = await _repository.auditAcceptance(request);
 
-      if (result.isSuccess) {
-        _updateState(
-          _currentState.copyWith(isSubmitting: false, isSuccess: true),
+      try {
+        final request = CommonDoBusinessAuditVO(
+          id: acceptanceId,
+          pass: false,
+          reason: reason,
+          reasonVoice: reasonVoice ?? [],
         );
-      } else {
+        final result = await _repository.auditAcceptance(request);
+
+        if (result.isSuccess) {
+          _updateState(
+            _currentState.copyWith(isSubmitting: false, isSuccess: true),
+          );
+        } else {
+          _updateState(
+            _currentState.copyWith(
+              isSubmitting: false,
+              errorMessage: result.msg.isNotEmpty ? result.msg : '拒绝失败',
+            ),
+          );
+        }
+      } catch (e) {
         _updateState(
           _currentState.copyWith(
             isSubmitting: false,
-            errorMessage: result.msg.isNotEmpty ? result.msg : '拒绝失败',
+            errorMessage: '网络错误：${e.toString()}',
           ),
         );
       }
-    } catch (e) {
-      _updateState(
-        _currentState.copyWith(
-          isSubmitting: false,
-          errorMessage: '网络错误：${e.toString()}',
-        ),
-      );
-    }
+    });
   }
 
   // 重置成功状态（用于处理完成功后的状态重置）

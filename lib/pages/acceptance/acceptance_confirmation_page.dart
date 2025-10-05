@@ -17,6 +17,7 @@ import 'package:pipe_code_flutter/widgets/speech_input_widget.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/nativebloc/acceptance_confirmation_controller.dart';
+import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
 
 class AcceptanceConfirmationPage extends StatefulWidget {
   final int acceptanceId;
@@ -52,18 +53,22 @@ class _AcceptanceConfirmationPageState
   }
 
   void _loadAcceptanceDetail() {
-    _controller.loadAcceptanceDetail(widget.acceptanceId);
+    final tracingContext = context.createActionContext('加载验收详情');
+    _controller.loadAcceptanceDetail(widget.acceptanceId, tracingContext: tracingContext);
   }
 
   void _confirmAcceptance() {
-    _controller.confirmAcceptance(widget.acceptanceId);
+    final tracingContext = context.createActionContext('验收确认');
+    _controller.confirmAcceptance(widget.acceptanceId, tracingContext: tracingContext);
   }
 
   void _rejectAcceptance() {
+    final tracingContext = context.createActionContext('驳回验收');
     _controller.rejectAcceptance(
       acceptanceId: widget.acceptanceId,
       reason: _remarkController.text,
       reasonVoice: _reasonVoice,
+      tracingContext: tracingContext,
     );
   }
 
