@@ -529,9 +529,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
       final res = flow.normalize(request, raw);
       if (res.addedCodes.isEmpty) return;
       // 交给业务bloc批量解析并匹配
-      final tracingContext = context.createActionContext(
-        'append_materials_by_codes',
-      );
+      final tracingContext = context.createActionContext('扫码入库');
       context.read<AcceptanceBloc>().add(
         AppendMaterialsByCodes(
           codes: res.addedCodes,
@@ -556,9 +554,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
       final res = flow.normalize(request, raw);
       if (res.removedCodes.isEmpty) return;
       // 交给业务bloc批量解析并剔除
-      final tracingContext = context.createActionContext(
-        'remove_materials_by_codes',
-      );
+      final tracingContext = context.createActionContext('扫码剔除');
       context.read<AcceptanceBloc>().add(
         RemoveMaterialsByCodes(
           codes: res.removedCodes,
@@ -629,7 +625,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
       imageList: photoAttachments,
     );
 
-    final tracingContext = context.createActionContext('do_acceptance_signin');
+    final tracingContext = context.createActionContext('验收后入库');
     context.read<AcceptanceBloc>().add(
       DoAcceptanceSignIn(request: request, tracingContext: tracingContext),
     );

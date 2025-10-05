@@ -53,7 +53,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       try {
         emit(const AcceptanceLoading());
@@ -100,7 +100,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       try {
         emit(const AcceptanceSubmitting());
@@ -151,7 +151,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       // 开始提交之前，发出一个加载状态，同时保留当前数据
       if (currentState is AcceptanceDetailLoaded) {
@@ -182,7 +182,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       try {
         emit(const AcceptanceLoading());
@@ -270,7 +270,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       try {
         if (resumePrimary == null) {
@@ -409,7 +409,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       try {
         if (resumePrimary == null) {
@@ -593,7 +593,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       try {
         if (event.codes.isEmpty) return;
@@ -629,100 +629,124 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
     AppendMaterialsByCodes event,
     Emitter<AcceptanceState> emit,
   ) async {
-    try {
-      if (event.codes.isEmpty) return;
-      final rsp = await _materialHandleRepository.scanBatchToQueryAll(
-        event.codes,
-      );
-      if (rsp.isSuccess && rsp.data != null) {
-        final currentState = state;
-        if (currentState is AcceptanceDetailLoaded) {
-          // AcceptanceAfterSigninPage: 高亮匹配
-          final scannedIds = rsp.data!.normals
-              .map((m) => m.baseInfo.materialId)
-              .toSet();
-          final toAdd = currentState.acceptanceInfo.materialList
-              .where((m) => scannedIds.contains(m.materialId))
-              .toSet();
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
 
-          final before = currentState.matchedMaterials.length;
-          final newSet = {...currentState.matchedMaterials, ...toAdd};
-          final added = newSet.length - before;
-          final msg = added > 0 ? '新增匹配 $added 个物料' : '未匹配到新的物料';
-          emit(
-            currentState.copyWith(matchedMaterials: newSet, matchMessage: msg),
-          );
-          Logger.debug(
-            'AppendMaterialsByCodes - matched $added new materials',
-            tag: 'AcceptanceBloc',
-          );
+    await _tracingManager.scopeOperation(operationContext, () async {
+      try {
+        if (event.codes.isEmpty) return;
+        final rsp = await _materialHandleRepository.scanBatchToQueryAll(
+          event.codes,
+        );
+        if (rsp.isSuccess && rsp.data != null) {
+          final currentState = state;
+          if (currentState is AcceptanceDetailLoaded) {
+            // AcceptanceAfterSigninPage: 高亮匹配
+            final scannedIds = rsp.data!.normals
+                .map((m) => m.baseInfo.materialId)
+                .toSet();
+            final toAdd = currentState.acceptanceInfo.materialList
+                .where((m) => scannedIds.contains(m.materialId))
+                .toSet();
+
+            final before = currentState.matchedMaterials.length;
+            final newSet = {...currentState.matchedMaterials, ...toAdd};
+            final added = newSet.length - before;
+            final msg = added > 0 ? '新增匹配 $added 个物料' : '未匹配到新的物料';
+            emit(
+              currentState.copyWith(
+                matchedMaterials: newSet,
+                matchMessage: msg,
+              ),
+            );
+            Logger.debug(
+              'AppendMaterialsByCodes - matched $added new materials',
+              tag: 'AcceptanceBloc',
+            );
+          } else {
+            // AcceptancePage: 将解析结果抛给页面自行处理
+            emit(
+              AcceptanceMaterialsResolved(
+                materials: rsp.data!.normals,
+                message: 'append@${DateTime.now().microsecondsSinceEpoch}',
+              ),
+            );
+            Logger.debug(
+              'AppendMaterialsByCodes - emitted append event with ${rsp.data!.normals.length} materials',
+              tag: 'AcceptanceBloc',
+            );
+          }
         } else {
-          // AcceptancePage: 将解析结果抛给页面自行处理
-          emit(
-            AcceptanceMaterialsResolved(
-              materials: rsp.data!.normals,
-              message: 'append@${DateTime.now().microsecondsSinceEpoch}',
-            ),
-          );
-          Logger.debug(
-            'AppendMaterialsByCodes - emitted append event with ${rsp.data!.normals.length} materials',
-            tag: 'AcceptanceBloc',
-          );
+          emit(const AcceptanceError(message: '新增码未查到物料信息'));
         }
-      } else {
-        emit(const AcceptanceError(message: '新增码未查到物料信息'));
+      } catch (e) {
+        Logger.error('Append by codes failed: $e', tag: 'AcceptanceBloc');
+        emit(const AcceptanceError(message: '获取物料信息失败'));
       }
-    } catch (e) {
-      Logger.error('Append by codes failed: $e', tag: 'AcceptanceBloc');
-      emit(const AcceptanceError(message: '获取物料信息失败'));
-    }
+    });
   }
 
   Future<void> _onRemoveMaterialsByCodes(
     RemoveMaterialsByCodes event,
     Emitter<AcceptanceState> emit,
   ) async {
-    try {
-      if (event.codes.isEmpty) return;
-      final rsp = await _materialHandleRepository.scanBatchToQueryAll(
-        event.codes,
-      );
-      if (rsp.isSuccess && rsp.data != null) {
-        final currentState = state;
-        if (currentState is AcceptanceDetailLoaded) {
-          // AcceptanceAfterSigninPage: 取消高亮
-          final scannedIds = rsp.data!.normals
-              .map((m) => m.baseInfo.materialId)
-              .toSet();
-          final before = currentState.matchedMaterials.length;
-          final newSet = currentState.matchedMaterials
-              .where((m) => !scannedIds.contains(m.materialId))
-              .toSet();
-          final removed = before - newSet.length;
-          final msg = removed > 0 ? '已剔除 $removed 个物料' : '未找到可剔除的物料';
-          emit(
-            currentState.copyWith(matchedMaterials: newSet, matchMessage: msg),
-          );
+    final operationContext = _tracingManager.createOperationContext(
+      source: event.tracingContext.source,
+      action: event.tracingContext.action,
+      description: event.tracingContext.description,
+      entityId: event.tracingContext.entityId,
+    );
+
+    await _tracingManager.scopeOperation(operationContext, () async {
+      try {
+        if (event.codes.isEmpty) return;
+        final rsp = await _materialHandleRepository.scanBatchToQueryAll(
+          event.codes,
+        );
+        if (rsp.isSuccess && rsp.data != null) {
+          final currentState = state;
+          if (currentState is AcceptanceDetailLoaded) {
+            // AcceptanceAfterSigninPage: 取消高亮
+            final scannedIds = rsp.data!.normals
+                .map((m) => m.baseInfo.materialId)
+                .toSet();
+            final before = currentState.matchedMaterials.length;
+            final newSet = currentState.matchedMaterials
+                .where((m) => !scannedIds.contains(m.materialId))
+                .toSet();
+            final removed = before - newSet.length;
+            final msg = removed > 0 ? '已剔除 $removed 个物料' : '未找到可剔除的物料';
+            emit(
+              currentState.copyWith(
+                matchedMaterials: newSet,
+                matchMessage: msg,
+              ),
+            );
+          } else {
+            // AcceptancePage: 将解析结果抛给页面自行处理
+            emit(
+              AcceptanceMaterialsResolved(
+                materials: rsp.data!.normals,
+                message: 'remove@${DateTime.now().microsecondsSinceEpoch}',
+              ),
+            );
+            Logger.debug(
+              'RemoveMaterialsByCodes - emitted remove event with ${rsp.data!.normals.length} materials',
+              tag: 'AcceptanceBloc',
+            );
+          }
         } else {
-          // AcceptancePage: 将解析结果抛给页面自行处理
-          emit(
-            AcceptanceMaterialsResolved(
-              materials: rsp.data!.normals,
-              message: 'remove@${DateTime.now().microsecondsSinceEpoch}',
-            ),
-          );
-          Logger.debug(
-            'RemoveMaterialsByCodes - emitted remove event with ${rsp.data!.normals.length} materials',
-            tag: 'AcceptanceBloc',
-          );
+          emit(const AcceptanceError(message: '未匹配到可剔除的码'));
         }
-      } else {
-        emit(const AcceptanceError(message: '未匹配到可剔除的码'));
+      } catch (e) {
+        Logger.error('Remove by codes failed: $e', tag: 'AcceptanceBloc');
+        emit(const AcceptanceError(message: '剔除失败'));
       }
-    } catch (e) {
-      Logger.error('Remove by codes failed: $e', tag: 'AcceptanceBloc');
-      emit(const AcceptanceError(message: '剔除失败'));
-    }
+    });
   }
 
   // ========= Centralized editing for AcceptancePage =========
@@ -773,7 +797,7 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
       description: event.tracingContext.description,
       entityId: event.tracingContext.entityId,
     );
-    
+
     await _tracingManager.scopeOperation(operationContext, () async {
       try {
         if (event.codes.isEmpty) return;
