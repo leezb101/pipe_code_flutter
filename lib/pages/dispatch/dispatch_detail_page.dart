@@ -248,6 +248,8 @@ class _DispatchDetailPageViewState extends State<_DispatchDetailPageView> {
       batchCode: material.batchCode,
       materialId: material.materialId.toString(),
       quantity: material.num,
+      status: material.status,
+      statusName: material.statusName,
       businessType: 'dispatch',
     );
   }

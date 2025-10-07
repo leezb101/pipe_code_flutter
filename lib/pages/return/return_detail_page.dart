@@ -155,6 +155,8 @@ class _ReturnDetailPageState extends State<ReturnDetailPage> {
       batchCode: material.batchCode ?? '无',
       materialId: (material.materialId ?? '无').toString(),
       quantity: material.num ?? 1,
+      status: material.status,
+      statusName: material.statusName,
       businessType: 'return',
     );
   }

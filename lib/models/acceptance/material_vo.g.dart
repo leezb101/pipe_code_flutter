@@ -15,6 +15,8 @@ MaterialVO _$MaterialVOFromJson(Map<String, dynamic> json) => MaterialVO(
   installImageUrl2: json['installImageUrl2'] as String?,
   materialCode: json['materialCode'] as String?,
   batchCode: json['batchCode'] as String?,
+  status: (json['status'] as num?)?.toInt(),
+  statusName: json['statusName'] as String?,
 );
 
 Map<String, dynamic> _$MaterialVOToJson(MaterialVO instance) =>
@@ -27,4 +29,6 @@ Map<String, dynamic> _$MaterialVOToJson(MaterialVO instance) =>
       'installImageUrl2': instance.installImageUrl2,
       'materialCode': instance.materialCode,
       'batchCode': instance.batchCode,
+      'status': instance.status,
+      'statusName': instance.statusName,
     };

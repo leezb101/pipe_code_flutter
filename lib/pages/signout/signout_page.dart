@@ -293,6 +293,8 @@ class _SignoutPageState extends State<SignoutPage> {
       primaryText: material.baseInfo.materialCode ?? '无',
       batchCode: material.baseInfo.batchCode ?? '无',
       materialId: material.baseInfo.materialId.toString(),
+      status: material.baseInfo.status,
+      statusName: material.baseInfo.statusName,
       quantity: 1,
       businessType: 'signout',
     );

@@ -266,6 +266,8 @@ class _InstallViewState extends State<InstallView> {
             primaryText: material.materialCode ?? '无',
             batchCode: material.batchCode ?? '无',
             quantity: material.num,
+            status: material.status,
+            statusName: material.statusName,
             businessType: 'install',
             icon: Icons.build,
             showQuantityBadge: true,

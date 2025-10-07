@@ -208,6 +208,8 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
       batchCode: material.batchCode ?? '无',
       materialId: material.materialId.toString(),
       quantity: material.num,
+      status: material.status,
+      statusName: material.statusName,
       businessType: 'signin',
       icon: Icons.inventory_2,
       trailing: _buildMaterialTrailing(material, index),

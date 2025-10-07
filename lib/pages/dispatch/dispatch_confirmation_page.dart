@@ -177,6 +177,8 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
                 batchCode: material.batchCode,
                 materialId: material.materialId.toString(),
                 quantity: material.num,
+                status: material.status,
+                statusName: material.statusName,
                 showQuantityBadge: true,
                 businessType: 'dispatch',
               ),

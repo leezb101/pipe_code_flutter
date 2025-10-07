@@ -170,6 +170,8 @@ class _InstallDetailPageViewState extends State<_InstallDetailPageView> {
       batchCode: material.batchCode ?? '无',
       materialId: material.materialId.toString(),
       quantity: material.num,
+      status: material.status,
+      statusName: material.statusName,
       businessType: 'install',
       icon: Icons.construction,
       trailing: _buildInstallMaterialTrailing(material),

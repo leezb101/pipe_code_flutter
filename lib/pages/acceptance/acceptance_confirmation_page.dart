@@ -264,6 +264,8 @@ class _AcceptanceConfirmationPageState
       materialId: material.materialId.toString(),
       quantity: material.num,
       businessType: 'acceptance',
+      status: material.status,
+      statusName: material.statusName,
       trailing: material.installPileNo != null
           ? Container(
               padding: const EdgeInsets.symmetric(

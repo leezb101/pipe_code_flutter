@@ -387,6 +387,8 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
         primaryText: material.baseInfo.materialCode ?? '无',
         batchCode: material.baseInfo.batchCode ?? '无',
         materialId: material.baseInfo.materialCode ?? '无',
+        status: material.baseInfo.status,
+        statusName: material.baseInfo.statusName,
         quantity: 1,
         businessType: 'acceptance',
         icon: Icons.water_drop,

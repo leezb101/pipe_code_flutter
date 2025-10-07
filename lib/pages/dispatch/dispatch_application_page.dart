@@ -215,6 +215,8 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
                           primaryText: entry.value.materialCode,
                           batchCode: entry.value.batchCode,
                           quantity: entry.value.num,
+                          status: entry.value.status,
+                          statusName: entry.value.statusName,
                           businessType: 'dispatch',
                         ),
                       ),

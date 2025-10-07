@@ -237,6 +237,8 @@ class MaterialListItem extends StatelessWidget {
     this.trailing,
     this.businessType,
     this.showQuantityBadge = true,
+    this.status,
+    this.statusName,
   });
 
   /// 材料名称
@@ -289,6 +291,12 @@ class MaterialListItem extends StatelessWidget {
 
   /// 是否显示数量徽章
   final bool showQuantityBadge;
+
+  /// 材料状态代码
+  final int? status;
+
+  /// 材料状态名称
+  final String? statusName;
 
   @override
   Widget build(BuildContext context) {
@@ -393,6 +401,17 @@ class MaterialListItem extends StatelessWidget {
                           ),
                         ),
                       ],
+                      // 添加材料状态标签（显示在最底部）
+                      if (statusName != null) ...[
+                        const SizedBox(height: AppTheme.spacingSmall),
+                        Text(
+                          statusName!,
+                          style: AppTheme.bodySmall.copyWith(
+                            color: _getStatusColor(),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -424,6 +443,28 @@ class MaterialListItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// 根据状态获取对应颜色
+  Color _getStatusColor() {
+    if (status == null) {
+      return AppTheme.grey600;
+    }
+
+    // 根据不同的状态代码返回不同颜色
+    // 这里可以根据实际业务需求定义状态代码对应的颜色
+    switch (status!) {
+      case 1: // 正常
+        return AppTheme.successColor;
+      case 2: // 警告
+        return AppTheme.warningColor;
+      case 3: // 异常
+        return AppTheme.errorColor;
+      case 0: // 处理中
+        return AppTheme.infoColor;
+      default:
+        return AppTheme.grey600;
+    }
   }
 }
 
@@ -842,6 +883,8 @@ class MaterialBusinessDisplay extends StatelessWidget {
     String? batchCode;
     String? materialId;
     int? quantity;
+    int? status;
+    String? statusName;
 
     if (material is Map<String, dynamic>) {
       materialName =
@@ -855,6 +898,8 @@ class MaterialBusinessDisplay extends StatelessWidget {
           material['baseInfo']?['materialCode'] ??
           material['materialId']?.toString();
       quantity = material['num'] ?? material['quantity'] ?? 1;
+      status = material['status'] as int?;
+      statusName = material['statusName']?.toString();
     } else {
       try {
         final baseInfo = (material as dynamic).baseInfo;
@@ -863,6 +908,8 @@ class MaterialBusinessDisplay extends StatelessWidget {
         batchCode = baseInfo?.batchCode;
         materialId = baseInfo?.materialCode;
         quantity = 1;
+        status = (material as dynamic).status as int?;
+        statusName = (material as dynamic).statusName?.toString();
       } catch (e) {
         // 使用默认值
       }
@@ -877,6 +924,8 @@ class MaterialBusinessDisplay extends StatelessWidget {
       quantity: quantity,
       businessType: businessType,
       icon: _getBusinessIcon(),
+      status: status,
+      statusName: statusName,
     );
   }
 

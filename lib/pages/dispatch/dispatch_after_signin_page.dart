@@ -294,6 +294,8 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
       batchCode: material.batchCode,
       quantity: material.num,
       businessType: 'dispatch',
+      status: material.status,
+      statusName: material.statusName,
       trailing: Icon(
         isScanned ? Icons.check_circle : Icons.radio_button_unchecked,
         color: isScanned ? AppTheme.getBusinessColor('dispatch') : Colors.grey,

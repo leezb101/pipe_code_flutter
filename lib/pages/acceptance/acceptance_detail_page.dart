@@ -205,6 +205,8 @@ class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView> {
       batchCode: material.batchCode,
       materialId: material.materialId.toString(),
       quantity: material.num,
+      status: material.status,
+      statusName: material.statusName,
       businessType: 'acceptance',
       trailing: material.installPileNo != null
           ? Container(

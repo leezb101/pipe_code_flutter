@@ -396,6 +396,8 @@ class _ScrapPageState extends State<ScrapPage> {
         batchCode: material.batchCode ?? '无',
         materialId: material.materialCode ?? '无',
         quantity: material.num,
+        status: material.status,
+        statusName: material.statusName,
         businessType: 'scrap',
         icon: Icons.water_drop,
       ),

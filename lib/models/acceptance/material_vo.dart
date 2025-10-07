@@ -14,6 +14,8 @@ class MaterialVO extends Equatable {
   final String? installImageUrl2;
   final String? materialCode;
   final String? batchCode;
+  final int? status;
+  final String? statusName;
 
   const MaterialVO({
     required this.materialId,
@@ -24,6 +26,8 @@ class MaterialVO extends Equatable {
     this.installImageUrl2,
     this.materialCode,
     this.batchCode,
+    this.status,
+    this.statusName,
   });
 
   factory MaterialVO.fromJson(Map<String, dynamic> json) =>
@@ -41,6 +45,8 @@ class MaterialVO extends Equatable {
     installImageUrl2,
     materialCode,
     batchCode,
+    status,
+    statusName,
   ];
 
   MaterialVO copyWith({
@@ -52,6 +58,8 @@ class MaterialVO extends Equatable {
     String? installImageUrl2,
     String? materialCode,
     String? batchCode,
+    int? status,
+    String? statusName,
   }) {
     return MaterialVO(
       materialId: materialId ?? this.materialId,
@@ -62,6 +70,8 @@ class MaterialVO extends Equatable {
       installImageUrl2: installImageUrl2 ?? this.installImageUrl2,
       materialCode: materialCode ?? this.materialCode,
       batchCode: batchCode ?? this.batchCode,
+      status: status ?? this.status,
+      statusName: statusName ?? this.statusName,
     );
   }
 }

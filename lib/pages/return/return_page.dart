@@ -231,6 +231,8 @@ class _ReturnPageState extends State<ReturnPage> {
       batchCode: vo.batchCode ?? '无',
       materialId: vo.materialId.toString(),
       quantity: vo.num,
+      status: vo.status,
+      statusName: vo.statusName,
       businessType: 'return',
     );
   }
