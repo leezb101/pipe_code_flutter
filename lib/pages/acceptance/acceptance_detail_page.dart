@@ -12,10 +12,14 @@ import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/image_preview_widget.dart';
+import 'package:pipe_code_flutter/services/documents/document_route_resolver.dart';
+import 'package:pipe_code_flutter/services/documents/document_service.dart';
+import 'package:pipe_code_flutter/widgets/document_button.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
+import 'package:share_plus/share_plus.dart';
 
 class AcceptanceDetailPage extends StatelessWidget {
   final int acceptanceId;
@@ -45,9 +49,14 @@ class _AcceptanceDetailPageView extends StatefulWidget {
 }
 
 class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView> {
+  late final DocumentService _documentService;
+  late final DocumentRouteResolver _routeResolver;
+
   @override
   void initState() {
     super.initState();
+    _documentService = getIt<DocumentService>();
+    _routeResolver = getIt<DocumentRouteResolver>();
     _loadAcceptanceDetail();
   }
 
@@ -106,6 +115,31 @@ class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: DocumentButton(
+                      businessType: 'acceptance-report',
+                      entityId: widget.acceptanceId,
+                      displayName: '验收文件',
+                      documentService: _documentService,
+                      routeResolver: _routeResolver,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.acceptanceColor,
+                        foregroundColor: Colors.white,
+                      ),
+                      onDownloadCompleted: (value) {
+                        // 使用shareplus分享
+                        SharePlus.instance.share(
+                          ShareParams(
+                            files: [XFile(value)],
+                            text: '验收报告',
+                            subject: '验收明细文件',
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spacingLarge),
                   _buildWarehouseInfo(state.acceptanceInfo),
                   const SizedBox(height: AppTheme.spacingLarge),
                   _buildMaterialsList(state.acceptanceInfo),
@@ -252,16 +286,29 @@ class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView> {
       );
     }
 
-    if (items.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    final children = <Widget>[];
 
-    return UnifiedCard(
-      title: '附件列表',
-      icon: Icons.attach_file,
-      businessType: 'acceptance',
-      child: Column(
-        children: items
+    if (items.isEmpty) {
+      children.add(
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppTheme.spacingLarge),
+          decoration: BoxDecoration(
+            color: AppTheme.acceptanceColor.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+            border: Border.all(
+              color: AppTheme.acceptanceColor.withValues(alpha: 0.15),
+            ),
+          ),
+          child: Text(
+            '暂无附件',
+            style: AppTheme.bodyMedium.copyWith(color: AppTheme.grey600),
+          ),
+        ),
+      );
+    } else {
+      children.addAll(
+        items
             .asMap()
             .entries
             .map(
@@ -275,7 +322,14 @@ class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView> {
               ),
             )
             .toList(),
-      ),
+      );
+    }
+
+    return UnifiedCard(
+      title: '附件列表',
+      icon: Icons.attach_file,
+      businessType: 'acceptance',
+      child: Column(children: children),
     );
   }
 

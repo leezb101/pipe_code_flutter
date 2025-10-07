@@ -103,17 +103,17 @@ final Map<String, DocumentRouteDefinition> _defaultDocumentRoutes = {
   'acceptance-report': DocumentRouteDefinition(
     uriBuilder: (id) =>
         relativeDocumentUri('/wd/accept', queryParameters: {'id': id}),
-    nameBuilder: (id) => '验收单-$id.pdf',
+    nameBuilder: (id) => '验收单-$id.doc',
   ),
   'signin-report': DocumentRouteDefinition(
     uriBuilder: (id) =>
         relativeDocumentUri('/wd/signin', queryParameters: {'id': id}),
-    nameBuilder: (id) => '入库单-$id.pdf',
+    nameBuilder: (id) => '入库单-$id.doc',
   ),
   'signout-report': DocumentRouteDefinition(
     uriBuilder: (id) =>
         relativeDocumentUri('/wd/signout', queryParameters: {'id': id}),
-    nameBuilder: (id) => '出库单-$id.pdf',
+    nameBuilder: (id) => '出库单-$id.doc',
   ),
 };
 

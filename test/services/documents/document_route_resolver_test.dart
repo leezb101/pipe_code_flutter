@@ -55,5 +55,47 @@ void main() {
         expect(descriptor.url, 'https://example.com/api/wd/accept?id=99');
       },
     );
+
+    test('applies custom name while preserving extension', () {
+      final resolver = DocumentRouteResolver(
+        baseUrl: 'https://example.com/api',
+        routes: {
+          'acceptance-report': DocumentRouteDefinition(
+            uriBuilder: (id) =>
+                relativeDocumentUri('/wd/accept', queryParameters: {'id': id}),
+            nameBuilder: (id) => '验收单-$id.pdf',
+          ),
+        },
+      );
+
+      final descriptor = resolver.resolve(
+        'acceptance-report',
+        99,
+        name: '验收文件',
+      );
+
+      expect(descriptor.name, '验收文件.pdf');
+    });
+
+    test('keeps provided extension when custom name supplies one', () {
+      final resolver = DocumentRouteResolver(
+        baseUrl: 'https://example.com/api',
+        routes: {
+          'acceptance-report': DocumentRouteDefinition(
+            uriBuilder: (id) =>
+                relativeDocumentUri('/wd/accept', queryParameters: {'id': id}),
+            nameBuilder: (id) => '验收单-$id.pdf',
+          ),
+        },
+      );
+
+      final descriptor = resolver.resolve(
+        'acceptance-report',
+        99,
+        name: '验收文件.docx',
+      );
+
+      expect(descriptor.name, '验收文件.docx');
+    });
   });
 }
