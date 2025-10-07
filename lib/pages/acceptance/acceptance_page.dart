@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_state.dart';
+import 'package:pipe_code_flutter/models/common/material_status_enum.dart';
 import 'package:pipe_code_flutter/models/material/material_info_for_business.dart';
 import 'package:pipe_code_flutter/models/user/current_user_on_project_role_info.dart';
 import 'package:pipe_code_flutter/utils/toast_utils.dart';
@@ -422,6 +423,7 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
         materialId: material.baseInfo.materialCode ?? '无',
         status: material.baseInfo.status,
         statusName: material.baseInfo.statusName,
+        validStatus: MaterialStatusEnum.init,
         quantity: 1,
         businessType: 'acceptance',
         icon: Icons.water_drop,

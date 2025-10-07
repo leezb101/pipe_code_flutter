@@ -7,6 +7,7 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:pipe_code_flutter/models/common/material_status_enum.dart';
 import '../../constants/app_theme.dart';
 
 /// 统一的卡片组件
@@ -239,6 +240,7 @@ class MaterialListItem extends StatelessWidget {
     this.showQuantityBadge = true,
     this.status,
     this.statusName,
+    this.validStatus,
   });
 
   /// 材料名称
@@ -297,6 +299,8 @@ class MaterialListItem extends StatelessWidget {
 
   /// 材料状态名称
   final String? statusName;
+
+  final MaterialStatusEnum? validStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -404,12 +408,29 @@ class MaterialListItem extends StatelessWidget {
                       // 添加材料状态标签（显示在最底部）
                       if (statusName != null) ...[
                         const SizedBox(height: AppTheme.spacingSmall),
-                        Text(
-                          statusName!,
-                          style: AppTheme.bodySmall.copyWith(
-                            color: _getStatusColor(),
-                            fontWeight: FontWeight.w500,
-                          ),
+                        Row(
+                          children: [
+                            // 根据状态有效性显示图标
+                            if (validStatus != null) ...[
+                              Icon(
+                                _isStatusValid() ? Icons.check : Icons.close,
+                                size: 14,
+                                color: _isStatusValid()
+                                    ? AppTheme.successColor
+                                    : AppTheme.errorColor,
+                              ),
+                              const SizedBox(width: AppTheme.spacingXSmall),
+                            ],
+                            Expanded(
+                              child: Text(
+                                statusName!,
+                                style: AppTheme.bodySmall.copyWith(
+                                  color: _getStatusColor(),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ],
@@ -445,14 +466,29 @@ class MaterialListItem extends StatelessWidget {
     );
   }
 
+  /// 判断当前状态是否有效
+  bool _isStatusValid() {
+    if (validStatus == null || status == null) {
+      return true; // 如果没有validStatus限制，默认为有效
+    }
+
+    // 将status转换为MaterialStatusEnum进行比较
+    final currentStatus = MaterialStatusEnum.fromCode(status!);
+    return currentStatus == validStatus;
+  }
+
   /// 根据状态获取对应颜色
   Color _getStatusColor() {
     if (status == null) {
       return AppTheme.grey600;
     }
 
-    // 根据不同的状态代码返回不同颜色
-    // 这里可以根据实际业务需求定义状态代码对应的颜色
+    // 如果设置了validStatus，则根据状态有效性返回颜色
+    if (validStatus != null) {
+      return _isStatusValid() ? AppTheme.successColor : AppTheme.errorColor;
+    }
+
+    // 原有的状态颜色逻辑（保持向后兼容）
     switch (status!) {
       case 1: // 正常
         return AppTheme.successColor;
