@@ -36,6 +36,9 @@ import 'package:pipe_code_flutter/services/qr_scan_service.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
 import 'package:pipe_code_flutter/services/base_speech_service.dart';
 import 'package:pipe_code_flutter/services/base_voice_recording_service.dart';
+import 'package:pipe_code_flutter/services/documents/document_route_resolver.dart';
+import 'package:pipe_code_flutter/services/documents/document_service.dart';
+import 'package:pipe_code_flutter/services/documents/document_service_factory.dart';
 import 'package:pipe_code_flutter/services/speech_service_factory.dart';
 import 'package:pipe_code_flutter/services/voice_recording_service.dart';
 import 'package:pipe_code_flutter/services/storage_service.dart';
@@ -49,6 +52,70 @@ import 'package:pipe_code_flutter/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_config.dart';
+
+Map<String, dynamic>? normalizeDocumentQueryParameters(
+  Map<String, dynamic>? parameters,
+) {
+  if (parameters == null || parameters.isEmpty) {
+    return null;
+  }
+
+  final normalized = <String, dynamic>{};
+
+  parameters.forEach((key, value) {
+    if (value == null) {
+      return;
+    }
+
+    if (value is Iterable) {
+      final collected = value
+          .where((element) => element != null)
+          .map((element) => element.toString())
+          .toList();
+
+      if (collected.isEmpty) {
+        return;
+      }
+
+      normalized[key] = collected;
+      return;
+    }
+
+    normalized[key] = value.toString();
+  });
+
+  if (normalized.isEmpty) {
+    return null;
+  }
+
+  return normalized;
+}
+
+Uri relativeDocumentUri(String path, {Map<String, dynamic>? queryParameters}) {
+  final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
+  return Uri(
+    path: normalizedPath,
+    queryParameters: normalizeDocumentQueryParameters(queryParameters),
+  );
+}
+
+final Map<String, DocumentRouteDefinition> _defaultDocumentRoutes = {
+  'acceptance-report': DocumentRouteDefinition(
+    uriBuilder: (id) =>
+        relativeDocumentUri('/wd/accept', queryParameters: {'id': id}),
+    nameBuilder: (id) => '验收单-$id.pdf',
+  ),
+  'signin-report': DocumentRouteDefinition(
+    uriBuilder: (id) =>
+        relativeDocumentUri('/wd/signin', queryParameters: {'id': id}),
+    nameBuilder: (id) => '入库单-$id.pdf',
+  ),
+  'signout-report': DocumentRouteDefinition(
+    uriBuilder: (id) =>
+        relativeDocumentUri('/wd/signout', queryParameters: {'id': id}),
+    nameBuilder: (id) => '出库单-$id.pdf',
+  ),
+};
 
 final GetIt getIt = GetIt.instance;
 
@@ -110,6 +177,18 @@ Future<void> setupServiceLocator({
   );
   getIt.registerLazySingleton<ChangePasswordApiService>(
     () => ApiServiceFactory.createChangePasswordService(),
+  );
+
+  getIt.registerLazySingleton<DocumentService>(
+    () => DocumentServiceFactory.create(),
+    dispose: (service) => service.cancel(),
+  );
+
+  getIt.registerLazySingleton<DocumentRouteResolver>(
+    () => DocumentRouteResolver(
+      baseUrl: AppConfig.apiBaseUrl,
+      routes: _defaultDocumentRoutes,
+    ),
   );
 
   // QR Scan Service
