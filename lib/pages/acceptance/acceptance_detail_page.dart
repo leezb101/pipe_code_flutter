@@ -90,6 +90,37 @@ class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView> {
         ],
       ),
       body: _buildBody(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+        child: SizedBox(
+          width: double.infinity,
+          child: DocumentButton(
+            businessType: 'acceptance-report',
+            entityId: widget.acceptanceId,
+            displayName: '验收文件',
+            documentService: _documentService,
+            routeResolver: _routeResolver,
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingLarge,
+                vertical: AppTheme.spacingMedium,
+              ),
+              backgroundColor: AppTheme.acceptanceColor,
+              foregroundColor: Colors.white,
+            ),
+            onDownloadCompleted: (filePath) {
+              SharePlus.instance.share(
+                ShareParams(
+                  files: [XFile(filePath)],
+                  text: '验收报告',
+                  subject: '验收明细文件',
+                ),
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 
@@ -111,35 +142,15 @@ class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView> {
           return RefreshIndicator(
             onRefresh: () async => _refreshAcceptanceDetail(),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppTheme.spacingLarge),
+              padding: EdgeInsets.fromLTRB(
+                AppTheme.spacingLarge,
+                AppTheme.spacingLarge,
+                AppTheme.spacingLarge,
+                AppTheme.spacingXXLarge * 3,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: DocumentButton(
-                      businessType: 'acceptance-report',
-                      entityId: widget.acceptanceId,
-                      displayName: '验收文件',
-                      documentService: _documentService,
-                      routeResolver: _routeResolver,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.acceptanceColor,
-                        foregroundColor: Colors.white,
-                      ),
-                      onDownloadCompleted: (value) {
-                        // 使用shareplus分享
-                        SharePlus.instance.share(
-                          ShareParams(
-                            files: [XFile(value)],
-                            text: '验收报告',
-                            subject: '验收明细文件',
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.spacingLarge),
                   _buildWarehouseInfo(state.acceptanceInfo),
                   const SizedBox(height: AppTheme.spacingLarge),
                   _buildMaterialsList(state.acceptanceInfo),

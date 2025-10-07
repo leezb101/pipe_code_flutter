@@ -75,7 +75,14 @@ class _DocumentButtonState extends State<DocumentButton> {
       builder: (context, snapshot) {
         final state = snapshot.data;
         return ElevatedButton(
-          style: widget.style,
+          style:
+              widget.style ??
+              ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
           onPressed: _resolveOnPressed(state),
           child: _buildChild(state),
         );
