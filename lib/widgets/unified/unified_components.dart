@@ -1070,7 +1070,7 @@ class SubmitConfirmationDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(false);
             onCancel?.call();
           },
           child: Text(
@@ -1080,7 +1080,7 @@ class SubmitConfirmationDialog extends StatelessWidget {
         ),
         ElevatedButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(true);
             onConfirm();
           },
           style: ElevatedButton.styleFrom(

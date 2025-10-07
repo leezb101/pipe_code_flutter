@@ -865,20 +865,28 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
   }
 
   Widget _buildActionButtons() {
-    return UnifiedActionButtons(
-      primaryButton: UnifiedButton(
-        text: '提交报验',
-        type: UnifiedButtonType.primary,
-        businessType: 'acceptance',
-        onPressed: _handleScanAcceptance,
-      ),
-      secondaryButton: UnifiedButton(
-        text: '返回',
-        type: UnifiedButtonType.outlined,
-        businessType: 'acceptance',
-        onPressed: _handleReturn,
-      ),
-      isFullWidth: true,
+    return BlocBuilder<AcceptanceBloc, AcceptanceState>(
+      builder: (context, state) {
+        // 检查是否有异常材料
+        final hasErrorMaterials =
+            state is AcceptanceEditingState && state.errorMaterials.isNotEmpty;
+
+        return UnifiedActionButtons(
+          primaryButton: UnifiedButton(
+            text: hasErrorMaterials ? '存在异常材料' : '提交报验',
+            type: UnifiedButtonType.primary,
+            businessType: 'acceptance',
+            onPressed: hasErrorMaterials ? null : _handleScanAcceptance,
+          ),
+          secondaryButton: UnifiedButton(
+            text: '返回',
+            type: UnifiedButtonType.outlined,
+            businessType: 'acceptance',
+            onPressed: _handleReturn,
+          ),
+          isFullWidth: true,
+        );
+      },
     );
   }
 
@@ -964,19 +972,76 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
     }
   }
 
-  Future<bool> _showSubmitConfirmation(int normalCount, int errorCount) async {
-    return await showDialog<bool>(
-          context: context,
-          builder: (context) => SubmitConfirmationDialog(
-            normalCount: normalCount,
-            errorCount: errorCount,
-            title: '验收提交确认',
-            businessType: 'acceptance',
-            onConfirm: () {}, // 对话框内部会处理
-            onCancel: () {}, // 对话框内部会处理
+  Future<void> _showErrorMaterialWarning(
+    int normalCount,
+    int errorCount,
+  ) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.error_outline, color: AppTheme.errorColor, size: 24),
+            const SizedBox(width: 8),
+            const Text('无法提交验收', style: TextStyle(fontSize: 18)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '检测到 $errorCount 个异常材料无法进行验收提交：',
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.errorColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.errorColor.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: AppTheme.errorColor,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        '异常材料说明：',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('• 异常材料缺少必要的验收信息'),
+                  const Text('• 请联系相关人员处理异常材料'),
+                  const Text('• 处理完成后重新扫描进行验收'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '正常材料数量：$normalCount 个',
+              style: const TextStyle(fontSize: 14, color: Colors.black54),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('我知道了'),
           ),
-        ) ??
-        false;
+        ],
+      ),
+    );
   }
 
   void _handleReportError(dynamic error) {
@@ -1000,13 +1065,13 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
         ? currentState.errorMaterials
         : <dynamic>[];
 
-    // 检查是否有错误材料，如果有则显示确认对话框
+    // 检查是否有错误材料，如果有则显示警告对话框并阻止提交
     if (errorMaterials.isNotEmpty) {
-      final shouldProceed = await _showSubmitConfirmation(
+      await _showErrorMaterialWarning(
         sourceMaterials.length,
         errorMaterials.length,
       );
-      if (!shouldProceed) return;
+      return; // 有异常材料时直接返回，不执行提交
     }
 
     final materialVOList = sourceMaterials
