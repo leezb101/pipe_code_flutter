@@ -9,12 +9,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/bloc/auth/auth_bloc.dart';
 import 'package:pipe_code_flutter/bloc/auth/auth_state.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/models/acceptance/sign_in_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/cubits/signin_detail_cubit.dart';
+import 'package:pipe_code_flutter/services/documents/document_route_resolver.dart';
+import 'package:pipe_code_flutter/services/documents/document_service.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/widgets/document_button.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/image_preview_widget.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:share_plus/share_plus.dart';
 
 class SigninDetailPage extends StatefulWidget {
   final int signinId;
@@ -26,9 +31,14 @@ class SigninDetailPage extends StatefulWidget {
 }
 
 class _SigninDetailPageState extends State<SigninDetailPage> {
+  late final DocumentService _documentService;
+  late final DocumentRouteResolver _routeResolver;
+
   @override
   void initState() {
     super.initState();
+    _documentService = getIt<DocumentService>();
+    _routeResolver = getIt<DocumentRouteResolver>();
     _loadSigninDetail();
   }
 
@@ -60,6 +70,37 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
         ],
       ),
       body: _buildBody(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+        child: SizedBox(
+          width: double.infinity,
+          child: DocumentButton(
+            businessType: 'signin-report',
+            entityId: widget.signinId,
+            displayName: '入库文件',
+            documentService: _documentService,
+            routeResolver: _routeResolver,
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingLarge,
+                vertical: AppTheme.spacingMedium,
+              ),
+              backgroundColor: AppTheme.signinColor,
+              foregroundColor: Colors.white,
+            ),
+            onDownloadCompleted: (filePath) {
+              SharePlus.instance.share(
+                ShareParams(
+                  files: [XFile(filePath)],
+                  text: '入库报告',
+                  subject: '入库明细文件',
+                ),
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 

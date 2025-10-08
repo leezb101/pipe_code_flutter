@@ -12,13 +12,18 @@ import 'package:pipe_code_flutter/bloc/auth/auth_state.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_bloc.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_state.dart';
 import 'package:pipe_code_flutter/bloc/signout/signout_event.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/models/signout/signout_info_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
+import 'package:pipe_code_flutter/services/documents/document_route_resolver.dart';
+import 'package:pipe_code_flutter/services/documents/document_service.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/widgets/document_button.dart';
 import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
+import 'package:share_plus/share_plus.dart';
 
 class SignoutDetailPage extends StatefulWidget {
   final int signoutId;
@@ -30,9 +35,14 @@ class SignoutDetailPage extends StatefulWidget {
 }
 
 class _SignoutDetailPageState extends State<SignoutDetailPage> {
+  late final DocumentService _documentService;
+  late final DocumentRouteResolver _routeResolver;
+
   @override
   void initState() {
     super.initState();
+    _documentService = getIt<DocumentService>();
+    _routeResolver = getIt<DocumentRouteResolver>();
     _loadSignoutDetail();
   }
 
@@ -53,6 +63,37 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: _buildBody(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+        child: SizedBox(
+          width: double.infinity,
+          child: DocumentButton(
+            businessType: 'signin-report',
+            entityId: widget.signoutId,
+            displayName: '入库文件',
+            documentService: _documentService,
+            routeResolver: _routeResolver,
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingLarge,
+                vertical: AppTheme.spacingMedium,
+              ),
+              backgroundColor: AppTheme.signinColor,
+              foregroundColor: Colors.white,
+            ),
+            onDownloadCompleted: (filePath) {
+              SharePlus.instance.share(
+                ShareParams(
+                  files: [XFile(filePath)],
+                  text: '出库报告',
+                  subject: '出库明细文件',
+                ),
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 
