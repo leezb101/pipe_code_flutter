@@ -8,13 +8,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pipe_code_flutter/bloc/records/records_state.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/config/tracing_route_mappings.dart';
-import 'package:pipe_code_flutter/repositories/interfaces/spareqr_repository.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
 import 'package:pipe_code_flutter/services/tracing/improved_tracing_manager.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
+import 'package:pipe_code_flutter/models/records/record_type.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
 import '../bloc/session/session_bloc.dart';
@@ -26,7 +27,6 @@ import '../pages/admin/admin_home_page.dart';
 import '../widgets/session_guard.dart';
 import '../bloc/records/records_bloc.dart';
 import '../repositories/interfaces/records_repository.dart';
-import 'package:get_it/get_it.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -47,8 +47,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   late Animation<double> _fadeAnimation;
 
   List<Widget> _pages = [];
-  // 用于动态存储当前角色对应的页面、路由名和导航项
-  List<BottomNavigationBarItem> _navItems = [];
+  // 页面集合（根据身份动态配置）
 
   Future<void> _moveToBack() async {
     try {
@@ -72,44 +71,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     _animationController.forward();
   }
 
-  void _initializePagesAndNavigation() {
-    // 默认为普通用户配置（3个标签页）
-    _pages = [
-      RepositoryProvider(
-        create: (context) => (GetIt.instance<SpareqrRepository>()),
-        child: const HomePage(),
-      ),
-      BlocProvider(
-        create: (context) => RecordsBloc(GetIt.instance<RecordsRepository>()),
-        child: const RecordsListPage(),
-      ),
-      const ProfilePage(),
-    ];
-
-    _navItems = const [
-      BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
-      BottomNavigationBarItem(icon: Icon(Icons.list), label: '记录'),
-      BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
-    ];
-  }
-
-  void _updatePagesForAdmin() {
-    // 管理方用户配置（2个标签页：首页 + 我的）
-    _pages = [
-      const AdminHomePage(), // 管理方专属首页
-      const ProfilePage(),
-    ];
-
-    _navItems = const [
-      BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
-      BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
-    ];
-
-    // 重置当前索引，防止越界
-    if (_currentIndex >= _pages.length) {
-      _currentIndex = 0;
-    }
-  }
+  //（移除旧初始化方法，统一使用 _setupTabsForRole）
 
   @override
   void dispose() {
@@ -191,20 +153,30 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             opacity: _fadeAnimation,
             child: IndexedStack(index: _currentIndex, children: _pages),
           ),
-          bottomNavigationBar: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              if (index != _currentIndex) {
-                _animationController.reset();
-                setState(() {
-                  _currentIndex = index;
-                });
-                _animationController.forward();
-                _updateTabContext(index);
-              }
+          bottomNavigationBar: BlocBuilder<RecordsBloc, RecordsState>(
+            builder: (context, recordsState) {
+              final isAdmin = sessionState is SessionAdminEstablished;
+              final todoCount = _computeTodoBadgeCount(
+                recordsState,
+                sessionState,
+              );
+              final items = _buildNavItemsWithBadge(todoCount, isAdmin);
+              return BottomNavigationBar(
+                type: BottomNavigationBarType.fixed,
+                currentIndex: _currentIndex,
+                onTap: (index) {
+                  if (index != _currentIndex) {
+                    _animationController.reset();
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                    _animationController.forward();
+                    _updateTabContext(index);
+                  }
+                },
+                items: items,
+              );
             },
-            items: _navItems,
           ),
         );
       },
@@ -216,41 +188,13 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     if (isAdmin) {
       _pages = [const AdminHomePage(), const ProfilePage()];
       _routeNames = [adminHomeTabRouteName, profileTabRouteName];
-      _navItems = const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.admin_panel_settings_outlined),
-          activeIcon: Icon(Icons.admin_panel_settings),
-          label: '管理',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_outline),
-          activeIcon: Icon(Icons.person),
-          label: '我的',
-        ),
-      ];
     } else {
+      // 普通用户：首页、记录、我的
       _pages = [const HomePage(), const RecordsListPage(), const ProfilePage()];
       _routeNames = [
         homeTabRouteName,
         recordsTabRouteName,
         profileTabRouteName,
-      ];
-      _navItems = const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_outlined),
-          activeIcon: Icon(Icons.home),
-          label: '首页',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.list_alt_outlined),
-          activeIcon: Icon(Icons.list_alt),
-          label: '记录',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_outline),
-          activeIcon: Icon(Icons.person),
-          label: '我的',
-        ),
       ];
     }
   }
@@ -284,18 +228,153 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     }
   }
 
-  /// 根据会话状态更新页面配置
-  void _updatePagesBasedOnSession(SessionState sessionState) {
-    if (sessionState is SessionAdminEstablished) {
-      // 管理方用户：首页 + 我的
-      if (_pages.length != 2 || _pages[0] is! AdminHomePage) {
-        _updatePagesForAdmin();
-      }
-    } else {
-      // 普通用户：首页 + 记录 + 我的
-      if (_pages.length != 3 || _pages[0] is AdminHomePage) {
-        _initializePagesAndNavigation();
+  ///（已移除）旧的基于会话状态的页面更新逻辑由 _setupTabsForRole 统一处理
+
+  // ==== Helpers for badge/count ====
+  int _computeTodoBadgeCount(
+    RecordsState recordsState,
+    SessionState sessionState,
+  ) {
+    final ids = _resolveIds(sessionState);
+    final int? uid = ids.$1;
+    final int? pid = ids.$2;
+
+    // counts from current state (if visible tab)
+    int todoFromState = 0;
+    int whFromState = 0;
+    if (recordsState is RecordsLoaded) {
+      if (recordsState.currentTab == RecordType.todo) {
+        todoFromState = recordsState.records.length;
+      } else if (recordsState.currentTab == RecordType.warehouseTodo) {
+        whFromState = recordsState.records.length;
       }
     }
+
+    // counts from cache
+    int todoFromCache = 0;
+    int whFromCache = 0;
+    try {
+      final repo = getIt<RecordsRepository>();
+      todoFromCache =
+          repo
+              .getCachedRecords(RecordType.todo, userId: uid, projectId: pid)
+              ?.length ??
+          0;
+      if (sessionState is SessionStorekeeperEstablished) {
+        whFromCache =
+            repo
+                .getCachedRecords(
+                  RecordType.warehouseTodo,
+                  userId: uid,
+                  projectId: pid,
+                )
+                ?.length ??
+            0;
+      }
+    } catch (_) {
+      // ignore cache failures
+    }
+
+    // prefer state over cache for whichever tab is currently active
+    final int todoFinal = todoFromState > 0 ? todoFromState : todoFromCache;
+    final bool includeWarehouse = sessionState is SessionStorekeeperEstablished;
+    final int whFinal = includeWarehouse
+        ? (whFromState > 0 ? whFromState : whFromCache)
+        : 0;
+    return todoFinal + whFinal;
+  }
+
+  List<BottomNavigationBarItem> _buildNavItemsWithBadge(
+    int todoCount,
+    bool isAdmin,
+  ) {
+    if (isAdmin) {
+      return const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.admin_panel_settings_outlined),
+          activeIcon: Icon(Icons.admin_panel_settings),
+          label: '管理',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          activeIcon: Icon(Icons.person),
+          label: '我的',
+        ),
+      ];
+    }
+
+    return [
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.home_outlined),
+        activeIcon: Icon(Icons.home),
+        label: '首页',
+      ),
+      BottomNavigationBarItem(
+        icon: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const Icon(Icons.list_alt_outlined),
+            if (todoCount > 0)
+              Positioned(right: -6, top: -3, child: _Badge(count: todoCount)),
+          ],
+        ),
+        activeIcon: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const Icon(Icons.list_alt),
+            if (todoCount > 0)
+              Positioned(right: -6, top: -3, child: _Badge(count: todoCount)),
+          ],
+        ),
+        label: '记录',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.person_outline),
+        activeIcon: Icon(Icons.person),
+        label: '我的',
+      ),
+    ];
+  }
+
+  // Copy of resolve from records_list_page for consistency
+  (int?, int?) _resolveIds(SessionState sessionState) {
+    int? uid;
+    int? pid;
+    if (sessionState is SessionProjectEstablished) {
+      uid = int.tryParse(sessionState.user.id);
+      pid = sessionState.project.projectId;
+    } else if (sessionState is SessionStorekeeperEstablished) {
+      uid = int.tryParse(sessionState.user.id);
+    }
+    return (uid, pid);
+  }
+}
+
+// Simple badge widget used in BottomNavigationBar icons
+class _Badge extends StatelessWidget {
+  final int count;
+  const _Badge({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    final String text = count > 99 ? '99+' : count.toString();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      decoration: BoxDecoration(
+        color: Colors.redAccent,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      constraints: const BoxConstraints(minWidth: 18, minHeight: 16),
+      child: Center(
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
   }
 }
