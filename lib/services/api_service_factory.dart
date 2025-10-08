@@ -103,7 +103,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return ApiServiceImpl(dio);
     }
   }
@@ -112,7 +112,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockRecordsApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return RealRecordsApiService(dio);
     }
   }
@@ -121,7 +121,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockIdentificationApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return IdentificationApiServiceImpl(dio);
     }
   }
@@ -130,7 +130,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockCommonQueryApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return CommonQueryApiServiceImpl(dio);
     }
   }
@@ -139,7 +139,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockTodoApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return ApiTodoService(dio);
     }
   }
@@ -148,7 +148,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockEnumApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return EnumApiServiceImpl(dio);
     }
   }
@@ -157,7 +157,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockMaterialHandleApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return MaterialHandleApiServiceImpl(dio);
     }
   }
@@ -166,7 +166,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockSignoutApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return SignoutApiServiceImpl(dio);
     }
   }
@@ -175,7 +175,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockInstallApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return InstallApiServiceImpl(dio);
     }
   }
@@ -184,7 +184,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockDispatchApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return DispatchApiServiceImpl(dio);
     }
   }
@@ -193,7 +193,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockReturnApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return ReturnApiServiceImpl(dio);
     }
   }
@@ -202,7 +202,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockAcceptanceApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return AcceptanceApiServiceImpl(dio);
     }
   }
@@ -211,7 +211,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockCutApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return CutApiServiceImpl(dio);
     }
   }
@@ -220,7 +220,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockInventoryApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return InventoryApiServiceImpl(dio);
     }
   }
@@ -229,7 +229,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockScrapApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return ScrapApiServiceImpl(dio);
     }
   }
@@ -248,7 +248,7 @@ class ApiServiceFactory {
     // if (AppConfig.isMockEnabled) {
     //   return MockRecoveryApiService();
     // } else {
-    final dio = _createDio();
+    final dio = createBaseDio();
     return RecoveryApiServiceImpl(dio);
     // }
   }
@@ -258,13 +258,13 @@ class ApiServiceFactory {
     // if (AppConfig.isMockEnabled) {
     //   return MockStorekeeperActionApiService();
     // } else {
-    final dio = _createDio();
+    final dio = createBaseDio();
     return StorekeeperActionApiServiceImpl(dio);
     // }
   }
 
   static SigninApiService createSigninApiService() {
-    final dio = _createDio();
+    final dio = createBaseDio();
     return SigninApiServiceImpl(dio);
   }
 
@@ -272,7 +272,7 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockTemporaryAuthApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return TemporaryAuthApiServiceImpl(dio);
     }
   }
@@ -281,13 +281,13 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockMapApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return MapApiServiceImpl(dio);
     }
   }
 
   static ChangePasswordApiService createChangePasswordService() {
-    final dio = _createDio();
+    final dio = createBaseDio();
     return ChangePasswordApiServiceImpl(dio);
   }
 
@@ -295,12 +295,12 @@ class ApiServiceFactory {
     if (AppConfig.isMockEnabled) {
       return MockQQLbsApiService();
     } else {
-      final dio = _createDio();
+      final dio = createBaseDio();
       return QQLbsApiServiceImpl(dio);
     }
   }
 
-  static Dio _createDio() {
+  static Dio createBaseDio() {
     final dio = Dio();
 
     // if (AppConfig.isDevelopment) {
