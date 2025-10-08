@@ -27,6 +27,7 @@ import 'package:pipe_code_flutter/repositories/interfaces/storekeeper_non_projec
 import 'package:pipe_code_flutter/repositories/repository_factory.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/identification_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/profile_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/upload_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/map_api_service.dart';
@@ -107,12 +108,12 @@ final Map<String, DocumentRouteDefinition> _defaultDocumentRoutes = {
   ),
   'signin-report': DocumentRouteDefinition(
     uriBuilder: (id) =>
-        relativeDocumentUri('/wd/signin', queryParameters: {'id': id}),
+        relativeDocumentUri('/wd/signIn', queryParameters: {'id': id}),
     nameBuilder: (id) => '入库单-$id.doc',
   ),
   'signout-report': DocumentRouteDefinition(
     uriBuilder: (id) =>
-        relativeDocumentUri('/wd/signout', queryParameters: {'id': id}),
+        relativeDocumentUri('/wd/signOut', queryParameters: {'id': id}),
     nameBuilder: (id) => '出库单-$id.doc',
   ),
 };
@@ -177,6 +178,10 @@ Future<void> setupServiceLocator({
   );
   getIt.registerLazySingleton<ChangePasswordApiService>(
     () => ApiServiceFactory.createChangePasswordService(),
+  );
+  // 由于没有Repository层，因此在这里直接注册ProfileApiService
+  getIt.registerLazySingleton<ProfileApiService>(
+    () => ApiServiceFactory.createProfileService(),
   );
 
   getIt.registerLazySingleton<DocumentService>(

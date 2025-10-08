@@ -20,6 +20,7 @@ import 'package:pipe_code_flutter/services/api/interfaces/enum_api_service.dart'
 import 'package:pipe_code_flutter/services/api/interfaces/install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/inventory_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/map_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/profile_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/temporary_auth_api_service.dart';
@@ -27,6 +28,7 @@ import 'package:pipe_code_flutter/services/api/mock/mock_enum_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_install_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_inventory_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_map_api_service.dart';
+import 'package:pipe_code_flutter/services/api/mock/mock_profile_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_scrap_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_signout_api_service.dart';
 import 'package:pipe_code_flutter/services/api/mock/mock_temporary_auth_api_service.dart';
@@ -298,6 +300,11 @@ class ApiServiceFactory {
       final dio = createBaseDio();
       return QQLbsApiServiceImpl(dio);
     }
+  }
+
+  static ProfileApiService createProfileService() {
+    // TODO: 这里默认一直是Mock，需要后续有服务端接口后补充成具体实现
+    return MockProfileApiService();
   }
 
   static Dio createBaseDio() {

@@ -235,6 +235,10 @@ class _InstallViewState extends State<InstallView> {
           .map(
             (m) => MaterialVO(
               materialId: m.baseInfo.materialId,
+              materialCode: m.baseInfo.materialCode,
+              batchCode: m.baseInfo.batchCode,
+              status: m.baseInfo.status,
+              statusName: m.baseInfo.statusName,
               materialName: m.baseInfo.prodNm ?? '未知材料',
               num: 1,
             ),

@@ -217,6 +217,40 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
 
+                        // 我要建议
+                        Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            leading: const Icon(
+                              Icons.add_reaction_outlined,
+                              color: Colors.green,
+                            ),
+                            title: const Text('我要建议'),
+                            subtitle: const Text('提交您的宝贵建议'),
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onTap: () {
+                              context.goNamed('suggestion-form');
+                            },
+                          ),
+                        ),
+
+                        // 我要建议
+                        Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            leading: Icon(
+                              Icons.favorite_outlined,
+                              color: Colors.pink[200],
+                            ),
+                            title: const Text('特别鸣谢'),
+                            subtitle: const Text('感谢所有支持和帮助过我们的人'),
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onTap: () {
+                              context.goNamed('special-thanks');
+                            },
+                          ),
+                        ),
+
                         // Developer Settings (only in development)
                         if (AppConfig.isDevelopment) ...[
                           Card(

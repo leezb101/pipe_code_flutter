@@ -41,6 +41,7 @@ import '../interfaces/dispatch_api_service.dart';
 import '../interfaces/return_api_service.dart';
 import '../interfaces/recovery_api_service.dart';
 import '../interfaces/map_api_service.dart';
+import '../interfaces/profile_api_service.dart';
 import 'auth_api_service_impl.dart';
 import 'install_api_service_impl.dart';
 import 'user_api_service_impl.dart';
@@ -50,6 +51,7 @@ import 'signout_api_service_impl.dart';
 import 'return_api_service_impl.dart';
 import 'recovery_api_service_impl.dart';
 import 'map_api_service_impl.dart';
+import 'profile_api_service_impl.dart';
 
 class ApiServiceImpl implements ApiServiceInterface {
   final Dio _dio;
@@ -75,6 +77,7 @@ class ApiServiceImpl implements ApiServiceInterface {
   MapApiService? _mapApiService;
   ChangePasswordApiService? _changePasswordApiService;
   QQLbsApiService? _qqLbsApiService;
+  ProfileApiService? _profileApiService;
 
   ApiServiceImpl(this._dio);
 
@@ -156,4 +159,8 @@ class ApiServiceImpl implements ApiServiceInterface {
 
   @override
   QQLbsApiService get qqLbs => _qqLbsApiService ??= QQLbsApiServiceImpl(_dio);
+
+  @override
+  ProfileApiService get profile =>
+      _profileApiService ??= ProfileApiServiceImpl(_dio);
 }

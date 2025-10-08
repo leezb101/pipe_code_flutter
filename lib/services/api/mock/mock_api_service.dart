@@ -40,6 +40,7 @@ import '../interfaces/acceptance_api_service.dart';
 import '../interfaces/install_api_service.dart';
 import '../interfaces/map_api_service.dart';
 import '../interfaces/qq_lbs_api_service.dart';
+import '../interfaces/profile_api_service.dart';
 import 'mock_auth_api_service.dart';
 import 'mock_cut_api_service.dart';
 import 'mock_dispatch_api_service.dart';
@@ -50,6 +51,7 @@ import 'mock_return_api_service.dart';
 import 'mock_inventory_api_service.dart';
 import 'mock_map_api_service.dart';
 import 'mock_qq_lbs_api_service.dart';
+import 'mock_profile_api_service.dart';
 
 class MockApiService implements ApiServiceInterface {
   AuthApiService? _authService;
@@ -73,6 +75,7 @@ class MockApiService implements ApiServiceInterface {
   TemporaryAuthApiService? _temporaryAuthApiService;
   MapApiService? _mapApiService;
   QQLbsApiService? _qqLbsApiService;
+  ProfileApiService? _profileApiService;
 
   @override
   AuthApiService get auth => _authService ??= MockAuthApiService();
@@ -149,4 +152,8 @@ class MockApiService implements ApiServiceInterface {
 
   @override
   QQLbsApiService get qqLbs => _qqLbsApiService ??= MockQQLbsApiService();
+
+  @override
+  ProfileApiService get profile =>
+      _profileApiService ??= MockProfileApiService();
 }
