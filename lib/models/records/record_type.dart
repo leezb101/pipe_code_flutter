@@ -13,6 +13,9 @@ enum RecordType {
 
   @JsonValue('warehouseTodo')
   warehouseTodo,
+
+  @JsonValue('siteTodo')
+  siteTodo,
   // @JsonValue('signin')
   // signin,
   @JsonValue('accept')
@@ -54,6 +57,9 @@ extension RecordTypeExtension on RecordType {
 
       case RecordType.warehouseTodo:
         return '仓管待办';
+
+      case RecordType.siteTodo:
+        return '现场待办';
       // case RecordType.signin:
       //   return '入库记录';
       case RecordType.accept:
@@ -84,6 +90,7 @@ extension RecordTypeExtension on RecordType {
       case RecordType.todo:
         return '/todo/list';
       case RecordType.warehouseTodo:
+      case RecordType.siteTodo:
         return '/todo/warehouse/list';
       // case RecordType.signin:
       //   return '/signin/list';
@@ -114,6 +121,7 @@ extension RecordTypeExtension on RecordType {
     switch (this) {
       case RecordType.todo:
       case RecordType.warehouseTodo:
+      case RecordType.siteTodo:
       case RecordType.accept:
       case RecordType.signout:
       case RecordType.signinWarehouse:

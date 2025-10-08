@@ -84,7 +84,8 @@ class RecordsRepositoryImpl implements RecordsRepository {
         );
         records = page.records;
         meta = page.meta;
-      } else if (recordType == RecordType.warehouseTodo) {
+      } else if (recordType == RecordType.warehouseTodo ||
+          recordType == RecordType.siteTodo) {
         final page = await _getWarehouseTodoRecords(
           pageNum: pageNum,
           pageSize: pageSize,

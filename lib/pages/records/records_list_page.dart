@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pipe_code_flutter/constants/app_theme.dart';
 import 'package:pipe_code_flutter/models/records/record_item.dart';
+import 'package:pipe_code_flutter/models/user/user_role.dart';
 import 'package:pipe_code_flutter/models/user/wx_login_vo.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import '../../bloc/session/session_bloc.dart';
@@ -109,11 +110,23 @@ class _RecordsListPageState extends State<RecordsListPage>
     } else {
       // 普通项目参与方，只展示"待办"
       tabs = [RecordType.todo];
+
+      // 如果是项目参与方中的施工方，则还要增加“仓管待办”tab，但是名称要展示为“现场待办”
+      if (sessionState is SessionProjectEstablished &&
+          (sessionState.currentUserRoleInfo.projectRoleType ==
+                  UserRole.builder ||
+              sessionState.currentUserRoleInfo.projectRoleType ==
+                  UserRole.builderSub ||
+              sessionState.currentUserRoleInfo.projectRoleType ==
+                  UserRole.laborer)) {
+        tabs.add(RecordType.siteTodo);
+      }
       // 追加其他所有tab，但排除仓管专用的tabs
       tabs.addAll(
         RecordType.values.where(
           (e) =>
               e != RecordType.todo &&
+              e != RecordType.siteTodo &&
               e != RecordType.warehouseTodo &&
               e != RecordType.signinWarehouse &&
               e != RecordType.signoutWarehouse &&
@@ -257,6 +270,7 @@ class _RecordsListPageState extends State<RecordsListPage>
         _handleSelectProject(context, rec.todo.projectId, rec);
         break;
       case RecordType.warehouseTodo:
+      case RecordType.siteTodo:
         final rec = record as TodoRecordItem;
         handleGoTodoDetail(context, rec);
         break;
