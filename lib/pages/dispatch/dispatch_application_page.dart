@@ -31,6 +31,31 @@ import 'package:pipe_code_flutter/widgets/unified/unified_components.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
 
+// 下拉菜单项的统一样式：内边距 + 分隔线，增强边界感与可读性（顶层私有组件，可在本文件内复用）
+class _StyledDropdownItem extends StatelessWidget {
+  final Widget child;
+  final bool showBottomDivider;
+
+  const _StyledDropdownItem({
+    Key? key,
+    required this.child,
+    this.showBottomDivider = false,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      decoration: BoxDecoration(
+        border: showBottomDivider
+            ? Border(bottom: BorderSide(color: Colors.grey[200]!))
+            : null,
+      ),
+      child: child,
+    );
+  }
+}
+
 class DispatchApplicationPage extends StatelessWidget {
   // final MaterialInfoForBusiness materials;
   final List<String> initialCodes;
@@ -305,8 +330,8 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
                 _selectedTargetProject = value;
               });
             },
-            itemBuilder: (item) =>
-                DropdownMenuItem(value: item, child: Text(item.name)),
+            itemBuilder: (item) => Text(item.name),
+            selectedLabelBuilder: (item) => item.name,
             errorMessage: state.availableProjectsError,
           ),
           SizedBox(height: AppTheme.spacingMedium),
@@ -337,10 +362,8 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
                 _selectedTargetWarehouse = value;
               });
             },
-            itemBuilder: (item) => DropdownMenuItem(
-              value: item,
-              child: Text('${item.name} - ${item.address}'),
-            ),
+            itemBuilder: (item) => Text('${item.name} - ${item.address}'),
+            selectedLabelBuilder: (item) => '${item.name} - ${item.address}',
             errorMessage: state.availableWarehousesError,
           ),
           SizedBox(height: AppTheme.spacingMedium),
@@ -366,7 +389,13 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
     required T? value,
     required List<T> items,
     required ValueChanged<T?> onChanged,
-    required DropdownMenuItem<T> Function(T) itemBuilder,
+    // Build the visible content for each dropdown item. We'll wrap it with
+    // consistent padding and a subtle bottom divider (except last item) to
+    // mimic the acceptance page style.
+    required Widget Function(T) itemBuilder,
+    // Build the visible text for the selected item (single-line). If not
+    // provided, we'll try to derive from itemBuilder if it's a Text.
+    String Function(T item)? selectedLabelBuilder,
     String? errorMessage,
   }) {
     return Column(
@@ -398,20 +427,69 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
             ],
           ),
         ] else ...[
-          // 正常的下拉框
-          DropdownButtonFormField<T>(
-            initialValue: value,
-            items: items.map(itemBuilder).toList(),
-            onChanged: onChanged,
-            decoration: InputDecoration(
-              labelText: label,
-              border: const OutlineInputBorder(),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
+          // 正常的下拉框（美化样式）
+          DropdownButtonHideUnderline(
+            child: DropdownButtonFormField<T>(
+              initialValue: value,
+              items: List.generate(items.length, (index) {
+                final item = items[index];
+                final child = itemBuilder(item);
+                return DropdownMenuItem<T>(
+                  value: item,
+                  child: _StyledDropdownItem(
+                    child: child,
+                    showBottomDivider: index < items.length - 1,
+                  ),
+                );
+              }),
+              selectedItemBuilder: (ctx) {
+                return items.map((item) {
+                  final label = selectedLabelBuilder != null
+                      ? selectedLabelBuilder(item)
+                      : (itemBuilder(item) is Text
+                            ? ((itemBuilder(item) as Text).data ?? '')
+                            : item.toString());
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }).toList();
+              },
+              onChanged: onChanged,
+              decoration: InputDecoration(
+                labelText: label,
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                  borderSide: BorderSide(
+                    color: AppTheme.getBusinessColor('dispatch'),
+                    width: 1.5,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
               ),
+              dropdownColor: Colors.white,
+              isDense: false,
+              isExpanded: true,
+              menuMaxHeight: 360,
+              validator: (value) => value == null ? '请选择一个选项' : null,
             ),
-            validator: (value) => value == null ? '请选择一个选项' : null,
           ),
         ],
       ],
