@@ -171,7 +171,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     scanMode: QrScanMode.single,
                     context: const {
                       'entry': 'standalone',
-                      'route': '/material-detail',
+                      'route': 'material-detail',
                       'data': <String, dynamic>{},
                     },
                   ),
