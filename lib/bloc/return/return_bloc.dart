@@ -66,6 +66,10 @@ class ReturnBloc extends Bloc<ReturnEvent, ReturnState> {
               (e) => MaterialVO(
                 materialId: e.baseInfo.materialId,
                 materialName: e.baseInfo.prodNm ?? '',
+                materialCode: e.baseInfo.materialCode ?? '',
+                batchCode: e.baseInfo.batchCode ?? '',
+                status: e.baseInfo.status,
+                statusName: e.baseInfo.statusName ?? '',
                 num: 1,
               ),
             ),
