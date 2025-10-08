@@ -128,7 +128,12 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
         return RefreshIndicator(
           onRefresh: () async => _refreshSigninDetail(),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppTheme.spacingLarge),
+            padding: EdgeInsets.fromLTRB(
+              AppTheme.spacingLarge,
+              AppTheme.spacingLarge,
+              AppTheme.spacingLarge,
+              AppTheme.spacingXXLarge * 3,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

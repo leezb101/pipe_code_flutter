@@ -69,9 +69,9 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
         child: SizedBox(
           width: double.infinity,
           child: DocumentButton(
-            businessType: 'signin-report',
+            businessType: 'signout-report',
             entityId: widget.signoutId,
-            displayName: '入库文件',
+            displayName: '出库文件',
             documentService: _documentService,
             routeResolver: _routeResolver,
             style: ElevatedButton.styleFrom(
@@ -79,7 +79,7 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
                 horizontal: AppTheme.spacingLarge,
                 vertical: AppTheme.spacingMedium,
               ),
-              backgroundColor: AppTheme.signinColor,
+              backgroundColor: AppTheme.signoutColor,
               foregroundColor: Colors.white,
             ),
             onDownloadCompleted: (filePath) {
@@ -118,7 +118,12 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.all(AppTheme.spacingLarge),
+              padding: EdgeInsets.fromLTRB(
+                AppTheme.spacingLarge,
+                AppTheme.spacingLarge,
+                AppTheme.spacingLarge,
+                AppTheme.spacingXXLarge * 3,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
