@@ -551,7 +551,7 @@ class _DispatchApplicationViewState extends State<DispatchApplicationView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '推送',
+                  '短信通知',
                   style: TextStyle(fontSize: 14, color: AppTheme.grey600),
                 ),
                 SizedBox(width: AppTheme.spacingSmall),

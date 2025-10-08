@@ -858,7 +858,7 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
                 },
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              const Text('推送', style: TextStyle(fontSize: 12)),
+              const Text('短信通知', style: TextStyle(fontSize: 12)),
             ],
           ),
         ],

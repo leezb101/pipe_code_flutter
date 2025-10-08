@@ -1295,7 +1295,7 @@ class UserInfoWidget extends StatelessWidget {
                             : null,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      Text('推送', style: AppTheme.bodySmall),
+                      Text('短信通知', style: AppTheme.bodySmall),
                     ],
                   ),
               ],

@@ -542,7 +542,7 @@ class _SignoutPageState extends State<SignoutPage> {
                 },
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              const Text('推送', style: TextStyle(fontSize: 12)),
+              const Text('短信通知', style: TextStyle(fontSize: 12)),
             ],
           ),
         ],

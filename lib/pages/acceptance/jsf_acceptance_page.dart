@@ -926,7 +926,7 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
                 },
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              const Text('推送', style: TextStyle(fontSize: 12)),
+              const Text('短信通知', style: TextStyle(fontSize: 12)),
             ],
           ),
         ],

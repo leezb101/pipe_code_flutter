@@ -280,7 +280,7 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
           borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
         ),
         child: Text(
-          '推送',
+          '短信通知',
           style: TextStyle(fontSize: 12, color: AppTheme.grey600),
         ),
       ),
