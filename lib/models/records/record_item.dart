@@ -8,6 +8,7 @@
 import 'business_record.dart';
 import 'project_record.dart';
 import '../todo/todo_task.dart';
+import '../inventory/inventory_models.dart';
 
 abstract class RecordItem {
   int get id;
@@ -100,4 +101,32 @@ class TodoRecordItem implements RecordItem {
   String get businessTypeDescription => _todo.todoName;
 
   TodoTask get todo => _todo;
+}
+
+class InventoryRecordItem implements RecordItem {
+  final InventoryListItemVO _inventory;
+
+  InventoryRecordItem(this._inventory);
+
+  @override
+  int get id => _inventory.id;
+
+  @override
+  String? get projectName => null; // 盘点任务不关联具体项目
+
+  @override
+  String? get projectCode => null; // 盘点任务不关联具体项目
+
+  @override
+  String get userName => _inventory.bindUserName ?? '未分配';
+
+  @override
+  DateTime? get doTime => _inventory.createdTime;
+
+  @override
+  String get businessTypeDescription => _inventory.name ?? '盘点任务';
+
+  InventoryListItemVO get inventory => _inventory;
+
+  int get materialNum => _inventory.materialNum;
 }

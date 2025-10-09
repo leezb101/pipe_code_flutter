@@ -20,6 +20,9 @@ import '../../widgets/common_state_widgets.dart' as common;
 import '../../services/tracing/tracing_context.dart';
 import 'package:pipe_code_flutter/services/notification/notification_center.dart';
 import 'package:pipe_code_flutter/models/notification/notification_message_vo.dart';
+import '../../bloc/inventory/inventory_bloc.dart';
+import '../../bloc/inventory/inventory_state.dart';
+import '../../bloc/inventory/inventory_event.dart';
 
 class RecordsListPage extends StatefulWidget {
   final RecordType? initialTab;
@@ -72,19 +75,27 @@ class _RecordsListPageState extends State<RecordsListPage>
     // 首次进入时自动加载默认tab（如待办）
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        final ids = _resolveIds(context.read<SessionBloc>().state);
-        context.read<RecordsBloc>().add(
-          LoadRecords(
-            recordType: _initialTab,
-            userId: ids.$1,
-            projectId: ids.$2,
-            tracingContext: TracingContext(
-              source: 'records_list_page',
-              action: 'initial_load',
-              description: '初始加载${_initialTab.displayName}',
+        // 如果初始tab是盘点任务，加载InventoryBloc
+        if (_initialTab == RecordType.builderInventory) {
+          context.read<InventoryBloc>().add(
+            const InventoryTasksFetched(isRefresh: true),
+          );
+        } else {
+          // 否则加载RecordsBloc
+          final ids = _resolveIds(context.read<SessionBloc>().state);
+          context.read<RecordsBloc>().add(
+            LoadRecords(
+              recordType: _initialTab,
+              userId: ids.$1,
+              projectId: ids.$2,
+              tracingContext: TracingContext(
+                source: 'records_list_page',
+                action: 'initial_load',
+                description: '初始加载${_initialTab.displayName}',
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
     });
   }
@@ -111,7 +122,7 @@ class _RecordsListPageState extends State<RecordsListPage>
       // 普通项目参与方，只展示"待办"
       tabs = [RecordType.todo];
 
-      // 如果是项目参与方中的施工方，则还要增加“仓管待办”tab，但是名称要展示为“现场待办”
+      // 如果是项目参与方中的施工方，则还要增加"现场待办"tab和"盘点任务"tab
       if (sessionState is SessionProjectEstablished &&
           (sessionState.currentUserRoleInfo.projectRoleType ==
                   UserRole.builder ||
@@ -120,8 +131,15 @@ class _RecordsListPageState extends State<RecordsListPage>
               sessionState.currentUserRoleInfo.projectRoleType ==
                   UserRole.laborer)) {
         tabs.add(RecordType.siteTodo);
+        // 只有 builder 和 builderSub 才显示盘点任务
+        if (sessionState.currentUserRoleInfo.projectRoleType ==
+                UserRole.builder ||
+            sessionState.currentUserRoleInfo.projectRoleType ==
+                UserRole.builderSub) {
+          tabs.add(RecordType.builderInventory);
+        }
       }
-      // 追加其他所有tab，但排除仓管专用的tabs
+      // 追加其他所有tab，但排除仓管专用的tabs和builderInventory
       tabs.addAll(
         RecordType.values.where(
           (e) =>
@@ -130,7 +148,8 @@ class _RecordsListPageState extends State<RecordsListPage>
               e != RecordType.warehouseTodo &&
               e != RecordType.signinWarehouse &&
               e != RecordType.signoutWarehouse &&
-              e != RecordType.inventory, // 盘点记录也只有仓管员可见
+              e != RecordType.inventory && // 盘点记录也只有仓管员可见
+              e != RecordType.builderInventory, // 盘点任务已单独添加
         ),
       );
     }
@@ -156,12 +175,26 @@ class _RecordsListPageState extends State<RecordsListPage>
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent * 0.9) {
-      final bloc = context.read<RecordsBloc>();
-      if (bloc.state is RecordsLoaded) {
-        final state = bloc.state as RecordsLoaded;
+      final recordsBloc = context.read<RecordsBloc>();
+      final currentTab = recordsBloc.currentTab;
+
+      // 如果是盘点任务tab，加载更多InventoryBloc数据
+      if (currentTab == RecordType.builderInventory) {
+        final inventoryBloc = context.read<InventoryBloc>();
+        final inventoryState = inventoryBloc.state;
+        if (!inventoryState.hasReachedMax &&
+            inventoryState.listStatus != DataStatus.loading) {
+          inventoryBloc.add(const InventoryTasksFetched());
+        }
+        return;
+      }
+
+      // 其他tab加载更多RecordsBloc数据
+      if (recordsBloc.state is RecordsLoaded) {
+        final state = recordsBloc.state as RecordsLoaded;
         if (state.hasMoreData && !state.isLoadingMore) {
           final ids = _resolveIds(context.read<SessionBloc>().state);
-          bloc.add(
+          recordsBloc.add(
             LoadMoreRecords(
               recordType: state.currentTab,
               userId: ids.$1,
@@ -175,6 +208,11 @@ class _RecordsListPageState extends State<RecordsListPage>
 
   void _onTabSelected(RecordType recordType) {
     final ids = _resolveIds(context.read<SessionBloc>().state);
+
+    // 如果切换到盘点任务tab，触发InventoryBloc加载数据
+    if (recordType == RecordType.builderInventory) {
+      context.read<InventoryBloc>().add(const InventoryTasksFetched());
+    }
 
     // 直接使用简化的追踪上下文，避免嵌套的追踪操作
     context.read<RecordsBloc>().add(
@@ -198,13 +236,20 @@ class _RecordsListPageState extends State<RecordsListPage>
 
   void _onRefresh() {
     final bloc = context.read<RecordsBloc>();
+    final currentTab = bloc.currentTab;
+
+    // 如果是盘点任务tab，刷新InventoryBloc
+    if (currentTab == RecordType.builderInventory) {
+      context.read<InventoryBloc>().add(
+        const InventoryTasksFetched(isRefresh: true),
+      );
+      return;
+    }
+
+    // 其他tab刷新RecordsBloc
     final ids = _resolveIds(context.read<SessionBloc>().state);
     bloc.add(
-      RefreshRecords(
-        recordType: bloc.currentTab,
-        userId: ids.$1,
-        projectId: ids.$2,
-      ),
+      RefreshRecords(recordType: currentTab, userId: ids.$1, projectId: ids.$2),
     );
   }
 
@@ -273,6 +318,10 @@ class _RecordsListPageState extends State<RecordsListPage>
       case RecordType.siteTodo:
         final rec = record as TodoRecordItem;
         handleGoTodoDetail(context, rec);
+        break;
+      case RecordType.builderInventory:
+        // 盘点任务导航到盘点详情页
+        context.goNamed('inventory-apply', extra: record.id);
         break;
     }
   }
@@ -431,31 +480,96 @@ class _RecordsListPageState extends State<RecordsListPage>
 
   Widget _buildContent() {
     return BlocBuilder<RecordsBloc, RecordsState>(
-      builder: (context, state) {
-        if (state is RecordsInitial) {
+      builder: (context, recordsState) {
+        // 获取当前选中的 tab
+        RecordType currentTab = RecordType.todo;
+        if (recordsState is RecordsInitial) {
+          currentTab = recordsState.currentTab;
+        } else if (recordsState is RecordsLoading) {
+          currentTab = recordsState.currentTab;
+        } else if (recordsState is RecordsLoaded) {
+          currentTab = recordsState.currentTab;
+        } else if (recordsState is RecordsError) {
+          currentTab = recordsState.currentTab;
+        } else if (recordsState is RecordsEmpty) {
+          currentTab = recordsState.currentTab;
+        }
+
+        // 如果是盘点任务tab，使用InventoryBloc的数据
+        if (currentTab == RecordType.builderInventory) {
+          return BlocBuilder<InventoryBloc, InventoryState>(
+            builder: (context, inventoryState) {
+              if (inventoryState.listStatus == DataStatus.loading) {
+                return const common.LoadingWidget(message: '加载中...');
+              } else if (inventoryState.listStatus == DataStatus.success) {
+                // 将 InventoryListItemVO 转换为 InventoryRecordItem
+                final records = inventoryState.inventoryList
+                    .map((item) => InventoryRecordItem(item))
+                    .toList();
+
+                return _buildRecordsList(
+                  records,
+                  hasMoreData: !inventoryState.hasReachedMax,
+                  isLoadingMore: false,
+                );
+              } else if (inventoryState.listStatus == DataStatus.failure) {
+                return common.ErrorWidget(
+                  message: inventoryState.errorMessage ?? '获取盘点任务失败',
+                  onRetry: () {
+                    context.read<InventoryBloc>().add(
+                      const InventoryTasksFetched(isRefresh: true),
+                    );
+                  },
+                );
+              } else if (inventoryState.listStatus == DataStatus.initial &&
+                  inventoryState.inventoryList.isEmpty) {
+                return common.EmptyWidget(
+                  message: '暂无盘点任务',
+                  onRetry: () {
+                    context.read<InventoryBloc>().add(
+                      const InventoryTasksFetched(isRefresh: true),
+                    );
+                  },
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          );
+        }
+
+        // 其他tab使用RecordsBloc的数据
+        if (recordsState is RecordsInitial) {
           return const common.LoadingWidget(message: '加载中...');
-        } else if (state is RecordsLoading) {
-          if (state.cachedRecords != null && state.cachedRecords!.isNotEmpty) {
-            return _buildRecordsList(state.cachedRecords!, isLoading: true);
+        } else if (recordsState is RecordsLoading) {
+          if (recordsState.cachedRecords != null &&
+              recordsState.cachedRecords!.isNotEmpty) {
+            return _buildRecordsList(
+              recordsState.cachedRecords!,
+              isLoading: true,
+            );
           }
           return const common.LoadingWidget(message: '加载中...');
-        } else if (state is RecordsLoaded) {
+        } else if (recordsState is RecordsLoaded) {
           return _buildRecordsList(
-            state.records,
-            hasMoreData: state.hasMoreData,
-            isLoadingMore: state.isLoadingMore,
+            recordsState.records,
+            hasMoreData: recordsState.hasMoreData,
+            isLoadingMore: recordsState.isLoadingMore,
           );
-        } else if (state is RecordsError) {
-          if (state.cachedRecords != null && state.cachedRecords!.isNotEmpty) {
-            return _buildRecordsList(state.cachedRecords!, hasError: true);
+        } else if (recordsState is RecordsError) {
+          if (recordsState.cachedRecords != null &&
+              recordsState.cachedRecords!.isNotEmpty) {
+            return _buildRecordsList(
+              recordsState.cachedRecords!,
+              hasError: true,
+            );
           }
           return common.ErrorWidget(
-            message: state.message,
+            message: recordsState.message,
             onRetry: _onRefresh,
           );
-        } else if (state is RecordsEmpty) {
+        } else if (recordsState is RecordsEmpty) {
           return common.EmptyWidget(
-            message: '暂无${state.currentTab.displayName}',
+            message: '暂无${recordsState.currentTab.displayName}',
             onRetry: _onRefresh,
           );
         }

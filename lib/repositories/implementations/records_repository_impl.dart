@@ -1,3 +1,4 @@
+import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/models/records/record_item.dart';
 import 'package:pipe_code_flutter/models/records/record_type.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/records_api_service.dart';
@@ -11,6 +12,7 @@ import '../../services/tracing/improved_tracing_manager.dart';
 class RecordsRepositoryImpl implements RecordsRepository {
   final RecordsApiService _apiService;
   final TodoApiService _todoApiService;
+  final InventoryBloc inventoryBloc = GetIt.instance<InventoryBloc>();
   // Composite cache scoped by userId + projectId + recordType
   final Map<String, List<RecordItem>> _cache = {};
   final Map<String, DateTime> _cacheTimestamps = {};
@@ -48,110 +50,117 @@ class RecordsRepositoryImpl implements RecordsRepository {
     int pageSize = 10,
     bool forceRefresh = false,
   }) async {
+    // builderInventory 由 InventoryBloc 处理，这里返回空数据
+    if (recordType == RecordType.builderInventory) {
+      return const PagedRecords(
+        records: [],
+        meta: PageMeta(total: 0, size: 10, current: 1),
+      );
+    }
+
     try {
       final cacheKey = _makeCacheKey(
         recordType,
         userId: userId,
         projectId: projectId,
       );
-      if (!forceRefresh && _isCacheValidByKey(cacheKey) && pageNum == 1) {
-        Logger.info(
-          'Returning cached records for $recordType',
-          tag: 'RecordsRepository',
-        );
-        final cached = _cache[cacheKey] ?? [];
-        // use cached meta if present; otherwise synthesize minimal meta
-        final meta =
-            _cacheMeta[cacheKey] ??
-            PageMeta(total: cached.length, size: pageSize, current: 1);
-        return PagedRecords(records: cached, meta: meta);
-      }
 
-      Logger.info(
-        'Fetching records for type: $recordType, page: $pageNum',
-        tag: 'RecordsRepository',
-      );
-
-      List<RecordItem> records;
-      PageMeta meta;
-
-      if (recordType == RecordType.todo) {
-        final page = await _getTodoRecords(
-          projectId: projectId,
-          userId: userId,
-          pageNum: pageNum,
-          pageSize: pageSize,
-        );
-        records = page.records;
-        meta = page.meta;
-      } else if (recordType == RecordType.warehouseTodo ||
-          recordType == RecordType.siteTodo) {
-        final page = await _getWarehouseTodoRecords(
-          pageNum: pageNum,
-          pageSize: pageSize,
-        );
-        records = page.records;
-        meta = page.meta;
-      } else {
-        final response = await _apiService.getBusinessRecords(
-          recordType: recordType,
-          projectId: projectId,
-          userId: userId,
-          pageNum: pageNum,
-          pageSize: pageSize,
-        );
-
-        if (!response.isSuccess) {
-          throw Exception(response.msg.isNotEmpty ? response.msg : '获取数据失败');
+      // Check cache first unless forcing refresh
+      if (!forceRefresh && _isCacheValidByKey(cacheKey)) {
+        final cachedRecords = _cache[cacheKey];
+        final cachedMeta = _cacheMeta[cacheKey];
+        if (cachedRecords != null && cachedMeta != null) {
+          Logger.info(
+            'Returning cached ${recordType.name} (${cachedRecords.length} items)',
+            tag: 'RecordsRepository',
+          );
+          return PagedRecords(records: cachedRecords, meta: cachedMeta);
         }
+      }
 
-        records = response.data!.records.map((record) {
-          if (recordType == RecordType.signoutWarehouse ||
-              recordType == RecordType.signinWarehouse) {
-            return StorekeeperBusinessRecordItem(record, record.materialNum);
+      PagedRecords<RecordItem> result;
+      switch (recordType) {
+        case RecordType.todo:
+          result = await _getTodoRecords(
+            projectId: projectId,
+            userId: userId,
+            pageNum: pageNum,
+            pageSize: pageSize,
+          );
+          break;
+        case RecordType.warehouseTodo:
+        case RecordType.siteTodo:
+          result = await _getWarehouseTodoRecords(
+            pageNum: pageNum,
+            pageSize: pageSize,
+          );
+          break;
+        default:
+          // Generic records via ApiService
+          final response = await _apiService.getBusinessRecords(
+            recordType: recordType,
+            projectId: projectId,
+            userId: userId,
+            pageNum: pageNum,
+            pageSize: pageSize,
+          );
+          if (!response.isSuccess) {
+            throw Exception(
+              response.msg.isNotEmpty
+                  ? response.msg
+                  : '获取${recordType.displayName}失败',
+            );
           }
-          return BusinessRecordItem(record);
-        }).toList();
-        meta = PageMeta(
-          total: response.data!.total,
-          size: response.data!.size,
-          current: response.data!.current,
-          // pages may exist in other models; compute if absent
-        );
+          final page = response.data!;
+          final items = page.records
+              .map((businessRecord) => BusinessRecordItem(businessRecord))
+              .toList();
+          result = PagedRecords(
+            records: items,
+            meta: PageMeta(
+              total: page.total,
+              size: page.size,
+              current: page.current,
+            ),
+          );
+          break;
       }
 
-      if (pageNum == 1) {
-        _cache[cacheKey] = records;
-        _cacheTimestamps[cacheKey] = DateTime.now();
-        _cacheMeta[cacheKey] = meta;
-      }
+      final records = result.records;
+      final meta = result.meta;
+
+      // Cache the result
+      _cache[cacheKey] = records;
+      _cacheTimestamps[cacheKey] = DateTime.now();
+      _cacheMeta[cacheKey] = meta;
 
       Logger.info(
-        'Successfully fetched ${records.length} records for $recordType',
+        'Fetched and cached ${records.length} records for ${recordType.name}',
         tag: 'RecordsRepository',
       );
+
       return PagedRecords(records: records, meta: meta);
     } catch (e) {
       Logger.error(
-        'Failed to fetch records for $recordType: $e',
+        'Failed to fetch records for ${recordType.displayName}: $e',
         tag: 'RecordsRepository',
       );
 
+      // If error occurs, try returning cached data as fallback
       final cacheKey = _makeCacheKey(
         recordType,
         userId: userId,
         projectId: projectId,
       );
-      if (pageNum == 1 && _cache.containsKey(cacheKey)) {
+      if (_cache.containsKey(cacheKey) && _cacheMeta.containsKey(cacheKey)) {
         Logger.info(
-          'Returning cached records due to error',
+          'Returning stale cache due to error for ${recordType.name}',
           tag: 'RecordsRepository',
         );
-        final cached = _cache[cacheKey] ?? [];
-        final meta =
-            _cacheMeta[cacheKey] ??
-            PageMeta(total: cached.length, size: pageSize, current: 1);
-        return PagedRecords(records: cached, meta: meta);
+        return PagedRecords(
+          records: _cache[cacheKey]!,
+          meta: _cacheMeta[cacheKey]!,
+        );
       }
 
       rethrow;
