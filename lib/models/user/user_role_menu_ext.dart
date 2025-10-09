@@ -23,37 +23,27 @@ extension UserRoleMenuExtension on UserRole {
     switch (this) {
       case UserRole.construction:
         return [
-          _createMenuItem(
-            id: 'project_initiation',
-            title: '立项',
-            type: MenuItemType.page,
-            icon: 'add_business',
-            route: 'project-initiation',
-            order: 1,
-            isEnabled: !isExpired,
-          ),
+          // _createMenuItem(
+          //   id: 'project_initiation',
+          //   title: '立项',
+          //   type: MenuItemType.page,
+          //   icon: 'add_business',
+          //   route: 'project-initiation',
+          //   order: 1,
+          //   isEnabled: !isExpired,
+          // ),
           _createMenuItem(
             id: 'acceptance',
             title: '验收',
             type: MenuItemType.action,
             icon: 'check_circle',
             action: MenuActions.qrScanJsfAcceptance,
-            order: 2,
+            order: 1,
             isEnabled:
                 !isExpired &&
                 (supplyType == null ||
                     _isAcceptanceEnabledForSupplyType(supplyType)),
           ),
-          // _createMenuItem(
-          //   id: 'inventory',
-          //   title: '盘点',
-          //   type: MenuItemType.action,
-          //   icon: 'inventory',
-          //   action: 'inventory',
-          //   route: '/inventory',
-          //   order: 2,
-          //   isEnabled: !isExpired,
-          // ),
           _createMenuItem(
             id: 'transfer',
             title: '调拨',
@@ -62,7 +52,7 @@ extension UserRoleMenuExtension on UserRole {
             icon: 'swap_horiz',
             // route: '/transfer',
             action: MenuActions.qrScanTransfer,
-            order: 3,
+            order: 2,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -73,8 +63,37 @@ extension UserRoleMenuExtension on UserRole {
             icon: 'keyboard_return',
             // route: '/return',
             action: MenuActions.qrScanReturnMaterial,
+            order: 3,
+            isEnabled: !isExpired,
+          ),
+          _createMenuItem(
+            id: 'scrap',
+            title: '报废',
+            // type: MenuItemType.page,
+            type: MenuItemType.action,
+            icon: 'delete_forever',
+            // route: '/scrap',
+            action: MenuActions.qrScanScrap,
             order: 4,
             isEnabled: !isExpired,
+          ),
+          _createMenuItem(
+            id: 'spare_code',
+            title: '备用码',
+            type: MenuItemType.page,
+            icon: 'code',
+            route: 'spare-qr',
+            order: 5,
+            isEnabled: !isExpired,
+          ),
+          _createMenuItem(
+            id: 'recovery',
+            title: '异常码找回',
+            type: MenuItemType.page,
+            icon: 'recovery',
+            route: 'recovery',
+            order: 6,
+            isEnabled: true,
           ),
           _createMenuItem(
             id: 'qr_identify',
@@ -85,15 +104,6 @@ extension UserRoleMenuExtension on UserRole {
             order: 0,
             topMain: true,
             isEnabled: true, // 扫码识别始终可用
-          ),
-          _createMenuItem(
-            id: 'recovery',
-            title: '异常码找回',
-            type: MenuItemType.page,
-            icon: 'recovery',
-            route: 'recovery',
-            order: 6,
-            isEnabled: true,
           ),
         ];
 
@@ -118,12 +128,21 @@ extension UserRoleMenuExtension on UserRole {
             isEnabled: !isExpired,
           ),
           _createMenuItem(
+            id: 'spare_code',
+            title: '备用码',
+            type: MenuItemType.page,
+            icon: 'code',
+            route: 'spare-qr',
+            order: 2,
+            isEnabled: !isExpired,
+          ),
+          _createMenuItem(
             id: 'recovery',
             title: '异常码找回',
             type: MenuItemType.page,
             icon: 'recovery',
             route: 'recovery',
-            order: 2,
+            order: 3,
             isEnabled: true,
           ),
           _createMenuItem(
