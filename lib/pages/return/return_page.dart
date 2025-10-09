@@ -365,7 +365,38 @@ class _ReturnPageState extends State<ReturnPage> {
       title: '退库原因',
       icon: Icons.note_alt,
       businessType: 'return',
-      child: SpeechInputWidget(
+      // child: SpeechInputWidget(
+      //   controller: _remarkController,
+      //   maxLines: 4,
+      //   decoration: InputDecoration(
+      //     hintText: '请详细说明退库原因...',
+      //     border: OutlineInputBorder(
+      //       borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+      //     ),
+      //     enabledBorder: OutlineInputBorder(
+      //       borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+      //       borderSide: BorderSide(color: Colors.grey[300]!),
+      //     ),
+      //     focusedBorder: OutlineInputBorder(
+      //       borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+      //       borderSide: BorderSide(color: AppTheme.getBusinessColor('return')),
+      //     ),
+      //   ),
+      //   onChanged: (value) {
+      //     setState(() {
+      //       _returnRemark = value;
+      //       context.read<ReturnBloc>().add(
+      //         UpdateReturnRemark(returnRemark: value),
+      //       );
+      //     });
+      //   },
+      //   onVoiceRecordingPath: (value) {
+      //     context.read<ReturnBloc>().add(
+      //       UpdateReturnRemarkVoice(returnRemarkVoice: [value]),
+      //     );
+      //   },
+      // ),
+      child: TextField(
         controller: _remarkController,
         maxLines: 4,
         decoration: InputDecoration(
@@ -389,11 +420,6 @@ class _ReturnPageState extends State<ReturnPage> {
               UpdateReturnRemark(returnRemark: value),
             );
           });
-        },
-        onVoiceRecordingPath: (value) {
-          context.read<ReturnBloc>().add(
-            UpdateReturnRemarkVoice(returnRemarkVoice: [value]),
-          );
         },
       ),
     );

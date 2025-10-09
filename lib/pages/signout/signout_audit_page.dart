@@ -933,13 +933,21 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
       builder: (context) {
         return AlertDialog(
           title: const Text('驳回出库'),
-          content: SpeechInputWidget(
+          // content: SpeechInputWidget(
+          //   controller: _rejectReasonController,
+          //   onVoiceRecordingPath: (filePath) {
+          //     setState(() {
+          //       _reasonVoice?.add(filePath);
+          //     });
+          //   },
+          //   maxLines: 3,
+          //   decoration: const InputDecoration(
+          //     hintText: '请输入驳回原因',
+          //     border: OutlineInputBorder(),
+          //   ),
+          // ),
+          content: TextField(
             controller: _rejectReasonController,
-            onVoiceRecordingPath: (filePath) {
-              setState(() {
-                _reasonVoice?.add(filePath);
-              });
-            },
             maxLines: 3,
             decoration: const InputDecoration(
               hintText: '请输入驳回原因',
