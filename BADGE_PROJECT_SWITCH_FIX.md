@@ -293,16 +293,16 @@ if (typeChanged || projectChanged) {
 ## 代码改动总结
 
 ### MainPage 改动
-| 文件 | 改动 | 说明 |
-|------|------|------|
-| `lib/pages/main_page.dart` | 添加 `_lastProjectId` 字段 | 追踪当前项目ID |
-| `lib/pages/main_page.dart` | 修改 `listener` 逻辑 | 检测项目切换并预加载 |
+| 文件                       | 改动                       | 说明                 |
+|----------------------------|----------------------------|----------------------|
+| `lib/pages/main_page.dart` | 添加 `_lastProjectId` 字段 | 追踪当前项目ID       |
+| `lib/pages/main_page.dart` | 修改 `listener` 逻辑       | 检测项目切换并预加载 |
 
 ### RecordsListPage 改动
-| 文件 | 改动 | 说明 |
-|------|------|------|
+| 文件                                       | 改动                               | 说明                 |
+|--------------------------------------------|------------------------------------|----------------------|
 | `lib/pages/records/records_list_page.dart` | 添加 `_preloadTabBadgeCounts` 方法 | 预加载所有 badge tab |
-| `lib/pages/records/records_list_page.dart` | 修改 `listener` 逻辑 | 项目切换时预加载 |
+| `lib/pages/records/records_list_page.dart` | 修改 `listener` 逻辑               | 项目切换时预加载     |
 
 ## 性能影响
 

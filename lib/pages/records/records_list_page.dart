@@ -423,15 +423,15 @@ class _RecordsListPageState extends State<RecordsListPage>
                 getIt<RecordsRepository>().clearCache();
               } catch (_) {}
             }
-            
+
             setState(() {
               _setupTabsBySession(sessionState);
               // 重置 RecordsBloc 状态，并加载新身份下的默认Tab
               final ids = _resolveIds(sessionState);
-              
+
               // 🎯 关键修复：预加载所有需要显示 badge 的 tab 数据
               _preloadTabBadgeCounts(sessionState, ids.$1, ids.$2);
-              
+
               // 强制刷新以绕开缓存
               context.read<RecordsBloc>().add(
                 RefreshRecords(

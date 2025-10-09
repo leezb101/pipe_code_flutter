@@ -136,7 +136,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                 state is SessionProjectEstablished ||
                 state is SessionStorekeeperEstablished) &&
             (isFirstInit || isProjectSwitch)) {
-          
           // 根据用户角色初始化标签页和导航
           bool isAdmin = state is SessionAdminEstablished;
           _setupTabsForRole(isAdmin);
