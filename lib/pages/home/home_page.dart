@@ -850,22 +850,61 @@ class _HomePageState extends State<HomePage> {
         return 0;
       });
 
+    MenuItem? topMainMenuItem;
+    if (sortedMenuItems.isNotEmpty) {
+      final topMainCandidates =
+          sortedMenuItems.where((item) => item.topMain == true).toList()
+            ..sort((a, b) {
+              final orderCompare = a.order.compareTo(b.order);
+              if (orderCompare != 0) {
+                return orderCompare;
+              }
+              return sortedMenuItems
+                  .indexOf(a)
+                  .compareTo(sortedMenuItems.indexOf(b));
+            });
+      if (topMainCandidates.isNotEmpty) {
+        topMainMenuItem = topMainCandidates.first;
+      }
+    }
+
+    final remainingMenuItems = topMainMenuItem == null
+        ? sortedMenuItems
+        : sortedMenuItems.where((item) => item != topMainMenuItem).toList();
+
     if (sortedMenuItems.isEmpty) {
       return _buildEmptyMenuView(context);
     }
 
     // 计算网格行数，每行4个
-    final rowCount = (sortedMenuItems.length / 4).ceil();
+    final rowCount = (remainingMenuItems.length / 4).ceil();
     const itemsPerRow = 4;
 
-    return Column(
-      children: List.generate(rowCount, (rowIndex) {
+    final children = <Widget>[
+      if (topMainMenuItem != null)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: _buildMenuCard(context, topMainMenuItem, state),
+                ),
+              ),
+            ],
+          ),
+        ),
+    ];
+
+    children.addAll(
+      List.generate(rowCount, (rowIndex) {
         final startIndex = rowIndex * itemsPerRow;
         final endIndex = (startIndex + itemsPerRow).clamp(
           0,
-          sortedMenuItems.length,
+          remainingMenuItems.length,
         );
-        final rowItems = sortedMenuItems.sublist(startIndex, endIndex);
+        final rowItems = remainingMenuItems.sublist(startIndex, endIndex);
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 16.0),
@@ -889,6 +928,8 @@ class _HomePageState extends State<HomePage> {
         );
       }),
     );
+
+    return Column(children: children);
   }
 
   /// 构建菜单卡片

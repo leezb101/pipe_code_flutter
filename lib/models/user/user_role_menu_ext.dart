@@ -192,15 +192,15 @@ extension UserRoleMenuExtension on UserRole {
             order: 5,
             isEnabled: !isExpired,
           ),
-          // _createMenuItem(
-          //   id: 'inventory',
-          //   title: '盘点',
-          //   type: MenuItemType.page,
-          //   icon: 'inventory',
-          //   route: '/inventory',
-          //   order: 9,
-          //   isEnabled: !isExpired,
-          // ),
+          _createMenuItem(
+            id: 'inventory',
+            title: '盘点',
+            type: MenuItemType.page,
+            icon: 'inventory',
+            route: '/inventory',
+            order: 6,
+            isEnabled: !isExpired,
+          ),
           _createMenuItem(
             id: 'return',
             title: '退库',
@@ -245,7 +245,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'admin_panel_settings',
             route: 'temporary-auth',
-            order: 10,
+            order: 11,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
