@@ -82,7 +82,8 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.action,
             icon: 'qr_code_scanner',
             action: 'qr_identify',
-            order: 5,
+            order: 0,
+            topMain: true,
             isEnabled: true, // 扫码识别始终可用
           ),
           _createMenuItem(
@@ -131,7 +132,8 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.action,
             icon: 'qr_code_scanner',
             action: 'qr_identify',
-            order: 3,
+            order: 0,
+            topMain: true,
             isEnabled: true, // 扫码识别始终可用
           ),
         ];
@@ -139,31 +141,12 @@ extension UserRoleMenuExtension on UserRole {
       case UserRole.builder:
         return [
           _createMenuItem(
-            id: 'spare_code',
-            title: '备用码',
-            type: MenuItemType.page,
-            icon: 'code',
-            route: 'spare-qr',
-            order: 1,
-            isEnabled: !isExpired,
-          ),
-          // 入库菜单暂时禁用
-          // _createMenuItem(
-          //   id: 'inbound',
-          //   title: '入库',
-          //   type: MenuItemType.action,
-          //   icon: 'input',
-          //   action: MenuActions.qrScanInbound,
-          //   order: 2,
-          //   isEnabled: !isExpired,
-          // ),
-          _createMenuItem(
             id: 'acceptance',
             title: '验收',
             type: MenuItemType.action,
             icon: 'check_circle',
             action: MenuActions.qrScanAcceptance,
-            order: 2,
+            order: 1,
             isEnabled:
                 !isExpired &&
                 (supplyType == null ||
@@ -177,7 +160,7 @@ extension UserRoleMenuExtension on UserRole {
             icon: 'output',
             // route: '/signout',
             action: MenuActions.qrScanSignout,
-            order: 3,
+            order: 2,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -186,16 +169,7 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'build',
             route: 'install',
-            order: 4,
-            isEnabled: !isExpired,
-          ),
-          _createMenuItem(
-            id: 'return',
-            title: '退库',
-            type: MenuItemType.action,
-            icon: 'keyboard_return',
-            action: MenuActions.qrScanReturnMaterial,
-            order: 5,
+            order: 3,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -206,7 +180,7 @@ extension UserRoleMenuExtension on UserRole {
             icon: 'swap_horiz',
             // route: '/transfer',
             action: MenuActions.qrScanTransfer,
-            order: 6,
+            order: 4,
             isEnabled: !isExpired,
           ),
           _createMenuItem(
@@ -215,6 +189,24 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.page,
             icon: 'content_cut',
             route: 'cut-pipe',
+            order: 5,
+            isEnabled: !isExpired,
+          ),
+          // _createMenuItem(
+          //   id: 'inventory',
+          //   title: '盘点',
+          //   type: MenuItemType.page,
+          //   icon: 'inventory',
+          //   route: '/inventory',
+          //   order: 9,
+          //   isEnabled: !isExpired,
+          // ),
+          _createMenuItem(
+            id: 'return',
+            title: '退库',
+            type: MenuItemType.action,
+            icon: 'keyboard_return',
+            action: MenuActions.qrScanReturnMaterial,
             order: 7,
             isEnabled: !isExpired,
           ),
@@ -229,22 +221,22 @@ extension UserRoleMenuExtension on UserRole {
             order: 8,
             isEnabled: !isExpired,
           ),
-          // _createMenuItem(
-          //   id: 'inventory',
-          //   title: '盘点',
-          //   type: MenuItemType.page,
-          //   icon: 'inventory',
-          //   route: '/inventory',
-          //   order: 9,
-          //   isEnabled: !isExpired,
-          // ),
+          _createMenuItem(
+            id: 'spare_code',
+            title: '备用码',
+            type: MenuItemType.page,
+            icon: 'code',
+            route: 'spare-qr',
+            order: 9,
+            isEnabled: !isExpired,
+          ),
           _createMenuItem(
             id: 'recovery',
             title: '异常码找回',
             type: MenuItemType.page,
             icon: 'recovery',
             route: 'recovery',
-            order: 9,
+            order: 10,
             isEnabled: true,
           ),
           _createMenuItem(
@@ -262,8 +254,9 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.action,
             icon: 'qr_code_scanner',
             action: 'qr_identify',
-            order: 11,
+            order: 0,
             isEnabled: true, // 扫码识别始终可用
+            topMain: true,
           ),
         ];
 
@@ -390,8 +383,9 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.action,
             icon: 'qr_code_scanner',
             action: 'qr_identify',
-            order: 11,
+            order: 0,
             isEnabled: true, // 扫码识别始终可用
+            topMain: true,
           ),
         ];
 
@@ -509,8 +503,9 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.action,
             icon: 'qr_code_scanner',
             action: 'qr_identify',
-            order: 10,
+            order: 0,
             isEnabled: true, // 扫码识别始终可用
+            topMain: true,
           ),
         ];
 
@@ -524,8 +519,9 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.action,
             icon: 'qr_code_scanner',
             action: 'qr_identify',
-            order: 1,
+            order: 0,
             isEnabled: true, // 扫码识别始终可用
+            topMain: true,
           ),
         ];
       case UserRole.storekeeper:
@@ -536,8 +532,9 @@ extension UserRoleMenuExtension on UserRole {
             type: MenuItemType.action,
             icon: 'qr_code_scanner',
             action: 'qr_identify',
-            order: 1,
+            order: 0,
             isEnabled: true, // 扫码识别始终可用
+            topMain: true,
           ),
           _createMenuItem(
             id: 'recovery',
@@ -562,6 +559,7 @@ extension UserRoleMenuExtension on UserRole {
     required bool isEnabled,
     String? route,
     String? action,
+    bool? topMain,
   }) {
     return MenuItem(
       id: id,
@@ -572,6 +570,7 @@ extension UserRoleMenuExtension on UserRole {
       action: action,
       order: order,
       isEnabled: isEnabled,
+      topMain: topMain ?? false,
     );
   }
 

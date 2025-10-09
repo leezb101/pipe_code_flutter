@@ -19,6 +19,7 @@ MenuItem _$MenuItemFromJson(Map<String, dynamic> json) => MenuItem(
   children: (json['children'] as List<dynamic>?)
       ?.map((e) => MenuItem.fromJson(e as Map<String, dynamic>))
       .toList(),
+  topMain: json['topMain'] as bool? ?? false,
   order: (json['order'] as num?)?.toInt() ?? 0,
 );
 
@@ -33,6 +34,7 @@ Map<String, dynamic> _$MenuItemToJson(MenuItem instance) => <String, dynamic>{
   'badge': instance.badge,
   'is_enabled': instance.isEnabled,
   'children': instance.children,
+  'topMain': instance.topMain,
   'order': instance.order,
 };
 

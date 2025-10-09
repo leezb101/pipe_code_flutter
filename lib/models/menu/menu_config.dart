@@ -46,6 +46,7 @@ class MenuItem extends Equatable {
     this.badge,
     this.isEnabled = true,
     this.children,
+    this.topMain = false,
     this.order = 0,
   });
 
@@ -80,6 +81,8 @@ class MenuItem extends Equatable {
   /// 子菜单项
   final List<MenuItem>? children;
 
+  final bool? topMain;
+
   /// 排序权重
   final int order;
 
@@ -99,6 +102,7 @@ class MenuItem extends Equatable {
     String? badge,
     bool? isEnabled,
     List<MenuItem>? children,
+    bool? topMain,
     int? order,
   }) {
     return MenuItem(
@@ -112,6 +116,7 @@ class MenuItem extends Equatable {
       badge: badge ?? this.badge,
       isEnabled: isEnabled ?? this.isEnabled,
       children: children ?? this.children,
+      topMain: topMain ?? this.topMain,
       order: order ?? this.order,
     );
   }
@@ -128,6 +133,7 @@ class MenuItem extends Equatable {
     badge,
     isEnabled,
     children,
+    topMain,
     order,
   ];
 
