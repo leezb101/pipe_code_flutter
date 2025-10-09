@@ -467,13 +467,13 @@ class _RecordsListPageState extends State<RecordsListPage>
                       } else if (recordsState is RecordsEmpty) {
                         currentTab = recordsState.currentTab;
                       }
-                      
+
                       // 计算每个 tab 的 badge 数量
                       final badgeCounts = _computeTabBadgeCounts(
                         sessionState,
                         inventoryState,
                       );
-                      
+
                       return ScrollableTabBar(
                         selectedTab: currentTab,
                         onTabSelected: _onTabSelected,

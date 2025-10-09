@@ -244,12 +244,12 @@ Map<RecordType, int> _computeTabBadgeCounts(
 
 根据用户角色只显示相关的 badge：
 
-| 角色 | 显示的 badge |
-|------|-------------|
-| **仓管员** (SessionStorekeeperEstablished) | `todo`, `warehouseTodo` |
-| **builder/builderSub** | `todo`, `siteTodo`, `builderInventory` |
-| **laborer** | `todo`, `siteTodo` |
-| **其他** | `todo` |
+| 角色                                       | 显示的 badge                           |
+|--------------------------------------------|----------------------------------------|
+| **仓管员** (SessionStorekeeperEstablished) | `todo`, `warehouseTodo`                |
+| **builder/builderSub**                     | `todo`, `siteTodo`, `builderInventory` |
+| **laborer**                                | `todo`, `siteTodo`                     |
+| **其他**                                   | `todo`                                 |
 
 ### 4. 性能优化
 
@@ -259,13 +259,13 @@ Map<RecordType, int> _computeTabBadgeCounts(
 
 ## 与 MainPage Badge 的对比
 
-| 特性 | MainPage Badge | RecordsListPage Tab Badges |
-|------|----------------|---------------------------|
-| **位置** | 底部导航栏"记录"项 | 顶部分类 tab |
-| **显示数量** | 总和（所有待办类型） | 每个 tab 独立显示 |
-| **数据来源** | 统一使用缓存的 meta.total | 同样使用缓存的 meta.total |
-| **响应式** | 嵌套 BlocBuilder | 嵌套 BlocBuilder |
-| **预加载** | MainPage 预加载 | 复用 MainPage 的预加载结果 |
+| 特性         | MainPage Badge            | RecordsListPage Tab Badges |
+|--------------|---------------------------|----------------------------|
+| **位置**     | 底部导航栏"记录"项        | 顶部分类 tab               |
+| **显示数量** | 总和（所有待办类型）        | 每个 tab 独立显示          |
+| **数据来源** | 统一使用缓存的 meta.total | 同样使用缓存的 meta.total  |
+| **响应式**   | 嵌套 BlocBuilder          | 嵌套 BlocBuilder           |
+| **预加载**   | MainPage 预加载           | 复用 MainPage 的预加载结果 |
 
 ## 测试建议
 
