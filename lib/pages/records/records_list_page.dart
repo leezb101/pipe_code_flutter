@@ -430,16 +430,8 @@ class _RecordsListPageState extends State<RecordsListPage>
               final ids = _resolveIds(sessionState);
 
               // 🎯 关键修复：预加载所有需要显示 badge 的 tab 数据
+              // 注意：_preloadTabBadgeCounts 会处理当前 tab，所以这里不需要再单独加载
               _preloadTabBadgeCounts(sessionState, ids.$1, ids.$2);
-
-              // 强制刷新以绕开缓存
-              context.read<RecordsBloc>().add(
-                RefreshRecords(
-                  recordType: _initialTab,
-                  userId: ids.$1,
-                  projectId: ids.$2,
-                ),
-              );
             });
           }
         }
@@ -619,19 +611,42 @@ class _RecordsListPageState extends State<RecordsListPage>
 
   /// 预加载需要显示 badge 的 tab 数据（项目切换时调用）
   void _preloadTabBadgeCounts(SessionState sessionState, int? uid, int? pid) {
+    // 🎯 关键：对于当前激活的tab，使用pageSize=10加载完整列表
+    // 对于其他需要badge的tab，使用pageSize=1仅获取total
+
     // 仓管员需要预加载仓库待办
     if (sessionState is SessionStorekeeperEstablished) {
+      final isCurrentTab = _initialTab == RecordType.warehouseTodo;
       context.read<RecordsBloc>().add(
         LoadRecords(
           recordType: RecordType.warehouseTodo,
           userId: uid,
           projectId: pid,
           pageNum: 1,
-          pageSize: 1,
+          pageSize: isCurrentTab ? 10 : 1, // 当前tab用10，其他用1
           tracingContext: TracingContext(
             source: 'records_list_page',
-            action: 'preload_badge_count',
-            description: '预加载仓库待办数量',
+            action: isCurrentTab ? 'load_current_tab' : 'preload_badge_count',
+            description: isCurrentTab ? '加载仓库待办列表' : '预加载仓库待办数量',
+          ),
+        ),
+      );
+
+      // 预加载普通待办（仓管员也有）
+      final isTodoCurrentTab = _initialTab == RecordType.todo;
+      context.read<RecordsBloc>().add(
+        LoadRecords(
+          recordType: RecordType.todo,
+          userId: uid,
+          projectId: pid,
+          pageNum: 1,
+          pageSize: isTodoCurrentTab ? 10 : 1,
+          tracingContext: TracingContext(
+            source: 'records_list_page',
+            action: isTodoCurrentTab
+                ? 'load_current_tab'
+                : 'preload_badge_count',
+            description: isTodoCurrentTab ? '加载待办列表' : '预加载待办数量',
           ),
         ),
       );
@@ -642,17 +657,20 @@ class _RecordsListPageState extends State<RecordsListPage>
       final role = sessionState.currentUserRoleInfo.projectRoleType;
 
       // 所有项目参与方都需要 todo
+      final isTodoCurrentTab = _initialTab == RecordType.todo;
       context.read<RecordsBloc>().add(
         LoadRecords(
           recordType: RecordType.todo,
           userId: uid,
           projectId: pid,
           pageNum: 1,
-          pageSize: 1,
+          pageSize: isTodoCurrentTab ? 10 : 1, // 当前tab用10，其他用1
           tracingContext: TracingContext(
             source: 'records_list_page',
-            action: 'preload_badge_count',
-            description: '预加载待办数量',
+            action: isTodoCurrentTab
+                ? 'load_current_tab'
+                : 'preload_badge_count',
+            description: isTodoCurrentTab ? '加载待办列表' : '预加载待办数量',
           ),
         ),
       );
@@ -661,17 +679,20 @@ class _RecordsListPageState extends State<RecordsListPage>
       if (role == UserRole.builder ||
           role == UserRole.builderSub ||
           role == UserRole.laborer) {
+        final isSiteTodoCurrentTab = _initialTab == RecordType.siteTodo;
         context.read<RecordsBloc>().add(
           LoadRecords(
             recordType: RecordType.siteTodo,
             userId: uid,
             projectId: pid,
             pageNum: 1,
-            pageSize: 1,
+            pageSize: isSiteTodoCurrentTab ? 10 : 1,
             tracingContext: TracingContext(
               source: 'records_list_page',
-              action: 'preload_badge_count',
-              description: '预加载现场待办数量',
+              action: isSiteTodoCurrentTab
+                  ? 'load_current_tab'
+                  : 'preload_badge_count',
+              description: isSiteTodoCurrentTab ? '加载现场待办列表' : '预加载现场待办数量',
             ),
           ),
         );
