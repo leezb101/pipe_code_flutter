@@ -7,6 +7,7 @@ import 'package:pipe_code_flutter/models/records/record_item.dart';
 import 'package:pipe_code_flutter/models/user/user_role.dart';
 import 'package:pipe_code_flutter/models/user/wx_login_vo.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
+import 'package:pipe_code_flutter/config/service_locator.dart';
 import '../../bloc/session/session_bloc.dart';
 import '../../bloc/session/session_state.dart';
 import '../../bloc/session/session_event.dart';
@@ -23,6 +24,7 @@ import 'package:pipe_code_flutter/models/notification/notification_message_vo.da
 import '../../bloc/inventory/inventory_bloc.dart';
 import '../../bloc/inventory/inventory_state.dart';
 import '../../bloc/inventory/inventory_event.dart';
+import '../../repositories/interfaces/records_repository.dart';
 
 class RecordsListPage extends StatefulWidget {
   final RecordType? initialTab;
@@ -449,24 +451,36 @@ class _RecordsListPageState extends State<RecordsListPage>
           ),
           body: Column(
             children: [
-              BlocBuilder<RecordsBloc, RecordsState>(
-                builder: (context, state) {
-                  RecordType currentTab = _initialTab;
-                  if (state is RecordsInitial) {
-                    currentTab = state.currentTab;
-                  } else if (state is RecordsLoading) {
-                    currentTab = state.currentTab;
-                  } else if (state is RecordsLoaded) {
-                    currentTab = state.currentTab;
-                  } else if (state is RecordsError) {
-                    currentTab = state.currentTab;
-                  } else if (state is RecordsEmpty) {
-                    currentTab = state.currentTab;
-                  }
-                  return ScrollableTabBar(
-                    selectedTab: currentTab,
-                    onTabSelected: _onTabSelected,
-                    allTabs: _allTabs,
+              BlocBuilder<InventoryBloc, InventoryState>(
+                builder: (context, inventoryState) {
+                  return BlocBuilder<RecordsBloc, RecordsState>(
+                    builder: (context, recordsState) {
+                      RecordType currentTab = _initialTab;
+                      if (recordsState is RecordsInitial) {
+                        currentTab = recordsState.currentTab;
+                      } else if (recordsState is RecordsLoading) {
+                        currentTab = recordsState.currentTab;
+                      } else if (recordsState is RecordsLoaded) {
+                        currentTab = recordsState.currentTab;
+                      } else if (recordsState is RecordsError) {
+                        currentTab = recordsState.currentTab;
+                      } else if (recordsState is RecordsEmpty) {
+                        currentTab = recordsState.currentTab;
+                      }
+                      
+                      // 计算每个 tab 的 badge 数量
+                      final badgeCounts = _computeTabBadgeCounts(
+                        sessionState,
+                        inventoryState,
+                      );
+                      
+                      return ScrollableTabBar(
+                        selectedTab: currentTab,
+                        onTabSelected: _onTabSelected,
+                        allTabs: _allTabs,
+                        badgeCounts: badgeCounts,
+                      );
+                    },
                   );
                 },
               ),
@@ -590,6 +604,76 @@ class _RecordsListPageState extends State<RecordsListPage>
       uid = int.tryParse(sessionState.user.id);
     }
     return (uid, pid);
+  }
+
+  /// 计算需要显示 badge 的 tab 的数量
+  /// 只计算 todo、siteTodo、builderInventory、warehouseTodo
+  Map<RecordType, int> _computeTabBadgeCounts(
+    SessionState sessionState,
+    InventoryState inventoryState,
+  ) {
+    final badgeCounts = <RecordType, int>{};
+    final ids = _resolveIds(sessionState);
+    final int? uid = ids.$1;
+    final int? pid = ids.$2;
+
+    try {
+      final repo = getIt<RecordsRepository>();
+
+      // 1. todo（所有角色都有）
+      final todoMeta = repo.getCachedMeta(
+        RecordType.todo,
+        userId: uid,
+        projectId: pid,
+      );
+      final todoCount = todoMeta?.total ?? 0;
+      if (todoCount > 0) {
+        badgeCounts[RecordType.todo] = todoCount;
+      }
+
+      // 2. warehouseTodo（仓管员）
+      if (sessionState is SessionStorekeeperEstablished) {
+        final whMeta = repo.getCachedMeta(
+          RecordType.warehouseTodo,
+          userId: uid,
+          projectId: pid,
+        );
+        final whCount = whMeta?.total ?? 0;
+        if (whCount > 0) {
+          badgeCounts[RecordType.warehouseTodo] = whCount;
+        }
+      }
+
+      // 3. siteTodo（builder、builderSub、laborer）
+      if (sessionState is SessionProjectEstablished) {
+        final role = sessionState.currentUserRoleInfo.projectRoleType;
+        if (role == UserRole.builder ||
+            role == UserRole.builderSub ||
+            role == UserRole.laborer) {
+          final siteTodoMeta = repo.getCachedMeta(
+            RecordType.siteTodo,
+            userId: uid,
+            projectId: pid,
+          );
+          final siteTodoCount = siteTodoMeta?.total ?? 0;
+          if (siteTodoCount > 0) {
+            badgeCounts[RecordType.siteTodo] = siteTodoCount;
+          }
+        }
+
+        // 4. builderInventory（builder、builderSub）
+        if (role == UserRole.builder || role == UserRole.builderSub) {
+          final inventoryCount = inventoryState.totalTasks;
+          if (inventoryCount > 0) {
+            badgeCounts[RecordType.builderInventory] = inventoryCount;
+          }
+        }
+      }
+    } catch (_) {
+      // ignore cache failures
+    }
+
+    return badgeCounts;
   }
 
   Widget _buildRecordsList(

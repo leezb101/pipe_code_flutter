@@ -16,10 +16,15 @@ import 'package:pipe_code_flutter/services/tracing/tracing_context.dart';
 import 'package:pipe_code_flutter/services/tracing/improved_tracing_manager.dart';
 import 'package:pipe_code_flutter/utils/logger.dart';
 import 'package:pipe_code_flutter/models/records/record_type.dart';
+import 'package:pipe_code_flutter/models/user/user_role.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
 import '../bloc/session/session_bloc.dart';
 import '../bloc/session/session_state.dart';
+import '../bloc/inventory/inventory_bloc.dart';
+import '../bloc/inventory/inventory_state.dart';
+import '../bloc/inventory/inventory_event.dart';
+import '../bloc/records/records_event.dart';
 import '../pages/home/home_page.dart';
 import '../pages/records/records_list_page.dart';
 import '../pages/profile/profile_page.dart';
@@ -113,6 +118,10 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           // 根据用户角色初始化标签页和导航
           bool isAdmin = state is SessionAdminEstablished;
           _setupTabsForRole(isAdmin);
+
+          // 预加载 badge 计数所需的数据
+          _preloadBadgeCounts(state);
+
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               _updateTabContext(0, isInitial: true);
@@ -134,6 +143,10 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted || _isUiInitialized) return;
             _setupTabsForRole(isAdmin);
+
+            // 预加载 badge 计数所需的数据
+            _preloadBadgeCounts(sessionState);
+
             _updateTabContext(0, isInitial: true);
             setState(() {
               _isUiInitialized = true;
@@ -153,28 +166,33 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             opacity: _fadeAnimation,
             child: IndexedStack(index: _currentIndex, children: _pages),
           ),
-          bottomNavigationBar: BlocBuilder<RecordsBloc, RecordsState>(
-            builder: (context, recordsState) {
-              final isAdmin = sessionState is SessionAdminEstablished;
-              final todoCount = _computeTodoBadgeCount(
-                recordsState,
-                sessionState,
-              );
-              final items = _buildNavItemsWithBadge(todoCount, isAdmin);
-              return BottomNavigationBar(
-                type: BottomNavigationBarType.fixed,
-                currentIndex: _currentIndex,
-                onTap: (index) {
-                  if (index != _currentIndex) {
-                    _animationController.reset();
-                    setState(() {
-                      _currentIndex = index;
-                    });
-                    _animationController.forward();
-                    _updateTabContext(index);
-                  }
+          bottomNavigationBar: BlocBuilder<InventoryBloc, InventoryState>(
+            builder: (context, inventoryState) {
+              return BlocBuilder<RecordsBloc, RecordsState>(
+                builder: (context, recordsState) {
+                  final isAdmin = sessionState is SessionAdminEstablished;
+                  final todoCount = _computeTodoBadgeCount(
+                    recordsState,
+                    sessionState,
+                    inventoryState,
+                  );
+                  final items = _buildNavItemsWithBadge(todoCount, isAdmin);
+                  return BottomNavigationBar(
+                    type: BottomNavigationBarType.fixed,
+                    currentIndex: _currentIndex,
+                    onTap: (index) {
+                      if (index != _currentIndex) {
+                        _animationController.reset();
+                        setState(() {
+                          _currentIndex = index;
+                        });
+                        _animationController.forward();
+                        _updateTabContext(index);
+                      }
+                    },
+                    items: items,
+                  );
                 },
-                items: items,
               );
             },
           ),
@@ -230,58 +248,142 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   ///（已移除）旧的基于会话状态的页面更新逻辑由 _setupTabsForRole 统一处理
 
+  /// 预加载 badge 计数所需的数据（只获取 meta，不加载完整列表）
+  void _preloadBadgeCounts(SessionState sessionState) {
+    final ids = _resolveIds(sessionState);
+    final int? uid = ids.$1;
+    final int? pid = ids.$2;
+
+    // 仓管员需要预加载仓库待办
+    if (sessionState is SessionStorekeeperEstablished) {
+      context.read<RecordsBloc>().add(
+        LoadRecords(
+          recordType: RecordType.warehouseTodo,
+          userId: uid,
+          projectId: pid,
+          pageNum: 1,
+          pageSize: 1, // 只需要获取 total，所以只请求 1 条数据
+          tracingContext: TracingContext(
+            source: 'main_page',
+            action: 'preload_badge_count',
+            description: '预加载仓库待办数量',
+          ),
+        ),
+      );
+    }
+
+    // 施工方需要预加载 todo、siteTodo
+    if (sessionState is SessionProjectEstablished) {
+      final role = sessionState.currentUserRoleInfo.projectRoleType;
+
+      // 所有项目参与方都需要 todo
+      context.read<RecordsBloc>().add(
+        LoadRecords(
+          recordType: RecordType.todo,
+          userId: uid,
+          projectId: pid,
+          pageNum: 1,
+          pageSize: 1,
+          tracingContext: TracingContext(
+            source: 'main_page',
+            action: 'preload_badge_count',
+            description: '预加载待办数量',
+          ),
+        ),
+      );
+
+      // builder、builderSub、laborer 需要 siteTodo
+      if (role == UserRole.builder ||
+          role == UserRole.builderSub ||
+          role == UserRole.laborer) {
+        context.read<RecordsBloc>().add(
+          LoadRecords(
+            recordType: RecordType.siteTodo,
+            userId: uid,
+            projectId: pid,
+            pageNum: 1,
+            pageSize: 1,
+            tracingContext: TracingContext(
+              source: 'main_page',
+              action: 'preload_badge_count',
+              description: '预加载现场待办数量',
+            ),
+          ),
+        );
+      }
+
+      // builder、builderSub 需要预加载盘点任务
+      if (role == UserRole.builder || role == UserRole.builderSub) {
+        context.read<InventoryBloc>().add(
+          const InventoryTasksFetched(isRefresh: true),
+        );
+      }
+    }
+  }
+
   // ==== Helpers for badge/count ====
   int _computeTodoBadgeCount(
     RecordsState recordsState,
     SessionState sessionState,
+    InventoryState inventoryState,
   ) {
     final ids = _resolveIds(sessionState);
     final int? uid = ids.$1;
     final int? pid = ids.$2;
 
-    // counts from current state (if visible tab)
-    int todoFromState = 0;
-    int whFromState = 0;
-    if (recordsState is RecordsLoaded) {
-      if (recordsState.currentTab == RecordType.todo) {
-        todoFromState = recordsState.records.length;
-      } else if (recordsState.currentTab == RecordType.warehouseTodo) {
-        whFromState = recordsState.records.length;
-      }
-    }
+    // 判断用户角色类型
+    final bool isStorekeeper = sessionState is SessionStorekeeperEstablished;
+    final bool isBuilder =
+        sessionState is SessionProjectEstablished &&
+        (sessionState.currentUserRoleInfo.projectRoleType == UserRole.builder ||
+            sessionState.currentUserRoleInfo.projectRoleType ==
+                UserRole.builderSub);
+    final bool isLaborer =
+        sessionState is SessionProjectEstablished &&
+        sessionState.currentUserRoleInfo.projectRoleType == UserRole.laborer;
 
-    // counts from cache
-    int todoFromCache = 0;
-    int whFromCache = 0;
+    int totalCount = 0;
+
     try {
       final repo = getIt<RecordsRepository>();
-      todoFromCache =
-          repo
-              .getCachedRecords(RecordType.todo, userId: uid, projectId: pid)
-              ?.length ??
-          0;
-      if (sessionState is SessionStorekeeperEstablished) {
-        whFromCache =
-            repo
-                .getCachedRecords(
-                  RecordType.warehouseTodo,
-                  userId: uid,
-                  projectId: pid,
-                )
-                ?.length ??
-            0;
+
+      // 1. 获取普通待办数量（所有角色都有）
+      final todoMeta = repo.getCachedMeta(
+        RecordType.todo,
+        userId: uid,
+        projectId: pid,
+      );
+      totalCount += todoMeta?.total ?? 0;
+
+      // 2. 仓管员：加上仓库待办
+      if (isStorekeeper) {
+        final whMeta = repo.getCachedMeta(
+          RecordType.warehouseTodo,
+          userId: uid,
+          projectId: pid,
+        );
+        totalCount += whMeta?.total ?? 0;
+      }
+
+      // 3. 施工方（builder、builderSub、laborer）：加上现场待办
+      if (isBuilder || isLaborer) {
+        final siteTodoMeta = repo.getCachedMeta(
+          RecordType.siteTodo,
+          userId: uid,
+          projectId: pid,
+        );
+        totalCount += siteTodoMeta?.total ?? 0;
+      }
+
+      // 4. builder、builderSub：加上盘点任务
+      if (isBuilder) {
+        totalCount += inventoryState.totalTasks;
       }
     } catch (_) {
       // ignore cache failures
     }
 
-    // prefer state over cache for whichever tab is currently active
-    final int todoFinal = todoFromState > 0 ? todoFromState : todoFromCache;
-    final bool includeWarehouse = sessionState is SessionStorekeeperEstablished;
-    final int whFinal = includeWarehouse
-        ? (whFromState > 0 ? whFromState : whFromCache)
-        : 0;
-    return todoFinal + whFinal;
+    return totalCount;
   }
 
   List<BottomNavigationBarItem> _buildNavItemsWithBadge(

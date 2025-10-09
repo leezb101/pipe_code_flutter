@@ -9,12 +9,14 @@ class ScrollableTabBar extends StatefulWidget {
   final RecordType selectedTab;
   final Function(RecordType) onTabSelected;
   final List<RecordType> allTabs;
+  final Map<RecordType, int>? badgeCounts; // 可选的 badge 数量映射
 
   const ScrollableTabBar({
     super.key,
     required this.selectedTab,
     required this.onTabSelected,
     required this.allTabs,
+    this.badgeCounts,
   });
 
   @override
@@ -327,6 +329,8 @@ class _ScrollableTabBarState extends State<ScrollableTabBar>
 
   Widget _buildTabChip(BuildContext context, RecordType recordType) {
     final isSelected = widget.selectedTab == recordType;
+    final badgeCount = widget.badgeCounts?[recordType];
+    final hasBadge = badgeCount != null && badgeCount > 0;
 
     return GestureDetector(
       onTap: () => widget.onTabSelected(recordType),
@@ -343,13 +347,39 @@ class _ScrollableTabBarState extends State<ScrollableTabBar>
             width: 1,
           ),
         ),
-        child: Text(
-          recordType.displayName,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey[700],
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              recordType.displayName,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.grey[700],
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+            if (hasBadge) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.white : Colors.redAccent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                constraints: const BoxConstraints(minWidth: 20, minHeight: 18),
+                child: Center(
+                  child: Text(
+                    badgeCount > 99 ? '99+' : badgeCount.toString(),
+                    style: TextStyle(
+                      color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
