@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/cut/cut_bloc.dart';
@@ -61,6 +62,7 @@ class CutView extends StatefulWidget {
 class _CutViewState extends State<CutView> {
   final TextEditingController _descriptionController = TextEditingController();
   final Map<int, TextEditingController> _lengthControllers = {};
+  final Map<int, FocusNode> _lengthFocusNodes = {};
 
   // 为每个上传点创建独立的Cubit
   late final FileUploadCubit _originalMaterialPhotoCubit;
@@ -78,6 +80,9 @@ class _CutViewState extends State<CutView> {
     _originalMaterialPhotoCubit.close();
     for (var controller in _lengthControllers.values) {
       controller.dispose();
+    }
+    for (var focusNode in _lengthFocusNodes.values) {
+      focusNode.dispose();
     }
     for (var cubit in _newMaterialPhotoCubits.values) {
       cubit.close();
@@ -308,6 +313,9 @@ class _CutViewState extends State<CutView> {
               onPressed: () {
                 // 删除时也清理对应的Cubit
                 _newMaterialPhotoCubits.remove(index)?.close();
+                // 预清理对应的长度输入资源，避免在下一次重建前产生泄漏
+                _lengthControllers.remove(index)?.dispose();
+                _lengthFocusNodes.remove(index)?.dispose();
                 context.read<CutBloc>().add(CutNewItemDeleted(index));
               },
             ),
@@ -321,12 +329,14 @@ class _CutViewState extends State<CutView> {
         const SizedBox(height: 12),
         TextFormField(
           controller: _lengthControllers[index],
+          focusNode: _lengthFocusNodes[index],
           decoration: const InputDecoration(
             labelText: '管节长 (mm)',
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           onChanged: (value) {
             final length = double.tryParse(value);
             if (length != null) {
@@ -548,17 +558,23 @@ class _CutViewState extends State<CutView> {
 
   void _updateLengthControllers(List<NewCutMaterialItem> items) {
     final newControllers = <int, TextEditingController>{};
+    final newFocusNodes = <int, FocusNode>{};
     for (int i = 0; i < items.length; i++) {
       final item = items[i];
       final existingController = _lengthControllers[i];
+      final existingFocusNode = _lengthFocusNodes[i];
+      final focusNode = existingFocusNode ?? FocusNode();
+      newFocusNodes[i] = focusNode;
       if (existingController != null) {
         newControllers[i] = existingController;
-        if (existingController.text != (item.length?.toString() ?? '')) {
-          existingController.text = item.length?.toString() ?? '';
+        // 避免在输入框聚焦时重设文本导致光标跳转
+        final desired = _formatLengthText(item.length);
+        if (!focusNode.hasFocus && existingController.text != desired) {
+          existingController.text = desired;
         }
       } else {
         newControllers[i] = TextEditingController(
-          text: item.length?.toString() ?? '',
+          text: _formatLengthText(item.length),
         );
       }
     }
@@ -568,7 +584,22 @@ class _CutViewState extends State<CutView> {
         _lengthControllers[key]?.dispose();
       }
     }
+    // Dispose old, unused focus nodes
+    for (var key in _lengthFocusNodes.keys) {
+      if (!newFocusNodes.containsKey(key)) {
+        _lengthFocusNodes[key]?.dispose();
+      }
+    }
     _lengthControllers.clear();
     _lengthControllers.addAll(newControllers);
+    _lengthFocusNodes
+      ..clear()
+      ..addAll(newFocusNodes);
+  }
+
+  // 仅用于显示：将长度格式化为纯数字字符串（四舍五入到整数毫米）
+  String _formatLengthText(double? len) {
+    if (len == null || len.isNaN || !len.isFinite) return '';
+    return len.toStringAsFixed(0);
   }
 }
