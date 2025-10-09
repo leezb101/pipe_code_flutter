@@ -601,9 +601,16 @@ class AcceptanceBloc extends Bloc<AcceptanceEvent, AcceptanceState> {
         // 发出加载状态
         emit(const AcceptanceMaterialsLoading());
 
-        final rsp = await _materialHandleRepository.scanBatchToQueryAll(
-          event.codes,
-        );
+        var rsp;
+        if (event.isBatch) {
+          rsp = await _materialHandleRepository.scanBatchToQueryAll(
+            event.codes,
+          );
+        } else {
+          rsp = await _materialHandleRepository.scanSingleToQueryAll(
+            event.codes.first,
+          );
+        }
 
         if (rsp.isSuccess && rsp.data != null) {
           emit(
