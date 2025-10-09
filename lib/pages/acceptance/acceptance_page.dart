@@ -420,7 +420,7 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
         materialName: material.baseInfo.prodNm ?? '无',
         primaryText: material.baseInfo.materialCode ?? '无',
         batchCode: material.baseInfo.batchCode ?? '无',
-        materialId: material.baseInfo.materialCode ?? '无',
+        materialId: '${material.baseInfo.materialId}',
         status: material.baseInfo.status,
         statusName: material.baseInfo.statusName,
         validStatus: MaterialStatusEnum.init,
