@@ -417,10 +417,21 @@ class _RecordsListPageState extends State<RecordsListPage>
             last.project.projectId != sessionState.project.projectId;
         if (typeChanged || projectChanged) {
           if (mounted) {
+            // 🎯 关键修复：项目切换时清空缓存，避免旧项目数据干扰
+            if (projectChanged) {
+              try {
+                getIt<RecordsRepository>().clearCache();
+              } catch (_) {}
+            }
+            
             setState(() {
               _setupTabsBySession(sessionState);
               // 重置 RecordsBloc 状态，并加载新身份下的默认Tab
               final ids = _resolveIds(sessionState);
+              
+              // 🎯 关键修复：预加载所有需要显示 badge 的 tab 数据
+              _preloadTabBadgeCounts(sessionState, ids.$1, ids.$2);
+              
               // 强制刷新以绕开缓存
               context.read<RecordsBloc>().add(
                 RefreshRecords(
@@ -604,6 +615,75 @@ class _RecordsListPageState extends State<RecordsListPage>
       uid = int.tryParse(sessionState.user.id);
     }
     return (uid, pid);
+  }
+
+  /// 预加载需要显示 badge 的 tab 数据（项目切换时调用）
+  void _preloadTabBadgeCounts(SessionState sessionState, int? uid, int? pid) {
+    // 仓管员需要预加载仓库待办
+    if (sessionState is SessionStorekeeperEstablished) {
+      context.read<RecordsBloc>().add(
+        LoadRecords(
+          recordType: RecordType.warehouseTodo,
+          userId: uid,
+          projectId: pid,
+          pageNum: 1,
+          pageSize: 1,
+          tracingContext: TracingContext(
+            source: 'records_list_page',
+            action: 'preload_badge_count',
+            description: '预加载仓库待办数量',
+          ),
+        ),
+      );
+    }
+
+    // 施工方需要预加载 todo、siteTodo
+    if (sessionState is SessionProjectEstablished) {
+      final role = sessionState.currentUserRoleInfo.projectRoleType;
+
+      // 所有项目参与方都需要 todo
+      context.read<RecordsBloc>().add(
+        LoadRecords(
+          recordType: RecordType.todo,
+          userId: uid,
+          projectId: pid,
+          pageNum: 1,
+          pageSize: 1,
+          tracingContext: TracingContext(
+            source: 'records_list_page',
+            action: 'preload_badge_count',
+            description: '预加载待办数量',
+          ),
+        ),
+      );
+
+      // builder、builderSub、laborer 需要 siteTodo
+      if (role == UserRole.builder ||
+          role == UserRole.builderSub ||
+          role == UserRole.laborer) {
+        context.read<RecordsBloc>().add(
+          LoadRecords(
+            recordType: RecordType.siteTodo,
+            userId: uid,
+            projectId: pid,
+            pageNum: 1,
+            pageSize: 1,
+            tracingContext: TracingContext(
+              source: 'records_list_page',
+              action: 'preload_badge_count',
+              description: '预加载现场待办数量',
+            ),
+          ),
+        );
+      }
+
+      // builder、builderSub 需要预加载盘点任务
+      if (role == UserRole.builder || role == UserRole.builderSub) {
+        context.read<InventoryBloc>().add(
+          const InventoryTasksFetched(isRefresh: true),
+        );
+      }
+    }
   }
 
   /// 计算需要显示 badge 的 tab 的数量

@@ -48,6 +48,8 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       getIt<ImprovedTracingManager>();
   List<String> _routeNames = [];
   bool _isUiInitialized = false;
+  bool _isBadgeDataReady = false; // 🎯 追踪 badge 数据是否准备好
+  int? _lastProjectId; // 🎯 追踪当前项目ID，用于检测项目切换
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -111,25 +113,58 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   Widget _buildMainInterface() {
     return BlocConsumer<SessionBloc, SessionState>(
       listener: (context, state) {
+        // 检测是否是首次初始化或项目切换
+        bool isFirstInit = !_isUiInitialized;
+        bool isProjectSwitch = false;
+
+        if (state is SessionProjectEstablished) {
+          final currentProjectId = state.project.projectId;
+          if (_lastProjectId != null && _lastProjectId != currentProjectId) {
+            isProjectSwitch = true; // 项目发生了切换
+          }
+          _lastProjectId = currentProjectId;
+        } else if (state is SessionStorekeeperEstablished) {
+          // 仓管员没有项目ID，切换身份时也需要重新加载
+          if (_lastProjectId != null) {
+            isProjectSwitch = true;
+          }
+          _lastProjectId = null;
+        }
+
+        // 首次初始化或项目切换时，都需要预加载 badge 数据
         if ((state is SessionAdminEstablished ||
                 state is SessionProjectEstablished ||
                 state is SessionStorekeeperEstablished) &&
-            !_isUiInitialized) {
+            (isFirstInit || isProjectSwitch)) {
+          
           // 根据用户角色初始化标签页和导航
           bool isAdmin = state is SessionAdminEstablished;
           _setupTabsForRole(isAdmin);
 
+          // 🎯 关键修复：项目切换时清空缓存并重置 badge 数据准备状态
+          if (isProjectSwitch) {
+            setState(() {
+              _isBadgeDataReady = false;
+            });
+            // 清空所有记录缓存，避免旧项目的缓存干扰新项目的数据加载
+            try {
+              getIt<RecordsRepository>().clearCache();
+            } catch (_) {}
+          }
+
           // 预加载 badge 计数所需的数据
           _preloadBadgeCounts(state);
 
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              _updateTabContext(0, isInitial: true);
-            }
-          });
-          setState(() {
-            _isUiInitialized = true;
-          });
+          if (isFirstInit) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _updateTabContext(0, isInitial: true);
+              }
+            });
+            setState(() {
+              _isUiInitialized = true;
+            });
+          }
         }
       },
       builder: (context, sessionState) {
@@ -343,6 +378,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         sessionState.currentUserRoleInfo.projectRoleType == UserRole.laborer;
 
     int totalCount = 0;
+    bool allDataReady = true; // 追踪是否所有需要的数据都已加载
 
     try {
       final repo = getIt<RecordsRepository>();
@@ -353,7 +389,11 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         userId: uid,
         projectId: pid,
       );
-      totalCount += todoMeta?.total ?? 0;
+      if (todoMeta == null) {
+        allDataReady = false; // 数据还未加载
+      } else {
+        totalCount += todoMeta.total;
+      }
 
       // 2. 仓管员：加上仓库待办
       if (isStorekeeper) {
@@ -362,7 +402,11 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           userId: uid,
           projectId: pid,
         );
-        totalCount += whMeta?.total ?? 0;
+        if (whMeta == null) {
+          allDataReady = false;
+        } else {
+          totalCount += whMeta.total;
+        }
       }
 
       // 3. 施工方（builder、builderSub、laborer）：加上现场待办
@@ -372,15 +416,53 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           userId: uid,
           projectId: pid,
         );
-        totalCount += siteTodoMeta?.total ?? 0;
+        if (siteTodoMeta == null) {
+          allDataReady = false;
+        } else {
+          totalCount += siteTodoMeta.total;
+        }
       }
 
       // 4. builder、builderSub：加上盘点任务
       if (isBuilder) {
-        totalCount += inventoryState.totalTasks;
+        // 检查 InventoryBloc 是否已加载完成
+        if (inventoryState.listStatus == DataStatus.initial ||
+            inventoryState.listStatus == DataStatus.loading) {
+          allDataReady = false;
+        } else {
+          totalCount += inventoryState.totalTasks;
+        }
       }
     } catch (_) {
       // ignore cache failures
+      allDataReady = false;
+    }
+
+    // 🎯 关键：只有当所有数据都准备好时才显示 badge
+    // 否则返回 0，这样就不会显示 badge（因为有 if (todoCount > 0) 的判断）
+    if (!allDataReady) {
+      // 如果还有数据未加载完成，延迟更新状态标志
+      if (_isBadgeDataReady) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              _isBadgeDataReady = false;
+            });
+          }
+        });
+      }
+      return 0; // 不显示 badge
+    }
+
+    // 所有数据都准备好了，更新状态标志
+    if (!_isBadgeDataReady) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _isBadgeDataReady = true;
+          });
+        }
+      });
     }
 
     return totalCount;
