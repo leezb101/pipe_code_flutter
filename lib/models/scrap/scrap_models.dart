@@ -17,12 +17,9 @@ class ScrapDetailVO extends Equatable {
   @JsonKey(defaultValue: [])
   final List<MaterialVO> materialList;
   @JsonKey(defaultValue: [])
-  final List<AttachmentVO> attachmentList;
+  final List<AttachmentVO> imageList;
 
-  const ScrapDetailVO({
-    required this.materialList,
-    required this.attachmentList,
-  });
+  const ScrapDetailVO({required this.materialList, required this.imageList});
 
   factory ScrapDetailVO.fromJson(Map<String, dynamic> json) =>
       _$ScrapDetailVOFromJson(json);
@@ -30,5 +27,5 @@ class ScrapDetailVO extends Equatable {
   Map<String, dynamic> toJson() => _$ScrapDetailVOToJson(this);
 
   @override
-  List<Object?> get props => [materialList, attachmentList];
+  List<Object?> get props => [materialList, imageList];
 }

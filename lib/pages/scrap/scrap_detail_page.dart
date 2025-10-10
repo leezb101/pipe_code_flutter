@@ -16,6 +16,7 @@ import 'package:pipe_code_flutter/models/acceptance/material_vo.dart';
 import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/models/scrap/scrap_models.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/widgets/file_upload/image_preview_widget.dart';
 
 class ScrapDetailPage extends StatefulWidget {
   final int scrapId;
@@ -109,7 +110,7 @@ class _ScrapDetailPageState extends State<ScrapDetailPage> {
           const SizedBox(height: 24),
 
           // 照片部分
-          _buildPhotoSection(scrapDetail.attachmentList),
+          _buildPhotoSection(scrapDetail.imageList),
         ],
       ),
     );
@@ -229,15 +230,21 @@ class _ScrapDetailPageState extends State<ScrapDetailPage> {
           Wrap(
             spacing: 12,
             runSpacing: 12,
-            children: attachmentList.map((attachment) {
-              return _buildPhotoItem(attachment.url);
+            children: attachmentList.asMap().entries.map((entry) {
+              final index = entry.key;
+              final attachment = entry.value;
+              return _buildPhotoItem(attachment.url, index, attachmentList);
             }).toList(),
           ),
       ],
     );
   }
 
-  Widget _buildPhotoItem(String? photoUrl) {
+  Widget _buildPhotoItem(
+    String? photoUrl,
+    int currentIndex,
+    List<AttachmentVO> attachmentList,
+  ) {
     if (photoUrl == null || photoUrl.isEmpty) {
       return Container(
         width: 120,
@@ -259,7 +266,7 @@ class _ScrapDetailPageState extends State<ScrapDetailPage> {
     }
 
     return GestureDetector(
-      onTap: () => _showFullScreenImage(photoUrl),
+      onTap: () => _showFullScreenImage(currentIndex, attachmentList),
       child: Hero(
         tag: photoUrl,
         child: Container(
@@ -343,22 +350,25 @@ class _ScrapDetailPageState extends State<ScrapDetailPage> {
     }
   }
 
-  void _showFullScreenImage(String photoUrl) {
+  void _showFullScreenImage(
+    int initialIndex,
+    List<AttachmentVO> attachmentList,
+  ) {
+    // 提取所有有效的图片 URL
+    final imageUrls = attachmentList
+        .where((attachment) => attachment.url.isNotEmpty)
+        .map((attachment) => attachment.url)
+        .toList();
+
+    if (imageUrls.isEmpty) {
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            iconTheme: const IconThemeData(color: Colors.white),
-          ),
-          body: Center(
-            child: Hero(
-              tag: photoUrl,
-              child: InteractiveViewer(child: _buildImage(photoUrl)),
-            ),
-          ),
+        builder: (context) => ImagePreviewWidget(
+          imageUrls: imageUrls,
+          initialIndex: initialIndex,
         ),
       ),
     );

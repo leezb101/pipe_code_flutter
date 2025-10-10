@@ -13,8 +13,8 @@ ScrapDetailVO _$ScrapDetailVOFromJson(Map<String, dynamic> json) =>
               ?.map((e) => MaterialVO.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      attachmentList:
-          (json['attachmentList'] as List<dynamic>?)
+      imageList:
+          (json['imageList'] as List<dynamic>?)
               ?.map((e) => AttachmentVO.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -23,5 +23,5 @@ ScrapDetailVO _$ScrapDetailVOFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$ScrapDetailVOToJson(ScrapDetailVO instance) =>
     <String, dynamic>{
       'materialList': instance.materialList,
-      'attachmentList': instance.attachmentList,
+      'imageList': instance.imageList,
     };

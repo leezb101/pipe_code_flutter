@@ -432,14 +432,14 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
         Logger.info('Submitting scrap request', tag: 'ScrapBloc');
 
         // 构建附件列表
-        final attachmentList = currentState.photoUrls
+        final imageList = currentState.photoUrls
             .map((url) => AttachmentVO(url: url))
             .toList();
 
         // 构建提交数据
         final scrapDetailVO = ScrapDetailVO(
           materialList: currentState.materialList,
-          attachmentList: attachmentList,
+          imageList: imageList,
         );
 
         // 提交请求
@@ -485,6 +485,10 @@ class ScrapBloc extends Bloc<ScrapEvent, ScrapState> {
   /// 将MaterialInfo转换为MaterialVO
   MaterialVO _convertMaterialInfoToMaterialVO(MaterialInfo materialInfo) {
     return MaterialVO(
+      materialCode: materialInfo.baseInfo.materialCode,
+      batchCode: materialInfo.baseInfo.batchCode,
+      status: materialInfo.baseInfo.status,
+      statusName: materialInfo.baseInfo.statusName,
       materialId: materialInfo.baseInfo.materialId,
       materialName: materialInfo.baseInfo.prodNm ?? '未知物料',
       num: 1, // 默认数量为1
