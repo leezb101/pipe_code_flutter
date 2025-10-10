@@ -18,6 +18,7 @@ class UnifiedCard extends StatelessWidget {
     this.title,
     this.icon,
     this.iconColor,
+    this.trailing,
     this.padding,
     this.margin,
     this.elevation,
@@ -39,6 +40,9 @@ class UnifiedCard extends StatelessWidget {
 
   /// 图标颜色
   final Color? iconColor;
+
+  /// 标题右侧的附加组件
+  final Widget? trailing;
 
   /// 内边距
   final EdgeInsetsGeometry? padding;
@@ -119,6 +123,7 @@ class UnifiedCard extends StatelessWidget {
         ],
         if (title != null)
           Expanded(child: Text(title!, style: AppTheme.titleMedium)),
+        if (trailing != null) trailing!,
       ],
     );
   }

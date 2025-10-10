@@ -334,82 +334,120 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
   }
 
   Widget _buildMaterialsList() {
-    return UnifiedCard(
-      title: '材料清单',
-      icon: Icons.inventory,
-      businessType: 'acceptance',
-      child: BlocBuilder<AcceptanceBloc, AcceptanceState>(
-        builder: (context, state) {
-          // 处理首次加载材料的情况
-          if (state is AcceptanceMaterialsLoading) {
-            return _buildInitialLoadingIndicator(state.message);
-          }
+    return BlocBuilder<AcceptanceBloc, AcceptanceState>(
+      builder: (context, state) {
+        final materials = state is AcceptanceEditingState
+            ? state.currentMaterials
+            : _currentMaterials;
 
-          final materials = state is AcceptanceEditingState
-              ? state.currentMaterials
-              : _currentMaterials;
+        final materialCount = materials.length;
 
-          final errorMaterials = state is AcceptanceEditingState
-              ? state.errorMaterials
-              : <dynamic>[];
-
-          // 检查是否正在追加材料
-          final isAppendLoading =
-              state is AcceptanceEditingState && state.isLoadingAppendMaterials;
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 正常材料列表
-              ...materials.map(_buildMaterialItem),
-
-              // 如果正在追加材料，在材料列表下方显示加载指示器
-              if (isAppendLoading) _buildAppendLoadingIndicator(),
-
-              // 错误材料展示区域
-              if (errorMaterials.isNotEmpty) ...[
-                const SizedBox(height: AppTheme.spacingLarge),
-                ErrorMaterialSection(
-                  errors: errorMaterials,
-                  title: '验收异常材料',
-                  onErrorItemTap: _handleErrorMaterialTap,
-                  collapsible: true,
-                  initialExpanded: true,
+        return UnifiedCard(
+          title: '材料清单',
+          icon: Icons.inventory,
+          businessType: 'acceptance',
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.primaryColor.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '已计数：',
+                  style: TextStyle(fontSize: 14, color: Colors.black54),
+                ),
+                Text(
+                  '$materialCount',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryColor,
+                  ),
                 ),
               ],
+            ),
+          ),
+          child: _buildMaterialsListContent(state),
+        );
+      },
+    );
+  }
 
-              const SizedBox(height: AppTheme.spacingMedium),
-              Row(
-                children: [
-                  Expanded(
-                    child: UnifiedButton(
-                      text: '继续扫码',
-                      type: UnifiedButtonType.outlined,
-                      businessType: 'acceptance',
-                      onPressed: isAppendLoading
-                          ? null
-                          : _scanAppendMaterials, // 加载时禁用按钮
-                    ),
-                  ),
-                  const SizedBox(width: AppTheme.spacingMedium),
-                  Expanded(
-                    child: UnifiedButton(
-                      text: '扫码剔除',
-                      type: UnifiedButtonType.outlined,
-                      businessType: 'acceptance',
-                      foregroundColor: Colors.red,
-                      borderColor: Colors.red,
-                      onPressed: isAppendLoading
-                          ? null
-                          : _scanRemoveMaterials, // 加载时禁用按钮
-                    ),
-                  ),
-                ],
+  Widget _buildMaterialsListContent(AcceptanceState state) {
+    // 处理首次加载材料的情况
+    if (state is AcceptanceMaterialsLoading) {
+      return _buildInitialLoadingIndicator(state.message);
+    }
+
+    final materials = state is AcceptanceEditingState
+        ? state.currentMaterials
+        : _currentMaterials;
+
+    final errorMaterials = state is AcceptanceEditingState
+        ? state.errorMaterials
+        : <dynamic>[];
+
+    // 检查是否正在追加材料
+    final isAppendLoading =
+        state is AcceptanceEditingState && state.isLoadingAppendMaterials;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 正常材料列表
+        ...materials.map(_buildMaterialItem),
+
+        // 如果正在追加材料，在材料列表下方显示加载指示器
+        if (isAppendLoading) _buildAppendLoadingIndicator(),
+
+        // 错误材料展示区域
+        if (errorMaterials.isNotEmpty) ...[
+          const SizedBox(height: AppTheme.spacingLarge),
+          ErrorMaterialSection(
+            errors: errorMaterials,
+            title: '验收异常材料',
+            onErrorItemTap: _handleErrorMaterialTap,
+            collapsible: true,
+            initialExpanded: true,
+          ),
+        ],
+
+        const SizedBox(height: AppTheme.spacingMedium),
+        Row(
+          children: [
+            Expanded(
+              child: UnifiedButton(
+                text: '继续扫码',
+                type: UnifiedButtonType.outlined,
+                businessType: 'acceptance',
+                onPressed: isAppendLoading
+                    ? null
+                    : _scanAppendMaterials, // 加载时禁用按钮
               ),
-            ],
-          );
-        },
-      ),
+            ),
+            const SizedBox(width: AppTheme.spacingMedium),
+            Expanded(
+              child: UnifiedButton(
+                text: '扫码剔除',
+                type: UnifiedButtonType.outlined,
+                businessType: 'acceptance',
+                foregroundColor: Colors.red,
+                borderColor: Colors.red,
+                onPressed: isAppendLoading
+                    ? null
+                    : _scanRemoveMaterials, // 加载时禁用按钮
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
