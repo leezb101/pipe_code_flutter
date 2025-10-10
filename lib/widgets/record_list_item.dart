@@ -69,46 +69,84 @@ class RecordListItem extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
-    String mainTitle;
     if (record is TodoRecordItem) {
       final todoRecord = record as TodoRecordItem;
-      mainTitle = '任务名称：${todoRecord.todo.name}';
-    } else {
-      mainTitle = '工程名称：${record.projectName}';
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '任务名称：${todoRecord.todo.name}',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      );
     }
 
+    // 业务记录项
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          mainTitle,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        if (record is! TodoRecordItem) ...[
+        // 所在项目
+        _buildProjectInfo('所在项目', record.projectName, record.projectCode),
+
+        // 目的项目（仅dispatch类型显示）
+        if (record is BusinessRecordItem &&
+            (record as BusinessRecordItem).toProjectName != null &&
+            (record as BusinessRecordItem).toProjectName!.isNotEmpty) ...[
           const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              '工程编号：${record.projectCode}',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+          _buildProjectInfo(
+            '目的项目',
+            (record as BusinessRecordItem).toProjectName,
+            null,
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildProjectInfo(
+    String label,
+    String? projectName,
+    String? projectCode,
+  ) {
+    return RichText(
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: '$label：',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          TextSpan(
+            text: projectName ?? '-',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          if (projectCode != null && projectCode.isNotEmpty)
+            TextSpan(
+              text: '  ($projectCode)',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[500],
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+        ],
+      ),
     );
   }
 

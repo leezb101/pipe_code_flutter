@@ -44,6 +44,8 @@ class BusinessRecordItem implements RecordItem {
 
   String? get statusName => _record.statusName;
 
+  String? get toProjectName => _record.toProjectName;
+
   BusinessRecord get record => _record;
 }
 

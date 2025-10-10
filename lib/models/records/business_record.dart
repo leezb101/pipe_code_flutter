@@ -16,6 +16,7 @@ class BusinessRecord extends Equatable {
   @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
   final DateTime? doTime;
   final String? statusName;
+  final String? toProjectName;
 
   const BusinessRecord({
     required this.id,
@@ -26,6 +27,7 @@ class BusinessRecord extends Equatable {
     required this.userName,
     this.doTime,
     this.statusName,
+    this.toProjectName,
   });
 
   factory BusinessRecord.fromJson(Map<String, dynamic> json) =>
@@ -43,6 +45,7 @@ class BusinessRecord extends Equatable {
     userName,
     doTime,
     statusName,
+    toProjectName,
   ];
 
   BusinessRecord copyWith({
@@ -54,6 +57,7 @@ class BusinessRecord extends Equatable {
     String? userName,
     DateTime? doTime,
     String? statusName,
+    String? toProjectName,
   }) {
     return BusinessRecord(
       id: id ?? this.id,
@@ -64,6 +68,7 @@ class BusinessRecord extends Equatable {
       userName: userName ?? this.userName,
       doTime: doTime ?? this.doTime,
       statusName: statusName ?? this.statusName,
+      toProjectName: toProjectName ?? this.toProjectName,
     );
   }
 
