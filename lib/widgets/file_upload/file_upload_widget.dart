@@ -9,6 +9,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 
@@ -20,8 +21,9 @@ class FileUploadWidget extends StatefulWidget {
     required this.onAdd,
     required this.onRemove,
     required this.onRetry,
-    this.allowedExtensions = const ['pdf', 'doc', 'docx'],
+    this.allowedExtensions = const ['pdf', 'jpg', 'png', 'heic'],
     this.maxFiles = 5,
+    this.enableGalleryPicker = true,
   });
 
   final String title;
@@ -32,11 +34,18 @@ class FileUploadWidget extends StatefulWidget {
   final List<String> allowedExtensions;
   final int maxFiles;
 
+  /// 是否启用相册选择器，默认为 true
+  /// 当设置为 false 时，点击上传按钮将直接打开文件选择器
+  final bool enableGalleryPicker;
+
   @override
   State<FileUploadWidget> createState() => _FileUploadWidgetState();
 }
 
 class _FileUploadWidgetState extends State<FileUploadWidget> {
+  final ImagePicker _imagePicker = ImagePicker();
+
+  /// 从系统文件管理器选择文件
   Future<void> _pickFiles() async {
     final context = this.context;
     if (widget.states.length >= widget.maxFiles) {
@@ -67,6 +76,122 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
         ).showSnackBar(SnackBar(content: Text('选择文件失败: $e')));
       }
     }
+  }
+
+  /// 从相册选择图片（仅选择图片格式文件）
+  Future<void> _pickImagesFromGallery() async {
+    final context = this.context;
+    if (widget.states.length >= widget.maxFiles) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('最多只能上传 ${widget.maxFiles} 个文件')));
+      return;
+    }
+
+    try {
+      final int remainingSlots = widget.maxFiles - widget.states.length;
+      List<XFile> pickedFiles = [];
+
+      // 当只能添加1个文件时，使用单张选择；否则使用多选
+      if (remainingSlots == 1) {
+        final XFile? pickedFile = await _imagePicker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 80,
+          maxWidth: 1920,
+        );
+        if (pickedFile != null) {
+          pickedFiles = [pickedFile];
+        }
+      } else {
+        pickedFiles = await _imagePicker.pickMultiImage(
+          imageQuality: 80,
+          maxWidth: 1920,
+          limit: remainingSlots,
+        );
+      }
+
+      if (pickedFiles.isNotEmpty) {
+        // 重新计算剩余可用数量，防止在选择过程中状态发生变化
+        final currentRemainingSlots = widget.maxFiles - widget.states.length;
+
+        // 截取不超过剩余数量的文件
+        final limitedFiles = pickedFiles.take(currentRemainingSlots).toList();
+
+        // 如果选择的文件数量超过了剩余限制，提示用户
+        if (pickedFiles.length > currentRemainingSlots && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '最多还能添加 $currentRemainingSlots 个文件，已自动调整为 ${limitedFiles.length} 个',
+              ),
+            ),
+          );
+        }
+
+        final newFiles = limitedFiles.map((file) => File(file.path)).toList();
+        widget.onAdd(newFiles);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
+      }
+    }
+  }
+
+  /// 显示选择上传方式的弹窗
+  void _showUploadOptions() {
+    // 如果禁用相册选择，直接打开文件选择器
+    if (!widget.enableGalleryPicker) {
+      _pickFiles();
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library, color: Colors.blue),
+                  title: const Text('从相册选择'),
+                  subtitle: const Text('选择图片文件'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImagesFromGallery();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.folder_open, color: Colors.orange),
+                  title: const Text('从文件选择'),
+                  subtitle: Text(
+                    '支持格式: ${widget.allowedExtensions.join(', ')}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickFiles();
+                  },
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.close, color: Colors.grey),
+                  title: const Text('取消'),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   String _getFileExtension(String fileName) {
@@ -241,7 +366,7 @@ class _FileUploadWidgetState extends State<FileUploadWidget> {
   Widget _buildAddFileButton() {
     final bool canAdd = widget.states.length < widget.maxFiles;
     return GestureDetector(
-      onTap: canAdd ? _pickFiles : null,
+      onTap: canAdd ? _showUploadOptions : null,
       child: DottedBorder(
         options: RoundedRectDottedBorderOptions(
           radius: const Radius.circular(8),
