@@ -91,6 +91,45 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
     }
   }
 
+  /// 根据 materialId 查找节点
+  PipeCuttingTreeNode? _findNodeById(int materialId) {
+    PipeCuttingTreeNode? findInNode(PipeCuttingTreeNode node) {
+      if (node.materialId == materialId) {
+        return node;
+      }
+      for (final child in node.children) {
+        final found = findInNode(child);
+        if (found != null) {
+          return found;
+        }
+      }
+      return null;
+    }
+
+    for (final root in treeController.roots) {
+      final found = findInNode(root);
+      if (found != null) {
+        return found;
+      }
+    }
+    return null;
+  }
+
+  /// 查找节点的父节点
+  PipeCuttingTreeNode? _findParentNode(PipeCuttingTreeNode targetNode) {
+    if (targetNode.parentId == null) {
+      return null;
+    }
+
+    // 尝试将 parentId 转换为 int 来查找父节点
+    final parentMaterialId = int.tryParse(targetNode.parentId!);
+    if (parentMaterialId == null) {
+      return null;
+    }
+
+    return _findNodeById(parentMaterialId);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -261,7 +300,15 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
     final hasChildren = node.children.isNotEmpty;
 
     return InkWell(
-      onTap: () => _showNodeDetails(context, node),
+      onTap: () {
+        if (entry.level == 0) {
+          // 根节点不响应点击
+          return;
+        }
+        // 查找父节点（用于获取切割时间、操作人、联系电话）
+        final parentNode = _findParentNode(node);
+        _showNodeDetails(context, node, parentNode);
+      },
       borderRadius: BorderRadius.circular(12),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 6),
@@ -405,20 +452,25 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
     return Colors.grey[300]!;
   }
 
-  void _showNodeDetails(BuildContext context, PipeCuttingTreeNode node) {
+  void _showNodeDetails(
+    BuildContext context,
+    PipeCuttingTreeNode node,
+    PipeCuttingTreeNode? parentNode,
+  ) {
+    // 从父节点获取切割时间、操作人、联系电话，如果父节点不存在则使用当前节点的值
+    final cutTime = parentNode?.cutTime ?? node.cutTime;
+    final cutUserName = parentNode?.cutUserName ?? node.cutUserName;
+    final cutUserPhone = parentNode?.cutUserPhone ?? node.cutUserPhone;
+
     final details = [
-      ('显示文本', node.displayText),
       ('材料ID', node.materialId.toString()),
       ('根节点ID', node.rootId.toString()),
       if (node.parentId != null) ('父节点ID', node.parentId!),
-      if (node.len != null && node.len!.isNotEmpty) ('长度', node.len!),
-      if (node.cutTime != null && node.cutTime!.isNotEmpty)
-        ('切割时间', node.cutTime!),
-      if (node.cutUserName != null && node.cutUserName!.isNotEmpty)
-        ('操作人', node.cutUserName!),
-      ('操作人ID', node.cutUserId.toString()),
-      if (node.cutUserPhone != null && node.cutUserPhone!.isNotEmpty)
-        ('联系电话', node.cutUserPhone!),
+      if (node.len != null && node.len!.isNotEmpty) ('长度', '${node.len!} mm'),
+      if (cutTime != null && cutTime.isNotEmpty) ('切割时间', cutTime),
+      if (cutUserName != null && cutUserName.isNotEmpty) ('操作人', cutUserName),
+      if (cutUserPhone != null && cutUserPhone.isNotEmpty)
+        ('操作人电话', cutUserPhone),
       if (node.currentId != null && node.currentId!.isNotEmpty)
         ('当前ID', node.currentId!),
       ('层级', node.level.toString()),
@@ -502,7 +554,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
                           if (node.img != null && node.img!.isNotEmpty)
                             _buildImagePreview(context, node.img!),
                           Padding(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(4),
                             child: ListView.separated(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
@@ -562,7 +614,7 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: Colors.grey[50],
           borderRadius: BorderRadius.circular(8),
@@ -574,8 +626,6 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
           children: [
             Row(
               children: [
-                Icon(Icons.label, size: 16, color: Colors.grey[600]),
-                const SizedBox(width: 8),
                 Text(
                   label,
                   style: TextStyle(
