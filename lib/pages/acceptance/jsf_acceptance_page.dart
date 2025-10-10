@@ -566,10 +566,10 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
             bloc: _inspectionReportsCubit,
             builder: (context, states) {
               return FileUploadWidget(
-                title: '报验单',
+                title: '报验单(图片或pdf)',
                 states: states,
-                allowedExtensions: const ['pdf', 'doc', 'docx'],
-                maxFiles: 1,
+                allowedExtensions: const ['pdf', 'jpg', 'png', 'heic'],
+                maxFiles: 5,
                 onAdd: (files) => _inspectionReportsCubit.addFiles(files),
                 onRemove: (uniqueId) =>
                     _inspectionReportsCubit.removeFile(uniqueId),
@@ -585,8 +585,8 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
               return FileUploadWidget(
                 title: '验收报告',
                 states: states,
-                allowedExtensions: const ['pdf', 'doc', 'docx'],
-                maxFiles: 1,
+                allowedExtensions: const ['pdf', 'jpg', 'png', 'heic'],
+                maxFiles: 5,
                 onAdd: (files) => _acceptanceReportsCubit.addFiles(files),
                 onRemove: (uniqueId) =>
                     _acceptanceReportsCubit.removeFile(uniqueId),
