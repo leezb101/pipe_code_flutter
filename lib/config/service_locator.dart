@@ -116,6 +116,11 @@ final Map<String, DocumentRouteDefinition> _defaultDocumentRoutes = {
         relativeDocumentUri('/wd/signOut', queryParameters: {'id': id}),
     nameBuilder: (id) => '出库单-$id.doc',
   ),
+  'dispatch-report': DocumentRouteDefinition(
+    uriBuilder: (id) =>
+        relativeDocumentUri('/wd/dispatch', queryParameters: {'id': id}),
+    nameBuilder: (id) => '调拨单-$id.doc',
+  ),
 };
 
 final GetIt getIt = GetIt.instance;

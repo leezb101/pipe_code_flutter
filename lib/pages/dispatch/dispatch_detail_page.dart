@@ -7,10 +7,14 @@ import 'package:pipe_code_flutter/models/common/common_user_vo.dart';
 import 'package:pipe_code_flutter/bloc/dispatch/dispatch_bloc.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/dispatch_repository.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/common_query_api_service.dart';
+import 'package:pipe_code_flutter/services/documents/document_route_resolver.dart';
+import 'package:pipe_code_flutter/services/documents/document_service.dart';
 import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
+import 'package:pipe_code_flutter/widgets/document_button.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DispatchDetailPage extends StatelessWidget {
   final int dispatchId;
@@ -40,9 +44,14 @@ class _DispatchDetailPageView extends StatefulWidget {
 }
 
 class _DispatchDetailPageViewState extends State<_DispatchDetailPageView> {
+  late final DocumentService _documentService;
+  late final DocumentRouteResolver _routeResolver;
+
   @override
   void initState() {
     super.initState();
+    _documentService = getIt<DocumentService>();
+    _routeResolver = getIt<DocumentRouteResolver>();
     _loadDispatchDetail();
   }
 
@@ -66,6 +75,36 @@ class _DispatchDetailPageViewState extends State<_DispatchDetailPageView> {
       ),
       backgroundColor: AppTheme.grey50,
       body: _buildBody(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+        child: SizedBox(
+          width: double.infinity,
+          child: DocumentButton(
+            businessType: 'dispatch-report',
+            entityId: widget.dispatchId,
+            documentService: _documentService,
+            routeResolver: _routeResolver,
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingLarge,
+                vertical: AppTheme.spacingMedium,
+              ),
+              backgroundColor: AppTheme.dispatchColor,
+              foregroundColor: Colors.white,
+            ),
+            onDownloadCompleted: (filePath) {
+              SharePlus.instance.share(
+                ShareParams(
+                  files: [XFile(filePath)],
+                  text: "调拨单",
+                  subject: "调拨明细文件",
+                ),
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 
