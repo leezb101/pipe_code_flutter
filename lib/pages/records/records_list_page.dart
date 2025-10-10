@@ -158,14 +158,8 @@ class _RecordsListPageState extends State<RecordsListPage>
     }
     _allTabs = tabs;
 
-    // 根据最终的会话身份设置默认选中的tab
-    if (sessionState is SessionStorekeeperEstablished && isStoreKeeper) {
-      // 独立库管员身份，默认"仓管待办"优先
-      _initialTab = RecordType.warehouseTodo;
-    } else {
-      // 其他身份，默认"待办"优先
-      _initialTab = RecordType.todo;
-    }
+    // 🎯 修复：不管什么角色，默认选中的都是第一个tab（index==0）
+    _initialTab = tabs.isNotEmpty ? tabs[0] : RecordType.todo;
   }
 
   @override

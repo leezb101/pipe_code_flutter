@@ -288,7 +288,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     final int? uid = ids.$1;
     final int? pid = ids.$2;
 
-    // 仓管员需要预加载仓库待办
+    // 仓管员需要预加载仓库待办和普通待办
     if (sessionState is SessionStorekeeperEstablished) {
       context.read<RecordsBloc>().add(
         LoadRecords(
@@ -301,6 +301,22 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             source: 'main_page',
             action: 'preload_badge_count',
             description: '预加载仓库待办数量',
+          ),
+        ),
+      );
+
+      // 🎯 关键修复：仓管员也需要预加载普通待办（badge 计算需要）
+      context.read<RecordsBloc>().add(
+        LoadRecords(
+          recordType: RecordType.todo,
+          userId: uid,
+          projectId: pid,
+          pageNum: 1,
+          pageSize: 1,
+          tracingContext: TracingContext(
+            source: 'main_page',
+            action: 'preload_badge_count',
+            description: '预加载待办数量',
           ),
         ),
       );
