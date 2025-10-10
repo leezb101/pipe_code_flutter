@@ -29,6 +29,7 @@ import 'package:pipe_code_flutter/widgets/material/material_detail_display.dart'
 import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
+import 'package:pipe_code_flutter/widgets/searchable_dropdown.dart';
 
 class AcceptancePage extends StatelessWidget {
   const AcceptancePage({
@@ -682,102 +683,38 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
   }
 
   Widget _buildWarehouseSelection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '选择已有仓库：',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<int>(
-              value: _selectedWarehouseId,
-              isExpanded: true,
-              // 允许下拉项根据内容自适应高度（多行展示）
-              itemHeight: null,
-              // 限制下拉菜单的最大高度，避免过长遮挡
-              menuMaxHeight: 400,
-              // 选中项在收起状态下的自定义展示，单行省略号
-              selectedItemBuilder: (BuildContext context) {
-                return _warehouseList.map<Widget>((warehouse) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      '${warehouse.name} - ${warehouse.address}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  );
-                }).toList();
-              },
-              hint: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: Text('请选择仓库', overflow: TextOverflow.ellipsis),
-              ),
-              onChanged: (int? newValue) {
-                setState(() {
-                  _selectedWarehouseId = newValue!;
-                });
+    // 查找当前选中的仓库对象
+    final selectedWarehouse = _selectedWarehouseId != null
+        ? _warehouseList.firstWhere(
+            (w) => w.id == _selectedWarehouseId,
+            orElse: () => _warehouseList.first,
+          )
+        : null;
 
-                // 获取仓库用户
-                if (newValue != null) {
-                  context.read<AcceptanceBloc>().add(
-                    LoadWarehouseUsers(
-                      warehouseId: newValue,
-                      tracingContext: context.createActionContext('切换仓库并加载用户'),
-                    ),
-                  );
-                }
-              },
-              items: List<DropdownMenuItem<int>>.generate(
-                _warehouseList.length,
-                (index) {
-                  final warehouse = _warehouseList[index];
-                  final isLast = index == _warehouseList.length - 1;
-                  return DropdownMenuItem<int>(
-                    value: warehouse.id,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          child: Text(
-                            '${warehouse.name} - ${warehouse.address}',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            softWrap: true,
-                          ),
-                        ),
-                        if (!isLast)
-                          Divider(
-                            height: 1,
-                            thickness: 1,
-                            color: Colors.grey[300],
-                          ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+    return SearchableDropdown<WarehouseVO>(
+      label: '选择已有仓库',
+      value: selectedWarehouse,
+      items: _warehouseList,
+      onChanged: (WarehouseVO? warehouse) {
+        if (warehouse != null) {
+          setState(() {
+            _selectedWarehouseId = warehouse.id;
+          });
+
+          // 获取仓库用户
+          context.read<AcceptanceBloc>().add(
+            LoadWarehouseUsers(
+              warehouseId: warehouse.id,
+              tracingContext: context.createActionContext('切换仓库并加载用户'),
             ),
-          ),
-        ),
-      ],
+          );
+        }
+      },
+      itemBuilder: (warehouse) => buildWarehouseItemWidget(warehouse),
+      selectedLabelBuilder: (warehouse) =>
+          '${warehouse.name} - ${warehouse.address}',
+      businessType: 'acceptance',
+      getSearchText: (warehouse) => '${warehouse.name} ${warehouse.address}',
     );
   }
 

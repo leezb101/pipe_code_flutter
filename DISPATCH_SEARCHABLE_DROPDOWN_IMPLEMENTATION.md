@@ -111,7 +111,7 @@ _buildDropdownRow<ProjectSimpleVo>(
 ),
 ```
 
-### 仓库下拉框（搜索名称+地址）
+### 仓库下拉框（搜索名称+地址，带标识）
 ```dart
 _buildDropdownRow<WarehouseVO>(
   label: '接收仓库:',
@@ -128,11 +128,49 @@ _buildDropdownRow<WarehouseVO>(
       _selectedTargetWarehouse = value;
     });
   },
-  itemBuilder: (item) => Text('${item.name} - ${item.address}'),
+  itemBuilder: (item) => _buildWarehouseItemWidget(item), // 自定义仓库项显示
   selectedLabelBuilder: (item) => '${item.name} - ${item.address}',
   errorMessage: state.availableWarehousesError,
   getSearchText: (item) => '${item.name} ${item.address}', // 同时搜索名称和地址
 ),
+```
+
+#### 仓库项自定义显示
+```dart
+Widget _buildWarehouseItemWidget(WarehouseVO warehouse) {
+  return Row(
+    children: [
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 仓库名称和地址
+            Text('${warehouse.name} - ${warehouse.address}'),
+            SizedBox(height: 2),
+            // 仓库类型标识
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: warehouse.isRealWarehouse
+                    ? Colors.blue.withOpacity(0.1)
+                    : Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                warehouse.isRealWarehouse ? '独立仓库' : '项目现场',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: warehouse.isRealWarehouse ? Colors.blue : Colors.grey,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
 ```
 
 ## 对比传统实现的优势
