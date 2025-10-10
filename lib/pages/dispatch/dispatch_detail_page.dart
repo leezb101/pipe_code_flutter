@@ -143,15 +143,15 @@ class _DispatchDetailPageViewState extends State<_DispatchDetailPageView> {
                   vertical: AppTheme.spacingSmall,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.green[100],
+                  color: Colors.blue[100],
                   borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                 ),
                 child: Text(
-                  '已完成',
+                  dispatchDetail.dispatchStatusName ?? '未知',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Colors.green[700],
+                    color: Colors.blue[700],
                   ),
                 ),
               ),

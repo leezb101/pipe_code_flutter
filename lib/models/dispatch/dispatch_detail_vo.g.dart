@@ -30,6 +30,8 @@ DispatchDetailVo _$DispatchDetailVoFromJson(Map<String, dynamic> json) =>
       toWarehouseUsers: (json['toWarehouseUsers'] as List<dynamic>)
           .map((e) => CommonUserVO.fromJson(e as Map<String, dynamic>))
           .toList(),
+      dispatchStatus: (json['dispatchStatus'] as num?)?.toInt(),
+      dispatchStatusName: json['dispatchStatusName'] as String?,
     );
 
 Map<String, dynamic> _$DispatchDetailVoToJson(DispatchDetailVo instance) =>
@@ -48,4 +50,6 @@ Map<String, dynamic> _$DispatchDetailVoToJson(DispatchDetailVo instance) =>
       'toUserName': instance.toUserName,
       'fromWarehouseUsers': instance.fromWarehouseUsers,
       'toWarehouseUsers': instance.toWarehouseUsers,
+      'dispatchStatus': instance.dispatchStatus,
+      'dispatchStatusName': instance.dispatchStatusName,
     };

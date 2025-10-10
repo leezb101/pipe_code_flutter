@@ -22,6 +22,8 @@ class DispatchDetailVo extends Equatable {
   final String? toUserName;
   final List<CommonUserVO> fromWarehouseUsers;
   final List<CommonUserVO> toWarehouseUsers;
+  final int? dispatchStatus;
+  final String? dispatchStatusName;
 
   const DispatchDetailVo({
     required this.materialList,
@@ -38,6 +40,8 @@ class DispatchDetailVo extends Equatable {
     this.toUserName,
     required this.fromWarehouseUsers,
     required this.toWarehouseUsers,
+    this.dispatchStatus,
+    this.dispatchStatusName,
   });
 
   factory DispatchDetailVo.fromJson(Map<String, dynamic> json) =>
@@ -61,6 +65,8 @@ class DispatchDetailVo extends Equatable {
     toUserName,
     fromWarehouseUsers,
     toWarehouseUsers,
+    dispatchStatus,
+    dispatchStatusName,
   ];
 
   DispatchDetailVo copyWith({
@@ -78,6 +84,8 @@ class DispatchDetailVo extends Equatable {
     String? toUserName,
     List<CommonUserVO>? fromWarehouseUsers,
     List<CommonUserVO>? toWarehouseUsers,
+    int? dispatchStatus,
+    String? dispatchStatusName,
   }) {
     return DispatchDetailVo(
       materialList: materialList ?? this.materialList,
@@ -94,6 +102,8 @@ class DispatchDetailVo extends Equatable {
       toUserName: toUserName ?? this.toUserName,
       fromWarehouseUsers: fromWarehouseUsers ?? this.fromWarehouseUsers,
       toWarehouseUsers: toWarehouseUsers ?? this.toWarehouseUsers,
+      dispatchStatus: dispatchStatus ?? this.dispatchStatus,
+      dispatchStatusName: dispatchStatusName ?? this.dispatchStatusName,
     );
   }
 }
