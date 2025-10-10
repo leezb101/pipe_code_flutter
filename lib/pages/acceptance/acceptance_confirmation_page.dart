@@ -356,24 +356,16 @@ class _AcceptanceConfirmationPageState extends State<AcceptanceConfirmationPage>
 
   Widget _buildPhotosRow(List<AttachmentVO> photos) {
     if (photos.isEmpty) {
-      return Row(
-        children: [
-          _buildAttachmentPlaceholder(),
-          const SizedBox(width: 16),
-          _buildAttachmentPlaceholder(),
-        ],
+      return Text(
+        '暂无验收照片',
+        style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
       );
     }
 
-    return Row(
-      children: [
-        if (photos.isNotEmpty) _buildPhotoWidget(photos[0]),
-        const SizedBox(width: 16),
-        if (photos.length > 1)
-          _buildPhotoWidget(photos[1])
-        else
-          _buildAttachmentPlaceholder(),
-      ],
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: photos.map((photo) => _buildPhotoWidget(photo)).toList(),
     );
   }
 
@@ -422,19 +414,6 @@ class _AcceptanceConfirmationPageState extends State<AcceptanceConfirmationPage>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildAttachmentPlaceholder() {
-    return Container(
-      width: 80,
-      height: 60,
-      decoration: BoxDecoration(
-        color: Colors.blue.shade100,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blue.shade300),
-      ),
-      child: Icon(Icons.image, color: Colors.blue.shade600, size: 32),
     );
   }
 
