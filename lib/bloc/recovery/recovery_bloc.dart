@@ -166,7 +166,7 @@ class RecoveryBloc extends Bloc<RecoveryEvent, RecoveryState> {
           RecoveryVendorsLoaded(
             vendorOptions: vendorOptions,
             selectedVendor: selectedVendor,
-            errorMessage: '获取材料分类失败，请重试',
+            errorMessage: categoriesResult.msg,
           ),
         );
         return;
