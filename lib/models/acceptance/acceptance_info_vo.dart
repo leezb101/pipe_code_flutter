@@ -18,8 +18,8 @@ part 'acceptance_info_vo.g.dart';
 class AcceptanceInfoVO extends Equatable {
   final List<MaterialVO> materialList;
   final List<AttachmentVO> imageList;
-  final String? sendAcceptUrl;
-  final String? acceptReportUrl;
+  final List<String>? sendAcceptUrl;
+  final List<String>? acceptReportUrl;
   final bool realWarehouse;
   final int warehouseId;
   final String? warehouseName;
@@ -68,8 +68,8 @@ class AcceptanceInfoVO extends Equatable {
   AcceptanceInfoVO copyWith({
     List<MaterialVO>? materialList,
     List<AttachmentVO>? imageList,
-    String? sendAcceptUrl,
-    String? acceptReportUrl,
+    List<String>? sendAcceptUrl,
+    List<String>? acceptReportUrl,
     bool? realWarehouse,
     int? warehouseId,
     String? warehouseName,

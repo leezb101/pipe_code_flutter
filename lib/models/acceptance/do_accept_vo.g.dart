@@ -13,8 +13,12 @@ DoAcceptVO _$DoAcceptVOFromJson(Map<String, dynamic> json) => DoAcceptVO(
   imageList: (json['imageList'] as List<dynamic>)
       .map((e) => AttachmentVO.fromJson(e as Map<String, dynamic>))
       .toList(),
-  sendAcceptUrl: json['sendAcceptUrl'] as String?,
-  acceptReportUrl: json['acceptReportUrl'] as String?,
+  sendAcceptUrl: (json['sendAcceptUrl'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
+  acceptReportUrl: (json['acceptReportUrl'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
   realWarehouse: json['realWarehouse'] as bool,
   warehouseId: (json['warehouseId'] as num).toInt(),
   messageTo: (json['messageTo'] as List<dynamic>)

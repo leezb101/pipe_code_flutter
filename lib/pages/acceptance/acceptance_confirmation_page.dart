@@ -18,6 +18,7 @@ import 'package:pipe_code_flutter/config/service_locator.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/nativebloc/acceptance_confirmation_controller.dart';
 import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
+import 'package:pipe_code_flutter/mixins/file_preview_mixin.dart';
 
 class AcceptanceConfirmationPage extends StatefulWidget {
   final int acceptanceId;
@@ -29,8 +30,8 @@ class AcceptanceConfirmationPage extends StatefulWidget {
       _AcceptanceConfirmationPageState();
 }
 
-class _AcceptanceConfirmationPageState
-    extends State<AcceptanceConfirmationPage> {
+class _AcceptanceConfirmationPageState extends State<AcceptanceConfirmationPage>
+    with FilePreviewMixin {
   late AcceptanceConfirmationController _controller;
   bool _hasShownSuccessMessage = false;
   final TextEditingController _remarkController = TextEditingController();
@@ -290,18 +291,8 @@ class _AcceptanceConfirmationPageState
   Widget _buildAttachmentsSection(AcceptanceInfoVO acceptanceInfo) {
     // 筛选不同类型的附件
     final acceptancePhotos = acceptanceInfo.imageList.toList();
-    final reportDocumentUrl = acceptanceInfo.sendAcceptUrl;
-    final acceptanceReportUrl = acceptanceInfo.acceptReportUrl;
-    final reportDocumentName = reportDocumentUrl
-        ?.split('/')
-        .last
-        .split('?')
-        .first;
-    final acceptanceReportName = acceptanceReportUrl
-        ?.split('/')
-        .last
-        .split('?')
-        .first;
+    final reportDocumentUrls = acceptanceInfo.sendAcceptUrl;
+    final acceptanceReportUrls = acceptanceInfo.acceptReportUrl;
 
     return UnifiedCard(
       title: '附件信息',
@@ -314,9 +305,50 @@ class _AcceptanceConfirmationPageState
           const SizedBox(height: AppTheme.spacingMedium),
           _buildPhotosRow(acceptancePhotos),
           const SizedBox(height: AppTheme.spacingLarge),
-          _buildDocumentInfo('报验单', reportDocumentName, reportDocumentUrl),
-          const SizedBox(height: AppTheme.spacingMedium),
-          _buildDocumentInfo('验收报告', acceptanceReportName, acceptanceReportUrl),
+          // 报验单列表
+          if (reportDocumentUrls != null && reportDocumentUrls.isNotEmpty) ...[
+            Text('报验单：', style: AppTheme.titleSmall),
+            const SizedBox(height: AppTheme.spacingSmall),
+            ...reportDocumentUrls.asMap().entries.map((entry) {
+              final index = entry.key;
+              final url = entry.value;
+              final name = url.split('/').last.split('?').first;
+              final title = reportDocumentUrls.length > 1
+                  ? '报验单 ${index + 1}'
+                  : '报验单';
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: index < reportDocumentUrls.length - 1
+                      ? AppTheme.spacingSmall
+                      : 0,
+                ),
+                child: _buildDocumentInfo(title, name, url),
+              );
+            }),
+            const SizedBox(height: AppTheme.spacingMedium),
+          ],
+          // 验收报告列表
+          if (acceptanceReportUrls != null &&
+              acceptanceReportUrls.isNotEmpty) ...[
+            Text('验收报告：', style: AppTheme.titleSmall),
+            const SizedBox(height: AppTheme.spacingSmall),
+            ...acceptanceReportUrls.asMap().entries.map((entry) {
+              final index = entry.key;
+              final url = entry.value;
+              final name = url.split('/').last.split('?').first;
+              final title = acceptanceReportUrls.length > 1
+                  ? '验收报告 ${index + 1}'
+                  : '验收报告';
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: index < acceptanceReportUrls.length - 1
+                      ? AppTheme.spacingSmall
+                      : 0,
+                ),
+                child: _buildDocumentInfo(title, name, url),
+              );
+            }),
+          ],
         ],
       ),
     );
@@ -407,40 +439,64 @@ class _AcceptanceConfirmationPageState
   }
 
   Widget _buildDocumentInfo(String label, String? name, String? documentUrl) {
-    final authState = context.read<AuthBloc>().state;
-    final token = (authState is AuthLoginSuccess) ? authState.wxLoginVO.tk : '';
-    return Row(
-      children: [
-        Text(
-          '$label：',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: InkWell(
-            onTap: () {
-              if (documentUrl?.isNotEmpty == true) {
-                // 通过documentUrl打开一个预览地址，一般为PDF
-                context.push(
-                  '/pdf-preview',
-                  extra: documentUrl!.contains('?')
-                      ? '$documentUrl&auth_toke=$token'
-                      : '$documentUrl?auth_toke=$token',
-                );
-              }
-            },
+    if (documentUrl == null || documentUrl.isEmpty) {
+      return Row(
+        children: [
+          Text(
+            '$label：',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
             child: Text(
-              name?.isNotEmpty == true ? name! : '暂无$label',
-              style: TextStyle(
-                fontSize: 18,
-                color: documentUrl?.isNotEmpty == true
-                    ? Colors.blueAccent
-                    : Colors.grey.shade600,
-              ),
+              '暂无$label',
+              style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
             ),
           ),
-        ),
-      ],
+        ],
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blue.shade100),
+      ),
+      child: Row(
+        children: [
+          buildFileIcon(documentUrl, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      '$label：',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    buildFileTypeLabel(documentUrl),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  name?.isNotEmpty == true ? name! : '附件',
+                  style: const TextStyle(fontSize: 13, color: Colors.black87),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          buildFileActionButton(context, documentUrl),
+        ],
+      ),
     );
   }
 

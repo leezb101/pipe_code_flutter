@@ -9,7 +9,6 @@ import 'package:pipe_code_flutter/bloc/acceptance/acceptance_bloc.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_event.dart';
 import 'package:pipe_code_flutter/bloc/acceptance/acceptance_state.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
-import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 import 'package:pipe_code_flutter/widgets/file_upload/image_preview_widget.dart';
 import 'package:pipe_code_flutter/services/documents/document_route_resolver.dart';
@@ -20,6 +19,7 @@ import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.
 import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/utils/tracing_context_x.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:pipe_code_flutter/mixins/file_preview_mixin.dart';
 
 class AcceptanceDetailPage extends StatelessWidget {
   final int acceptanceId;
@@ -48,7 +48,8 @@ class _AcceptanceDetailPageView extends StatefulWidget {
       _AcceptanceDetailPageViewState();
 }
 
-class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView> {
+class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView>
+    with FilePreviewMixin {
   late final DocumentService _documentService;
   late final DocumentRouteResolver _routeResolver;
 
@@ -277,24 +278,40 @@ class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView> {
   Widget _buildAttachmentsList(AcceptanceInfoVO acceptanceInfo) {
     final items = <Widget>[];
 
+    // 报验单 - 处理多个文件
     if (acceptanceInfo.sendAcceptUrl != null &&
-        acceptanceInfo.sendAcceptUrl!.trim().isNotEmpty) {
-      items.add(
-        _buildSimpleAttachmentRow(
-          title: '报验单',
-          fileUrl: acceptanceInfo.sendAcceptUrl!,
-        ),
-      );
+        acceptanceInfo.sendAcceptUrl!.isNotEmpty) {
+      for (int i = 0; i < acceptanceInfo.sendAcceptUrl!.length; i++) {
+        final fileUrl = acceptanceInfo.sendAcceptUrl![i];
+        if (fileUrl.trim().isNotEmpty) {
+          items.add(
+            _buildSimpleAttachmentRow(
+              title: acceptanceInfo.sendAcceptUrl!.length > 1
+                  ? '报验单 ${i + 1}'
+                  : '报验单',
+              fileUrl: fileUrl,
+            ),
+          );
+        }
+      }
     }
 
+    // 验收报告 - 处理多个文件
     if (acceptanceInfo.acceptReportUrl != null &&
-        acceptanceInfo.acceptReportUrl!.trim().isNotEmpty) {
-      items.add(
-        _buildSimpleAttachmentRow(
-          title: '验收报告',
-          fileUrl: acceptanceInfo.acceptReportUrl!,
-        ),
-      );
+        acceptanceInfo.acceptReportUrl!.isNotEmpty) {
+      for (int i = 0; i < acceptanceInfo.acceptReportUrl!.length; i++) {
+        final fileUrl = acceptanceInfo.acceptReportUrl![i];
+        if (fileUrl.trim().isNotEmpty) {
+          items.add(
+            _buildSimpleAttachmentRow(
+              title: acceptanceInfo.acceptReportUrl!.length > 1
+                  ? '验收报告 ${i + 1}'
+                  : '验收报告',
+              fileUrl: fileUrl,
+            ),
+          );
+        }
+      }
     }
 
     final children = <Widget>[];
@@ -368,6 +385,7 @@ class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView> {
     required String fileUrl,
   }) {
     final fileName = _extractFileName(fileUrl);
+
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingMedium),
       decoration: BoxDecoration(
@@ -379,44 +397,36 @@ class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView> {
       ),
       child: Row(
         children: [
-          Icon(Icons.picture_as_pdf, color: AppTheme.acceptanceColor, size: 24),
+          buildFileIcon(fileUrl, size: 24, color: AppTheme.acceptanceColor),
           const SizedBox(width: AppTheme.spacingMedium),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  fileName,
-                  style: AppTheme.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        fileName,
+                        style: AppTheme.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: AppTheme.spacingSmall),
+                    buildFileTypeLabel(fileUrl),
+                  ],
                 ),
                 const SizedBox(height: AppTheme.spacingXSmall),
                 Text(title, style: AppTheme.labelMedium),
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.visibility, color: AppTheme.acceptanceColor),
-            onPressed: () => _openPdf(fileUrl),
-            tooltip: '预览',
-          ),
+          buildFileActionButton(context, fileUrl),
         ],
       ),
     );
-  }
-
-  void _openPdf(String url) {
-    // 从auth_bloc获取token
-    final authState = context.read<AuthBloc>().state as AuthLoginSuccess;
-    final token = authState.wxLoginVO.tk;
-    final urlWithTk = url.contains('?')
-        ? '$url&auth_toke=$token'
-        : '$url?auth_toke=$token';
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => PdfPreviewer(url: urlWithTk)));
   }
 
   String _extractFileName(String url) {

@@ -997,30 +997,28 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
             ),
           ),
     );
-    // 2. 报验单
-    final String? sendAcceptUrl = _inspectionReportsCubit.state.isEmpty
+    // 2. 报验单 - 收集所有成功上传的文件URL
+    final List<String>? sendAcceptUrl = _inspectionReportsCubit.state.isEmpty
         ? null
         : _inspectionReportsCubit.state
-              .firstWhere(
+              .where(
                 (item) =>
                     item.status == UploadStatus.success &&
                     item.uploadResult != null,
-                orElse: () => _inspectionReportsCubit.state.first,
               )
-              .uploadResult
-              ?.filePath;
-    // 3. 验收报告
-    final String? acceptReportUrl = _acceptanceReportsCubit.state.isEmpty
+              .map((item) => item.uploadResult!.filePath)
+              .toList();
+    // 3. 验收报告 - 收集所有成功上传的文件URL
+    final List<String>? acceptReportUrl = _acceptanceReportsCubit.state.isEmpty
         ? null
         : _acceptanceReportsCubit.state
-              .firstWhere(
+              .where(
                 (item) =>
                     item.status == UploadStatus.success &&
                     item.uploadResult != null,
-                orElse: () => _acceptanceReportsCubit.state.first,
               )
-              .uploadResult
-              ?.filePath;
+              .map((item) => item.uploadResult!.filePath)
+              .toList();
 
     // 获取位置信息
     String? lng, lat;
@@ -1040,8 +1038,12 @@ class _JsfAcceptancePageViewState extends State<_JsfAcceptancePageView> {
       lat: lat,
       materialList: materialVOList,
       imageList: allAttachments,
-      sendAcceptUrl: sendAcceptUrl,
-      acceptReportUrl: acceptReportUrl,
+      sendAcceptUrl: sendAcceptUrl != null && sendAcceptUrl.isNotEmpty
+          ? sendAcceptUrl
+          : null,
+      acceptReportUrl: acceptReportUrl != null && acceptReportUrl.isNotEmpty
+          ? acceptReportUrl
+          : null,
       realWarehouse: realWarehouse,
       warehouseId: warehouseId,
       messageTo: selectedUserIds,

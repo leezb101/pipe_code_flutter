@@ -19,8 +19,8 @@ class JsfAcceptVO extends Equatable {
   final String? lat;
   final List<JsfMaterialVO> materialList;
   final List<AttachmentVO> imageList;
-  final String? sendAcceptUrl;
-  final String? acceptReportUrl;
+  final List<String>? sendAcceptUrl;
+  final List<String>? acceptReportUrl;
   final bool realWarehouse;
   final int warehouseId;
   final List<int> messageTo;
@@ -63,8 +63,8 @@ class JsfAcceptVO extends Equatable {
     String? lat,
     List<JsfMaterialVO>? materialList,
     List<AttachmentVO>? imageList,
-    String? sendAcceptUrl,
-    String? acceptReportUrl,
+    List<String>? sendAcceptUrl,
+    List<String>? acceptReportUrl,
     bool? realWarehouse,
     int? warehouseId,
     List<int>? messageTo,

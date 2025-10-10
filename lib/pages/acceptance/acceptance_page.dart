@@ -1086,33 +1086,37 @@ class _AcceptancePageViewState extends State<_AcceptancePageView> {
             ),
           ),
     );
-    // 2. 报验单
-    final String? sendAcceptUrl = _inspectionReportsCubit.state.isEmpty
+    // 2. 报验单 - 收集所有成功上传的文件URL
+    final List<String>? sendAcceptUrl = _inspectionReportsCubit.state.isEmpty
         ? null
         : _inspectionReportsCubit.state
-              .firstWhere(
+              .where(
                 (s) =>
                     s.status == UploadStatus.success && s.uploadResult != null,
               )
-              .uploadResult
-              ?.filePath;
-    // 3. 验收报告
-    final String? acceptReportUrl = _acceptanceReportsCubit.state.isEmpty
+              .map((s) => s.uploadResult!.filePath)
+              .toList();
+    // 3. 验收报告 - 收集所有成功上传的文件URL
+    final List<String>? acceptReportUrl = _acceptanceReportsCubit.state.isEmpty
         ? null
         : _acceptanceReportsCubit.state
-              .firstWhere(
+              .where(
                 (s) =>
                     s.status == UploadStatus.success && s.uploadResult != null,
               )
-              .uploadResult
-              ?.filePath;
+              .map((s) => s.uploadResult!.filePath)
+              .toList();
 
     // 创建DoAcceptVO对象
     final doAcceptVO = DoAcceptVO(
       materialList: materialVOList,
       imageList: allAttachments,
-      sendAcceptUrl: sendAcceptUrl,
-      acceptReportUrl: acceptReportUrl,
+      sendAcceptUrl: sendAcceptUrl != null && sendAcceptUrl.isNotEmpty
+          ? sendAcceptUrl
+          : null,
+      acceptReportUrl: acceptReportUrl != null && acceptReportUrl.isNotEmpty
+          ? acceptReportUrl
+          : null,
       realWarehouse: realWarehouse,
       warehouseId: warehouseId,
       messageTo: selectedUserIds,

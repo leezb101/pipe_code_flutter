@@ -145,8 +145,14 @@ class MockAcceptanceApiService implements AcceptanceApiService {
     final acceptanceInfo = AcceptanceInfoVO(
       materialList: materials,
       imageList: attachments,
-      sendAcceptUrl: '/uploads/docs/send_accept_$id.pdf',
-      acceptReportUrl: '/uploads/docs/accept_report_$id.pdf',
+      sendAcceptUrl: [
+        '/uploads/docs/send_accept_${id}_1.pdf',
+        '/uploads/docs/send_accept_${id}_2.pdf',
+      ],
+      acceptReportUrl: [
+        '/uploads/docs/accept_report_${id}_1.pdf',
+        '/uploads/docs/accept_report_${id}_2.pdf',
+      ],
       realWarehouse: _random.nextBool(),
       warehouseId: 1000 + _random.nextInt(10),
       warehouseUsers: _generateMockUsers(_warehouseNames),

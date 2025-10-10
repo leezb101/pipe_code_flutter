@@ -16,8 +16,8 @@ part 'do_accept_vo.g.dart';
 class DoAcceptVO extends Equatable {
   final List<MaterialVO> materialList;
   final List<AttachmentVO> imageList;
-  final String? sendAcceptUrl;
-  final String? acceptReportUrl;
+  final List<String>? sendAcceptUrl;
+  final List<String>? acceptReportUrl;
   final bool realWarehouse;
   final int warehouseId;
   final List<int> messageTo;
@@ -51,14 +51,14 @@ class DoAcceptVO extends Equatable {
   DoAcceptVO copyWith({
     List<MaterialVO>? materialList,
     List<AttachmentVO>? imageList,
-    String? sendAcceptUrl,
-    String? acceptReportUrl,
+    List<String>? sendAcceptUrl,
+    List<String>? acceptReportUrl,
     bool? realWarehouse,
     int? warehouseId,
     List<int>? messageTo,
   }) {
     return DoAcceptVO(
-      materialList: this.materialList,
+      materialList: materialList ?? this.materialList,
       imageList: imageList ?? this.imageList,
       sendAcceptUrl: sendAcceptUrl ?? this.sendAcceptUrl,
       acceptReportUrl: acceptReportUrl ?? this.acceptReportUrl,
