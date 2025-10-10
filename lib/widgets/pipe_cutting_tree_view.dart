@@ -495,29 +495,32 @@ class _PipeCuttingTreeViewState extends State<PipeCuttingTreeView> {
               Expanded(
                 child: BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (node.img != null && node.img!.isNotEmpty)
-                          _buildImagePreview(context, node.img!),
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: details.length,
-                            itemBuilder: (context, index) {
-                              final detail = details[index];
-                              return _buildDetailRow(detail.$1, detail.$2);
-                            },
-                            separatorBuilder: (context, index) => const Divider(
-                              height: 1,
-                              indent: 16,
-                              endIndent: 16,
+                    return SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (node.img != null && node.img!.isNotEmpty)
+                            _buildImagePreview(context, node.img!),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: details.length,
+                              itemBuilder: (context, index) {
+                                final detail = details[index];
+                                return _buildDetailRow(detail.$1, detail.$2);
+                              },
+                              separatorBuilder: (context, index) =>
+                                  const Divider(
+                                    height: 1,
+                                    indent: 16,
+                                    endIndent: 16,
+                                  ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     );
                   },
                 ),
