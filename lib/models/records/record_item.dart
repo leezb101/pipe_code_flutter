@@ -42,6 +42,8 @@ class BusinessRecordItem implements RecordItem {
   @override
   String get businessTypeDescription => _record.businessTypeDescription;
 
+  String? get statusName => _record.statusName;
+
   BusinessRecord get record => _record;
 }
 

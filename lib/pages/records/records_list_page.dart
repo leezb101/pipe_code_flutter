@@ -17,6 +17,7 @@ import '../../bloc/records/records_state.dart';
 import '../../models/records/record_type.dart';
 import '../../widgets/scrollable_tab_bar.dart';
 import '../../widgets/record_list_item.dart';
+import '../../widgets/inventory_record_list_item.dart';
 import '../../widgets/common_state_widgets.dart' as common;
 import '../../services/tracing/tracing_context.dart';
 import 'package:pipe_code_flutter/services/notification/notification_center.dart';
@@ -824,6 +825,16 @@ class _RecordsListPageState extends State<RecordsListPage>
                 }
 
                 final record = records[index];
+
+                // 盘点任务使用专用的列表项组件
+                if (record is InventoryRecordItem) {
+                  return InventoryRecordListItem(
+                    record: record,
+                    onTap: () => _onRecordTap(context, record),
+                  );
+                }
+
+                // 其他类型使用通用的列表项组件
                 return RecordListItem(
                   record: record,
                   onTap: () => _onRecordTap(context, record),

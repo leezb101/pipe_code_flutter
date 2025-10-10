@@ -16,6 +16,11 @@ class RecordListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showStatusName =
+        record is BusinessRecordItem &&
+        (record as BusinessRecordItem).statusName != null &&
+        (record as BusinessRecordItem).statusName!.isNotEmpty;
+
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -38,7 +43,18 @@ class RecordListItem extends StatelessWidget {
                 children: [
                   _buildHeader(context),
                   const SizedBox(height: 8),
-                  _buildBusinessType(context),
+                  Row(
+                    children: [
+                      _buildBusinessType(context),
+                      if (showStatusName) ...[
+                        const Spacer(),
+                        _buildStatusName(
+                          context,
+                          (record as BusinessRecordItem).statusName!,
+                        ),
+                      ],
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   _buildTime(context),
                 ],
@@ -141,6 +157,25 @@ class RecordListItem extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildStatusName(BuildContext context, String statusName) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blue.shade300, width: 1),
+      ),
+      child: Text(
+        statusName,
+        style: TextStyle(
+          fontSize: 13,
+          color: Colors.blue.shade700,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 
