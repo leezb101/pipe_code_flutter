@@ -84,4 +84,6 @@ class CutNewItemDeleted extends CutEvent {
 
 class CutSubmitted extends CutEvent {}
 
+class CutConfirmSubmit extends CutEvent {}
+
 class CutReset extends CutEvent {}

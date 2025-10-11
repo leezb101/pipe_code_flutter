@@ -116,6 +116,9 @@ class _CutViewState extends State<CutView> {
           } else if (state.status == CutStatus.tip &&
               state.tipMessage != null) {
             _showTipDialog(state.tipMessage as String);
+          } else if (state.status == CutStatus.confirmableTip &&
+              state.tipMessage != null) {
+            _showTipDialog(state.tipMessage as String, canConfirm: true);
           }
         },
         builder: (context, state) {
@@ -159,7 +162,7 @@ class _CutViewState extends State<CutView> {
   }
 
   // Placeholder for Tip Dialog
-  void _showTipDialog(String message) {
+  void _showTipDialog(String message, {bool canConfirm = false}) {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -168,11 +171,19 @@ class _CutViewState extends State<CutView> {
           content: Text(message),
           actions: <Widget>[
             TextButton(
-              child: const Text('确认'),
+              child: Text(canConfirm ? '取消' : '知道了'),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
             ),
+            if (canConfirm)
+              TextButton(
+                child: const Text('继续提交'),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  context.read<CutBloc>().add(CutConfirmSubmit());
+                },
+              ),
           ],
         );
       },

@@ -18,7 +18,15 @@ class TipException implements Exception {
   String toString() => message;
 }
 
-enum CutStatus { initial, loading, success, failure, submitting, tip }
+enum CutStatus {
+  initial,
+  loading,
+  success,
+  failure,
+  submitting,
+  tip,
+  confirmableTip,
+}
 
 class NewCutMaterialItem extends Equatable {
   final String qrCode;

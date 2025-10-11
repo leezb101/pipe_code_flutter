@@ -23,6 +23,7 @@ class CutBloc extends Bloc<CutEvent, CutState> {
     on<CutNewItemPhotoUpdated>(_onNewItemPhotoUpdated);
     on<CutNewItemDeleted>(_onNewItemDeleted);
     on<CutSubmitted>(_onSubmitted);
+    on<CutConfirmSubmit>(_onConfirmSubmit);
   }
 
   void _onReset(CutReset event, Emitter<CutState> emit) {
@@ -213,7 +214,32 @@ class CutBloc extends Bloc<CutEvent, CutState> {
       emit(state.copyWith(status: CutStatus.failure, errorMessage: '请添加新耗材'));
       return;
     }
+    if (state.newCutItems.length < 2) {
+      // 这里需要弹出dialog提示用户，当前只有一截新材料绑定了二维码，如果直接提交，没有绑定新二维码的另一段材料将视作废弃，无法进入系统
+      // 此时用户可以选择取消，继续添加新材料，或者确认提交
+      emit(
+        state.copyWith(
+          status: CutStatus.confirmableTip,
+          tipMessage:
+              '当前只有一截新材料绑定了二维码，如果直接提交，没有绑定新二维码的另一段材料将视作废弃，无法进入系统。是否仍要提交？',
+        ),
+      );
+      return;
+    }
 
+    // 执行实际的提交逻辑
+    await _performSubmit(emit);
+  }
+
+  Future<void> _onConfirmSubmit(
+    CutConfirmSubmit event,
+    Emitter<CutState> emit,
+  ) async {
+    // 用户确认后继续提交，跳过 newCutItems.length < 2 的检查
+    await _performSubmit(emit);
+  }
+
+  Future<void> _performSubmit(Emitter<CutState> emit) async {
     final isAllValid = state.newCutItems.every(
       (item) =>
           item.length != null &&
