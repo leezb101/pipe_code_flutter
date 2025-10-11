@@ -57,21 +57,48 @@ class _RecordsListPageState extends State<RecordsListPage>
     _setupTabsBySession(sessionState);
     _lastSessionState = sessionState;
 
-    // 订阅全局待办通知：聚合后的批量事件到来时刷新当前tab（若是待办类）
+    // 订阅全局待办通知：聚合后的批量事件到来时刷新所有待办类型的tab
     _todoStreamSub = NotificationCenter.instance.todoStream.listen((batch) {
       if (!mounted || batch.isEmpty) return;
       final bloc = context.read<RecordsBloc>();
-      final currentTab = bloc.currentTab;
-      if (currentTab == RecordType.todo ||
-          currentTab == RecordType.warehouseTodo) {
-        final ids = _resolveIds(context.read<SessionBloc>().state);
+      final ids = _resolveIds(context.read<SessionBloc>().state);
+      final sessionState = context.read<SessionBloc>().state;
+
+      // 刷新所有需要的待办tab，以确保列表和badge都能实时更新
+      // 1. 刷新普通待办（所有角色都有）
+      bloc.add(
+        RefreshRecords(
+          recordType: RecordType.todo,
+          userId: ids.$1,
+          projectId: ids.$2,
+        ),
+      );
+
+      // 2. 如果是仓管员，刷新仓库待办
+      if (sessionState is SessionStorekeeperEstablished) {
         bloc.add(
           RefreshRecords(
-            recordType: currentTab,
+            recordType: RecordType.warehouseTodo,
             userId: ids.$1,
             projectId: ids.$2,
           ),
         );
+      }
+
+      // 3. 如果是施工方，刷新现场待办
+      if (sessionState is SessionProjectEstablished) {
+        final role = sessionState.currentUserRoleInfo.projectRoleType;
+        if (role == UserRole.builder ||
+            role == UserRole.builderSub ||
+            role == UserRole.laborer) {
+          bloc.add(
+            RefreshRecords(
+              recordType: RecordType.siteTodo,
+              userId: ids.$1,
+              projectId: ids.$2,
+            ),
+          );
+        }
       }
     });
 
