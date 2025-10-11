@@ -15,7 +15,7 @@ CutRecordsItemVO _$CutRecordsItemVOFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String?,
       len: json['len'] as String?,
       materialCode: json['materialCode'] as String?,
-      cutTime: (json['cutTime'] as num?)?.toInt(),
+      cutTime: CutRecordsItemVO._cutTimeFromJson(json['cutTime']),
     );
 
 Map<String, dynamic> _$CutRecordsItemVOToJson(CutRecordsItemVO instance) =>
@@ -27,5 +27,5 @@ Map<String, dynamic> _$CutRecordsItemVOToJson(CutRecordsItemVO instance) =>
       'name': instance.name,
       'len': instance.len,
       'materialCode': instance.materialCode,
-      'cutTime': instance.cutTime,
+      'cutTime': CutRecordsItemVO._cutTimeToJson(instance.cutTime),
     };
