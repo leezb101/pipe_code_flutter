@@ -9,6 +9,7 @@ part of 'cut_records_item_vo.dart';
 CutRecordsItemVO _$CutRecordsItemVOFromJson(Map<String, dynamic> json) =>
     CutRecordsItemVO(
       projectId: (json['projectId'] as num).toInt(),
+      materialId: (json['materialId'] as num).toInt(),
       type: (json['type'] as num?)?.toInt(),
       typeName: json['typeName'] as String?,
       spec: json['spec'] as String?,
@@ -27,5 +28,6 @@ Map<String, dynamic> _$CutRecordsItemVOToJson(CutRecordsItemVO instance) =>
       'name': instance.name,
       'len': instance.len,
       'materialCode': instance.materialCode,
+      'materialId': instance.materialId,
       'cutTime': CutRecordsItemVO._cutTimeToJson(instance.cutTime),
     };

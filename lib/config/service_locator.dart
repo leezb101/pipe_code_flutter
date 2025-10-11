@@ -3,7 +3,9 @@ import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/records/records_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
 import 'package:pipe_code_flutter/bloc/cut_records/cut_records_bloc.dart';
+import 'package:pipe_code_flutter/bloc/pipe_cutting_record/pipe_cutting_record_bloc.dart';
 import 'package:pipe_code_flutter/cubits/temporary_auth.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/cut_api_service.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/auth_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/cut_repository.dart';
@@ -193,6 +195,9 @@ Future<void> setupServiceLocator({
   getIt.registerLazySingleton<CutRecordsApiService>(
     () => ApiServiceFactory.createCutRecordsService(),
   );
+  getIt.registerLazySingleton<CutApiService>(
+    () => ApiServiceFactory.createCutService(),
+  );
 
   getIt.registerLazySingleton<DocumentService>(
     () => DocumentServiceFactory.create(),
@@ -320,6 +325,11 @@ Future<void> setupServiceLocator({
 
   getIt.registerFactory<CutRecordsBloc>(
     () => CutRecordsBloc(getIt<CutRecordsApiService>()),
+  );
+
+  // 注册独立的截管记录详情 Bloc
+  getIt.registerFactory<PipeCuttingRecordBloc>(
+    () => PipeCuttingRecordBloc(cutApiService: getIt<CutApiService>()),
   );
 
   getIt.registerFactory<TemporaryAuthCubit>(

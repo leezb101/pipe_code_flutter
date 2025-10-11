@@ -8,30 +8,23 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../bloc/material_detail/material_detail_bloc.dart';
+import '../../bloc/pipe_cutting_record/pipe_cutting_record_bloc.dart';
+import '../../config/service_locator.dart';
 import '../../widgets/pipe_cutting_tree_view.dart';
 
-class PipeCuttingRecordPage extends StatefulWidget {
+class PipeCuttingRecordPage extends StatelessWidget {
   const PipeCuttingRecordPage({super.key, required this.materialId});
 
   final String materialId;
 
   @override
-  State<PipeCuttingRecordPage> createState() => _PipeCuttingRecordPageState();
-}
-
-class _PipeCuttingRecordPageState extends State<PipeCuttingRecordPage> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<MaterialDetailBloc>().add(
-      LoadCuttingRecord(materialId: widget.materialId),
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return PipeCuttingRecordView(materialId: widget.materialId);
+    return BlocProvider(
+      create: (_) =>
+          getIt<PipeCuttingRecordBloc>()
+            ..add(LoadPipeCuttingRecord(materialId: materialId)),
+      child: PipeCuttingRecordView(materialId: materialId),
+    );
   }
 }
 
@@ -47,30 +40,23 @@ class PipeCuttingRecordView extends StatelessWidget {
         title: const Text('截管记录'),
         actions: [
           IconButton(
-            onPressed: () => context.read<MaterialDetailBloc>().add(
-              LoadCuttingRecord(materialId: materialId),
+            onPressed: () => context.read<PipeCuttingRecordBloc>().add(
+              RefreshPipeCuttingRecord(materialId: materialId),
             ),
             icon: const Icon(Icons.refresh),
             tooltip: '刷新',
           ),
         ],
       ),
-      body: BlocBuilder<MaterialDetailBloc, MaterialDetailState>(
+      body: BlocBuilder<PipeCuttingRecordBloc, PipeCuttingRecordState>(
         builder: (context, state) {
-          if (state is MaterialDetailError) {
+          if (state is PipeCuttingRecordLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is PipeCuttingRecordError) {
             return _buildErrorState(state.message, context);
-          } else if (state is MaterialDetailLoaded) {
-            if (state.isLoadingCuttingRecord) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state.cuttingRecordError != null) {
-              return _buildErrorState(state.cuttingRecordError!, context);
-            }
-            if (state.cuttingRecord == null) {
-              return _buildNoDataState(context);
-            }
+          } else if (state is PipeCuttingRecordLoaded) {
             return PipeCuttingTreeView(
-              cuttingRecord: state.cuttingRecord!,
+              cuttingRecord: state.cuttingRecord,
               currentMaterialId: materialId,
             );
           } else {
@@ -101,39 +87,10 @@ class PipeCuttingRecordView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => context.read<MaterialDetailBloc>().add(
-              LoadCuttingRecord(materialId: materialId),
+            onPressed: () => context.read<PipeCuttingRecordBloc>().add(
+              RefreshPipeCuttingRecord(materialId: materialId),
             ),
             child: const Text('重试'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoDataState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.info_outline,
-            size: 64,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(height: 16),
-          Text('暂无截管记录', style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 8),
-          Text(
-            '材料ID $materialId 没有相关的截管记录',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => context.read<MaterialDetailBloc>().add(
-              LoadCuttingRecord(materialId: materialId),
-            ),
-            child: const Text('刷新'),
           ),
         ],
       ),

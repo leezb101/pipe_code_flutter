@@ -20,12 +20,15 @@ class CutRecordsItemVO extends Equatable {
 
   final String? materialCode;
 
+  final int materialId;
+
   /// 截管时间，格式化为 YYYY-MM-DD HH:mm:ss
   @JsonKey(fromJson: _cutTimeFromJson, toJson: _cutTimeToJson)
   final String? cutTime;
 
   const CutRecordsItemVO({
     required this.projectId,
+    required this.materialId,
     this.type,
     this.typeName,
     this.spec,
@@ -78,6 +81,7 @@ class CutRecordsItemVO extends Equatable {
   @override
   List<Object?> get props => [
     projectId,
+    materialId,
     type,
     typeName,
     spec,

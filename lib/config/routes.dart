@@ -425,30 +425,6 @@ final GoRouter appRouter = GoRouter(
           },
           routes: [
             GoRoute(
-              path: 'pipe-cutting-record',
-              name: 'pipe-cutting-record',
-              builder: (context, state) {
-                final materialId = state.uri.queryParameters['materialId'];
-                final cubit = state.extra as MaterialDetailBloc?;
-
-                if (materialId == null) {
-                  return const Scaffold(
-                    body: Center(child: Text('参数错误: materialId 缺失')),
-                  );
-                }
-                if (cubit == null) {
-                  return const Scaffold(
-                    body: Center(child: Text('参数错误: Cubit 未提供')),
-                  );
-                }
-
-                return BlocProvider.value(
-                  value: cubit,
-                  child: PipeCuttingRecordPage(materialId: materialId),
-                );
-              },
-            ),
-            GoRoute(
               path: 'material-lifecycle',
               name: 'material-lifecycle',
               builder: (context, state) {
@@ -464,6 +440,22 @@ final GoRouter appRouter = GoRouter(
               },
             ),
           ],
+        ),
+        // 独立的截管记录详情页面路由
+        GoRoute(
+          path: 'pipe-cutting-record',
+          name: 'pipe-cutting-record',
+          builder: (context, state) {
+            final materialId = state.uri.queryParameters['materialId'];
+
+            if (materialId == null || materialId.trim().isEmpty) {
+              return const Scaffold(
+                body: Center(child: Text('参数错误: materialId 缺失')),
+              );
+            }
+
+            return PipeCuttingRecordPage(materialId: materialId);
+          },
         ),
         GoRoute(
           path: 'project-initiation',

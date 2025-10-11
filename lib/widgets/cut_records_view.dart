@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pipe_code_flutter/bloc/cut_records/cut_records_bloc.dart';
 import 'package:pipe_code_flutter/bloc/cut_records/cut_records_event.dart';
 import 'package:pipe_code_flutter/bloc/cut_records/cut_records_state.dart';
+import 'package:pipe_code_flutter/models/cut/cut_records_item_vo.dart';
 import 'package:pipe_code_flutter/models/cut/cut_statistic_vo.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/cut_record_list_item.dart';
@@ -45,6 +47,13 @@ class _CutRecordsViewState extends State<CutRecordsView> {
 
   void _onRefresh() {
     context.read<CutRecordsBloc>().add(const RefreshCutRecords());
+  }
+
+  void _onRecordTap(BuildContext context, CutRecordsItemVO record) {
+    context.pushNamed(
+      'pipe-cutting-record',
+      queryParameters: {'materialId': record.materialId.toString()},
+    );
   }
 
   @override
@@ -110,9 +119,7 @@ class _CutRecordsViewState extends State<CutRecordsView> {
                       final record = state.records[index];
                       return CutRecordListItem(
                         record: record,
-                        onTap: () {
-                          // TODO: 导航到详情页（如果需要）
-                        },
+                        onTap: () => _onRecordTap(context, record),
                       );
                     },
                   ),
