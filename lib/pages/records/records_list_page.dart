@@ -26,6 +26,9 @@ import '../../bloc/inventory/inventory_bloc.dart';
 import '../../bloc/inventory/inventory_state.dart';
 import '../../bloc/inventory/inventory_event.dart';
 import '../../repositories/interfaces/records_repository.dart';
+import '../../bloc/cut_records/cut_records_bloc.dart';
+import '../../bloc/cut_records/cut_records_event.dart';
+import '../../widgets/cut_records_view.dart';
 
 class RecordsListPage extends StatefulWidget {
   final RecordType? initialTab;
@@ -179,9 +182,12 @@ class _RecordsListPageState extends State<RecordsListPage>
               e != RecordType.signinWarehouse &&
               e != RecordType.signoutWarehouse &&
               e != RecordType.inventory && // 盘点记录也只有仓管员可见
-              e != RecordType.builderInventory, // 盘点任务已单独添加
+              e != RecordType.builderInventory && // 盘点任务已单独添加
+              e != RecordType.cut, // 截管记录单独添加
         ),
       );
+      // 在最后追加截管记录tab
+      tabs.add(RecordType.cut);
     }
     _allTabs = tabs;
 
@@ -238,6 +244,29 @@ class _RecordsListPageState extends State<RecordsListPage>
       context.read<InventoryBloc>().add(const InventoryTasksFetched());
     }
 
+    // 如果切换到截管记录tab，不需要通过RecordsBloc处理
+    // CutRecordsView 内部会自动加载数据
+    if (recordType == RecordType.cut) {
+      Logger.debug(
+        'Tab selected: ${recordType.displayName} (handled by CutRecordsBloc)',
+        tag: 'RecordsListPage',
+      );
+      // 仍然需要通知 RecordsBloc 更新 currentTab，但不加载数据
+      context.read<RecordsBloc>().add(
+        SwitchTab(
+          recordType,
+          userId: ids.$1,
+          projectId: ids.$2,
+          tracingContext: TracingContext(
+            source: 'records_list_page',
+            action: 'switch_tab',
+            description: '切换到${recordType.displayName}',
+          ),
+        ),
+      );
+      return;
+    }
+
     // 直接使用简化的追踪上下文，避免嵌套的追踪操作
     context.read<RecordsBloc>().add(
       SwitchTab(
@@ -267,6 +296,12 @@ class _RecordsListPageState extends State<RecordsListPage>
       context.read<InventoryBloc>().add(
         const InventoryTasksFetched(isRefresh: true),
       );
+      return;
+    }
+
+    // 如果是截管记录tab，刷新CutRecordsBloc
+    if (currentTab == RecordType.cut) {
+      context.read<CutRecordsBloc>().add(const RefreshCutRecords());
       return;
     }
 
@@ -346,6 +381,9 @@ class _RecordsListPageState extends State<RecordsListPage>
       case RecordType.builderInventory:
         // 盘点任务导航到盘点详情页
         context.goNamed('inventory-apply', extra: record.id);
+        break;
+      case RecordType.cut:
+        // 截管记录暂时不需要详情页，或者后续可添加
         break;
     }
   }
@@ -532,6 +570,14 @@ class _RecordsListPageState extends State<RecordsListPage>
           currentTab = recordsState.currentTab;
         } else if (recordsState is RecordsEmpty) {
           currentTab = recordsState.currentTab;
+        }
+
+        // 如果是截管记录tab，使用CutRecordsView
+        if (currentTab == RecordType.cut) {
+          return BlocProvider(
+            create: (context) => getIt<CutRecordsBloc>(),
+            child: const CutRecordsView(),
+          );
         }
 
         // 如果是盘点任务tab，使用InventoryBloc的数据

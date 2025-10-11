@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:pipe_code_flutter/bloc/inventory/inventory_bloc.dart';
 import 'package:pipe_code_flutter/bloc/records/records_bloc.dart';
 import 'package:pipe_code_flutter/bloc/session/session_bloc.dart';
+import 'package:pipe_code_flutter/bloc/cut_records/cut_records_bloc.dart';
 import 'package:pipe_code_flutter/cubits/temporary_auth.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/acceptance_repository.dart';
 import 'package:pipe_code_flutter/repositories/interfaces/auth_repository.dart';
@@ -32,6 +33,7 @@ import 'package:pipe_code_flutter/services/api/interfaces/scrap_api_service.dart
 import 'package:pipe_code_flutter/services/api/interfaces/upload_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/map_api_service.dart';
 import 'package:pipe_code_flutter/services/api/interfaces/chanage_password_api_service.dart';
+import 'package:pipe_code_flutter/services/api/interfaces/cut_records_api_service.dart';
 import 'package:pipe_code_flutter/services/api_service_factory.dart';
 import 'package:pipe_code_flutter/services/qr_scan_service.dart';
 import 'package:pipe_code_flutter/services/qr_scan_flow/qr_scan_flow_service.dart';
@@ -188,6 +190,9 @@ Future<void> setupServiceLocator({
   getIt.registerLazySingleton<ProfileApiService>(
     () => ApiServiceFactory.createProfileService(),
   );
+  getIt.registerLazySingleton<CutRecordsApiService>(
+    () => ApiServiceFactory.createCutRecordsService(),
+  );
 
   getIt.registerLazySingleton<DocumentService>(
     () => DocumentServiceFactory.create(),
@@ -311,6 +316,10 @@ Future<void> setupServiceLocator({
       inventoryRepository: getIt<InventoryRepository>(),
       materialHandleRepository: getIt<MaterialHandleRepository>(),
     ),
+  );
+
+  getIt.registerFactory<CutRecordsBloc>(
+    () => CutRecordsBloc(getIt<CutRecordsApiService>()),
   );
 
   getIt.registerFactory<TemporaryAuthCubit>(

@@ -143,6 +143,13 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
   Future<void> _onSwitchTab(SwitchTab event, Emitter<RecordsState> emit) async {
     Logger.info('Switching to tab: ${event.recordType}', tag: 'RecordsBloc');
 
+    // builderInventory 和 cut 由各自独立的 Bloc 处理，这里只更新 currentTab
+    if (event.recordType == RecordType.builderInventory ||
+        event.recordType == RecordType.cut) {
+      emit(RecordsInitial(currentTab: event.recordType));
+      return;
+    }
+
     final operationContext = _tracingManager.createOperationContext(
       source: event.tracingContext.source,
       action: event.tracingContext.action,

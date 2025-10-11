@@ -50,6 +50,9 @@ enum RecordType {
 
   @JsonValue('inventory')
   inventory,
+
+  @JsonValue('cut')
+  cut,
 }
 
 extension RecordTypeExtension on RecordType {
@@ -87,6 +90,8 @@ extension RecordTypeExtension on RecordType {
         return '报废记录';
       case RecordType.inventory:
         return '盘点记录';
+      case RecordType.cut:
+        return '截管记录';
     }
   }
 
@@ -121,6 +126,8 @@ extension RecordTypeExtension on RecordType {
         return '/waste/list';
       case RecordType.inventory:
         return '/stocktaking/list';
+      case RecordType.cut:
+        return '/cut/records'; // Not used, handled by CutRecordsApiService
     }
   }
 
@@ -135,6 +142,7 @@ extension RecordTypeExtension on RecordType {
       case RecordType.signoutWarehouse:
       case RecordType.install:
       case RecordType.dispatch:
+      case RecordType.cut:
         return true;
       default:
         return false;

@@ -58,6 +58,14 @@ class RecordsRepositoryImpl implements RecordsRepository {
       );
     }
 
+    // cut 由 CutRecordsBloc 处理，这里返回空数据
+    if (recordType == RecordType.cut) {
+      return const PagedRecords(
+        records: [],
+        meta: PageMeta(total: 0, size: 10, current: 1),
+      );
+    }
+
     try {
       final cacheKey = _makeCacheKey(
         recordType,

@@ -80,6 +80,8 @@ import 'api/implementations/signin_api_service_impl.dart';
 import 'api/interfaces/qq_lbs_api_service.dart';
 import 'api/implementations/qq_lbs_api_service_impl.dart';
 import 'api/mock/mock_qq_lbs_api_service.dart';
+import 'api/interfaces/cut_records_api_service.dart';
+import 'api/implementations/cut_records_api_service_impl.dart';
 
 /// Whitelist of endpoint patterns (as regular expressions) that require
 /// location data to be injected.
@@ -305,6 +307,11 @@ class ApiServiceFactory {
   static ProfileApiService createProfileService() {
     // TODO: 这里默认一直是Mock，需要后续有服务端接口后补充成具体实现
     return MockProfileApiService();
+  }
+
+  static CutRecordsApiService createCutRecordsService() {
+    final dio = createBaseDio();
+    return CutRecordsApiServiceImpl(dio);
   }
 
   static Dio createBaseDio() {
