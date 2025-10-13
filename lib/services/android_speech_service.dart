@@ -38,7 +38,7 @@ class AndroidSpeechService implements BaseSpeechService {
         apiSecret: 'MTJiMmUxNmUxOWIzMGQxNzgzODgwZjNh',
         language: 'zh_cn',
         domain: 'iat',
-        accent: 'henanese',
+        accent: 'mandarin',
       );
 
       Logger.info('开始初始化讯飞语音识别SDK...', tag: '【speech】');

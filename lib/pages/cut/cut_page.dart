@@ -403,18 +403,7 @@ class _CutViewState extends State<CutView> {
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: TextField(
-          controller: _descriptionController,
-          decoration: const InputDecoration(
-            labelText: '业务描述',
-            hintText: '请输入本次截管业务的描述信息',
-            border: OutlineInputBorder(),
-          ),
-          maxLines: 3,
-          onChanged: (value) =>
-              context.read<CutBloc>().add(CutDescriptionUpdated(value)),
-        ),
-        // child: SpeechInputWidget(
+        // child: TextField(
         //   controller: _descriptionController,
         //   decoration: const InputDecoration(
         //     labelText: '业务描述',
@@ -424,10 +413,21 @@ class _CutViewState extends State<CutView> {
         //   maxLines: 3,
         //   onChanged: (value) =>
         //       context.read<CutBloc>().add(CutDescriptionUpdated(value)),
-        //   onVoiceRecordingPath: (value) {
-        //     context.read<CutBloc>().add(CutDescriptionVoiceUpdated([value]));
-        //   },
         // ),
+        child: SpeechInputWidget(
+          controller: _descriptionController,
+          decoration: const InputDecoration(
+            labelText: '业务描述',
+            hintText: '请输入本次截管业务的描述信息',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 3,
+          onChanged: (value) =>
+              context.read<CutBloc>().add(CutDescriptionUpdated(value)),
+          onVoiceRecordingPath: (value) {
+            context.read<CutBloc>().add(CutDescriptionVoiceUpdated([value]));
+          },
+        ),
       ),
     );
   }

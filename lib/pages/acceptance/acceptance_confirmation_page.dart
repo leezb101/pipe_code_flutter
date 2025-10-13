@@ -649,26 +649,26 @@ class _AcceptanceConfirmationPageState extends State<AcceptanceConfirmationPage>
           children: [
             const Text('请说明驳回原因：'),
             const SizedBox(height: 16),
-            TextField(
-              controller: _remarkController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                hintText: '请输入驳回原因',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            // SpeechInputWidget(
+            // TextField(
             //   controller: _remarkController,
-            //   onVoiceRecordingPath: (filePath) {
-            //     // 录音上传完成，保存路径
-            //     _reasonVoice.add(filePath);
-            //   },
             //   maxLines: 3,
             //   decoration: const InputDecoration(
             //     hintText: '请输入驳回原因',
             //     border: OutlineInputBorder(),
             //   ),
             // ),
+            SpeechInputWidget(
+              controller: _remarkController,
+              onVoiceRecordingPath: (filePath) {
+                // 录音上传完成，保存路径
+                _reasonVoice.add(filePath);
+              },
+              maxLines: 3,
+              decoration: const InputDecoration(
+                hintText: '请输入驳回原因',
+                border: OutlineInputBorder(),
+              ),
+            ),
           ],
         ),
         actions: [

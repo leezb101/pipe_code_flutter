@@ -313,29 +313,29 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
       builder: (context) {
         return AlertDialog(
           title: Text('驳回调拨'),
-          content: TextField(
-            controller: _remarkController,
-            maxLines: 3,
-            decoration: InputDecoration(
-              hintText: '请输入驳回原因',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          // content: SpeechInputWidget(
+          // content: TextField(
           //   controller: _remarkController,
-          //   onVoiceRecordingPath: (filePath) {
-          //     setState(() {
-          //       // 重命名为 returnRemarkVoice 以更清晰地表达其用途
-          //       // _reasonVoice.add(filePath); --- IGNORE ---
-          //       _reasonVoice.add(filePath);
-          //     });
-          //   },
           //   maxLines: 3,
           //   decoration: InputDecoration(
           //     hintText: '请输入驳回原因',
           //     border: OutlineInputBorder(),
           //   ),
           // ),
+          content: SpeechInputWidget(
+            controller: _remarkController,
+            onVoiceRecordingPath: (filePath) {
+              setState(() {
+                // 重命名为 returnRemarkVoice 以更清晰地表达其用途
+                // _reasonVoice.add(filePath); --- IGNORE ---
+                _reasonVoice.add(filePath);
+              });
+            },
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: '请输入驳回原因',
+              border: OutlineInputBorder(),
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () {
