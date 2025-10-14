@@ -345,7 +345,9 @@ class _InstallViewState extends State<InstallView> {
 
   Widget _buildMaterialItem(MaterialVO material) {
     final materialId = material.materialId;
-    final isInstallable = material.status == MaterialStatusEnum.signIn;
+    final isInstallable =
+        MaterialStatusEnum.fromCode(material.status!) ==
+        MaterialStatusEnum.signIn;
 
     // 只有 status 为 10 的材料才需要照片上传和桩号输入
     FileUploadCubit? photoCubit;
@@ -578,7 +580,11 @@ class _InstallViewState extends State<InstallView> {
 
     // 过滤出可安装的材料（status 为 10）
     final installableMaterials = materials
-        .where((m) => m.status == MaterialStatusEnum.signIn)
+        .where(
+          (m) =>
+              MaterialStatusEnum.fromCode(m.status!) ==
+              MaterialStatusEnum.signIn,
+        )
         .toList();
 
     // 如果有非 status 10 的材料，不允许提交
@@ -693,7 +699,11 @@ class _InstallViewState extends State<InstallView> {
 
     // 只处理可安装的材料（status 为 10）
     final installableMaterials = materials
-        .where((m) => m.status == MaterialStatusEnum.signIn)
+        .where(
+          (m) =>
+              MaterialStatusEnum.fromCode(m.status!) ==
+              MaterialStatusEnum.signIn,
+        )
         .toList();
 
     // 构建包含桩号和照片URL的材料列表
