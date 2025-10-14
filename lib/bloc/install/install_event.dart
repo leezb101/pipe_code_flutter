@@ -58,6 +58,16 @@ class AppendScannedMaterial extends InstallEvent {
   List<Object?> get props => [materialInfo];
 }
 
+/// 扫码剔除材料
+class RemoveScannedMaterialsByCodes extends InstallEvent {
+  final List<String> codes;
+
+  const RemoveScannedMaterialsByCodes({required this.codes});
+
+  @override
+  List<Object?> get props => [codes];
+}
+
 /// 恢复到提交前的就绪态（保留用户已添加的材料等）
 class RestorePreviousReady extends InstallEvent {
   const RestorePreviousReady();

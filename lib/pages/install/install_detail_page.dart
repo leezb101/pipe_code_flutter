@@ -15,6 +15,8 @@ import 'package:pipe_code_flutter/models/acceptance/attachment_vo.dart';
 import 'package:pipe_code_flutter/bloc/install/install_bloc.dart';
 import 'package:pipe_code_flutter/bloc/install/install_event.dart';
 import 'package:pipe_code_flutter/bloc/install/install_state.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/install_repository.dart';
+import 'package:pipe_code_flutter/repositories/interfaces/material_handle_repository.dart';
 import 'package:pipe_code_flutter/widgets/common_state_widgets.dart' as common;
 import 'package:pipe_code_flutter/widgets/pdf_previewer/pdf_previewer.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
@@ -28,7 +30,10 @@ class InstallDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<InstallBloc>(
-      create: (context) => InstallBloc(installRepository: getIt()),
+      create: (context) => InstallBloc(
+        installRepository: getIt<InstallRepository>(),
+        materialHandleRepository: getIt<MaterialHandleRepository>(),
+      ),
       child: _InstallDetailPageView(installId: installId),
     );
   }

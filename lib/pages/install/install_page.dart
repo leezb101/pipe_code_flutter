@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pipe_code_flutter/models/material/material_info_base.dart';
+import 'package:pipe_code_flutter/models/common/material_status_enum.dart';
 import 'package:pipe_code_flutter/models/qr_scan/qr_scan_result.dart';
 import '../../bloc/install/install_bloc.dart';
 import '../../bloc/install/install_event.dart';
@@ -22,6 +22,9 @@ import 'package:pipe_code_flutter/cubits/file_upload/file_upload_cubit.dart';
 import 'package:pipe_code_flutter/cubits/file_upload/file_upload_state.dart';
 import 'package:pipe_code_flutter/widgets/unified/unified_ui.dart';
 import 'package:pipe_code_flutter/config/service_locator.dart';
+import 'package:pipe_code_flutter/widgets/unified/unified_components.dart';
+import 'package:pipe_code_flutter/models/qr_scan/qr_scan_config.dart'
+    show QrScanMode, QrScanOperation;
 
 class InstallPage extends StatelessWidget {
   final String? signOutId;
@@ -31,7 +34,10 @@ class InstallPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<InstallBloc>(
-      create: (context) => InstallBloc(installRepository: getIt()),
+      create: (context) => InstallBloc(
+        installRepository: getIt(),
+        materialHandleRepository: getIt(),
+      ),
       child: _InstallPageView(signOutId: signOutId),
     );
   }
@@ -197,18 +203,19 @@ class _InstallViewState extends State<InstallView> {
 
   Widget _buildContent(BuildContext context, InstallReady state) {
     final scannedMaterials = state.materialInfos?.normals ?? [];
+    final scanResults = state.scanResults;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (scannedMaterials.isNotEmpty) ...[
-            _buildMaterialsList(scannedMaterials),
+          if (scanResults.isNotEmpty) ...[
+            _buildScanResultsList(scanResults),
             const SizedBox(height: 16),
           ],
           const SizedBox(height: 16),
-          _buildScanButton(context, scannedMaterials),
+          _buildScanButton(context, scanResults),
           // const SizedBox(height: 16),
           // _buildQualityReportSection(),
           const SizedBox(height: 32),
@@ -229,33 +236,125 @@ class _InstallViewState extends State<InstallView> {
     );
   }
 
-  Widget _buildMaterialsList(List<MaterialInfo> materials) {
+  /// 渲染所有扫码结果（包含正常材料和异常材料）
+  Widget _buildScanResultsList(List<ScanResult> scanResults) {
     return Column(
-      children: materials
-          .map(
-            (m) => MaterialVO(
-              materialId: m.baseInfo.materialId,
-              materialCode: m.baseInfo.materialCode,
-              batchCode: m.baseInfo.batchCode,
-              status: m.baseInfo.status,
-              statusName: m.baseInfo.statusName,
-              materialName: m.baseInfo.prodNm ?? '未知材料',
-              num: 1,
-            ),
-          )
-          .map((material) => _buildMaterialItem(material))
-          .toList(),
+      children: scanResults.map((scanResult) {
+        if (scanResult.normalMaterial != null) {
+          // 渲染正常材料
+          final material = scanResult.normalMaterial!;
+          final materialVO = MaterialVO(
+            materialId: material.baseInfo.materialId,
+            materialCode: material.baseInfo.materialCode,
+            batchCode: material.baseInfo.batchCode,
+            status: material.baseInfo.status,
+            statusName: material.baseInfo.statusName,
+            materialName: material.baseInfo.prodNm ?? '未知材料',
+            num: 1,
+          );
+          return _buildMaterialItem(materialVO);
+        } else if (scanResult.errorMaterial != null) {
+          // 渲染异常材料
+          return _buildErrorMaterialItem(scanResult.errorMaterial);
+        }
+        return const SizedBox.shrink();
+      }).toList(),
     );
+  }
+
+  /// 渲染单个异常材料
+  Widget _buildErrorMaterialItem(dynamic error) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ErrorMaterialSection(
+        errors: [error],
+        title: '扫码异常',
+        collapsible: false,
+        onErrorItemTap: _handleErrorMaterialTap,
+      ),
+    );
+  }
+
+  /// 处理异常材料点击事件
+  void _handleErrorMaterialTap(dynamic error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppTheme.errorColor),
+            const SizedBox(width: 8),
+            const Text('异常材料详情'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildErrorField('二维码', _getErrorField(error, 'qrCode')),
+            _buildErrorField('供应商编码', _getErrorField(error, 'code')),
+            _buildErrorField('供应商名称', _getErrorField(error, 'name')),
+            _buildErrorField('错误信息', _getErrorField(error, 'msg')),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorField(String label, String? value) {
+    if (value == null || value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Expanded(child: Text(value)),
+        ],
+      ),
+    );
+  }
+
+  String? _getErrorField(dynamic error, String field) {
+    if (error is Map<String, dynamic>) {
+      return error[field]?.toString();
+    }
+    try {
+      switch (field) {
+        case 'qrCode':
+          return (error as dynamic).qrCode?.toString();
+        case 'code':
+          return (error as dynamic).code?.toString();
+        case 'name':
+          return (error as dynamic).name?.toString();
+        case 'msg':
+          return (error as dynamic).msg?.toString();
+        default:
+          return null;
+      }
+    } catch (e) {
+      return null;
+    }
   }
 
   Widget _buildMaterialItem(MaterialVO material) {
     final materialId = material.materialId;
-    // 为这个物料动态获取或创建一个Cubit
-    final photoCubit = _getOrCreatePhotoCubit(materialId);
+    final isInstallable = material.status == MaterialStatusEnum.signIn;
 
-    // 确保控制器存在
-    if (!_stakeNumberControllers.containsKey(materialId)) {
-      _stakeNumberControllers[materialId] = TextEditingController();
+    // 只有 status 为 10 的材料才需要照片上传和桩号输入
+    FileUploadCubit? photoCubit;
+    if (isInstallable) {
+      photoCubit = _getOrCreatePhotoCubit(materialId);
+      // 确保控制器存在
+      if (!_stakeNumberControllers.containsKey(materialId)) {
+        _stakeNumberControllers[materialId] = TextEditingController();
+      }
     }
 
     return UnifiedCard(
@@ -272,52 +371,58 @@ class _InstallViewState extends State<InstallView> {
             quantity: material.num,
             status: material.status,
             statusName: material.statusName,
+            validStatus: MaterialStatusEnum.signIn,
             businessType: 'install',
             icon: Icons.build,
             showQuantityBadge: true,
           ),
-          const SizedBox(height: 16),
 
-          // 安装照片部分
-          BlocProvider.value(
-            value: photoCubit,
-            child: BlocBuilder<FileUploadCubit, List<FileUploadState>>(
-              builder: (context, states) {
-                return ImageUploadWidget(
-                  title: '安装照片',
-                  maxImages: 2,
-                  watermarkText: '安装',
-                  includeTimeWatermark: true,
-                  includeLocationWatermark: true,
-                  requiredPhotoCount: 2,
-                  states: states,
-                  onAdd: (files) => photoCubit.addFiles(files),
-                  onRemove: (uniqueId) => photoCubit.removeFile(uniqueId),
-                  onRetry: (uniqueId) => photoCubit.retryUpload(uniqueId),
-                );
+          // 只有 status 为 10 的材料才显示照片上传和桩号输入
+          if (isInstallable && photoCubit != null) ...[
+            const SizedBox(height: 16),
+            // 安装照片部分
+            BlocProvider.value(
+              value: photoCubit,
+              child: BlocBuilder<FileUploadCubit, List<FileUploadState>>(
+                builder: (context, states) {
+                  return ImageUploadWidget(
+                    title: '安装照片',
+                    maxImages: 2,
+                    watermarkText: '安装',
+                    includeTimeWatermark: true,
+                    includeLocationWatermark: true,
+                    requiredPhotoCount: 2,
+                    states: states,
+                    onAdd: (files) => photoCubit!.addFiles(files),
+                    onRemove: (uniqueId) => photoCubit!.removeFile(uniqueId),
+                    onRetry: (uniqueId) => photoCubit!.retryUpload(uniqueId),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            // 桩号输入
+            InfoRow(
+              label: '桩号',
+              value: _materialStakeNumbers[materialId] ?? '请输入桩号',
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _stakeNumberControllers[materialId],
+              decoration: const InputDecoration(
+                hintText: '请输入桩号',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+              ),
+              onChanged: (value) {
+                _materialStakeNumbers[materialId] = value;
+                _recomputeCanSubmit();
               },
             ),
-          ),
-          const SizedBox(height: 16),
-
-          // 桩号输入
-          InfoRow(
-            label: '桩号',
-            value: _materialStakeNumbers[materialId] ?? '请输入桩号',
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _stakeNumberControllers[materialId],
-            decoration: const InputDecoration(
-              hintText: '请输入桩号',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            ),
-            onChanged: (value) {
-              _materialStakeNumbers[materialId] = value;
-              _recomputeCanSubmit();
-            },
-          ),
+          ],
         ],
       ),
     );
@@ -346,24 +451,46 @@ class _InstallViewState extends State<InstallView> {
     );
   }
 
-  Widget _buildScanButton(
-    BuildContext context,
-    List<MaterialInfo> scannedMaterials,
-  ) {
-    return Center(
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.qr_code_scanner),
-        label: Text(scannedMaterials.isEmpty ? '开始扫码添加' : '继续扫码添加'),
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white,
-          backgroundColor: AppTheme.getBusinessColor('install'),
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+  Widget _buildScanButton(BuildContext context, List<ScanResult> scanResults) {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.qr_code_scanner),
+            label: Text(scanResults.isEmpty ? '开始扫码' : '继续扫码'),
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: AppTheme.getBusinessColor('install'),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            onPressed: () => _navigateToQrScan(context),
           ),
         ),
-        onPressed: () => _navigateToQrScan(context),
-      ),
+        if (scanResults.isNotEmpty) ...[
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.remove_circle_outline),
+              label: const Text('扫码剔除'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.warningColor,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              onPressed: () => _navigateToQrScanForRemoval(context),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -419,12 +546,49 @@ class _InstallViewState extends State<InstallView> {
     });
   }
 
+  void _navigateToQrScanForRemoval(BuildContext context) {
+    final config = QrScanConfig(
+      title: '扫码剔除',
+      scanMode: QrScanMode.single,
+      operation: QrScanOperation.remove,
+    );
+
+    context.pushNamed('qr-scan', extra: config).then((result) {
+      if (mounted && result != null && result is List<QrScanResult>) {
+        final codes = result
+            .where((r) => r.code.isNotEmpty)
+            .map((r) => r.code)
+            .toList();
+
+        if (codes.isNotEmpty) {
+          // 触发扫码剔除事件
+          context.read<InstallBloc>().add(
+            RemoveScannedMaterialsByCodes(codes: codes),
+          );
+        }
+      }
+    });
+  }
+
   // 仅基于业务条件判断（不考虑_isSubmitting），供响应式计算与提交前校验复用
   bool _meetsSubmitRequirements(List<MaterialVO> materials) {
     if (materials.isEmpty) return false;
 
-    // 检查每个材料的照片和桩号
-    for (final material in materials) {
+    // 过滤出可安装的材料（status 为 10）
+    final installableMaterials = materials
+        .where((m) => m.status == MaterialStatusEnum.signIn)
+        .toList();
+
+    // 如果有非 status 10 的材料，不允许提交
+    if (installableMaterials.length != materials.length) {
+      return false;
+    }
+
+    // 必须至少有一个可安装的材料
+    if (installableMaterials.isEmpty) return false;
+
+    // 检查每个可安装材料的照片和桩号
+    for (final material in installableMaterials) {
       final materialId = material.materialId;
       final photoCubit = _materialPhotoCubits[materialId];
       if (photoCubit == null) return false; // Cubit还未创建
@@ -462,6 +626,7 @@ class _InstallViewState extends State<InstallView> {
             (m) => MaterialVO(
               materialId: m.baseInfo.materialId,
               materialName: m.baseInfo.prodNm ?? '未知材料',
+              status: m.baseInfo.status,
               num: 1,
             ),
           )
@@ -509,14 +674,30 @@ class _InstallViewState extends State<InstallView> {
     }
 
     if (!_meetsSubmitRequirements(materials)) {
-      context.showErrorToast('请确保所有材料都已上传2张照片、填写了桩号，并上传了质量验收报告');
+      // 检查是否有非 status 10 的材料
+      final hasNonInstallableMaterials = materials.any(
+        (m) =>
+            MaterialStatusEnum.fromCode(m.status!) != MaterialStatusEnum.signIn,
+      );
+      if (hasNonInstallableMaterials) {
+        context.showErrorToast('列表中包含不可安装的材料，请先剔除非已签收状态的材料');
+      } else {
+        context.showErrorToast('请确保所有材料都已上传2张照片并填写了桩号');
+      }
       return;
     }
 
     setState(() => _isSubmitting = true);
 
+    // 只处理可安装的材料（status 为 10）
+    final installableMaterials = materials
+        .where((m) => m.status == MaterialStatusEnum.signIn)
+        .toList();
+
     // 构建包含桩号和照片URL的材料列表
-    final List<MaterialVO> updatedMaterials = materials.map((material) {
+    final List<MaterialVO> updatedMaterials = installableMaterials.map((
+      material,
+    ) {
       final materialId = material.materialId;
       final photoStates = _materialPhotoCubits[materialId]!.state;
       final stakeNumber = _materialStakeNumbers[materialId] ?? '';
