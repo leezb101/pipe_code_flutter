@@ -226,6 +226,8 @@ class _InstallViewState extends State<InstallView> {
                   (m) => MaterialVO(
                     materialId: m.baseInfo.materialId,
                     materialName: m.baseInfo.prodNm ?? '未知材料',
+                    status: m.baseInfo.status,
+                    statusName: m.baseInfo.statusName,
                     num: 1,
                   ),
                 )
