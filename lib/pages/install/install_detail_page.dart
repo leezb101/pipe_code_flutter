@@ -170,13 +170,14 @@ class _InstallDetailPageViewState extends State<_InstallDetailPageView> {
 
   Widget _buildMaterialItem(MaterialVO material) {
     return MaterialListItem(
-      materialName: material.materialName,
+      materialName: material.displayMaterialName,
       primaryText: material.materialCode ?? '无',
       batchCode: material.batchCode ?? '无',
-      materialId: material.materialId.toString(),
-      quantity: material.num,
+      materialId: material.displayMaterialId,
+      quantity: material.displayNum,
       status: material.status,
       statusName: material.statusName,
+      issueDesc: material.issueDesc,
       businessType: 'install',
       icon: Icons.construction,
       trailing: _buildInstallMaterialTrailing(material),

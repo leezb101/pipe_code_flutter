@@ -321,7 +321,12 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
           }
 
           final materialVos = [...?state.materialList, ...appendingMaterials];
-          final totalIds = materialVos.map((m) => m.materialId).toSet();
+          // 过滤掉 null 的 materialId
+          final totalIds = materialVos
+              .map((m) => m.materialId)
+              .where((id) => id != null)
+              .cast<int>()
+              .toSet();
 
           // 构建消息
           final messages = <String>[];
@@ -450,7 +455,11 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
           emit(
             state.copyWith(
               status: DispatchStatus.success,
-              materialIds: materialVos.map((m) => m.materialId).toSet(),
+              materialIds: materialVos
+                  .map((m) => m.materialId)
+                  .where((id) => id != null)
+                  .cast<int>()
+                  .toSet(),
               materialList: materialVos,
               errorMaterials: currentErrorMaterials,
               matchMessage: message,
@@ -614,33 +623,35 @@ class DispatchBloc extends Bloc<DispatchEvent, DispatchState> {
         }
 
         // 获取出库方项目信息
-        try {
-          final sourceProjectResult = await _commonQueryApiService
-              .getProjectByMaterial(materialId);
-          if (sourceProjectResult.isSuccess) {
-            sourceProject = sourceProjectResult.data;
-          } else {
-            sourceProjectError = sourceProjectResult.msg.isEmpty
-                ? '获取出库方项目失败'
-                : sourceProjectResult.msg;
+        if (materialId != null) {
+          try {
+            final sourceProjectResult = await _commonQueryApiService
+                .getProjectByMaterial(materialId);
+            if (sourceProjectResult.isSuccess) {
+              sourceProject = sourceProjectResult.data;
+            } else {
+              sourceProjectError = sourceProjectResult.msg.isEmpty
+                  ? '获取出库方项目失败'
+                  : sourceProjectResult.msg;
+            }
+          } catch (e) {
+            sourceProjectError = e.toString();
           }
-        } catch (e) {
-          sourceProjectError = e.toString();
-        }
 
-        // 获取出库方仓库信息
-        try {
-          final sourceWarehouseResult = await _commonQueryApiService
-              .getWarehouseByMaterial(materialId);
-          if (sourceWarehouseResult.isSuccess) {
-            sourceWarehouse = sourceWarehouseResult.data;
-          } else {
-            sourceWarehouseError = sourceWarehouseResult.msg.isEmpty
-                ? '获取出库方仓库失败'
-                : sourceWarehouseResult.msg;
+          // 获取出库方仓库信息
+          try {
+            final sourceWarehouseResult = await _commonQueryApiService
+                .getWarehouseByMaterial(materialId);
+            if (sourceWarehouseResult.isSuccess) {
+              sourceWarehouse = sourceWarehouseResult.data;
+            } else {
+              sourceWarehouseError = sourceWarehouseResult.msg.isEmpty
+                  ? '获取出库方仓库失败'
+                  : sourceWarehouseResult.msg;
+            }
+          } catch (e) {
+            sourceWarehouseError = '获取出库方仓库异常: ${e.toString()}';
           }
-        } catch (e) {
-          sourceWarehouseError = '获取出库方仓库异常: ${e.toString()}';
         }
 
         emit(

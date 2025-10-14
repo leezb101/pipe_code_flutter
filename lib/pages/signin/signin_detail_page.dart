@@ -249,13 +249,14 @@ class _SigninDetailPageState extends State<SigninDetailPage> {
 
   Widget _buildMaterialItem(MaterialVO material, int index) {
     return MaterialListItem(
-      materialName: material.materialName,
+      materialName: material.displayMaterialName,
       primaryText: material.materialCode ?? '无',
       batchCode: material.batchCode ?? '无',
-      materialId: material.materialId.toString(),
-      quantity: material.num,
+      materialId: material.displayMaterialId,
+      quantity: material.displayNum,
       status: material.status,
       statusName: material.statusName,
+      issueDesc: material.issueDesc,
       businessType: 'signin',
       icon: Icons.inventory_2,
       trailing: _buildMaterialTrailing(material, index),

@@ -349,7 +349,7 @@ class _InstallViewState extends State<InstallView> {
 
     // 只有 status 为 10 的材料才需要照片上传和桩号输入
     FileUploadCubit? photoCubit;
-    if (isInstallable) {
+    if (isInstallable && materialId != null) {
       photoCubit = _getOrCreatePhotoCubit(materialId);
       // 确保控制器存在
       if (!_stakeNumberControllers.containsKey(materialId)) {
@@ -365,7 +365,8 @@ class _InstallViewState extends State<InstallView> {
         children: [
           // 材料信息
           MaterialListItem(
-            materialName: material.materialName,
+            materialName: material.displayMaterialName,
+            issueDesc: material.issueDesc,
             primaryText: material.materialCode ?? '无',
             batchCode: material.batchCode ?? '无',
             quantity: material.num,
@@ -407,21 +408,22 @@ class _InstallViewState extends State<InstallView> {
               value: _materialStakeNumbers[materialId] ?? '请输入桩号',
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: _stakeNumberControllers[materialId],
-              decoration: const InputDecoration(
-                hintText: '请输入桩号',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+            if (materialId != null)
+              TextField(
+                controller: _stakeNumberControllers[materialId],
+                decoration: const InputDecoration(
+                  hintText: '请输入桩号',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                 ),
+                onChanged: (value) {
+                  _materialStakeNumbers[materialId] = value;
+                  _recomputeCanSubmit();
+                },
               ),
-              onChanged: (value) {
-                _materialStakeNumbers[materialId] = value;
-                _recomputeCanSubmit();
-              },
-            ),
           ],
         ],
       ),

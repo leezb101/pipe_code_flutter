@@ -308,12 +308,13 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
     final isScanned = matchedMaterials.contains(material);
 
     return MaterialListItem(
-      materialName: material.materialName,
+      materialName: material.displayMaterialName,
       primaryText: material.materialCode,
       batchCode: material.batchCode,
-      quantity: material.num,
+      quantity: material.displayNum,
       status: material.status,
       statusName: material.statusName,
+      issueDesc: material.issueDesc,
       businessType: 'acceptance',
       onTap: () => _showMaterialDetail(context, material),
       trailing: Icon(
@@ -332,7 +333,7 @@ class _AcceptanceAfterSigninViewState extends State<AcceptanceAfterSigninView> {
       builder: (context) {
         return AlertDialog(
           insetPadding: const EdgeInsets.all(16),
-          title: Text(material.materialName),
+          title: Text(material.displayMaterialName),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,

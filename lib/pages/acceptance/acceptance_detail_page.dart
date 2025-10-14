@@ -246,13 +246,14 @@ class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView>
 
   Widget _buildMaterialItem(MaterialVO material) {
     return MaterialListItem(
-      materialName: material.materialName,
+      materialName: material.displayMaterialName,
       primaryText: material.materialCode,
       batchCode: material.batchCode,
-      materialId: material.materialId.toString(),
-      quantity: material.num,
+      materialId: material.displayMaterialId,
+      quantity: material.displayNum,
       status: material.status,
       statusName: material.statusName,
+      issueDesc: material.issueDesc,
       businessType: 'acceptance',
       trailing: material.installPileNo != null
           ? Container(
@@ -504,7 +505,10 @@ class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView>
       child: Row(
         children: [
           Expanded(
-            child: Text(material.materialName, style: AppTheme.bodyMedium),
+            child: Text(
+              material.displayMaterialName,
+              style: AppTheme.bodyMedium,
+            ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(
@@ -516,7 +520,7 @@ class _AcceptanceDetailPageViewState extends State<_AcceptanceDetailPageView>
               borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
             ),
             child: Text(
-              '${material.num}个',
+              '${material.displayNum}个',
               style: AppTheme.labelSmall.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,

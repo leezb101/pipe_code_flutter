@@ -282,13 +282,14 @@ class _DispatchDetailPageViewState extends State<_DispatchDetailPageView> {
 
   Widget _buildMaterialItem(MaterialVO material) {
     return MaterialListItem(
-      materialName: material.materialName,
+      materialName: material.displayMaterialName,
       primaryText: material.materialCode,
       batchCode: material.batchCode,
-      materialId: material.materialId.toString(),
-      quantity: material.num,
+      materialId: material.displayMaterialId,
+      quantity: material.displayNum,
       status: material.status,
       statusName: material.statusName,
+      issueDesc: material.issueDesc,
       businessType: 'dispatch',
     );
   }

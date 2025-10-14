@@ -225,7 +225,7 @@ class _AcceptanceConfirmationPageState extends State<AcceptanceConfirmationPage>
               acceptanceInfo.materialList.isNotEmpty) ...[
             InfoRow(
               label: '代表性材料',
-              value: acceptanceInfo.materialList.first.materialName,
+              value: acceptanceInfo.materialList.first.displayMaterialName,
             ),
           ],
         ],
@@ -259,14 +259,15 @@ class _AcceptanceConfirmationPageState extends State<AcceptanceConfirmationPage>
 
   Widget _buildMaterialItem(MaterialVO material) {
     return MaterialListItem(
-      materialName: material.materialName,
+      materialName: material.displayMaterialName,
       primaryText: material.materialCode,
       batchCode: material.batchCode,
-      materialId: material.materialId.toString(),
-      quantity: material.num,
+      materialId: material.displayMaterialId,
+      quantity: material.displayNum,
       businessType: 'acceptance',
       status: material.status,
       statusName: material.statusName,
+      issueDesc: material.issueDesc,
       trailing: material.installPileNo != null
           ? Container(
               padding: const EdgeInsets.symmetric(

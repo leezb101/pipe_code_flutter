@@ -391,13 +391,14 @@ class _ScrapPageState extends State<ScrapPage> {
       padding: const EdgeInsets.only(bottom: AppTheme.spacingMedium),
       child: MaterialListItem(
         onTap: () => _showMaterialDetail(context, material),
-        materialName: material.materialName,
+        materialName: material.displayMaterialName,
         primaryText: material.materialCode ?? '无',
         batchCode: material.batchCode ?? '无',
         materialId: material.materialCode ?? '无',
-        quantity: material.num,
+        quantity: material.displayNum,
         status: material.status,
         statusName: material.statusName,
+        issueDesc: material.issueDesc,
         businessType: 'scrap',
         icon: Icons.water_drop,
       ),
@@ -429,7 +430,7 @@ class _ScrapPageState extends State<ScrapPage> {
                     children: [
                       Expanded(
                         child: Text(
-                          material.materialName,
+                          material.displayMaterialName,
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
@@ -452,7 +453,7 @@ class _ScrapPageState extends State<ScrapPage> {
                       children: [
                         InfoRow(
                           label: '材料名称',
-                          value: material.materialName,
+                          value: material.displayMaterialName,
                           icon: Icons.label,
                         ),
                         const SizedBox(height: AppTheme.spacingSmall),

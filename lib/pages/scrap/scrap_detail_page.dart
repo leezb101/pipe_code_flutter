@@ -150,7 +150,7 @@ class _ScrapDetailPageState extends State<ScrapDetailPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        material.materialName,
+                        material.displayMaterialName,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,

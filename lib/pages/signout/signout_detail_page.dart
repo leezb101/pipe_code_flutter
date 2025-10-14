@@ -293,13 +293,14 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
     return Padding(
       padding: EdgeInsets.only(bottom: AppTheme.spacingMedium),
       child: MaterialListItem(
-        materialName: material.materialName,
+        materialName: material.displayMaterialName,
         primaryText: material.materialCode ?? '无',
         batchCode: material.batchCode ?? '无',
-        materialId: material.materialId.toString(),
-        quantity: material.num,
+        materialId: material.displayMaterialId,
+        quantity: material.displayNum,
         status: material.status,
         statusName: material.statusName,
+        issueDesc: material.issueDesc,
         businessType: 'signout',
       ),
     );
@@ -477,7 +478,7 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      material.materialName,
+                      material.displayMaterialName,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -486,7 +487,7 @@ class _SignoutDetailPageState extends State<SignoutDetailPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'ID: ${material.materialId}',
+                      'ID: ${material.displayMaterialId}',
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],

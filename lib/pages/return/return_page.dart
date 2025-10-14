@@ -226,13 +226,14 @@ class _ReturnPageState extends State<ReturnPage> {
   // 通过 MaterialVO 构造展示（追加/移除后的实时列表）
   Widget _buildMaterialItemFromVO(MaterialVO vo) {
     return MaterialListItem(
-      materialName: vo.materialName,
+      materialName: vo.displayMaterialName,
       primaryText: vo.materialCode ?? '无',
       batchCode: vo.batchCode ?? '无',
-      materialId: vo.materialId.toString(),
-      quantity: vo.num,
+      materialId: vo.displayMaterialId,
+      quantity: vo.displayNum,
       status: vo.status,
       statusName: vo.statusName,
+      issueDesc: vo.issueDesc,
       businessType: 'return',
     );
   }

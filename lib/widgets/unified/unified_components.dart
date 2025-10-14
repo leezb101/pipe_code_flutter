@@ -246,6 +246,7 @@ class MaterialListItem extends StatelessWidget {
     this.status,
     this.statusName,
     this.validStatus,
+    this.issueDesc,
   });
 
   /// 材料名称
@@ -306,6 +307,9 @@ class MaterialListItem extends StatelessWidget {
   final String? statusName;
 
   final MaterialStatusEnum? validStatus;
+
+  /// 数据问题描述（用于显示缺失字段等异常信息）
+  final String? issueDesc;
 
   @override
   Widget build(BuildContext context) {
@@ -407,6 +411,44 @@ class MaterialListItem extends StatelessWidget {
                           '重量: $weight',
                           style: AppTheme.bodySmall.copyWith(
                             color: AppTheme.grey600,
+                          ),
+                        ),
+                      ],
+                      // 添加数据问题描述（优先级最高，显示在最顶部）
+                      if (issueDesc != null && issueDesc!.isNotEmpty) ...[
+                        const SizedBox(height: AppTheme.spacingSmall),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppTheme.spacingSmall,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.errorColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.radiusSmall,
+                            ),
+                            border: Border.all(
+                              color: AppTheme.errorColor.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                size: 14,
+                                color: AppTheme.errorColor,
+                              ),
+                              const SizedBox(width: AppTheme.spacingXSmall),
+                              Expanded(
+                                child: Text(
+                                  issueDesc!,
+                                  style: AppTheme.bodySmall.copyWith(
+                                    color: AppTheme.errorColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -926,6 +968,7 @@ class MaterialBusinessDisplay extends StatelessWidget {
     int? quantity;
     int? status;
     String? statusName;
+    String? issueDesc;
 
     if (material is Map<String, dynamic>) {
       materialName =
@@ -941,6 +984,7 @@ class MaterialBusinessDisplay extends StatelessWidget {
       quantity = material['num'] ?? material['quantity'] ?? 1;
       status = material['status'] as int?;
       statusName = material['statusName']?.toString();
+      issueDesc = material['issueDesc']?.toString();
     } else {
       try {
         final baseInfo = (material as dynamic).baseInfo;
@@ -951,6 +995,7 @@ class MaterialBusinessDisplay extends StatelessWidget {
         quantity = 1;
         status = (material as dynamic).status as int?;
         statusName = (material as dynamic).statusName?.toString();
+        issueDesc = (material as dynamic).issueDesc?.toString();
       } catch (e) {
         // 使用默认值
       }
@@ -967,6 +1012,7 @@ class MaterialBusinessDisplay extends StatelessWidget {
       icon: _getBusinessIcon(),
       status: status,
       statusName: statusName,
+      issueDesc: issueDesc,
     );
   }
 

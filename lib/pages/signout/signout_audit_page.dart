@@ -175,13 +175,14 @@ class _SignoutAuditPageState extends State<SignoutAuditPage> {
         children: signoutDetail.materialList
             .map(
               (material) => MaterialListItem(
-                materialName: material.materialName,
+                materialName: material.displayMaterialName,
                 primaryText: material.materialCode ?? '无',
                 batchCode: material.batchCode ?? '无',
-                materialId: material.materialId.toString(),
-                quantity: material.num,
+                materialId: material.displayMaterialId,
+                quantity: material.displayNum,
                 status: material.status,
                 statusName: material.statusName,
+                issueDesc: material.issueDesc,
                 businessType: 'signout',
               ),
             )

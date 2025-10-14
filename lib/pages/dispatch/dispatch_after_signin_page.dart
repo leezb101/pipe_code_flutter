@@ -289,13 +289,14 @@ class _DispatchAfterSigninViewState extends State<DispatchAfterSigninView> {
     final isScanned = matchedMaterials.contains(material);
 
     return MaterialListItem(
-      materialName: material.materialName,
+      materialName: material.displayMaterialName,
       primaryText: material.materialCode,
       batchCode: material.batchCode,
-      quantity: material.num,
+      quantity: material.displayNum,
       businessType: 'dispatch',
       status: material.status,
       statusName: material.statusName,
+      issueDesc: material.issueDesc,
       trailing: Icon(
         isScanned ? Icons.check_circle : Icons.radio_button_unchecked,
         color: isScanned ? AppTheme.getBusinessColor('dispatch') : Colors.grey,

@@ -172,15 +172,16 @@ class _DispatchConfirmationPageState extends State<DispatchConfirmationPage> {
         children: dispatchDetail.materialList
             .map(
               (material) => MaterialListItem(
-                materialName: material.materialName,
+                materialName: material.displayMaterialName,
                 primaryText: material.materialCode,
                 batchCode: material.batchCode,
-                materialId: material.materialId.toString(),
-                quantity: material.num,
+                materialId: material.displayMaterialId,
+                quantity: material.displayNum,
                 status: material.status,
                 statusName: material.statusName,
                 showQuantityBadge: true,
                 businessType: 'dispatch',
+                issueDesc: material.issueDesc,
               ),
             )
             .toList(),

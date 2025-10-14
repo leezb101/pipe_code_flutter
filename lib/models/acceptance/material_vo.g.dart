@@ -7,9 +7,9 @@ part of 'material_vo.dart';
 // **************************************************************************
 
 MaterialVO _$MaterialVOFromJson(Map<String, dynamic> json) => MaterialVO(
-  materialId: (json['materialId'] as num).toInt(),
-  materialName: json['materialName'] as String? ?? '',
-  num: (json['num'] as num?)?.toInt() ?? 1,
+  materialId: (json['materialId'] as num?)?.toInt(),
+  materialName: json['materialName'] as String?,
+  num: (json['num'] as num?)?.toInt(),
   installPileNo: json['installPileNo'] as String?,
   installImageUrl1: json['installImageUrl1'] as String?,
   installImageUrl2: json['installImageUrl2'] as String?,
