@@ -211,7 +211,7 @@ class _SessionGuardState extends State<SessionGuard> {
 
       case SessionError():
         final state = sessionState;
-        return _buildErrorView(context, state.error);
+        return _buildErrorView(context, state);
 
       default:
         return _buildLoadingView('正在加载...');
@@ -450,23 +450,59 @@ class _SessionGuardState extends State<SessionGuard> {
   }
 
   /// 构建错误视图
-  Widget _buildErrorView(BuildContext context, String error) {
+  Widget _buildErrorView(BuildContext context, SessionError errorState) {
     return Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
-            Text('会话初始化失败: $error'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                context.read<SessionBloc>().add(const SessionReloadRequested());
-              },
-              child: const Text('重试'),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              const Text(
+                '操作失败',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2C3E50),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                errorState.error,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16, color: Color(0xFF7F8C8D)),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    GetIt.instance<ImprovedTracingManager>()
+                        .scopeActionWithTitle('返回上一步', () async {
+                          context.read<SessionBloc>().add(
+                            const SessionGoBackFromError(),
+                          );
+                        });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3498DB),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.arrow_back),
+                  label: const Text(
+                    '返回上一步',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

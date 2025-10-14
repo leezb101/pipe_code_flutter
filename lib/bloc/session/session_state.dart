@@ -205,12 +205,36 @@ class SessionProjectEstablished extends SessionState {
 
 /// 会话错误状态
 class SessionError extends SessionState {
-  const SessionError({required this.error});
+  const SessionError({
+    required this.error,
+    this.previousStateType,
+    this.wxLoginVO,
+    this.availableProjects,
+    this.wasAutoSelectingProject = false,
+  });
 
   final String error;
 
+  /// 上一个状态的类型，用于回退
+  final Type? previousStateType;
+
+  /// 用户信息，用于回退时重建状态
+  final WxLoginVO? wxLoginVO;
+
+  /// 可用项目列表，用于回退到项目选择状态
+  final List<ProjectInfo>? availableProjects;
+
+  /// 是否是在自动选择项目时出错
+  final bool wasAutoSelectingProject;
+
   @override
-  List<Object> get props => [error];
+  List<Object?> get props => [
+    error,
+    previousStateType,
+    wxLoginVO,
+    availableProjects,
+    wasAutoSelectingProject,
+  ];
 
   /// 获取错误消息
   String get message => error;

@@ -24,6 +24,9 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
   WxLoginVO? _cachedWxLoginVO;
   TodoRecordItem? _pendingTodoRecord;
 
+  // 用于追踪上一个状态，以便从错误状态回退
+  SessionState? _previousState;
+
   SessionBloc({
     required AuthRepository authRepository,
     required ProjectRepository projectRepository,
@@ -43,6 +46,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     on<SessionClearRequested>(_onClearRequested);
     on<SessionReloadRequested>(_onReloadRequested);
     on<SessionLoadProjectDisplayInfo>(_onLoadProjectDisplayInfo);
+    on<SessionGoBackFromError>(_onGoBackFromError);
   }
 
   /// 初始化会话
@@ -50,6 +54,11 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     SessionInitializeRequested event,
     Emitter<SessionState> emit,
   ) async {
+    final currentState = state;
+    _previousState = currentState is! SessionError
+        ? currentState
+        : _previousState;
+
     emit(const SessionLoading());
     try {
       final wxLoginVO = event.wxLoginVO;
@@ -66,23 +75,27 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
         Logger.debug(
           '检测到管理方用户: admin=${wxLoginVO.admin}, boss=${wxLoginVO.boss}',
         );
+        _previousState = null; // 成功建立会话，清除上一个状态
         emit(SessionAdminEstablished(wxLoginVO: wxLoginVO));
         return;
       }
 
       if (wxLoginVO.storekeeper == true) {
+        _previousState = null;
         emit(SessionIdentitySelectionRequired(wxLoginVO: wxLoginVO));
         return;
       }
 
       final availableProjects = wxLoginVO.projectInfos;
       if (availableProjects.isEmpty) {
+        _previousState = null;
         emit(SessionNoProjectsAvailable(wxLoginVO: wxLoginVO));
         return;
       }
 
       final isFirstLogin = await _authRepository.isFirstLogin();
       if (isFirstLogin) {
+        _previousState = null;
         emit(
           SessionProjectSelectionRequired(
             wxLoginVO: wxLoginVO,
@@ -108,6 +121,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
         }
       }
 
+      _previousState = null;
       emit(
         SessionProjectSelectionRequired(
           wxLoginVO: wxLoginVO,
@@ -115,7 +129,14 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
         ),
       );
     } catch (e) {
-      emit(SessionError(error: e.toString()));
+      emit(
+        SessionError(
+          error: e.toString(),
+          previousStateType: _previousState?.runtimeType,
+          wxLoginVO: _cachedWxLoginVO,
+          availableProjects: _cachedWxLoginVO?.projectInfos ?? [],
+        ),
+      );
     }
   }
 
@@ -125,6 +146,9 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     Emitter<SessionState> emit,
   ) async {
     final currentState = state;
+    _previousState = currentState is! SessionError
+        ? currentState
+        : _previousState;
 
     if (currentState is SessionIdentitySelectionRequired ||
         currentState is SessionStorekeeperEstablished) {
@@ -153,6 +177,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
         final availableProjects = wxLoginVO.projectInfos;
 
         if (availableProjects.isEmpty) {
+          _previousState = null;
           emit(SessionNoProjectsAvailable(wxLoginVO: wxLoginVO));
           return;
         }
@@ -198,6 +223,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
         }
 
         // 未命中自动进入，进入项目选择页
+        _previousState = null;
         emit(
           SessionProjectSelectionRequired(
             wxLoginVO: wxLoginVO,
@@ -205,7 +231,14 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
           ),
         );
       } catch (e) {
-        emit(SessionError(error: e.toString()));
+        emit(
+          SessionError(
+            error: e.toString(),
+            previousStateType: _previousState?.runtimeType,
+            wxLoginVO: _cachedWxLoginVO,
+            availableProjects: _cachedWxLoginVO?.projectInfos ?? [],
+          ),
+        );
       }
     }
   }
@@ -217,6 +250,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
   ) async {
     final currentState = state;
     if (currentState is SessionIdentitySelectionRequired) {
+      _previousState = null;
       emit(SessionStorekeeperEstablished(wxLoginVO: currentState.wxLoginVO));
     }
   }
@@ -226,6 +260,11 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     SessionProjectSelected event,
     Emitter<SessionState> emit,
   ) async {
+    final currentState = state;
+    _previousState = currentState is! SessionError
+        ? currentState
+        : _previousState;
+
     emit(const SessionLoading());
     try {
       final result = await GetIt.instance<ImprovedTracingManager>()
@@ -241,6 +280,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
             wxLoginVO: wxLoginVO,
             currentUserRoleInfo: result.data!,
           );
+          _previousState = null; // 成功建立会话，清除上一个状态
           emit(projectEstablishedState);
           _pendingProjectId = null;
 
@@ -252,13 +292,37 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
           // 自动加载统计信息
           add(const SessionLoadProjectDisplayInfo());
         } else {
-          emit(const SessionError(error: '无法获取用户登录信息'));
+          emit(
+            SessionError(
+              error: '无法获取用户登录信息',
+              previousStateType: _previousState?.runtimeType,
+              wxLoginVO: _cachedWxLoginVO,
+              availableProjects: _cachedWxLoginVO?.projectInfos ?? [],
+            ),
+          );
         }
       } else {
-        emit(SessionError(error: result.msg));
+        // 项目选择失败，标记为自动选择项目失败
+        emit(
+          SessionError(
+            error: result.msg,
+            previousStateType: _previousState?.runtimeType,
+            wxLoginVO: _cachedWxLoginVO,
+            availableProjects: _cachedWxLoginVO?.projectInfos ?? [],
+            wasAutoSelectingProject: true, // 标记这是自动选择项目失败
+          ),
+        );
       }
     } catch (e) {
-      emit(SessionError(error: e.toString()));
+      emit(
+        SessionError(
+          error: e.toString(),
+          previousStateType: _previousState?.runtimeType,
+          wxLoginVO: _cachedWxLoginVO,
+          availableProjects: _cachedWxLoginVO?.projectInfos ?? [],
+          wasAutoSelectingProject: true,
+        ),
+      );
     }
   }
 
@@ -287,6 +351,9 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     Emitter<SessionState> emit,
   ) async {
     final currentState = state;
+    _previousState = currentState is! SessionError
+        ? currentState
+        : _previousState;
 
     if (currentState is SessionProjectEstablished) {
       emit(currentState.copyWith(isSwitching: true));
@@ -306,19 +373,43 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
             currentUserRoleInfo: result.data!,
             pendingTodoRecord: event.pendingTodoRecord,
           );
+          _previousState = null;
           emit(projectEstablishedState);
           _pendingProjectId = null;
 
           // 自动加载统计信息
           add(const SessionLoadProjectDisplayInfo());
         } else {
-          emit(const SessionError(error: '无法获取用户登录信息'));
+          emit(
+            SessionError(
+              error: '无法获取用户登录信息',
+              previousStateType: _previousState?.runtimeType,
+              wxLoginVO: _cachedWxLoginVO,
+              availableProjects: _cachedWxLoginVO?.projectInfos ?? [],
+            ),
+          );
         }
       } else {
-        emit(SessionError(error: result.msg));
+        emit(
+          SessionError(
+            error: result.msg,
+            previousStateType: _previousState?.runtimeType,
+            wxLoginVO: _cachedWxLoginVO,
+            availableProjects: _cachedWxLoginVO?.projectInfos ?? [],
+            wasAutoSelectingProject: true,
+          ),
+        );
       }
     } catch (e) {
-      emit(SessionError(error: e.toString()));
+      emit(
+        SessionError(
+          error: e.toString(),
+          previousStateType: _previousState?.runtimeType,
+          wxLoginVO: _cachedWxLoginVO,
+          availableProjects: _cachedWxLoginVO?.projectInfos ?? [],
+          wasAutoSelectingProject: true,
+        ),
+      );
     }
   }
 
@@ -408,5 +499,88 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
         Logger.error('加载项目统计信息失败: $e', tag: 'SessionBloc');
       }
     }
+  }
+
+  /// 从错误状态返回上一步
+  Future<void> _onGoBackFromError(
+    SessionGoBackFromError event,
+    Emitter<SessionState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! SessionError) return;
+
+    // 如果是自动选择项目失败，清除本地缓存的项目ID
+    if (currentState.wasAutoSelectingProject) {
+      try {
+        // 清除项目缓存，防止下次再自动选择同一个失败的项目
+        await _projectRepository.clearProjectData();
+        Logger.info('已清除自动选择失败的项目缓存', tag: 'SessionBloc');
+      } catch (e) {
+        Logger.error('清除项目缓存失败: $e', tag: 'SessionBloc');
+      }
+    }
+
+    final wxLoginVO = currentState.wxLoginVO ?? _cachedWxLoginVO;
+    final availableProjects =
+        currentState.availableProjects ?? wxLoginVO?.projectInfos ?? [];
+
+    // 根据上一个状态类型决定回退到哪个状态
+    if (currentState.previousStateType == SessionIdentitySelectionRequired) {
+      // 回退到身份选择页
+      if (wxLoginVO != null) {
+        emit(SessionIdentitySelectionRequired(wxLoginVO: wxLoginVO));
+      } else {
+        emit(const SessionError(error: '无法获取用户信息'));
+      }
+    } else if (currentState.previousStateType ==
+        SessionProjectSelectionRequired) {
+      // 回退到项目选择页
+      if (wxLoginVO != null && availableProjects.isNotEmpty) {
+        emit(
+          SessionProjectSelectionRequired(
+            wxLoginVO: wxLoginVO,
+            availableProjects: availableProjects,
+          ),
+        );
+      } else {
+        emit(const SessionError(error: '无法获取项目信息'));
+      }
+    } else if (currentState.previousStateType == SessionLoading) {
+      // 如果上一个状态是加载中，尝试回退到项目选择或身份选择
+      if (wxLoginVO != null) {
+        if (wxLoginVO.storekeeper == true) {
+          emit(SessionIdentitySelectionRequired(wxLoginVO: wxLoginVO));
+        } else if (availableProjects.isNotEmpty) {
+          emit(
+            SessionProjectSelectionRequired(
+              wxLoginVO: wxLoginVO,
+              availableProjects: availableProjects,
+            ),
+          );
+        } else {
+          emit(SessionNoProjectsAvailable(wxLoginVO: wxLoginVO));
+        }
+      }
+    } else {
+      // 默认回退逻辑：优先回到项目选择页，如果没有项目则回到身份选择页
+      if (wxLoginVO != null) {
+        if (availableProjects.isNotEmpty) {
+          emit(
+            SessionProjectSelectionRequired(
+              wxLoginVO: wxLoginVO,
+              availableProjects: availableProjects,
+            ),
+          );
+        } else if (wxLoginVO.storekeeper == true) {
+          emit(SessionIdentitySelectionRequired(wxLoginVO: wxLoginVO));
+        } else {
+          emit(SessionNoProjectsAvailable(wxLoginVO: wxLoginVO));
+        }
+      } else {
+        emit(const SessionError(error: '无法获取用户信息，请重新登录'));
+      }
+    }
+
+    _previousState = null; // 清除上一个状态记录
   }
 }

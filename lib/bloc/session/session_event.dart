@@ -88,6 +88,11 @@ class SessionReloadRequested extends SessionEvent {
   const SessionReloadRequested();
 }
 
+/// 从错误状态返回上一步
+class SessionGoBackFromError extends SessionEvent {
+  const SessionGoBackFromError();
+}
+
 /// 选择项目并携带待处理的导航信息
 class SessionSelectProjectWithPendingNavigation extends SessionEvent {
   const SessionSelectProjectWithPendingNavigation({
