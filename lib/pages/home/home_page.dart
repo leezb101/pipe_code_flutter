@@ -446,8 +446,8 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: _buildStatItem(
                 Icons.check_circle,
-                '已验收',
-                (displayInfo.acceptedCount ?? 0).toString(),
+                '已入库',
+                (displayInfo.signInCount ?? 0).toString(),
                 Colors.green.shade100,
                 Colors.green.shade700,
               ),

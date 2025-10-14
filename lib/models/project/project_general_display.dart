@@ -11,6 +11,9 @@ class ProjectGeneralDisplay extends Equatable {
   /// 验收数量
   final int? acceptedCount;
 
+  /// 已入库数量
+  final int? signInCount;
+
   /// 安装数量
   final int? installedCount;
 
@@ -32,6 +35,7 @@ class ProjectGeneralDisplay extends Equatable {
   const ProjectGeneralDisplay({
     this.totalCount,
     this.acceptedCount,
+    this.signInCount,
     this.installedCount,
     this.cutPipeCount,
     this.rejectedCount,
@@ -49,6 +53,7 @@ class ProjectGeneralDisplay extends Equatable {
   List<Object?> get props => [
     totalCount,
     acceptedCount,
+    signInCount,
     installedCount,
     cutPipeCount,
     rejectedCount,
